@@ -1,2 +1,24 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Normalize all text files to use LF by default
+* text=auto eol=lf
+
+# Force specific extensions to CRLF (e.g., Windows scripts)
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Unity’s YAML-based asset files — use Unity’s YAML merge strategy
+*.asset   merge=unityyaml
+*.meta    merge=unityyaml
+*.prefab  merge=unityyaml
+*.unity   merge=unityyaml
+*.mat     merge=unityyaml
+*.anim    merge=unityyaml
+
+# Mark common binary file types
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+
+# Large file storage (LFS) examples, if needed:
+# *.psd  filter=lfs diff=lfs merge=lfs
+# *.wav  filter=lfs diff=lfs merge=lfs
