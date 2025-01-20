@@ -3,7 +3,7 @@ using UnityEngine;
 public class ShootingBullet : MonoBehaviour
 {
     public GameObject bulletPrefab;
-    public float bulletSpeed = 100f;
+    public float bulletSpeed = 50f;
     public Transform bulletSpawnPoint;
 
     void Update()
