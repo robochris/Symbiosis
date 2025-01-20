@@ -11,13 +11,8 @@ public class ScoreOnHit : MonoBehaviour
         if (collision.gameObject.CompareTag("Bullet"))
         {
             score++;
-            UpdateScoreText();
+            UIManager.Instance.UpdateScore(score);
         }
         
-    }
-
-    void UpdateScoreText()
-    {
-        scoreText.text = "Score: " + score;
     }
 }
