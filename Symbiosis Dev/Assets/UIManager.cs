@@ -1,5 +1,6 @@
 using UnityEngine;
-using TMPro; // if using TextMeshPro
+using TMPro;
+using Unity.VisualScripting.Antlr3.Runtime.Misc; // if using TextMeshPro
 
 public class UIManager : MonoBehaviour
 {
@@ -9,12 +10,14 @@ public class UIManager : MonoBehaviour
     // Assign in Inspector
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI healthText;
+    public TextMeshProUGUI Stats;
 
     private void Awake()
     {
         // Basic singleton pattern
         if (Instance == null)
         {
+            Debug.LogError("UIManager.Instance is null!");
             Instance = this;
         }
         else
@@ -26,6 +29,11 @@ public class UIManager : MonoBehaviour
         // DontDestroyOnLoad(gameObject);
     }
 
+
+    void Update()
+    {
+        Stats.text = "Stats: \nAttack Damage: " + PlayerManagement.Instance.attackDamage+"\n Bullet Speed: "+PlayerManagement.Instance.bulletSpeed;
+    }
     // Public methods to update UI
     public void UpdateScore(int newScore)
     {
