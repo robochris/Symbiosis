@@ -5,6 +5,7 @@ public class ShootingBullet : MonoBehaviour
     public GameObject bulletPrefab;
     public float bulletSpeed = 50f;
     public Transform bulletSpawnPoint;
+    public int damage = 20;
 
     void Update()
     {
@@ -23,6 +24,22 @@ public class ShootingBullet : MonoBehaviour
 
             // Destroy after 3s
             Destroy(bullet, 3f);
+        }
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Enemy")) 
+        {
+            HealthSystem enemyHealth = other.GetComponent<HealthSystem>();
+            if (enemyHealth != null)
+            {
+                enemyHealth.TakeDamage(damage);
+            }
+            Destroy(gameObject);  // Destroy the projectile after dealing damage
+        }
+        else if (other.CompareTag("Obstacle"))
+        {
+            Destroy(gameObject);  // Destroy if it hits an obstacle
         }
     }
 }
