@@ -3,7 +3,6 @@ using UnityEngine;
 public class ShootingBullet : MonoBehaviour
 {
     public GameObject bulletPrefab;
-    public float bulletSpeed = 50f;
     public Transform bulletSpawnPoint;
     public int damage = 20;
 
@@ -20,7 +19,7 @@ public class ShootingBullet : MonoBehaviour
 
             // Apply force relative to the spawn point’s forward direction
             Rigidbody rb = bullet.GetComponent<Rigidbody>();
-            rb.AddForce(bulletSpawnPoint.forward * bulletSpeed, ForceMode.Impulse);
+            rb.AddForce(bulletSpawnPoint.forward * PlayerManagement.Instance.bulletSpeed, ForceMode.Impulse);
 
             // Destroy after 3s
             Destroy(bullet, 3f);
