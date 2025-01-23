@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 8644924143598638485}
   - component: {fileID: -3793684249742088544}
   - component: {fileID: 1835262570891561970}
-  - component: {fileID: -5743845632803288993}
-  m_Layer: 0
+  - component: {fileID: 4956386537838071653}
+  m_Layer: 3
   m_Name: Bullet
   m_TagString: Bullet
   m_Icon: {fileID: 0}
@@ -85,7 +85,7 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &-5743845632803288993
+--- !u!114 &4956386537838071653
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -94,7 +94,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8223224273611838622}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0df9dd3b27dbd064c99db4b786e5efbf, type: 3}
+  m_Script: {fileID: 11500000, guid: eb5f427509e992e4aaabbac139740eab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1001 &3848476322385043140
@@ -152,6 +152,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 9615485c8049c8d4ab3cf66807a38563, type: 3}
       propertyPath: m_Name
       value: Bullet
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9615485c8049c8d4ab3cf66807a38563, type: 3}
+      propertyPath: m_Layer
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
