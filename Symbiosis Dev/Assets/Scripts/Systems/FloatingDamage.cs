@@ -11,12 +11,19 @@ public class FloatingDamage : MonoBehaviour
     [SerializeField] private float fadeDuration = 0.5f;
 
     private System.Action onComplete;
+    private Camera mainCamera;
 
     private void Awake()
     {
         if (damageText == null)
         {
             Debug.LogError("FloatingDamage: damageText is not assigned.");
+        }
+
+        mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            Debug.LogError("FloatingDamage: No main camera found in the scene.");
         }
     }
 
@@ -27,6 +34,16 @@ public class FloatingDamage : MonoBehaviour
         onComplete = callback;
         Debug.Log($"FloatingDamage: Initialized with damage {damageAmount}");
         StartCoroutine(FloatAndFade());
+    }
+
+    private void Update()
+    {
+        if (mainCamera != null)
+        {
+            // Make the floating text face the camera
+            transform.LookAt(mainCamera.transform);
+            transform.Rotate(0, 180f, 0); // Flip to face correctly
+        }
     }
 
     private IEnumerator FloatAndFade()
@@ -47,22 +64,13 @@ public class FloatingDamage : MonoBehaviour
                 damageText.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
             }
 
-            // Optional: Log position and alpha for debugging
-            if (elapsed % 0.2f < Time.deltaTime) // Log every 0.2 seconds
-            {
-                Debug.Log($"FloatingDamage: Position {transform.position}, Alpha {damageText.color.a}");
-            }
-
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        // Reset color
+        // Reset color and return to pool
         damageText.color = originalColor;
-
-        // Invoke callback to return to pool or destroy
         onComplete?.Invoke();
-
         Debug.Log("FloatingDamage: Animation complete, returning to pool.");
     }
 }
