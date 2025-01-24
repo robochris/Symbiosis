@@ -1,14 +1,13 @@
-// Assets/Scripts/Traits/BulletSpeedTrait.cs
+// Assets/Scripts/Traits/IncreaseBulletSpeedTrait.cs
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "New Bullet Speed Trait", menuName = "Traits/BulletSpeed")]
-public class BulletSpeedTrait : Trait
+[CreateAssetMenu(fileName = "IncreaseBulletSpeed", menuName = "Traits/IncreaseBulletSpeed", order = 3)]
+public class IncreaseBulletSpeedTrait : Trait
 {
-    [Header("Bullet Speed Settings")]
-    public float speedIncrease = 5f;
+    public float bulletSpeedIncrease = 2f;
 
     public override void Apply(PlayerManagement player)
     {
-        player.UpgradeBulletSpeed(speedIncrease);
+        player.UpgradeBulletSpeed(bulletSpeedIncrease);
     }
 }

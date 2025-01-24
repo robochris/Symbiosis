@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System;
 
 public class UIManager : MonoBehaviour
 {
@@ -10,7 +11,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private TextMeshProUGUI statsText;
-
     private void Awake()
     {
         // Implement Singleton Pattern
@@ -73,7 +73,10 @@ public class UIManager : MonoBehaviour
     {
         if (statsText != null && PlayerManagement.Instance != null)
         {
-            statsText.text = $"Stats:\nAttack Damage: {PlayerManagement.Instance.attackDamage}\nBullet Speed: {PlayerManagement.Instance.bulletSpeed}";
+            int attackDamage = PlayerManagement.Instance.GetAttackDamage();
+            float bulletSpeed = PlayerManagement.Instance.GetBulletSpeed();
+
+            statsText.text = $"Stats:\nAttack Damage: {attackDamage}\nBullet Speed: {bulletSpeed}";
         }
         else
         {

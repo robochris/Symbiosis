@@ -4,7 +4,8 @@ using UnityEngine;
 public class Stats : ScriptableObject
 {
     public int maxHealth = 100;
-    public int maxMana = 50;
-    public int experience = 0;
+    public int attackDamage = 0;
+    public float bulletSpeed = 0f;
+    public int maxScore = 9999;
     // Add other common stats as needed
 }

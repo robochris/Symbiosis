@@ -1,12 +1,13 @@
+// Assets/Scripts/Systems/ObjectPool.cs
 using UnityEngine;
 using System.Collections.Generic;
 
 public class ObjectPool<T> where T : MonoBehaviour
 {
-    private readonly T prefab;
-    private readonly Transform parent;
-    private readonly Queue<T> objects = new Queue<T>();
-    private readonly int initialSize;
+    private T prefab;
+    private Transform parent;
+    private Queue<T> pool = new Queue<T>();
+    private int initialSize;
 
     public ObjectPool(T prefab, Transform parent, int initialSize)
     {
@@ -14,34 +15,33 @@ public class ObjectPool<T> where T : MonoBehaviour
         this.parent = parent;
         this.initialSize = initialSize;
 
-        // Pre-instantiate objects
         for (int i = 0; i < initialSize; i++)
         {
-            T obj = Object.Instantiate(prefab, parent);
+            T obj = GameObject.Instantiate(prefab, parent);
             obj.gameObject.SetActive(false);
-            objects.Enqueue(obj);
+            pool.Enqueue(obj);
         }
     }
 
-    // Get an object from the pool
     public T GetFromPool()
     {
-        if (objects.Count == 0)
+        if (pool.Count > 0)
+        {
+            T obj = pool.Dequeue();
+            obj.gameObject.SetActive(true);
+            return obj;
+        }
+        else
         {
             // Optionally expand the pool
-            T obj = Object.Instantiate(prefab, parent);
-            obj.gameObject.SetActive(false);
-            objects.Enqueue(obj);
+            T obj = GameObject.Instantiate(prefab, parent);
+            return obj;
         }
-
-        T pooledObj = objects.Dequeue();
-        return pooledObj;
     }
 
-    // Return an object to the pool
     public void ReturnToPool(T obj)
     {
         obj.gameObject.SetActive(false);
-        objects.Enqueue(obj);
+        pool.Enqueue(obj);
     }
 }

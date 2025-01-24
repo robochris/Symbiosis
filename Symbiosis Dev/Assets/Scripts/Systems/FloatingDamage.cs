@@ -25,6 +25,7 @@ public class FloatingDamage : MonoBehaviour
     {
         damageText.text = damageAmount.ToString();
         onComplete = callback;
+        Debug.Log($"FloatingDamage: Initialized with damage {damageAmount}");
         StartCoroutine(FloatAndFade());
     }
 
@@ -36,7 +37,7 @@ public class FloatingDamage : MonoBehaviour
         while (elapsed < floatDuration)
         {
             // Move upwards
-            transform.Translate(floatDirection * floatSpeed * Time.deltaTime);
+            transform.Translate(floatDirection * floatSpeed * Time.deltaTime, Space.World);
 
             // Handle fading
             if (elapsed > (floatDuration - fadeDuration))
@@ -44,6 +45,12 @@ public class FloatingDamage : MonoBehaviour
                 float fadeElapsed = elapsed - (floatDuration - fadeDuration);
                 float alpha = Mathf.Lerp(1f, 0f, fadeElapsed / fadeDuration);
                 damageText.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+            }
+
+            // Optional: Log position and alpha for debugging
+            if (elapsed % 0.2f < Time.deltaTime) // Log every 0.2 seconds
+            {
+                Debug.Log($"FloatingDamage: Position {transform.position}, Alpha {damageText.color.a}");
             }
 
             elapsed += Time.deltaTime;
@@ -55,5 +62,7 @@ public class FloatingDamage : MonoBehaviour
 
         // Invoke callback to return to pool or destroy
         onComplete?.Invoke();
+
+        Debug.Log("FloatingDamage: Animation complete, returning to pool.");
     }
 }

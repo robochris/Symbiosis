@@ -1,7 +1,10 @@
+// Assets/Scripts/FloatingDamageManager.cs
 using UnityEngine;
 
 public class FloatingDamageManager : MonoBehaviour
 {
+    public static FloatingDamageManager Instance { get; private set; }
+
     [SerializeField] private FloatingDamage floatingDamagePrefab; // Assign via Inspector
     [SerializeField] private Transform damageParent;               // Assign via Inspector
     [SerializeField] private int poolSize = 20;                   // Optional: Adjust pool size as needed
@@ -10,6 +13,17 @@ public class FloatingDamageManager : MonoBehaviour
 
     private void Awake()
     {
+        // Implement Singleton Pattern
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            Debug.LogWarning("FloatingDamageManager: Duplicate instance found and destroyed.");
+            return;
+        }
+
+        Instance = this;
+        Debug.Log("FloatingDamageManager: Instance has been set.");
+
         // Validate assignments
         if (floatingDamagePrefab == null)
         {

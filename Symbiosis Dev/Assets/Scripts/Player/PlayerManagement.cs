@@ -5,14 +5,18 @@ public class PlayerManagement : MonoBehaviour
     // Singleton instance
     public static PlayerManagement Instance { get; private set; }
 
-    // Player stats
-    [Header("Player Stats")]
-    public int attackDamage = 10;
-    public float bulletSpeed = 20f;
-    public int health = 100;
+    [Header("Player Configuration")]
+    [SerializeField] private Stats playerStats; // Reference to the Stats ScriptableObject
 
-    private int score;
     private HealthSystem healthSystem;
+    private AttackSystem attackSystem; // Reference to AttackSystem
+
+    // Player dynamic stats (modifiers)
+    private int attackDamageModifier = 0;
+    private float bulletSpeedModifier = 0f;
+
+    // Player dynamic stats
+    private int currentScore;
 
     // Events for UI and other systems
     public event System.Action<int> OnScoreChanged;
@@ -41,12 +45,22 @@ public class PlayerManagement : MonoBehaviour
         }
         else
         {
+            // Assign the playerStats to HealthSystem's stats
+            healthSystem.SetStats(playerStats.maxHealth);
+
             healthSystem.OnHealthChanged += HandleHealthChanged;
-            healthSystem.OnEntityDied += HandlePlayerDied;
+            healthSystem.OnDeath += HandlePlayerDied;
+        }
+
+        // Initialize AttackSystem
+        attackSystem = GetComponent<AttackSystem>();
+        if (attackSystem == null)
+        {
+            Debug.LogError("PlayerManagement: AttackSystem component missing.");
         }
 
         // Initialize score
-        score = 0;
+        currentScore = 0;
     }
 
     private void HandleHealthChanged(int newHealth)
@@ -63,8 +77,9 @@ public class PlayerManagement : MonoBehaviour
     // Methods to modify player stats
     public void AddScore(int amount)
     {
-        score += amount;
-        OnScoreChanged?.Invoke(score);
+        currentScore += amount;
+        currentScore = Mathf.Clamp(currentScore, 0, playerStats.maxScore);
+        OnScoreChanged?.Invoke(currentScore);
     }
 
     public void TakeDamage(int damage)
@@ -85,16 +100,42 @@ public class PlayerManagement : MonoBehaviour
 
     public void UpgradeAttackDamage(int amount)
     {
-        attackDamage += amount;
-        Debug.Log($"PlayerManagement: Attack Damage increased by {amount}. New Attack Damage: {attackDamage}");
+        attackDamageModifier += amount;
+        Debug.Log($"PlayerManagement: Attack Damage increased by {amount}. New Attack Damage Modifier: {attackDamageModifier}");
+        OnStatsChanged?.Invoke();
         // Update UI or other dependent systems here
     }
 
     public void UpgradeBulletSpeed(float amount)
     {
-        bulletSpeed += amount;
-        Debug.Log($"PlayerManagement: Bullet Speed increased by {amount}. New Bullet Speed: {bulletSpeed}");
+        bulletSpeedModifier += amount;
+        Debug.Log($"PlayerManagement: Bullet Speed increased by {amount}. New Bullet Speed Modifier: {bulletSpeedModifier}");
+        OnStatsChanged?.Invoke();
         // Update UI or other dependent systems here
+    }
+
+    public void UpgradeFireRate(float amount)
+    {
+        if (attackSystem != null)
+        {
+            attackSystem.UpgradeFireRate(amount);
+            Debug.Log($"PlayerManagement: Fire Rate upgraded by {amount}.");
+        }
+        else
+        {
+            Debug.LogError("PlayerManagement: AttackSystem reference is missing.");
+        }
+    }
+
+    // Getters for stats, considering modifiers
+    public int GetAttackDamage()
+    {
+        return playerStats.attackDamage + attackDamageModifier;
+    }
+
+    public float GetBulletSpeed()
+    {
+        return playerStats.bulletSpeed + bulletSpeedModifier;
     }
 
     // Getter for current health
@@ -106,6 +147,6 @@ public class PlayerManagement : MonoBehaviour
     // Getter for score
     public int GetScore()
     {
-        return score;
+        return currentScore;
     }
 }

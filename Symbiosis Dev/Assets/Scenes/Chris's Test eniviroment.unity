@@ -750,6 +750,7 @@ GameObject:
   - component: {fileID: 587683680}
   - component: {fileID: 587683684}
   - component: {fileID: 587683685}
+  - component: {fileID: 587683686}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -872,7 +873,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc5ca9c43f6b589498a1295bb8ce2990, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stats: {fileID: 11400000, guid: 15a41d3042e051d408ce04619b92eb39, type: 2}
+  maxHealth: 100
+--- !u!114 &587683686
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 587683679}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c27d02239dc6fa41ada6c8dda3f1945, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enemyStats: {fileID: 11400000, guid: 15a41d3042e051d408ce04619b92eb39, type: 2}
 --- !u!90 &686792285
 Avatar:
   m_ObjectHideFlags: 0
@@ -1733,9 +1747,9 @@ GameObject:
   - component: {fileID: 1757070111}
   - component: {fileID: 1757070110}
   - component: {fileID: 1757070109}
-  - component: {fileID: 1757070115}
   - component: {fileID: 1757070117}
   - component: {fileID: 1757070116}
+  - component: {fileID: 1757070118}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -1871,23 +1885,6 @@ Transform:
   - {fileID: 813539337}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1757070115
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1757070108}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1667e4beb6206f142b51c12dc443f794, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  bulletPrefab: {fileID: 8223224273611838622, guid: 7db4dd4885f953b42b04cc64b9aad1cb, type: 3}
-  firePoint: {fileID: 813539337}
-  bulletSpeedMultiplier: 1
-  bulletDamageMultiplier: 1
-  bulletPool: {fileID: 1139554023}
 --- !u!114 &1757070116
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1900,7 +1897,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc5ca9c43f6b589498a1295bb8ce2990, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stats: {fileID: 11400000, guid: f718e85114a23e244a853c54af92fa93, type: 2}
+  maxHealth: 100
 --- !u!114 &1757070117
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1913,9 +1910,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2f8723130be57b4d9ce990731421630, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackDamage: 10
-  bulletSpeed: 10
-  health: 100
+  playerStats: {fileID: 11400000, guid: f718e85114a23e244a853c54af92fa93, type: 2}
+--- !u!114 &1757070118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1757070108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a507bcd315dabc14f9e388ca8c51b7f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bulletPrefab: {fileID: 8223224273611838622, guid: 7db4dd4885f953b42b04cc64b9aad1cb, type: 3}
+  firePoint: {fileID: 813539337}
+  bulletPool: {fileID: 1139554023}
+  fireRate: 0.5
 --- !u!1 &1869793979
 GameObject:
   m_ObjectHideFlags: 0
@@ -2098,6 +2109,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 431541285972419805, guid: 94aca1ac995d6db4aa61583054e5799b, type: 3}
+      propertyPath: traits.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 431541285972419805, guid: 94aca1ac995d6db4aa61583054e5799b, type: 3}
+      propertyPath: 'traits.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: cbf008b86362f7b4484eb23eccdb7c05, type: 2}
     - target: {fileID: 1519835876742759567, guid: 94aca1ac995d6db4aa61583054e5799b, type: 3}
       propertyPath: m_Name
       value: BulletSpeedIncrease
@@ -2155,6 +2174,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3458572668607231642, guid: dac101e0c7ba1104aa644e0bd394c237, type: 3}
+      propertyPath: traits.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3458572668607231642, guid: dac101e0c7ba1104aa644e0bd394c237, type: 3}
+      propertyPath: 'traits.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 1cbdc87ea53188c4d87264de91539e15, type: 2}
     - target: {fileID: 6978057029581172073, guid: dac101e0c7ba1104aa644e0bd394c237, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1972

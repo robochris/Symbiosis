@@ -1,56 +1,37 @@
+// Assets/Scripts/Systems/HealthSystem.cs
 using UnityEngine;
 
-public class HealthSystem : MonoBehaviour, IDamageable
+public class HealthSystem : MonoBehaviour, IDamageable, IHealable, IHealthInfo, IDeathtable
 {
-    [SerializeField] private Stats stats;  // Assign via Inspector
-
+    [SerializeField] private int maxHealth = 100;
     private int currentHealth;
-
-    // Reference to FloatingDamageManager
-    private FloatingDamageManager floatingDamageManager;
 
     // Events to notify other systems
     public event System.Action<int> OnHealthChanged;
-    public event System.Action OnEntityDied;
+    public event System.Action OnDeath;
 
     private void Awake()
     {
-        if (stats == null)
-        {
-            Debug.LogError($"HealthSystem: Stats not assigned on {gameObject.name}.");
-            return;
-        }
-
-        InitializeHealth();
-
-        // Find the FloatingDamageManager in the scene
-        floatingDamageManager = Object.FindFirstObjectByType<FloatingDamageManager>();
-        if (floatingDamageManager == null)
-        {
-            Debug.LogError("HealthSystem: FloatingDamageManager not found in the scene.");
-        }
-    }
-
-    // Initialize health based on assigned Stats
-    public void InitializeHealth()
-    {
-        currentHealth = stats.maxHealth;
-        OnHealthChanged?.Invoke(currentHealth);
+        currentHealth = maxHealth;
     }
 
     // Implementing IDamageable
     public void TakeDamage(int damage)
     {
         currentHealth -= damage;
-        currentHealth = Mathf.Max(currentHealth, 0);
-        Debug.Log($"{gameObject.name} took {damage} damage. Current health: {currentHealth}");
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        Debug.Log($"{gameObject.name} took {damage} damage. Current Health: {currentHealth}");
         OnHealthChanged?.Invoke(currentHealth);
 
         // Trigger floating damage
-        if (floatingDamageManager != null)
+        if (FloatingDamageManager.Instance != null)
         {
-            Vector3 damagePosition = transform.position + Vector3.up * 2f;  // Adjust as needed
-            floatingDamageManager.SpawnFloatingDamage(damagePosition, damage);
+            Vector3 damagePosition = transform.position + Vector3.up * 1.5f; // Adjust as needed
+            FloatingDamageManager.Instance.SpawnFloatingDamage(damagePosition, damage);
+        }
+        else
+        {
+            Debug.LogError("HealthSystem: FloatingDamageManager instance not found.");
         }
 
         if (currentHealth <= 0)
@@ -59,14 +40,16 @@ public class HealthSystem : MonoBehaviour, IDamageable
         }
     }
 
+    // Implementing IHealable
     public void Heal(int amount)
     {
         currentHealth += amount;
-        currentHealth = Mathf.Min(currentHealth, stats.maxHealth);
-        Debug.Log($"{gameObject.name} healed by {amount}. Current health: {currentHealth}");
+        currentHealth = Mathf.Min(currentHealth, maxHealth);
+        Debug.Log($"{gameObject.name} healed by {amount}. Current Health: {currentHealth}");
         OnHealthChanged?.Invoke(currentHealth);
     }
 
+    // Implementing IHealthInfo
     public int GetCurrentHealth()
     {
         return currentHealth;
@@ -74,13 +57,23 @@ public class HealthSystem : MonoBehaviour, IDamageable
 
     public int GetMaxHealth()
     {
-        return stats.maxHealth;
+        return maxHealth;
     }
 
-    private void Die()
+    // Implementing IDeathtable
+    public void Die()
     {
         Debug.Log($"{gameObject.name} has died.");
-        OnEntityDied?.Invoke();
-        Destroy(gameObject);  // Or handle death differently (animations, effects, etc.)
+        OnDeath?.Invoke();
+        // Handle death logic (e.g., play animation, drop loot)
+        Destroy(gameObject);
+    }
+
+    // Method to set stats (useful for initializing with different stats)
+    public void SetStats(int newMaxHealth)
+    {
+        maxHealth = newMaxHealth;
+        currentHealth = maxHealth;
+        OnHealthChanged?.Invoke(currentHealth);
     }
 }

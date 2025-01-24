@@ -3,13 +3,14 @@ using UnityEngine;
 
 public class ShootingBullet : MonoBehaviour
 {
+
     [Header("Bullet Settings")]
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform firePoint;
     [SerializeField] private float bulletSpeedMultiplier = 1f; // Allows traits to modify bullet speed
     [SerializeField] private int bulletDamageMultiplier = 1;    // Allows traits to modify bullet damage
     [SerializeField] private BulletPool bulletPool; // Reference to the BulletPool
-
+    [SerializeField] private Stats playerStats;
     // Cached player stats
     private float currentBulletSpeed;
     private int currentBulletDamage;
@@ -40,8 +41,8 @@ public class ShootingBullet : MonoBehaviour
     private void UpdateBulletStats()
     {
         // Fetch updated stats from PlayerManagement
-        currentBulletSpeed = PlayerManagement.Instance.bulletSpeed * bulletSpeedMultiplier;
-        currentBulletDamage = PlayerManagement.Instance.attackDamage * bulletDamageMultiplier;
+        currentBulletSpeed = playerStats.bulletSpeed * bulletSpeedMultiplier;
+        currentBulletDamage = playerStats.attackDamage * bulletDamageMultiplier;
 
         Debug.Log($"ShootingBullet: Updated bullet speed to {currentBulletSpeed} and damage to {currentBulletDamage}.");
     }

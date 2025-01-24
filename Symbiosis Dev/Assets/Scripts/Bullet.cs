@@ -6,18 +6,13 @@ public class Bullet : MonoBehaviour, IBullet
     private int damage;
     private BulletPool bulletPool;
 
-    /// <summary>
-    /// Initializes the bullet with damage and speed.
-    /// </summary>
-    /// <param name="damageAmount">Damage value of the bullet.</param>
-    /// <param name="speed">Speed at which the bullet moves.</param>
     public void Initialize(int damageAmount, float speed)
     {
         damage = damageAmount;
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.linearVelocity = transform.forward * speed;
+            rb.linearVelocity = transform.forward * speed; // Use velocity instead of linearVelocity for consistency
         }
         else
         {
@@ -25,10 +20,6 @@ public class Bullet : MonoBehaviour, IBullet
         }
     }
 
-    /// <summary>
-    /// Assigns the BulletPool to return this bullet to after use.
-    /// </summary>
-    /// <param name="pool">The BulletPool managing this bullet.</param>
     public void SetPool(BulletPool pool)
     {
         bulletPool = pool;
@@ -36,12 +27,13 @@ public class Bullet : MonoBehaviour, IBullet
 
     private void OnCollisionEnter(Collision collision)
     {
-        // Example collision handling (e.g., applying damage to enemies)
-        // Enemy enemy = collision.gameObject.GetComponent<Enemy>();
-        // if (enemy != null)
-        // {
-        //     enemy.TakeDamage(damage);
-        // }
+        // Apply damage to enemies
+        IDamageable damageable = collision.gameObject.GetComponent<IDamageable>();
+        if (damageable != null)
+        {
+            damageable.TakeDamage(damage);
+            Debug.Log($"Bullet: Applied {damage} damage to {collision.gameObject.name}.");
+        }
 
         // Return the bullet to the pool for reuse
         if (bulletPool != null)

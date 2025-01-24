@@ -1,13 +1,13 @@
+// Assets/Scripts/Traits/IncreaseAttackDamageTrait.cs
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "New Attack Damage Trait", menuName = "Traits/AttackDamage")]
-public class AttackDamageTrait : Trait
+[CreateAssetMenu(fileName = "IncreaseAttackDamage", menuName = "Traits/IncreaseAttackDamage", order = 2)]
+public class IncreaseAttackDamageTrait : Trait
 {
-    [Header("Attack Damage Settings")]
-    public int damageIncrease = 10;
+    public int attackDamageIncrease = 5;
 
     public override void Apply(PlayerManagement player)
     {
-        player.UpgradeAttackDamage(damageIncrease);
+        player.UpgradeAttackDamage(attackDamageIncrease);
     }
 }
