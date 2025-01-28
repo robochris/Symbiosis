@@ -1,9 +1,10 @@
 // Assets/Scripts/Systems/HealthSystem.cs
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class HealthSystem : MonoBehaviour, IDamageable, IHealable, IHealthInfo, IDeathtable
 {
-    [SerializeField] private int maxHealth = 100;
+    [SerializeField] private Stats playerStats;
     private int currentHealth;
 
     // Events to notify other systems
@@ -12,14 +13,14 @@ public class HealthSystem : MonoBehaviour, IDamageable, IHealable, IHealthInfo, 
 
     private void Awake()
     {
-        currentHealth = maxHealth;
+        currentHealth = playerStats.maxHealth;
     }
 
     // Implementing IDamageable
     public void TakeDamage(int damage)
     {
         currentHealth -= damage;
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        currentHealth = Mathf.Clamp(currentHealth, 0, playerStats.maxHealth);
         Debug.Log($"{gameObject.name} took {damage} damage. Current Health: {currentHealth}");
         OnHealthChanged?.Invoke(currentHealth);
 
@@ -44,7 +45,7 @@ public class HealthSystem : MonoBehaviour, IDamageable, IHealable, IHealthInfo, 
     public void Heal(int amount)
     {
         currentHealth += amount;
-        currentHealth = Mathf.Min(currentHealth, maxHealth);
+        currentHealth = Mathf.Min(currentHealth, playerStats.maxHealth);
         Debug.Log($"{gameObject.name} healed by {amount}. Current Health: {currentHealth}");
         OnHealthChanged?.Invoke(currentHealth);
     }
@@ -57,7 +58,7 @@ public class HealthSystem : MonoBehaviour, IDamageable, IHealable, IHealthInfo, 
 
     public int GetMaxHealth()
     {
-        return maxHealth;
+        return playerStats.maxHealth;
     }
 
     // Implementing IDeathtable
@@ -72,8 +73,8 @@ public class HealthSystem : MonoBehaviour, IDamageable, IHealable, IHealthInfo, 
     // Method to set stats (useful for initializing with different stats)
     public void SetStats(int newMaxHealth)
     {
-        maxHealth = newMaxHealth;
-        currentHealth = maxHealth;
+        playerStats.maxHealth = newMaxHealth;
+        currentHealth = playerStats.maxHealth;
         OnHealthChanged?.Invoke(currentHealth);
     }
 }

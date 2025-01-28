@@ -7,7 +7,10 @@ public class AttackSystem : MonoBehaviour
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform firePoint;
     [SerializeField] private BulletPool bulletPool; // Reference to the BulletPool
-    [SerializeField] private float fireRate = 0.5f; // Time between shots
+    [SerializeField] private Stats playerStats;
+
+
+    private float fireRateModifier = 0f; // Time between shots
     private float nextFireTime = 0f;
 
     private PlayerManagement playerManagement;
@@ -46,7 +49,7 @@ public class AttackSystem : MonoBehaviour
         if (Input.GetButtonDown("Fire1") && Time.time >= nextFireTime)
         {
             Shoot();
-            nextFireTime = Time.time + fireRate;
+            nextFireTime = Time.time + playerManagement.GetFireRateSpeed();
         }
     }
 
@@ -88,9 +91,4 @@ public class AttackSystem : MonoBehaviour
     }
 
     // Optional: Method to handle upgrades that affect attack rate
-    public void UpgradeFireRate(float amount)
-    {
-        fireRate = Mathf.Max(0.1f, fireRate - amount); // Ensure fireRate doesn't go below 0.1f
-        Debug.Log($"AttackSystem: Fire Rate decreased by {amount}. New Fire Rate: {fireRate}");
-    }
 }

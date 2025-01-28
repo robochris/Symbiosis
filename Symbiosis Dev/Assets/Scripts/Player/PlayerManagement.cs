@@ -14,6 +14,7 @@ public class PlayerManagement : MonoBehaviour
     // Player dynamic stats (modifiers)
     private int attackDamageModifier = 0;
     private float bulletSpeedModifier = 0f;
+    private float fireRateModifier = 0f;
 
     // Player dynamic stats
     private int currentScore;
@@ -116,15 +117,7 @@ public class PlayerManagement : MonoBehaviour
 
     public void UpgradeFireRate(float amount)
     {
-        if (attackSystem != null)
-        {
-            attackSystem.UpgradeFireRate(amount);
-            Debug.Log($"PlayerManagement: Fire Rate upgraded by {amount}.");
-        }
-        else
-        {
-            Debug.LogError("PlayerManagement: AttackSystem reference is missing.");
-        }
+        fireRateModifier += amount;
     }
 
     // Getters for stats, considering modifiers
@@ -136,6 +129,11 @@ public class PlayerManagement : MonoBehaviour
     public float GetBulletSpeed()
     {
         return playerStats.bulletSpeed + bulletSpeedModifier;
+    }
+
+    public float GetFireRateSpeed()
+    {
+        return playerStats.fireRate + fireRateModifier;
     }
 
     // Getter for current health
