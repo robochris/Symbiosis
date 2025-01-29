@@ -1,12 +1,15 @@
-// Assets/Scripts/Enemies/Enemy.cs
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Enemy : MonoBehaviour, IDamageable
 {
     [SerializeField] private Stats enemyStats; // Reference to a Stats ScriptableObject for enemies
 
+    [Header("Health System")]
     private HealthSystem healthSystem;
 
+    [Header("Enemy Loot Settings")]
+    public LootTable lootTable;
     private void Awake()
     {
         healthSystem = GetComponent<HealthSystem>();
@@ -55,8 +58,16 @@ public class Enemy : MonoBehaviour, IDamageable
 
     private void HandleEnemyDied()
     {
-        Debug.Log($"{gameObject.name} has died.");
-        // Handle death (e.g., drop loot, play animation, etc.)
+        List<GameObject> drops = lootTable.GetDrops();
+
+        // 2. Spawn each drop at this position
+        foreach (GameObject drop in drops)
+        {
+            Instantiate(drop, transform.position, Quaternion.identity);
+        }
+
+        // 3. Destroy or disable the enemy
+        Debug.Log($"{gameObject.name} has died");
         Destroy(gameObject);
     }
 }

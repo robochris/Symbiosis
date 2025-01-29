@@ -1,12 +1,17 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "Stats", menuName = "ScriptableObjects/Stats/BaseStats", order = 1)]
+[CreateAssetMenu(fileName = "BasePlayerStats", menuName = "Stats/BasePlayerStats", order = 1)]
 public class Stats : ScriptableObject
 {
+    [Header("Health")]
     public int maxHealth = 100;
-    public int attackDamage = 0;
-    public float bulletSpeed = 0f;
-    public int maxScore = 9999;
-    public float fireRate = 0f;
-    // Add other common stats as needed
+
+    [Header("Attack & Weapon")]
+    public GameObject defaultBulletPrefab;
+    public int attackDamage = 10;
+    public float fireRate = 1f;
+    public float bulletSpeed = 5f;
+
+    [Header("Misc")]
+    public int maxScore = 999999;
 }

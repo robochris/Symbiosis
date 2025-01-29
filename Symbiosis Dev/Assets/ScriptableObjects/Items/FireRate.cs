@@ -2,7 +2,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "IncreaseFireRate", menuName = "Traits/IncreaseFireRate", order = 3)]
-public class IncreaseIncreaseFireRate : Trait
+public class IncreaseIncreaseFireRate : ItemData
 {
     public float fireRateIncrease = 2f;
 

@@ -3,18 +3,30 @@ using UnityEngine;
 
 public class AttackSystem : MonoBehaviour
 {
+    public static AttackSystem Instance { get; private set; }
+
     [Header("Attack Settings")]
-    [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform firePoint;
     [SerializeField] private BulletPool bulletPool; // Reference to the BulletPool
     [SerializeField] private Stats playerStats;
 
-
-    private float fireRateModifier = 0f; // Time between shots
     private float nextFireTime = 0f;
 
     private PlayerManagement playerManagement;
+    private GameObject bulletPrefab;
 
+    private void Start()
+    {
+        if (playerStats.defaultBulletPrefab == null)
+        {
+            Debug.LogError("AttackSystem: BulletPrefab is not assigned.");
+        }
+        else
+        {
+            // Store the default bullet
+            bulletPrefab = playerStats.defaultBulletPrefab;
+        }
+    }
     private void Awake()
     {
         // Get reference to PlayerManagement
@@ -34,12 +46,6 @@ public class AttackSystem : MonoBehaviour
         if (firePoint == null)
         {
             Debug.LogError("AttackSystem: FirePoint is not assigned.");
-        }
-
-        // Validate bulletPrefab
-        if (bulletPrefab == null)
-        {
-            Debug.LogError("AttackSystem: BulletPrefab is not assigned.");
         }
     }
 
@@ -62,7 +68,7 @@ public class AttackSystem : MonoBehaviour
         }
 
         // Get a bullet from the pool
-        GameObject bulletObj = bulletPool.GetBullet();
+        GameObject bulletObj = bulletPool.GetBullet(bulletPrefab);
         if (bulletObj != null)
         {
             bulletObj.transform.position = firePoint.position;
@@ -88,7 +94,16 @@ public class AttackSystem : MonoBehaviour
         }
 
         Debug.Log("AttackSystem: Fired a bullet.");
+
     }
 
-    // Optional: Method to handle upgrades that affect attack rate
+    public void SetBulletPrefab(GameObject newPrefab)
+    {
+        bulletPrefab = newPrefab;
+    }
+
+    public GameObject GetCurrentBulletPrefab()
+    {
+        return bulletPrefab;
+    }
 }

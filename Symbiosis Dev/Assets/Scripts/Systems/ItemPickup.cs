@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 public class ItemPickup : MonoBehaviour
 {
-    [Header("Trait Settings")]
+    [Header("Item Settings")]
     [Tooltip("Assign one or more traits to this item.")]
-    public List<Trait> traits = new List<Trait>(); // Assign via Inspector
+    public List<ItemData> activeItems = new List<ItemData>(); // Assign via Inspector
 
     [Header("Respawn Settings")]
     public float respawnTime = 3f;
@@ -27,14 +27,14 @@ public class ItemPickup : MonoBehaviour
                 return;
             }
 
-            if (traits != null && traits.Count > 0)
+            if (activeItems != null && activeItems.Count > 0)
             {
-                foreach (var trait in traits)
+                foreach (var currentItem in activeItems)
                 {
-                    if (trait != null)
+                    if (currentItem != null)
                     {
-                        trait.Apply(PlayerManagement.Instance);
-                        Debug.Log($"ItemPickup: Applied {trait.traitName} to player.");
+                        currentItem.Apply(PlayerManagement.Instance);
+                        Debug.Log($"ItemPickup: Applied {currentItem.itemName} to player.");
                     }
                     else
                     {

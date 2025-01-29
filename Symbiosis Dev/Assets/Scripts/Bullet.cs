@@ -1,22 +1,23 @@
-// Assets/Scripts/Bullet.cs
 using UnityEngine;
 
 public class Bullet : MonoBehaviour, IBullet
 {
     private int damage;
+    private float speed;
     private BulletPool bulletPool;
 
-    public void Initialize(int damageAmount, float speed)
+    // This tracks which prefab the bullet was instantiated from
+    private GameObject originalPrefab;
+
+    public void Initialize(int damageAmount, float speedAmount)
     {
         damage = damageAmount;
+        speed = speedAmount;
+
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.linearVelocity = transform.forward * speed; // Use velocity instead of linearVelocity for consistency
-        }
-        else
-        {
-            Debug.LogWarning("Bullet: Rigidbody component missing.");
+            rb.linearVelocity= transform.forward * speed;
         }
     }
 
@@ -25,29 +26,29 @@ public class Bullet : MonoBehaviour, IBullet
         bulletPool = pool;
     }
 
+    // Called by the pool to store the prefab reference
+    public void SetOriginalPrefab(GameObject prefab)
+    {
+        originalPrefab = prefab;
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
-        // Apply damage to enemies
+        // Example damage logic...
         IDamageable damageable = collision.gameObject.GetComponent<IDamageable>();
         if (damageable != null)
         {
             damageable.TakeDamage(damage);
-            Debug.Log($"Bullet: Applied {damage} damage to {collision.gameObject.name}.");
         }
 
-        // Return the bullet to the pool for reuse
-        if (bulletPool != null)
+        // Return the bullet to the pool
+        if (bulletPool != null && originalPrefab != null)
         {
-            bulletPool.ReturnBullet(gameObject);
+            bulletPool.ReturnBullet(gameObject, originalPrefab);
         }
         else
         {
-            // If no pool is assigned, destroy the bullet to prevent clutter
             Destroy(gameObject);
         }
-
-        Debug.Log("Bullet: Collided and returned to pool.");
     }
-
-    // Optional: Add additional behavior (e.g., lifespan, effects) as needed
 }

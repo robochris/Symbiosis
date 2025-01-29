@@ -2,7 +2,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "IncreaseBulletSpeed", menuName = "Traits/IncreaseBulletSpeed", order = 3)]
-public class IncreaseBulletSpeedTrait : Trait
+public class IncreaseBulletSpeedTrait : ItemData
 {
     public float bulletSpeedIncrease = 2f;
 

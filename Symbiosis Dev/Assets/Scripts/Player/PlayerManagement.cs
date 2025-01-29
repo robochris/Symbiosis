@@ -1,9 +1,13 @@
+using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 public class PlayerManagement : MonoBehaviour
 {
     // Singleton instance
     public static PlayerManagement Instance { get; private set; }
+
+    private List<ItemData> activeItems = new List<ItemData>();
 
     [Header("Player Configuration")]
     [SerializeField] private Stats playerStats; // Reference to the Stats ScriptableObject
@@ -24,6 +28,17 @@ public class PlayerManagement : MonoBehaviour
     public event System.Action<int> OnHealthChanged;
     public event System.Action OnStatsChanged;
     public event System.Action OnPlayerDied;
+
+    private void Update()
+    {
+        // TEST: Press 'K' to damage the player by 5
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            TakeDamage(5);
+            Debug.Log("Test Damage: Player took 5 damage from key press.");
+        }
+    }
+
 
     private void Awake()
     {
@@ -62,6 +77,7 @@ public class PlayerManagement : MonoBehaviour
 
         // Initialize score
         currentScore = 0;
+        ResetToBaseStats();
     }
 
     private void HandleHealthChanged(int newHealth)
@@ -69,10 +85,21 @@ public class PlayerManagement : MonoBehaviour
         OnHealthChanged?.Invoke(newHealth);
     }
 
+    public AttackSystem GetAttackSystem()
+    {
+        return attackSystem;
+    }
+
     private void HandlePlayerDied()
     {
         OnPlayerDied?.Invoke();
         // Additional death handling (e.g., show game over screen)
+        // Now that the player is dead, do you restart immediately?
+        // Or do you show a game over screen, then call ResetToBaseStats later?
+
+        // For example:
+        // ResetToBaseStats(); 
+        // or handle it from a GameManager, etc.
     }
 
     // Methods to modify player stats
@@ -117,7 +144,7 @@ public class PlayerManagement : MonoBehaviour
 
     public void UpgradeFireRate(float amount)
     {
-        fireRateModifier += amount;
+        fireRateModifier -= amount;
     }
 
     // Getters for stats, considering modifiers
@@ -142,6 +169,76 @@ public class PlayerManagement : MonoBehaviour
         return healthSystem != null ? healthSystem.GetCurrentHealth() : 0;
     }
 
+    public void AddItem(ItemData newItem)
+    {
+        if (newItem == null) return;
+
+        activeItems.Add(newItem);
+        newItem.Apply(this);
+    }
+
+    public void RemoveItem(ItemData itemToRemove)
+    {
+        if (itemToRemove == null) return;
+
+        if (activeItems.Contains(itemToRemove))
+        {
+            itemToRemove.Remove(this);
+            activeItems.Remove(itemToRemove);
+        }
+    }
+
+    public void RemoveAllItems()
+    {
+        foreach (var item in activeItems)
+        {
+            item.Remove(this);
+        }
+        activeItems.Clear();
+    }
+
+    // Directly handle numeric modifiers
+    public void ResetToBaseStats()
+    {
+        if (playerStats == null)
+        {
+            Debug.LogError("PlayerManagement: BasePlayerStats is not assigned!");
+            return;
+        }
+
+        // 1. Reset dynamic modifiers
+        attackDamageModifier = 0;
+        bulletSpeedModifier = 0f;
+        fireRateModifier = 0f;
+
+        // 2. Reset HealthSystem
+        if (healthSystem != null)
+        {
+            // SetStats will set currentHealth to basePlayerStats.maxHealth
+            healthSystem.SetStats(playerStats.maxHealth);
+            // Subscribe to HealthSystem events
+            healthSystem.OnHealthChanged -= HandleHealthChanged;
+            healthSystem.OnHealthChanged += HandleHealthChanged;
+            healthSystem.OnDeath -= HandlePlayerDied;
+            healthSystem.OnDeath += HandlePlayerDied;
+        }
+
+        // 3. Reset AttackSystem
+        if (attackSystem != null && playerStats.defaultBulletPrefab != null)
+        {
+            // Force AttackSystem to use the default bullet from base stats
+            attackSystem.SetBulletPrefab(playerStats.defaultBulletPrefab);
+        }
+
+        // 4. Reset score (if desired)
+        currentScore = 0;
+        OnScoreChanged?.Invoke(currentScore);
+
+        // 5. Remove all active items/traits (if you have them)
+        RemoveAllItems();
+
+        Debug.Log("PlayerManagement: Reset to base stats complete.");
+    }
     // Getter for score
     public int GetScore()
     {
