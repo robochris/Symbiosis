@@ -72,7 +72,7 @@ public class AttackSystem : MonoBehaviour
         if (bulletObj != null)
         {
             bulletObj.transform.position = firePoint.position;
-            bulletObj.transform.rotation = firePoint.rotation;
+            bulletObj.transform.rotation = Camera.main.transform.rotation;
 
             // Initialize bullet with current attack damage and bullet speed
             IBullet bullet = bulletObj.GetComponent<IBullet>();

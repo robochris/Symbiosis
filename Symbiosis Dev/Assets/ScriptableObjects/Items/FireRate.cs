@@ -8,6 +8,6 @@ public class IncreaseIncreaseFireRate : ItemData
 
     public override void Apply(PlayerManagement player)
     {
-        player.UpgradeFireRate(fireRateIncrease);
+        player.Heal(6);
     }
 }

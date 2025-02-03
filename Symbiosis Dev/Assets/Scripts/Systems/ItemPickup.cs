@@ -1,4 +1,3 @@
-// Assets/Scripts/Systems/ItemPickup.cs
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -10,6 +9,8 @@ public class ItemPickup : MonoBehaviour
 
     [Header("Respawn Settings")]
     public float respawnTime = 3f;
+    // Add a flag to decide if this item should respawn
+    public bool canRespawn = true;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -49,7 +50,11 @@ public class ItemPickup : MonoBehaviour
 
             gameObject.SetActive(false);
 
-            RespawnManager.Instance.RespawnItem(gameObject, respawnTime);
+            // Only call RespawnManager if this item should respawn
+            if (canRespawn)
+            {
+                RespawnManager.Instance.RespawnItem(gameObject, respawnTime);
+            }
         }
     }
 }
