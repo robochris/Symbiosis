@@ -1,4 +1,3 @@
-// Assets/Scripts/Player/AttackSystem.cs
 using UnityEngine;
 
 public class AttackSystem : MonoBehaviour
@@ -7,51 +6,44 @@ public class AttackSystem : MonoBehaviour
 
     [Header("Attack Settings")]
     [SerializeField] private Transform firePoint;
-    [SerializeField] private BulletPool bulletPool; // Reference to the BulletPool
+    [SerializeField] private BulletPool bulletPool;
     [SerializeField] private Stats playerStats;
 
     private float nextFireTime = 0f;
-
     private PlayerManagement playerManagement;
     private GameObject bulletPrefab;
 
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+
+        // Find PlayerManagement
+        playerManagement = PlayerManagement.Instance;
+        if (!playerManagement)
+            Debug.LogError("AttackSystem: PlayerManagement instance not found.");
+
+        // Validate references
+        if (!bulletPool) Debug.LogError("AttackSystem: BulletPool is not assigned.");
+        if (!firePoint) Debug.LogError("AttackSystem: FirePoint is not assigned.");
+    }
+
     private void Start()
     {
-        if (playerStats.defaultBulletPrefab == null)
+        // Load default bullet from Stats
+        if (!playerStats || !playerStats.defaultBulletPrefab)
         {
-            Debug.LogError("AttackSystem: BulletPrefab is not assigned.");
+            Debug.LogError("AttackSystem: BulletPrefab is not assigned in Stats.");
         }
         else
         {
-            // Store the default bullet
             bulletPrefab = playerStats.defaultBulletPrefab;
-        }
-    }
-    private void Awake()
-    {
-        // Get reference to PlayerManagement
-        playerManagement = PlayerManagement.Instance;
-        if (playerManagement == null)
-        {
-            Debug.LogError("AttackSystem: PlayerManagement instance not found.");
-        }
-
-        // Validate bulletPool
-        if (bulletPool == null)
-        {
-            Debug.LogError("AttackSystem: BulletPool is not assigned.");
-        }
-
-        // Validate firePoint
-        if (firePoint == null)
-        {
-            Debug.LogError("AttackSystem: FirePoint is not assigned.");
         }
     }
 
     private void Update()
     {
-        // Example: Fire on left mouse button click
+        // Fire on left mouse and respect fire-rate cooldown
         if (Input.GetButtonDown("Fire1") && Time.time >= nextFireTime)
         {
             Shoot();
@@ -61,49 +53,42 @@ public class AttackSystem : MonoBehaviour
 
     public void Shoot()
     {
-        if (bulletPool == null || firePoint == null || bulletPrefab == null || playerManagement == null)
+        // Basic validation
+        if (!bulletPool || !firePoint || !bulletPrefab || !playerManagement)
         {
-            Debug.LogError("AttackSystem: Missing references. Cannot shoot.");
+            Debug.LogError("AttackSystem: Missing references, cannot shoot.");
             return;
         }
 
         // Get a bullet from the pool
         GameObject bulletObj = bulletPool.GetBullet(bulletPrefab);
-        if (bulletObj != null)
+        if (bulletObj == null)
         {
-            bulletObj.transform.position = firePoint.position;
-            bulletObj.transform.rotation = Camera.main.transform.rotation;
+            Debug.LogWarning("AttackSystem: BulletPool returned null.");
+            return;
+        }
 
-            // Initialize bullet with current attack damage and bullet speed
-            IBullet bullet = bulletObj.GetComponent<IBullet>();
-            if (bullet != null)
-            {
-                int attackDamage = playerManagement.GetAttackDamage();
-                float bulletSpeed = playerManagement.GetBulletSpeed();
-                bullet.Initialize(attackDamage, bulletSpeed);
-                bullet.SetPool(bulletPool); // Ensure the bullet knows which pool to return to
-            }
-            else
-            {
-                Debug.LogWarning("AttackSystem: Bullet does not implement IBullet interface.");
-            }
+        // Spawn the bullet at the firePoint
+        bulletObj.transform.position = firePoint.position;
+        bulletObj.transform.rotation = firePoint.rotation;
+
+        // Initialize bullet stats
+        IBullet bullet = bulletObj.GetComponent<IBullet>();
+        if (bullet != null)
+        {
+            int attackDamage = playerManagement.GetAttackDamage();
+            float bulletSpeed = playerManagement.GetBulletSpeed();
+            bullet.Initialize(attackDamage, bulletSpeed);
+            bullet.SetPool(bulletPool);
         }
         else
         {
-            Debug.LogWarning("AttackSystem: BulletPool returned null.");
+            Debug.LogWarning("AttackSystem: Bullet does not implement IBullet interface.");
         }
 
-        Debug.Log("AttackSystem: Fired a bullet.");
-
+        Debug.Log("AttackSystem: Fired a bullet from the player's facing direction.");
     }
 
-    public void SetBulletPrefab(GameObject newPrefab)
-    {
-        bulletPrefab = newPrefab;
-    }
-
-    public GameObject GetCurrentBulletPrefab()
-    {
-        return bulletPrefab;
-    }
+    public void SetBulletPrefab(GameObject newPrefab) => bulletPrefab = newPrefab;
+    public GameObject GetCurrentBulletPrefab() => bulletPrefab;
 }

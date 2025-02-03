@@ -18,6 +18,7 @@ public class CameraFollow : MonoBehaviour
         if (target != null)
         {
             currentOffset = offset;
+            Cursor.lockState = CursorLockMode.Locked;
         }
     }
 
