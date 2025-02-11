@@ -3,8 +3,10 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    private RoomGenerator roomGen;
+    // private WaveManager waveMan;
     public static GameManager Instance;
-    public string firstRoomSceneName = "Chris's Test eniviroment"; // Name of your testing room scene
+    //public string firstRoomSceneName = "Chris's Test eniviroment"; // Name of your testing room scene
 
     private void Awake()
     {
@@ -22,7 +24,14 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // Load the first room (testing room) additively.
-        SceneManager.LoadScene(firstRoomSceneName, LoadSceneMode.Additive);
+            // Suppose these two scripts are on the same object as GameManager
+            roomGen = GetComponent<RoomGenerator>();
+            //waveMan = GetComponent<WaveManager>();
+
+            // 1) Generate the room
+            roomGen.GenerateRoom();
+
+            // 2) Start waves
+            //waveMan.StartWaves();
     }
 }

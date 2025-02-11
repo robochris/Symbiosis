@@ -1,16 +1,22 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class DoorTrigger : MonoBehaviour
 {
-    public string presetSceneName = "TryThisScene"; // Set this to your test scene's name
+    [Tooltip("True = forward, False = back")]
+    public bool isForwardDoor = true;
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Entered Door Trigger");
-        if (other.CompareTag("Player")) // Ensure your player is tagged "Player"
+        if (other.CompareTag("Player"))
         {
-            SceneManager.LoadScene(presetSceneName);
+            if (isForwardDoor)
+            {
+                RoomChainManager.Instance.GoForward();
+            }
+            else
+            {
+                RoomChainManager.Instance.GoBack();
+            }
         }
     }
 }
