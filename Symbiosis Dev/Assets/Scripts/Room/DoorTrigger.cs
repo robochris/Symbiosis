@@ -2,13 +2,15 @@ using UnityEngine;
 
 public class DoorTrigger : MonoBehaviour
 {
-    [Tooltip("True = forward, False = back")]
-    public bool isForwardDoor = true;
+    [Tooltip("If true, calls RoomChainManager.GoForward(). If false, calls GoBack().")]
+    public bool isForwardDoor;
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
+            RoomChainManager.Instance.lastDoorUsedIsForward = isForwardDoor;
+
             if (isForwardDoor)
             {
                 RoomChainManager.Instance.GoForward();

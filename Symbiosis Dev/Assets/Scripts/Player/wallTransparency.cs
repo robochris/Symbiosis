@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class WallTransparency : MonoBehaviour
 {
+    public static WallTransparency Instance { get; private set; }
     [Header("References")]
     [Tooltip("The target (usually the player) that the camera needs to see.")]
     public Transform target;
@@ -32,8 +33,22 @@ public class WallTransparency : MonoBehaviour
         public float targetAlpha;
     }
 
+    
+
     // Keep a list of all renderers we’re currently handling
     private Dictionary<Renderer, FadedRenderer> fadedRenderers = new Dictionary<Renderer, FadedRenderer>();
+    void Awake()
+    {
+        // Setup the singleton instance.
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
 
     private void Update()
     {
@@ -181,5 +196,10 @@ public class WallTransparency : MonoBehaviour
         Color c = mat.color;
         c.a = 1f;
         mat.color = c;
+    }
+
+    public void ClearOldRenderers()
+    {
+        fadedRenderers.Clear();
     }
 }
