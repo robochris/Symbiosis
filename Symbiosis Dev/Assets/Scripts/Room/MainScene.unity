@@ -603,6 +603,61 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &539509978
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 539509979}
+  - component: {fileID: 539509980}
+  m_Layer: 0
+  m_Name: TileGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &539509979
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 539509978}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2071730287}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &539509980
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 539509978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eea74d5a9858f4947a564f5d3cb7865a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  roomWidth: 70
+  roomHeight: 70
+  tileSize: 1
+  floorPieces:
+  - {fileID: 11400000, guid: 166e6ee207c07b34bbb9ea5c9d6710aa, type: 2}
+  - {fileID: 11400000, guid: 1b4cc7def2c7538408de70ae9baae641, type: 2}
+  wallPieces:
+  - {fileID: 11400000, guid: a9aff30f7104d4a44b15c42b1d636eee, type: 2}
+  doorPieces:
+  - {fileID: 11400000, guid: 43b84c11e91c3fa41a99858e9dcf3029, type: 2}
+  windowPieces: []
 --- !u!90 &686792285
 Avatar:
   m_ObjectHideFlags: 0
@@ -816,7 +871,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 771811906}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -3.6553416}
+  m_LocalPosition: {x: 0, y: 0, z: -3.74}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1621,6 +1676,7 @@ Transform:
   - {fileID: 1869793982}
   - {fileID: 1757070114}
   - {fileID: 2095838742}
+  - {fileID: 539509979}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2095838741
@@ -1633,7 +1689,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2095838742}
   - component: {fileID: 2095838744}
-  - component: {fileID: 2095838743}
   m_Layer: 0
   m_Name: RoomManager
   m_TagString: Untagged
@@ -1656,30 +1711,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2071730287}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2095838743
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2095838741}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84ae970dd9a6ca14882c0601c41d6bad, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  minSize: 30
-  maxSize: 50
-  wallHeight: 3
-  wallThickness: 0.5
-  doorGapWidth: 4
-  doorPrefab: {fileID: 6330965541263347841, guid: f557a100eae8d1d4282430f52cd7d65e, type: 3}
-  obstaclePrefabs:
-  - {fileID: 919132149155446097, guid: 420f7956c57161b4cb33b987deaed1b4, type: 3}
-  - {fileID: 7754311566990391251, guid: dac101e0c7ba1104aa644e0bd394c237, type: 3}
-  - {fileID: 1519835876742759567, guid: 94aca1ac995d6db4aa61583054e5799b, type: 3}
-  - {fileID: 919132149155446097, guid: f6be110fa10c60644bdf3cccff0f00ea, type: 3}
-  obstacleCount: 5
 --- !u!114 &2095838744
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1692,8 +1723,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9503d3bb9f684140b3af769cba7f461, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomGenerator: {fileID: 2095838743}
+  roomGenerator: {fileID: 539509980}
+  player: {fileID: 1757070114}
   maxRooms: 5
+  lastDoorUsedIsForward: 0
 --- !u!1 &2102616744
 GameObject:
   m_ObjectHideFlags: 0
