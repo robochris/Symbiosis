@@ -7,7 +7,7 @@ public class RoomChainManager : MonoBehaviour
 
     [Header("References")]
     [Tooltip("Drag your TileBasedRoomGenerator component here.")]
-    public TileBasedRoomGenerator roomGenerator;
+    public TileRoomGenerator roomGenerator;
     [Tooltip("Drag your Player transform (or parent) here.")]
     public Transform player;
 
@@ -48,20 +48,23 @@ public class RoomChainManager : MonoBehaviour
         else
             roomSeeds[currentRoomIndex] = newSeed;
 
-        roomGenerator.DestroyCurrentRoom();
+        // Clear old, then generate new
+        roomGenerator.ClearRoom();
         roomGenerator.GenerateRoomWithSeed(newSeed);
 
-        // Position the player.
-        // (For this example, we assume the player spawns at the center of the room.)
-        Vector3 spawnPos = new Vector3((roomGenerator.roomWidth * roomGenerator.tileSize) / 2f, 0, (roomGenerator.roomHeight * roomGenerator.tileSize) / 2f);
-        spawnPos.y = 0;
+        // Position the player in the center of the new room
+        Vector3 spawnPos = new Vector3(
+            (roomGenerator.totalWidth * roomGenerator.tileSize) / 2f,
+            0f,
+            (roomGenerator.totalHeight * roomGenerator.tileSize) / 2f
+        );
         if (player.parent != null)
             player.parent.position = spawnPos - player.localPosition;
         else
             player.position = spawnPos;
 
         player.rotation = Quaternion.identity;
-        Debug.Log("GoForward -> new room, player spawned at: " + spawnPos);
+        Debug.Log("GoForward -> new room, seed = " + newSeed + ", player @ " + spawnPos);
     }
 
     public void GoBack()
@@ -75,18 +78,22 @@ public class RoomChainManager : MonoBehaviour
         currentRoomIndex--;
         int oldSeed = roomSeeds[currentRoomIndex];
 
-        roomGenerator.DestroyCurrentRoom();
+        roomGenerator.ClearRoom();
         roomGenerator.GenerateRoomWithSeed(oldSeed);
 
-        // Position the player (for this example, at the room center).
-        Vector3 spawnPos = new Vector3((roomGenerator.roomWidth * roomGenerator.tileSize) / 2f, 0, (roomGenerator.roomHeight * roomGenerator.tileSize) / 2f);
-        spawnPos.y = 0;
+        // Position the player center again
+        Vector3 spawnPos = new Vector3(
+            (roomGenerator.totalWidth * roomGenerator.tileSize) / 2f,
+            0f,
+            (roomGenerator.totalHeight * roomGenerator.tileSize) / 2f
+        );
         if (player.parent != null)
             player.parent.position = spawnPos - player.localPosition;
         else
             player.position = spawnPos;
 
+        // Example: face "backwards"
         player.rotation = Quaternion.Euler(0, 180f, 0);
-        Debug.Log("GoBack -> old room, player spawned at: " + spawnPos);
+        Debug.Log("GoBack -> old room, seed = " + oldSeed + ", player @ " + spawnPos);
     }
 }

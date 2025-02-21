@@ -1,119 +1,33 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class TileBasedRoomGenerator : MonoBehaviour
+public class TileRoomGenerator : MonoBehaviour
 {
-    [Header("Room Layout Settings")]
-    public int roomWidth = 10;         // Number of grid cells in X
-    public int roomHeight = 10;        // Number of grid cells in Z
-    public float tileSize = 1f;        // 1 unit = 1 meter
+    [Header("Overall Grid Size")]
+    public int totalWidth = 30;   // The overall grid we can place a room in
+    public int totalHeight = 30;
+    public float tileSize = 1f;
 
-    [Header("Room Pieces")]
+    [Header("Random Room Bounds")]
+    public int minRoomWidth = 5;
+    public int maxRoomWidth = 20;
+    public int minRoomHeight = 5;
+    public int maxRoomHeight = 20;
+
+    [Header("Room Pieces (ScriptableObjects)")]
     public List<RoomPiece> floorPieces;
     public List<RoomPiece> wallPieces;
-    public List<RoomPiece> doorPieces;
-    public List<RoomPiece> windowPieces;
+    // Add door/window pieces if you like
 
+    // Data structures
     private GameObject roomParent;
-    private bool[,] occupancy;         // Keeps track of occupied grid cells
+    private RoomLayout layout;    // holds tile types
+    private bool[,] occupancy;    // tracks footprints
 
     /// <summary>
-    /// Generates the room using the current random state.
+    /// Clear the existing room from the scene.
     /// </summary>
-    public void GenerateRoom()
-    {
-        // Initialize occupancy grid
-        occupancy = new bool[roomWidth, roomHeight];
-
-        // Destroy any previous room
-        if (roomParent != null)
-            Destroy(roomParent);
-        roomParent = new GameObject("GeneratedRoom");
-
-        // Create a basic layout (walls on borders, floors inside, door at bottom center)
-        RoomLayout layout = new RoomLayout(roomWidth, roomHeight);
-        layout.GenerateBasicRoom();
-
-        // Loop through each cell in the grid
-        for (int x = 0; x < roomWidth; x++)
-        {
-            for (int y = 0; y < roomHeight; y++)
-            {
-                // Skip if cell is already occupied by a multi-tile prefab
-                if (occupancy[x, y])
-                    continue;
-
-                // Get the tile type from the layout
-                RoomTileType tileType = layout.grid[x, y];
-
-                // Get a random piece for this tile type
-                RoomPiece selectedPiece = GetRandomPieceForTileType(tileType);
-                if (selectedPiece == null || selectedPiece.prefab == null)
-                    continue;
-
-                // Determine the footprint size of the selected piece
-                float pieceWidth = selectedPiece.tileWidth;
-                float pieceHeight = selectedPiece.tileHeight;
-
-                // Ensure the piece fits within the grid boundaries
-                if (x + pieceWidth > roomWidth || y + pieceHeight > roomHeight)
-                    continue;
-
-                // Check that all cells in the footprint are available
-                bool spaceAvailable = true;
-                for (int i = 0; i < pieceWidth; i++)
-                {
-                    for (int j = 0; j < pieceHeight; j++)
-                    {
-                        if (occupancy[x + i, y + j])
-                        {
-                            spaceAvailable = false;
-                            break;
-                        }
-                    }
-                    if (!spaceAvailable)
-                        break;
-                }
-                if (!spaceAvailable)
-                    continue;
-
-                // Mark the cells as occupied
-                for (int i = 0; i < pieceWidth; i++)
-                {
-                    for (int j = 0; j < pieceHeight; j++)
-                    {
-                        occupancy[x + i, y + j] = true;
-                    }
-                }
-
-                // Calculate the placement position
-                // (Center the prefab over its footprint)
-                Vector3 pos = new Vector3(
-                    (x + pieceWidth / 2f) * tileSize,
-                    0,
-                    (y + pieceHeight / 2f) * tileSize
-                );
-
-                // Instantiate the prefab
-                Instantiate(selectedPiece.prefab, pos, Quaternion.identity, roomParent.transform);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Initializes the random seed then generates the room.
-    /// </summary>
-    /// <param name="seed">Random seed</param>
-    public void GenerateRoomWithSeed(int seed)
-    {
-        Random.InitState(seed);
-        GenerateRoom();
-    }
-
-    /// <summary>
-    /// Destroys the current room.
-    /// </summary>
-    public void DestroyCurrentRoom()
+    public void ClearRoom()
     {
         if (roomParent != null)
         {
@@ -123,45 +37,119 @@ public class TileBasedRoomGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// Chooses a random RoomPiece for a given tile type using weighted selection.
+    /// Generate a random rectangular room using a seed, so we can reproduce it.
     /// </summary>
-    /// <param name="tileType">The type of tile for which to select a piece</param>
-    /// <returns>A RoomPiece matching the tile type</returns>
-    private RoomPiece GetRandomPieceForTileType(RoomTileType tileType)
+    public void GenerateRoomWithSeed(int seed)
     {
-        List<RoomPiece> piecesList = null;
+        Random.InitState(seed);
+        ClearRoom();
+
+        roomParent = new GameObject("GeneratedRoom (Seed " + seed + ")");
+
+        // 1) Create a random rectangle for the "room" inside the total grid
+        int roomW = Random.Range(minRoomWidth, Mathf.Min(maxRoomWidth, totalWidth));
+        int roomH = Random.Range(minRoomHeight, Mathf.Min(maxRoomHeight, totalHeight));
+
+        // 2) Create layout for the entire grid, default None
+        layout = new RoomLayout(totalWidth, totalHeight);
+
+        // 3) Fill [0..roomW-1, 0..roomH-1] as floor, except boundary = wall
+        //    (You can also place it randomly within the total grid, e.g. offsetX, offsetY)
+        for (int x = 0; x < roomW; x++)
+        {
+            for (int y = 0; y < roomH; y++)
+            {
+                bool isEdge = (x == 0 || x == roomW - 1 || y == 0 || y == roomH - 1);
+                layout.grid[x, y] = isEdge ? RoomTileType.Wall : RoomTileType.Floor;
+            }
+        }
+
+        // 4) Instantiate tiles
+        occupancy = new bool[totalWidth, totalHeight];
+        InstantiateTilesFromLayout();
+    }
+
+    /// <summary>
+    /// Actually spawns the tile prefabs based on layout.grid.
+    /// </summary>
+    private void InstantiateTilesFromLayout()
+    {
+        for (int x = 0; x < layout.width; x++)
+        {
+            for (int y = 0; y < layout.height; y++)
+            {
+                RoomTileType tileType = layout.grid[x, y];
+                if (tileType == RoomTileType.None) continue;
+
+                // pick a scriptable object
+                RoomPiece piece = GetRandomPiece(tileType);
+                if (piece == null || piece.prefab == null) continue;
+
+                int w = piece.Size.x;
+                int h = piece.Size.y;
+
+                // check bounds
+                if (x + w > layout.width || y + h > layout.height)
+                    continue;
+
+                // check occupancy
+                bool spaceFree = true;
+                for (int ix = 0; ix < w; ix++)
+                {
+                    for (int iy = 0; iy < h; iy++)
+                    {
+                        if (occupancy[x + ix, y + iy])
+                        {
+                            spaceFree = false;
+                            break;
+                        }
+                    }
+                    if (!spaceFree) break;
+                }
+                if (!spaceFree) continue;
+
+                // mark as occupied
+                for (int ix = 0; ix < w; ix++)
+                {
+                    for (int iy = 0; iy < h; iy++)
+                    {
+                        occupancy[x + ix, y + iy] = true;
+                    }
+                }
+
+                // spawn
+                float worldX = (x + w / 2f) * tileSize;
+                float worldZ = (y + h / 2f) * tileSize;
+                Vector3 pos = new Vector3(worldX, 0f, worldZ);
+                Instantiate(piece.prefab, pos, Quaternion.identity, roomParent.transform);
+            }
+        }
+    }
+
+    private RoomPiece GetRandomPiece(RoomTileType tileType)
+    {
+        List<RoomPiece> pool = null;
         switch (tileType)
         {
             case RoomTileType.Floor:
-                piecesList = floorPieces;
+                pool = floorPieces;
                 break;
             case RoomTileType.Wall:
-                piecesList = wallPieces;
-                break;
-            case RoomTileType.Door:
-                piecesList = doorPieces;
-                break;
-            case RoomTileType.Window:
-                piecesList = windowPieces;
+                pool = wallPieces;
                 break;
         }
+        if (pool == null || pool.Count == 0) return null;
 
-        if (piecesList == null || piecesList.Count == 0)
-            return null;
-
-        // Calculate total weight.
-        float totalWeight = 0f;
-        foreach (var piece in piecesList)
-            totalWeight += piece.weight;
-
-        // Select a random value and pick based on weight.
-        float randomValue = Random.Range(0f, totalWeight);
-        foreach (var piece in piecesList)
+        // Weighted random
+        float total = 0f;
+        foreach (var p in pool) total += p.weight;
+        float rand = Random.Range(0f, total);
+        foreach (var p in pool)
         {
-            randomValue -= piece.weight;
-            if (randomValue <= 0f)
-                return piece;
+            rand -= p.weight;
+            if (rand <= 0f)
+                return p;
         }
-        return piecesList[piecesList.Count - 1];
+        return pool[pool.Count - 1];
     }
 }
