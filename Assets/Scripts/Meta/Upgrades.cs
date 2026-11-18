@@ -43,6 +43,7 @@ namespace Shrunk
             SetLevel(upgrade.type, Level(upgrade.type) + 1);
             SaveSystem.Save();
             Purchased?.Invoke(upgrade);
+            Sfx.Play(SfxId.Buy);
             return true;
         }
 

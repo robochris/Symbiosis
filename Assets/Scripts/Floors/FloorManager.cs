@@ -139,6 +139,7 @@ namespace Shrunk
             }
 
             FloorsBuilt++;
+            if (FloorsBuilt > 1) Sfx.Play(SfxId.NextFloor);
             FloorBuilt?.Invoke(this);
             Enter(Layout.start);
         }

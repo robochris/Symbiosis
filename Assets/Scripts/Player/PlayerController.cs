@@ -143,6 +143,7 @@ namespace Shrunk
             _dodgeLength = _hovering ? dodgeDuration * 2f : dodgeDuration;
             _dodgeTimeLeft = _dodgeLength;
             Health.SetInvulnerable(_hovering ? _dodgeLength : dodgeInvulnerability);
+            Sfx.Play(SfxId.Dodge, 0.7f);
         }
 
         /// <summary>Moves the player instantly, e.g. to the start of a new floor.</summary>

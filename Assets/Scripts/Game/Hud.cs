@@ -93,7 +93,7 @@ namespace Shrunk
                 if (bossBar.activeSelf != show) bossBar.SetActive(show);
                 if (show)
                 {
-                    if (bossFill != null) bossFill.fillAmount = boss.Health01;
+                    if (bossFill != null) bossFill.rectTransform.localScale = new Vector3(Mathf.Clamp01(boss.Health01), 1f, 1f);
                     if (bossName != null) bossName.text = boss.Phase > 1 ? $"{boss.displayName}  ·  phase {boss.Phase}" : boss.displayName;
                 }
             }

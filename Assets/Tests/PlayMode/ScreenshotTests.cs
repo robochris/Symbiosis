@@ -217,6 +217,97 @@ namespace Shrunk.Tests
             SaveSystem.Wipe();
         }
 
+        // The whole screen including the HUD, as the player sees it.
+        [UnityTest, Explicit]
+        public IEnumerator Capture_hud()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            RunState.AddCoins(23);
+            RunState.AddSamples(41);
+            player.Power.SetMeter(0.7f);
+            player.Items.Add(GameAssets.Instance.items.Get(ItemType.SugarCube));
+
+            // A fight room, so the minimap, arrows and enemies are all on screen.
+            RoomNode fight = null;
+            foreach (var node in floors.Layout.ordered) if (node.type == RoomType.Normal) { fight = node; break; }
+            player.Teleport(floors.RoomAt(fight.cell).Centre + Vector3.up * 0.05f);
+            yield return new WaitForSeconds(1f);
+            yield return Screen(Path.Combine(folder, "hud-run.png"));
+
+            floors.BuildFloor(5);
+            yield return null;
+            Room arena = floors.RoomAt(floors.Layout.exit.cell);
+            player.Teleport(arena.Centre + new Vector3(0f, 0.05f, -6f));
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            yield return new WaitForSeconds(1.5f);
+            yield return Screen(Path.Combine(folder, "hud-boss.png"));
+
+            PauseMenu.Instance.Open();
+            yield return null;
+            yield return Screen(Path.Combine(folder, "hud-pause.png"));
+            PauseMenu.Instance.Close();
+
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            PlayerController.Instance.Input.overrideFrame = new InputFrame();
+            SaveSystem.Data.meta.samples = 180;
+            var pad = Object.FindObjectsByType<UpgradePad>(FindObjectsSortMode.None)[0];
+            PlayerController.Instance.Teleport(pad.transform.position + new Vector3(0f, 0.05f, -1.8f));
+            yield return new WaitForSeconds(0.4f);
+            yield return Screen(Path.Combine(folder, "hud-lab.png"));
+            SaveSystem.Wipe();
+        }
+
+        // Draws the HUD into the picture too. Headless Unity can't grab the real screen, so for the moment of the
+        // picture the HUD canvas is attached to the camera instead of sitting on top of the screen.
+        static IEnumerator Screen(string path)
+        {
+            var cam = Camera.main;
+            var canvases = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            var target = new RenderTexture(1280, 720, 24);
+            cam.targetTexture = target;
+            foreach (var canvas in canvases)
+            {
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                canvas.planeDistance = 0.5f;
+            }
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            cam.Render();
+
+            RenderTexture.active = target;
+            var picture = new Texture2D(target.width, target.height, TextureFormat.RGB24, false);
+            picture.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
+            picture.Apply();
+            RenderTexture.active = null;
+            File.WriteAllBytes(path, picture.EncodeToPNG());
+            Object.Destroy(picture);
+
+            foreach (var canvas in canvases)
+            {
+                if (canvas != null) canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            }
+            cam.targetTexture = null;
+            target.Release();
+            Object.Destroy(target);
+            Debug.Log("[Shrunk] Saved " + path);
+        }
+
         // Stops an ant thinking so it stands still for its picture; its mutation tells keep animating.
         static void Freeze(Enemy enemy)
         {

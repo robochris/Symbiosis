@@ -45,6 +45,7 @@ namespace Shrunk
         void OnPlayerDamaged(int amount, Vector3 direction)
         {
             if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(hitShake);
+            Sfx.Play(SfxId.PlayerHurt);
         }
 
         void OnPlayerDied()

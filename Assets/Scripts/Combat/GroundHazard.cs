@@ -116,6 +116,7 @@ namespace Shrunk
                     if (_age >= fuse)
                     {
                         _wentOff = true;
+                        Sfx.Play(SfxId.Blast);
                         Hurt();
                     }
                 }

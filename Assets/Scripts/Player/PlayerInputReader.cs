@@ -49,13 +49,20 @@ namespace Shrunk
         {
             if (overrideFrame.HasValue) return overrideFrame.Value;
 
+            // Nothing gets through while the pause menu is up.
+            if (PauseMenu.IsOpen) return new InputFrame();
+
             var follow = CameraFollow.Instance;
             bool usingTouch = touch != null && touch.Active;
             if (usingTouch) touch.Poll();
 
             var keyboard = Keyboard.current;
             bool cycle = usingTouch ? touch.ConsumeCamera() : keyboard != null && keyboard.vKey.wasPressedThisFrame;
-            if (cycle && follow != null) follow.CycleMode();
+            if (cycle && follow != null)
+            {
+                follow.CycleMode();
+                GameSettings.Camera = follow.mode; // remembered for next time
+            }
 
             bool look = follow != null && follow.IsLookMode;
             InputFrame frame = look ? ReadLook(follow, usingTouch) : ReadTopDown(usingTouch);
@@ -84,7 +91,8 @@ namespace Shrunk
             {
                 // Right thumb turns the view. Shots fire by themselves when an enemy is in the sights.
                 Vector2 stick = touch.Aim;
-                if (stick.magnitude > aimDeadzone) follow.AddLook(stick.x * stickLookSpeed * Time.deltaTime, stick.y * stickLookSpeed * 0.5f * Time.deltaTime);
+                float lookSpeed = stickLookSpeed * GameSettings.LookSpeed;
+                if (stick.magnitude > aimDeadzone) follow.AddLook(stick.x * lookSpeed * Time.deltaTime, stick.y * lookSpeed * 0.5f * Time.deltaTime);
                 move = touch.Move;
             }
             else
@@ -106,7 +114,7 @@ namespace Shrunk
                     }
                     else
                     {
-                        Vector2 delta = mouse.delta.ReadValue() * mouseSensitivity;
+                        Vector2 delta = mouse.delta.ReadValue() * (mouseSensitivity * GameSettings.LookSpeed);
                         follow.AddLook(delta.x, delta.y);
                         frame.fire = mouse.leftButton.isPressed;
                     }
@@ -117,7 +125,8 @@ namespace Shrunk
                 {
                     move += pad.leftStick.ReadValue();
                     Vector2 stick = pad.rightStick.ReadValue();
-                    if (stick.magnitude > aimDeadzone) follow.AddLook(stick.x * stickLookSpeed * Time.deltaTime, stick.y * stickLookSpeed * 0.5f * Time.deltaTime);
+                    float padLookSpeed = stickLookSpeed * GameSettings.LookSpeed;
+                    if (stick.magnitude > aimDeadzone) follow.AddLook(stick.x * padLookSpeed * Time.deltaTime, stick.y * padLookSpeed * 0.5f * Time.deltaTime);
                     frame.fire |= pad.rightTrigger.isPressed;
                     frame.dodge |= pad.buttonSouth.wasPressedThisFrame || pad.rightShoulder.wasPressedThisFrame;
                 }

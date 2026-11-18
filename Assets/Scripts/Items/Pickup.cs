@@ -116,6 +116,7 @@ namespace Shrunk
                 var items = player.GetComponent<PlayerItems>();
                 if (items != null) items.Add(item);
                 ItemCollected?.Invoke(item);
+                Sfx.Play(SfxId.Item);
                 if (treasureRoom != null)
                 {
                     foreach (var other in All.ToArray())
@@ -136,6 +137,7 @@ namespace Shrunk
             {
                 if (kind == PickupKind.Coin) RunState.AddCoins(amount);
                 else RunState.AddSamples(amount);
+                Sfx.Play(SfxId.Coin, 0.6f);
                 Destroy(gameObject);
             }
         }

@@ -68,6 +68,7 @@ namespace Shrunk
             Meter = 0f;
             _activeUntil = Time.time + duration;
             Activated?.Invoke();
+            Sfx.Play(SfxId.PowerOn);
             return true;
         }
 

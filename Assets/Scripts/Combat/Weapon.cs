@@ -59,6 +59,7 @@ namespace Shrunk
             Vector3 direction = ApplyAimAssist(origin, aimDirection.normalized, aimAssistAngle + stats.aimAssistBonusAngle);
             _pool.Get().Launch(origin, direction, bulletSpeed, shot, range, Team.Player, _pool);
             ShotsFired++;
+            Sfx.Play(SfxId.Shoot, 0.6f);
         }
 
         /// <summary>True when an enemy is inside the aim cone and in range. Used for auto-fire on touch.</summary>

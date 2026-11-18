@@ -79,6 +79,7 @@ namespace Shrunk
                 if (ShieldCharges <= 0) return false;
                 ShieldCharges--;
                 _health.SetInvulnerable(0.5f);
+                Sfx.Play(SfxId.Blocked);
                 Changed?.Invoke();
                 return true;
             };

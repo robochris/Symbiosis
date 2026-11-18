@@ -240,11 +240,13 @@ namespace Shrunk
         {
             direction.y = 0f;
             Knockback = direction.normalized * knockbackOnHit;
+            Sfx.Play(SfxId.Hit, 0.7f);
         }
 
         void OnDied()
         {
             Killed?.Invoke(this);
+            Sfx.Play(SfxId.EnemyDie);
             StartCoroutine(DeathPop());
         }
 

@@ -22,6 +22,7 @@ namespace Shrunk
             base.OnEnable();
             InPlay = this;
             Phase = 1;
+            Sfx.Play(SfxId.BossAppear);
         }
 
         protected override void OnDisable()

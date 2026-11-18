@@ -175,8 +175,10 @@ namespace Shrunk.Tests
             Upgrades.SetLevel(UpgradeType.LuckyFind, 1);
             yield return Load("Run");
 
-            Assert.AreEqual(5, Player.Health.maxHealth, "Thicker Shadow: 3 + 2");
-            Assert.AreEqual(5, Player.Health.Current);
+            // Field Kit's random item can itself be a Sugar Cube (+1 health).
+            int sugar = Player.Items.Count(ItemType.SugarCube);
+            Assert.AreEqual(5 + sugar, Player.Health.maxHealth, "Thicker Shadow: 3 + 2");
+            Assert.AreEqual(5 + sugar, Player.Health.Current);
             Assert.AreEqual(1.3f, Player.dodgeRechargeMultiplier, 0.001f, "Quick Reflexes");
             Assert.AreEqual(1.2f, Player.Power.fillMultiplier, 0.001f, "Overcharge Coil");
             Assert.AreEqual(1, Player.Items.Collected.Count, "Field Kit: one starting item");

@@ -79,6 +79,7 @@ namespace Shrunk
 
         public void SetLocked(bool locked)
         {
+            if (locked != Locked) Sfx.Play(locked ? SfxId.DoorLock : SfxId.DoorOpen);
             Locked = locked;
             foreach (var door in _doors) if (door != null) door.SetActive(locked);
         }

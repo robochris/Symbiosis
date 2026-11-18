@@ -89,6 +89,7 @@ namespace Shrunk.EditorTools
             var hud = touch.GetComponent<Hud>();
             hud.lab = true;
             hud.killsText.gameObject.SetActive(false);
+            hud.powerFill.transform.parent.gameObject.SetActive(false); // nothing to fight in the lab
 
             var game = new GameObject("Game");
             ContentBuilder.AddGameAssets(game);
