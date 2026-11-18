@@ -95,6 +95,14 @@ namespace Shrunk
             Snap();
         }
 
+        /// <summary>Call after adding or removing parts of the character, so first person hides them too.</summary>
+        public void RefreshTargetRenderers()
+        {
+            if (target == null) return;
+            _targetRenderers = target.GetComponentsInChildren<Renderer>(true);
+            foreach (var r in _targetRenderers) if (r != null) r.enabled = mode != CameraMode.FirstPerson;
+        }
+
         void ApplyMode()
         {
             // In first person the body would fill the screen, so hide it.

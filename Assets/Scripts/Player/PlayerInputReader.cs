@@ -12,6 +12,8 @@ namespace Shrunk
         public Vector3 aim;
         public bool fire;
         public bool dodge;
+        /// <summary>Set off the hero power.</summary>
+        public bool power;
         /// <summary>Set in shoulder and first-person views: the character turns to face exactly this way.</summary>
         public float? faceYaw;
     }
@@ -57,7 +59,17 @@ namespace Shrunk
 
             bool look = follow != null && follow.IsLookMode;
             InputFrame frame = look ? ReadLook(follow, usingTouch) : ReadTopDown(usingTouch);
-            if (usingTouch) frame.dodge = touch.ConsumeDodge();
+            if (usingTouch)
+            {
+                frame.dodge = touch.ConsumeDodge();
+                frame.power = touch.ConsumePower();
+            }
+            else
+            {
+                frame.power = keyboard != null && keyboard.qKey.wasPressedThisFrame;
+                var pad = Gamepad.current;
+                if (pad != null) frame.power |= pad.buttonNorth.wasPressedThisFrame;
+            }
             return frame;
         }
 

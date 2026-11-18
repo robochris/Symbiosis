@@ -122,11 +122,53 @@ namespace Shrunk.Tests
             Save(Path.Combine(folder, "lineup-Above.png"));
         }
 
+        [UnityTest, Explicit]
+        public IEnumerator Capture_item_looks()
+        {
+            SceneManager.LoadScene("Arena");
+            yield return null;
+            yield return null;
+
+            var player = PlayerController.Instance;
+            var spawner = Object.FindAnyObjectByType<EnemySpawner>();
+            var follow = CameraFollow.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            spawner.maxAlive = 0;
+            foreach (var enemy in new System.Collections.Generic.List<Enemy>(Enemy.Active)) Object.Destroy(enemy.gameObject);
+            player.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            follow.SetMode(CameraMode.TopDown);
+            follow.target = null;
+            follow.enabled = false;
+
+            // One of each slot, then the rest, so every look gets seen across the two pictures.
+            var library = GameAssets.Instance.items;
+            ItemType[][] sets =
+            {
+                new[] { ItemType.NeedleTip, ItemType.SplitterMandible, ItemType.CompoundEye, ItemType.WingBuds, ItemType.ChitinPlate, ItemType.PheromoneCloud, ItemType.LarvaBuddy },
+                new[] { ItemType.AcidGland, ItemType.FireflyLantern, ItemType.SugarCube, ItemType.QueensJelly },
+                new[] { ItemType.ExtraLegs },
+            };
+            for (int i = 0; i < sets.Length; i++)
+            {
+                foreach (var type in sets[i]) player.Items.Add(library.Get(type));
+                yield return new WaitForSeconds(0.3f);
+                Camera.main.transform.SetPositionAndRotation(new Vector3(1.6f, 1.6f, -3.2f), Quaternion.Euler(12f, -27f, 0f));
+                yield return null;
+                Save(Path.Combine(folder, "items-front-" + (i + 1) + ".png"));
+                Camera.main.transform.SetPositionAndRotation(new Vector3(-1.8f, 1.8f, 3f), Quaternion.Euler(15f, 150f, 0f));
+                yield return null;
+                Save(Path.Combine(folder, "items-back-" + (i + 1) + ".png"));
+            }
+        }
+
         // Stops an ant thinking so it stands still for its picture; its mutation tells keep animating.
         static void Freeze(Enemy enemy)
         {
             enemy.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
-            enemy.enabled = false;
+            enemy.frozen = true;
         }
 
         static void Save(string path)

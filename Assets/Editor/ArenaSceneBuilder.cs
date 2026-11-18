@@ -40,6 +40,7 @@ namespace Shrunk.EditorTools
             player.GetComponent<PlayerInputReader>().touch = touch;
 
             var game = new GameObject("Game");
+            ContentBuilder.AddGameAssets(game);
             game.AddComponent<GameLoop>();
             var spawner = game.AddComponent<EnemySpawner>();
             spawner.biome = biome;
@@ -132,6 +133,8 @@ namespace Shrunk.EditorTools
             player.weapon = weapon;
             player.visual = visual;
             root.AddComponent<HitFlash>();
+            root.AddComponent<PlayerItems>();
+            root.AddComponent<HeroPower>().eyes = new[] { visual.Find("Eye L"), visual.Find("Eye R") };
             return root;
         }
 
@@ -183,8 +186,22 @@ namespace Shrunk.EditorTools
             cameraButton.sizeDelta = new Vector2(420f, 70f);
             var cameraLabel = UiText("Label", cameraButton, font, "V  camera: Shoulder", 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 70f));
 
+            var resources = UiText("Resources", parent, font, "Coins 0   ·   Samples 0", 34, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(255f, -140f), new Vector2(400f, 50f));
+            var prompt = UiText("Prompt", parent, font, "", 34, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0f, 130f), new Vector2(1700f, 60f));
+            prompt.color = new Color(1f, 0.95f, 0.7f);
+
+            // Hero power: above the right thumb. On PC it stays on screen as the meter.
+            var power = UiImage("Power Button", parent, knob, white, new Vector2(1f, 0f), new Vector2(-190f, 440f), 180f);
+            var powerFill = UiImage("Meter", power, knob, new Color(1f, 0.8f, 0.2f, 0.7f), new Vector2(0.5f, 0.5f), Vector2.zero, 180f).GetComponent<Image>();
+            powerFill.type = Image.Type.Filled;
+            powerFill.fillMethod = Image.FillMethod.Radial360;
+            powerFill.fillOrigin = (int)Image.Origin360.Top;
+            powerFill.fillAmount = 0f;
+            var powerLabel = UiText("Label", power, font, "POWER", 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(180f, 80f));
+
             var touch = canvasGo.AddComponent<TouchControls>();
             touch.cameraButton = cameraButton;
+            touch.powerButton = power;
             touch.moveBase = moveBase;
             touch.moveKnob = moveKnob;
             touch.aimBase = aimBase;
@@ -199,6 +216,10 @@ namespace Shrunk.EditorTools
             hud.touch = touch;
             hud.crosshair = crosshair;
             hud.cameraLabel = cameraLabel;
+            hud.resourcesText = resources;
+            hud.promptText = prompt;
+            hud.powerFill = powerFill;
+            hud.powerLabel = powerLabel;
             return touch;
         }
 

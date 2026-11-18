@@ -296,6 +296,84 @@ namespace Shrunk.Tests
             Assert.GreaterOrEqual(mutationsSeen.Count, 5, "too little variety in mutations");
         }
 
+        RoomNode RoomOfType(RoomType type)
+        {
+            foreach (var node in _floors.Layout.ordered) if (node.type == type) return node;
+            return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Treasure_room_gives_a_free_item()
+        {
+            var node = RoomOfType(RoomType.Treasure);
+            Room room = _floors.RoomAt(node.cell);
+
+            Pickup offer = null;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Item && pickup.treasureRoom == room) offer = pickup;
+            Assert.IsNotNull(offer, "treasure room has no item");
+            Assert.AreEqual(0, offer.price);
+            Assert.IsFalse(offer.item.rare, "a rare item turned up in a treasure room");
+            ItemDefinition item = offer.item;
+
+            // Standing a couple of metres off does nothing; walking up to the pedestal takes the item.
+            _player.Teleport(StandingSpot(node) + Vector3.up * 0.05f);
+            yield return new WaitForSeconds(0.2f);
+            Assert.AreEqual(0, _player.Items.Count(item.type), "picked up from too far away");
+            _player.Input.overrideFrame = new InputFrame { move = (room.Centre - _player.transform.position).normalized };
+            yield return WaitUntil(() => _player.Items.Count(item.type) == 1, 2f, "the item to be picked up");
+            _player.Input.overrideFrame = new InputFrame();
+            Assert.AreEqual(node, _floors.CurrentNode);
+            Assert.IsFalse(_floors.IsLocked, "treasure room locked");
+        }
+
+        [UnityTest]
+        public IEnumerator Shop_sells_three_items_for_coins()
+        {
+            var node = RoomOfType(RoomType.Shop);
+            Room room = _floors.RoomAt(node.cell);
+
+            var stock = new List<Pickup>();
+            foreach (var pickup in Pickup.All)
+            {
+                if (pickup.kind == PickupKind.Item && pickup.price > 0 && room.ContainsInside(pickup.transform.position, 0f)) stock.Add(pickup);
+            }
+            Assert.AreEqual(3, stock.Count, "shop should stock three items");
+            Assert.AreEqual(3, new HashSet<ItemType>(stock.ConvertAll(p => p.item.type)).Count, "shop stocked the same item twice");
+
+            Pickup wanted = stock[0];
+            ItemDefinition item = wanted.item;
+            Vector3 spot = wanted.transform.position;
+            spot.y = 0.05f;
+
+            // No coins: standing on it does nothing.
+            _player.Teleport(spot);
+            yield return new WaitForSeconds(0.3f);
+            Assert.AreEqual(0, _player.Items.Count(item.type), "got a shop item for free");
+            Assert.IsNotNull(wanted);
+
+            // With coins: it is bought and the price comes off.
+            RunState.AddCoins(item.price + 5);
+            yield return WaitUntil(() => _player.Items.Count(item.type) == 1, 1f, "the purchase");
+            Assert.AreEqual(5, RunState.Coins);
+            yield return null;
+            Assert.AreEqual(2, stock.FindAll(p => p != null).Count, "the bought item is still on the shelf");
+        }
+
+        [UnityTest]
+        public IEnumerator Chitin_Plate_recharges_when_entering_a_new_room()
+        {
+            _player.Items.Add(GameAssets.Instance.items.Get(ItemType.ChitinPlate));
+            _player.Health.TakeDamage(1, Vector3.forward);
+            Assert.AreEqual(0, _player.Items.ShieldCharges);
+
+            RoomNode other = null;
+            foreach (var neighbour in _floors.Layout.Neighbours(_floors.Layout.start)) { other = neighbour; break; }
+            _player.Health.SetInvulnerable(0f);
+            _player.Teleport(StandingSpot(other) + Vector3.up * 0.05f);
+            yield return WaitUntil(() => _floors.CurrentNode == other, 1f, "the room change");
+            Assert.AreEqual(1, _player.Items.ShieldCharges);
+        }
+
         [UnityTest]
         public IEnumerator Ants_reach_the_player_inside_a_carved_room()
         {

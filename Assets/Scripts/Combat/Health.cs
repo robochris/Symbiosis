@@ -71,6 +71,19 @@ namespace Shrunk
             return true;
         }
 
+        /// <summary>Raises (or lowers) the health cap, optionally filling up to it.</summary>
+        public void SetMaxHealth(int max, bool healFull)
+        {
+            maxHealth = Mathf.Max(1, max);
+            Current = healFull ? maxHealth : Mathf.Min(Current, maxHealth);
+        }
+
+        /// <summary>Sets health directly, e.g. when a saved run is loaded.</summary>
+        public void Restore(int current)
+        {
+            Current = Mathf.Clamp(current, 1, maxHealth);
+        }
+
         public void Heal(int amount)
         {
             if (IsDead) return;

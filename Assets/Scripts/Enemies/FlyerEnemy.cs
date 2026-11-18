@@ -29,6 +29,7 @@ namespace Shrunk
         public float pullAwayTime = 0.8f;
 
         public State Current { get; private set; }
+        public override bool IgnoresGroundHazards => true;
 
         float _timer;
         float _side = 1f;
@@ -45,8 +46,7 @@ namespace Shrunk
 
         protected override void Think()
         {
-            var player = PlayerController.Instance;
-            if (player == null || player.Health.IsDead)
+            if (!TryGetTarget(out Vector3 targetPosition, out Health targetHealth))
             {
                 SetVisualScale(1f);
                 Move(Vector3.zero);
@@ -54,7 +54,7 @@ namespace Shrunk
                 return;
             }
 
-            Vector3 toPlayer = player.transform.position - transform.position;
+            Vector3 toPlayer = targetPosition - transform.position;
             toPlayer.y = 0f;
             float distance = toPlayer.magnitude;
 
@@ -63,11 +63,11 @@ namespace Shrunk
                 case State.Circle:
                     // Aim for a point on a ring around the player, a little further round than where we are now.
                     Vector3 outward = distance > 0.1f ? -toPlayer / distance : transform.forward;
-                    Vector3 ringPoint = player.transform.position + Quaternion.Euler(0f, 50f * _side, 0f) * outward * circleRadius;
+                    Vector3 ringPoint = targetPosition + Quaternion.Euler(0f, 50f * _side, 0f) * outward * circleRadius;
                     Face(SteerToward(ringPoint) - transform.position, turnSpeed);
                     Move(transform.forward * (moveSpeed * SpeedScale));
                     Hover(hoverHeight);
-                    if (Tick() && CanSee(player.transform.position)) Enter(State.Windup, windupTime);
+                    if (Tick() && CanSee(targetPosition)) Enter(State.Windup, windupTime);
                     break;
 
                 case State.Windup:
@@ -83,7 +83,7 @@ namespace Shrunk
                     SetVisualScale(1f);
                     Move(transform.forward * (diveSpeed * SpeedScale));
                     Hover(0.35f);
-                    if (!_bit && distance <= biteReach) _bit = player.Health.TakeDamage(damage, transform.forward);
+                    if (!_bit && distance <= biteReach + ReachBonus(targetHealth)) _bit = targetHealth.TakeDamage(damage, transform.forward);
                     if (Tick()) Enter(State.PullAway, pullAwayTime);
                     break;
 

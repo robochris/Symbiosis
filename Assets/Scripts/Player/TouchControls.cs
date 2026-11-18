@@ -25,6 +25,8 @@ namespace Shrunk
         public RectTransform dodgeButton;
         [Tooltip("Tap to switch camera view. Stays visible on PC as a label.")]
         public RectTransform cameraButton;
+        [Tooltip("Tap to set off the hero power. Stays visible on PC as a meter.")]
+        public RectTransform powerButton;
 
         [Header("Editor")]
         [Tooltip("Show the touch controls in the editor and drive them with the mouse.")]
@@ -41,6 +43,7 @@ namespace Shrunk
         Vector3 _moveRest, _aimRest;
         bool _dodgeQueued;
         bool _cameraQueued;
+        bool _powerQueued;
         bool _simulating;
 
         void Awake()
@@ -89,6 +92,14 @@ namespace Shrunk
             return queued;
         }
 
+        /// <summary>True once per hero-power tap.</summary>
+        public bool ConsumePower()
+        {
+            bool queued = _powerQueued;
+            _powerQueued = false;
+            return queued;
+        }
+
         /// <summary>True once per camera-button tap.</summary>
         public bool ConsumeCamera()
         {
@@ -115,6 +126,11 @@ namespace Shrunk
                     if (dodgeButton != null && RectTransformUtility.RectangleContainsScreenPoint(dodgeButton, position, null))
                     {
                         _dodgeQueued = true;
+                        continue;
+                    }
+                    if (powerButton != null && RectTransformUtility.RectangleContainsScreenPoint(powerButton, position, null))
+                    {
+                        _powerQueued = true;
                         continue;
                     }
                     if (cameraButton != null && RectTransformUtility.RectangleContainsScreenPoint(cameraButton, position, null))

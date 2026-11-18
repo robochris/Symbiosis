@@ -39,24 +39,23 @@ namespace Shrunk
 
         protected override void Think()
         {
-            var player = PlayerController.Instance;
-            if (player == null || player.Health.IsDead)
+            if (!TryGetTarget(out Vector3 targetPosition, out Health targetHealth))
             {
                 SetVisualScale(1f);
                 Move(Vector3.zero);
                 return;
             }
 
-            Vector3 toPlayer = player.transform.position - transform.position;
+            Vector3 toPlayer = targetPosition - transform.position;
             toPlayer.y = 0f;
             float distance = toPlayer.magnitude;
 
             switch (Current)
             {
                 case State.Approach:
-                    Face(SteerToward(player.transform.position) - transform.position, turnSpeed);
+                    Face(SteerToward(targetPosition) - transform.position, turnSpeed);
                     Move(transform.forward * (moveSpeed * SpeedScale));
-                    if (distance <= triggerRange && CanSee(player.transform.position)) Enter(State.Windup, windupTime);
+                    if (distance <= triggerRange && CanSee(targetPosition)) Enter(State.Windup, windupTime);
                     break;
 
                 case State.Windup:
@@ -76,7 +75,7 @@ namespace Shrunk
                     SetVisualScale(1f);
                     Move(transform.forward * (chargeSpeed * SpeedScale));
                     _chargedFor += Time.deltaTime;
-                    if (!_hit && distance <= hitReach) _hit = player.Health.TakeDamage(damage, transform.forward);
+                    if (!_hit && distance <= hitReach + ReachBonus(targetHealth)) _hit = targetHealth.TakeDamage(damage, transform.forward);
 
                     // Running into a wall (or the player) ends the charge early.
                     bool crashed = _chargedFor > 0.1f && (Controller.collisionFlags & CollisionFlags.Sides) != 0;

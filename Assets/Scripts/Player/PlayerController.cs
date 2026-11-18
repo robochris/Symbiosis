@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Shrunk
 {
-    /// <summary>The Void: twin-stick movement, facing, shooting and the dodge roll.</summary>
+    /// <summary>The Void: movement, facing, shooting, the dodge and setting off the hero power.</summary>
     [RequireComponent(typeof(CharacterController), typeof(Health), typeof(PlayerInputReader))]
     public class PlayerController : MonoBehaviour
     {
@@ -19,6 +19,8 @@ namespace Shrunk
         public float dodgeCooldown = 1f;
         [Tooltip("Seconds of invulnerability from the start of the roll.")]
         public float dodgeInvulnerability = 0.3f;
+        [Tooltip("Lab upgrade: 1.15 = the dodge recharges 15% faster.")]
+        public float dodgeRechargeMultiplier = 1f;
 
         [Header("Parts")]
         public Weapon weapon;
@@ -27,14 +29,24 @@ namespace Shrunk
 
         public Health Health { get; private set; }
         public PlayerInputReader Input { get; private set; }
+        public PlayerItems Items { get; private set; }
+        public HeroPower Power { get; private set; }
         public bool IsDodging => _dodgeTimeLeft > 0f;
-        /// <summary>0 right after a dodge, 1 when it is ready again.</summary>
-        public float DodgeReady01 => dodgeCooldown <= 0f ? 1f : Mathf.Clamp01(1f - (_nextDodge - Time.time) / dodgeCooldown);
+        /// <summary>Mid-dodge with Wing Buds: off the ground, so ground hazards can't touch the player.</summary>
+        public bool IsHovering => IsDodging && _hovering;
+        public int DodgeCharges => _charges;
+        /// <summary>1 when a dodge is available, otherwise how far the next one has recharged.</summary>
+        public float DodgeReady01 => _charges > 0 ? 1f : Mathf.Clamp01(1f - (_rechargeAt - Time.time) / Mathf.Max(0.01f, _lastCooldown));
 
         CharacterController _controller;
         Vector3 _dodgeDirection;
+        Vector3 _visualHome;
         float _dodgeTimeLeft;
-        float _nextDodge;
+        float _dodgeLength = 1f;
+        float _rechargeAt;
+        float _lastCooldown = 1f;
+        int _charges = 1;
+        bool _hovering;
 
         void Awake()
         {
@@ -42,6 +54,9 @@ namespace Shrunk
             _controller = GetComponent<CharacterController>();
             Health = GetComponent<Health>();
             Input = GetComponent<PlayerInputReader>();
+            Items = GetComponent<PlayerItems>();
+            Power = GetComponent<HeroPower>();
+            if (visual != null) _visualHome = visual.localPosition;
         }
 
         void OnDestroy()
@@ -54,24 +69,26 @@ namespace Shrunk
             if (Health.IsDead) return;
 
             InputFrame input = Input.Read();
+            PlayerStats stats = Items != null ? Items.Stats : PlayerStats.Default;
+            RechargeDodge(stats);
+
+            if (input.power && Power != null) Power.TryActivate();
+
             Vector3 velocity;
 
             if (IsDodging)
             {
                 _dodgeTimeLeft -= Time.deltaTime;
-                velocity = _dodgeDirection * dodgeSpeed;
-                SpinVisual(1f - Mathf.Clamp01(_dodgeTimeLeft / dodgeDuration));
+                velocity = _dodgeDirection * (_hovering ? dodgeSpeed * 0.7f : dodgeSpeed);
+                AnimateDodge(1f - Mathf.Clamp01(_dodgeTimeLeft / _dodgeLength));
             }
             else
             {
-                velocity = input.move * moveSpeed;
+                velocity = input.move * (moveSpeed * stats.moveSpeedMultiplier);
 
-                if (input.dodge && Time.time >= _nextDodge)
+                if (input.dodge && _charges > 0)
                 {
-                    _dodgeDirection = input.move.sqrMagnitude > 0.04f ? input.move.normalized : transform.forward;
-                    _dodgeTimeLeft = dodgeDuration;
-                    _nextDodge = Time.time + dodgeCooldown;
-                    Health.SetInvulnerable(dodgeInvulnerability);
+                    StartDodge(input, stats);
                     velocity = _dodgeDirection * dodgeSpeed;
                 }
                 else
@@ -97,6 +114,37 @@ namespace Shrunk
             _controller.Move(velocity * Time.deltaTime);
         }
 
+        float Cooldown(PlayerStats stats) => dodgeCooldown * stats.dodgeCooldownMultiplier / Mathf.Max(0.1f, dodgeRechargeMultiplier);
+
+        // Dodges come back one at a time. Extra Legs with Wing Buds gives a second one.
+        void RechargeDodge(PlayerStats stats)
+        {
+            if (_charges >= stats.dodgeCharges || Time.time < _rechargeAt) return;
+            _charges++;
+            if (_charges < stats.dodgeCharges)
+            {
+                _lastCooldown = Cooldown(stats);
+                _rechargeAt = Time.time + _lastCooldown;
+            }
+        }
+
+        void StartDodge(InputFrame input, PlayerStats stats)
+        {
+            // The recharge clock only starts when a full set of dodges is first broken into.
+            if (_charges >= stats.dodgeCharges)
+            {
+                _lastCooldown = Cooldown(stats);
+                _rechargeAt = Time.time + _lastCooldown;
+            }
+            _charges--;
+
+            _dodgeDirection = input.move.sqrMagnitude > 0.04f ? input.move.normalized : transform.forward;
+            _hovering = stats.hoverDodge;
+            _dodgeLength = _hovering ? dodgeDuration * 2f : dodgeDuration;
+            _dodgeTimeLeft = _dodgeLength;
+            Health.SetInvulnerable(_hovering ? _dodgeLength : dodgeInvulnerability);
+        }
+
         /// <summary>Moves the player instantly, e.g. to the start of a new floor.</summary>
         public void Teleport(Vector3 position)
         {
@@ -104,13 +152,29 @@ namespace Shrunk
             transform.position = position;
             _controller.enabled = true;
             _dodgeTimeLeft = 0f;
-            if (visual != null) visual.localRotation = Quaternion.identity;
+            if (visual != null)
+            {
+                visual.localRotation = Quaternion.identity;
+                visual.localPosition = _visualHome;
+            }
         }
 
-        void SpinVisual(float progress)
+        void AnimateDodge(float progress)
         {
             if (visual == null) return;
-            if (progress >= 1f) { visual.localRotation = Quaternion.identity; return; }
+            if (progress >= 1f)
+            {
+                visual.localRotation = Quaternion.identity;
+                visual.localPosition = _visualHome;
+                return;
+            }
+
+            if (_hovering)
+            {
+                // Wing Buds: lift off the ground in an arc instead of rolling.
+                visual.localPosition = _visualHome + Vector3.up * (Mathf.Sin(progress * Mathf.PI) * 0.9f);
+                return;
+            }
 
             // Roll forward around the axis that is sideways to the dodge direction.
             Vector3 localDirection = transform.InverseTransformDirection(_dodgeDirection);

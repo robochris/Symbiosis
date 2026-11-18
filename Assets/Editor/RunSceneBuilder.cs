@@ -41,6 +41,7 @@ namespace Shrunk.EditorTools
             ExtendHud(touch.gameObject);
 
             var game = new GameObject("Game");
+            ContentBuilder.AddGameAssets(game);
             game.AddComponent<GameLoop>();
             game.AddComponent<FloorManager>().biome = biome;
 
@@ -67,12 +68,12 @@ namespace Shrunk.EditorTools
             // Kills moves under the health pips so the minimap can have the top-right corner.
             var kills = (RectTransform)hud.killsText.transform;
             kills.anchorMin = kills.anchorMax = new Vector2(0f, 1f);
-            kills.anchoredPosition = new Vector2(255f, -215f);
+            kills.anchoredPosition = new Vector2(255f, -250f);
             hud.killsText.alignment = TextAnchor.MiddleLeft;
             hud.killsText.fontSize = 36;
 
             hud.floorText = ArenaSceneBuilder.UiText("Floor", canvas.transform, font, "Floor 1", 44, TextAnchor.MiddleLeft,
-                new Vector2(0f, 1f), new Vector2(255f, -160f), new Vector2(400f, 60f));
+                new Vector2(0f, 1f), new Vector2(255f, -195f), new Vector2(400f, 60f));
 
             var frame = new GameObject("Minimap", typeof(RectTransform), typeof(Image));
             var rect = (RectTransform)frame.transform;

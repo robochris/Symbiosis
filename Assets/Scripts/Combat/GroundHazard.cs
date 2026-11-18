@@ -4,13 +4,15 @@ using UnityEngine;
 namespace Shrunk
 {
     /// <summary>
-    /// Something on the floor that hurts the player: an acid pool that lingers, or a blast that goes off after a short fuse.
-    /// Only the player is affected; enemies walk (or fly) through.
+    /// Something on the floor that hurts whoever stands in it: a puddle that lingers, or a blast that goes off after a short fuse.
+    /// Enemy hazards hurt only the player; the player's own puddles hurt only enemies. Anything airborne is untouched.
     /// </summary>
     public class GroundHazard : MonoBehaviour
     {
         public static readonly List<GroundHazard> All = new List<GroundHazard>();
 
+        [Tooltip("Who it hurts.")]
+        public Team hurts = Team.Player;
         public float radius = 1.5f;
         public int damage = 1;
         [Tooltip("Seconds it stays. For a blast, how long the flash lingers after it goes off.")]
@@ -18,14 +20,19 @@ namespace Shrunk
         [Tooltip("Blasts only: seconds before it goes off.")]
         public float fuse = 0f;
         public bool isBlast;
+        [Tooltip("Also sets what it hurts on fire.")]
+        public bool burning;
+        [Tooltip("Seconds between hits on enemies standing in it.")]
+        public float tick = 0.5f;
 
         float _age;
+        float _nextTick;
         bool _wentOff;
 
-        /// <summary>A flat pool that hurts the player while they stand in it.</summary>
+        /// <summary>An enemy's acid: a flat pool that hurts the player while they stand in it.</summary>
         public static GroundHazard SpawnAcidPool(Vector3 position, Material material)
         {
-            var hazard = Create(PrimitiveType.Cylinder, "Acid Pool", position + Vector3.up * 0.03f, material);
+            var hazard = Create(PrimitiveType.Cylinder, "Acid Pool", Flat(position, 0.03f), material);
             hazard.radius = 1.6f;
             hazard.lifetime = 5f;
             hazard.transform.localScale = new Vector3(hazard.radius * 2f, 0.02f, hazard.radius * 2f);
@@ -35,7 +42,7 @@ namespace Shrunk
         /// <summary>A ball that swells for a moment, then hurts the player if they are still inside it.</summary>
         public static GroundHazard SpawnExplosion(Vector3 position, Material material)
         {
-            var hazard = Create(PrimitiveType.Sphere, "Explosion", position + Vector3.up * 0.6f, material);
+            var hazard = Create(PrimitiveType.Sphere, "Explosion", Flat(position, 0.6f), material);
             hazard.isBlast = true;
             hazard.radius = 3f;
             hazard.fuse = 0.7f;
@@ -43,6 +50,20 @@ namespace Shrunk
             hazard.transform.localScale = Vector3.one * 0.6f;
             return hazard;
         }
+
+        /// <summary>The player's own puddle (Acid Gland): hurts enemies standing in it. Burning puddles also set them alight.</summary>
+        public static GroundHazard SpawnFriendlyPuddle(Vector3 position, int level, bool burning, Material material)
+        {
+            var hazard = Create(PrimitiveType.Cylinder, burning ? "Burning Puddle" : "Acid Puddle", Flat(position, 0.04f), material);
+            hazard.hurts = Team.Enemy;
+            hazard.burning = burning;
+            hazard.radius = 0.9f + 0.3f * level;
+            hazard.lifetime = 3f;
+            hazard.transform.localScale = new Vector3(hazard.radius * 2f, 0.02f, hazard.radius * 2f);
+            return hazard;
+        }
+
+        static Vector3 Flat(Vector3 position, float height) => new Vector3(position.x, height, position.z);
 
         static GroundHazard Create(PrimitiveType shape, string name, Vector3 position, Material material)
         {
@@ -80,7 +101,7 @@ namespace Shrunk
                     if (_age >= fuse)
                     {
                         _wentOff = true;
-                        HurtPlayerInside();
+                        Hurt();
                     }
                 }
                 else if (_age >= fuse + lifetime)
@@ -90,18 +111,44 @@ namespace Shrunk
                 return;
             }
 
-            // The player's own post-hit invulnerability sets how often a pool can hurt them.
-            HurtPlayerInside();
+            if (hurts == Team.Player)
+            {
+                // The player's own post-hit invulnerability sets how often a pool can hurt them.
+                Hurt();
+            }
+            else if (Time.time >= _nextTick)
+            {
+                _nextTick = Time.time + tick;
+                Hurt();
+            }
+
             if (_age >= lifetime) Destroy(gameObject);
         }
 
-        void HurtPlayerInside()
+        bool Inside(Vector3 position)
         {
-            var player = PlayerController.Instance;
-            if (player == null || player.Health.IsDead) return;
-            Vector3 to = player.transform.position - transform.position;
+            Vector3 to = position - transform.position;
             to.y = 0f;
-            if (to.sqrMagnitude <= radius * radius) player.Health.TakeDamage(damage, to.normalized);
+            return to.sqrMagnitude <= radius * radius;
+        }
+
+        void Hurt()
+        {
+            if (hurts == Team.Player)
+            {
+                var player = PlayerController.Instance;
+                if (player == null || player.Health.IsDead || player.IsHovering) return;
+                if (Inside(player.transform.position)) player.Health.TakeDamage(damage, Vector3.zero);
+                return;
+            }
+
+            // Copy: a death can change the list while we walk it.
+            foreach (var enemy in Enemy.Active.ToArray())
+            {
+                if (enemy.Health.IsDead || enemy.IgnoresGroundHazards || !Inside(enemy.transform.position)) continue;
+                enemy.Health.TakeDamage(damage, Vector3.zero);
+                if (burning) enemy.Ignite(1);
+            }
         }
     }
 }

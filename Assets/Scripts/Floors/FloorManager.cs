@@ -111,6 +111,7 @@ namespace Shrunk
 
             Physics.SyncTransforms();
             _surface.BuildNavMesh();
+            PlaceItems(seed);
 
             var player = PlayerController.Instance;
             if (player != null)
@@ -124,6 +125,38 @@ namespace Shrunk
             Enter(Layout.start);
         }
 
+        /// <summary>Lab upgrade: how many items a treasure room offers.</summary>
+        [System.NonSerialized] public int treasureChoices = 1;
+
+        // Treasure rooms hold a free item on the pedestal; the shop lays three out in front of the counter, for coins.
+        void PlaceItems(int seed)
+        {
+            var assets = GameAssets.Instance;
+            if (assets == null || assets.items == null) return;
+            var rng = new System.Random(seed ^ 0x2545F491);
+
+            foreach (var node in Layout.ordered)
+            {
+                Room room = _rooms[node.cell];
+                if (node.type == RoomType.Treasure)
+                {
+                    var picks = assets.items.RandomCommon(rng, Mathf.Max(1, treasureChoices));
+                    for (int i = 0; i < picks.Count; i++)
+                    {
+                        // One sits on the pedestal; a second (Lucky Find) sits beside it. Taking one removes the other.
+                        Vector3 offset = i == 0 ? Vector3.up * 0.6f : new Vector3(0f, 0f, -2.2f);
+                        Pickup.Item(picks[i], room.Centre + offset, 0).treasureRoom = room;
+                    }
+                }
+                else if (node.type == RoomType.Shop)
+                {
+                    var picks = assets.items.RandomCommon(rng, 3);
+                    Vector3[] spots = { new Vector3(-2f, 0f, -1.7f), new Vector3(0f, 0f, -2.3f), new Vector3(2f, 0f, -1.7f) };
+                    for (int i = 0; i < picks.Count; i++) Pickup.Item(picks[i], room.Centre + spots[i], picks[i].price);
+                }
+            }
+        }
+
         void ClearFloor()
         {
             for (int i = 0; i < _live.Count; i++) _livePools[i].Release(_live[i]);
@@ -131,6 +164,7 @@ namespace Shrunk
             _livePools.Clear();
             GroundHazard.ClearAll();
             PheromoneTrail.ClearAll();
+            Pickup.ClearAll();
 
             // Destroy only happens at the end of the frame; switching the old rooms off keeps them out of the new navmesh.
             foreach (var room in _rooms.Values)

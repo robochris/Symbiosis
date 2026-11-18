@@ -46,18 +46,17 @@ namespace Shrunk
 
         protected override void Think()
         {
-            var player = PlayerController.Instance;
-            if (player == null || player.Health.IsDead)
+            if (!TryGetTarget(out Vector3 targetPosition, out Health targetHealth))
             {
                 SetVisualScale(1f);
                 Move(Vector3.zero);
                 return;
             }
 
-            Vector3 toPlayer = player.transform.position - transform.position;
+            Vector3 toPlayer = targetPosition - transform.position;
             toPlayer.y = 0f;
             float distance = toPlayer.magnitude;
-            bool sees = CanSee(player.transform.position);
+            bool sees = CanSee(targetPosition);
 
             if (_winding)
             {
@@ -78,7 +77,7 @@ namespace Shrunk
             }
             else if (distance > maxRange || !sees)
             {
-                Face(SteerToward(player.transform.position) - transform.position, turnSpeed);
+                Face(SteerToward(targetPosition) - transform.position, turnSpeed);
                 Move(transform.forward * (moveSpeed * SpeedScale));
             }
             else
@@ -107,7 +106,9 @@ namespace Shrunk
             }
 
             Vector3 origin = muzzle != null ? muzzle.position : transform.position + Vector3.up * 0.7f;
-            pool.Get().Launch(origin, toPlayer.normalized, projectileSpeed, damage, projectileRange, Team.Enemy, pool);
+            // A confused spitter's shots hurt other enemies.
+            var shot = new Shot { damage = damage, owner = Health };
+            pool.Get().Launch(origin, toPlayer.normalized, projectileSpeed, shot, projectileRange, IsConfused ? Team.Player : Team.Enemy, pool);
             ShotsFired++;
         }
     }

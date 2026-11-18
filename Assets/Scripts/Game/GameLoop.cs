@@ -7,14 +7,14 @@ namespace Shrunk
     /// <summary>Milestone 1 loop: count kills, and restart the arena when the player dies.</summary>
     public class GameLoop : MonoBehaviour
     {
-        public static int Kills { get; private set; }
+        public static int Kills => RunState.Kills;
 
         public float restartDelay = 1.5f;
         public float hitShake = 0.35f;
 
         void Awake()
         {
-            Kills = 0;
+            RunState.Reset();
             Application.targetFrameRate = 60;
         }
 
@@ -38,7 +38,8 @@ namespace Shrunk
 
         void OnEnemyKilled(Enemy enemy)
         {
-            Kills++;
+            RunState.AddKill();
+            Loot.Drop(enemy);
         }
 
         void OnPlayerDamaged(int amount, Vector3 direction)

@@ -38,8 +38,7 @@ namespace Shrunk
 
         protected override void Think()
         {
-            var player = PlayerController.Instance;
-            if (player == null || player.Health.IsDead)
+            if (!TryGetTarget(out Vector3 targetPosition, out Health targetHealth))
             {
                 Current = State.Idle;
                 SetVisualScale(1f);
@@ -48,16 +47,16 @@ namespace Shrunk
             }
             if (Current == State.Idle) Current = State.Approach;
 
-            Vector3 toPlayer = player.transform.position - transform.position;
+            Vector3 toPlayer = targetPosition - transform.position;
             toPlayer.y = 0f;
             float distance = toPlayer.magnitude;
 
             switch (Current)
             {
                 case State.Approach:
-                    Face(SteerToward(player.transform.position) - transform.position, turnSpeed);
+                    Face(SteerToward(targetPosition) - transform.position, turnSpeed);
                     Move(transform.forward * (moveSpeed * SpeedScale));
-                    if (distance <= attackRange) Enter(State.Windup, windupTime);
+                    if (distance <= attackRange + ReachBonus(targetHealth)) Enter(State.Windup, windupTime);
                     break;
 
                 case State.Windup:
@@ -71,9 +70,9 @@ namespace Shrunk
                 case State.Lunge:
                     SetVisualScale(1f);
                     Move(transform.forward * lungeSpeed);
-                    if (!_bitLanded && distance <= biteReach)
+                    if (!_bitLanded && distance <= biteReach + ReachBonus(targetHealth))
                     {
-                        _bitLanded = player.Health.TakeDamage(biteDamage, transform.forward);
+                        _bitLanded = targetHealth.TakeDamage(biteDamage, transform.forward);
                     }
                     if (Tick()) Enter(State.Recover, recoverTime);
                     break;

@@ -102,6 +102,160 @@ namespace Shrunk.EditorTools
             return biome;
         }
 
+        // ---------- items ----------
+
+        /// <summary>Puts the shared asset holder on a scene's Game object.</summary>
+        public static void AddGameAssets(GameObject game)
+        {
+            var assets = game.AddComponent<GameAssets>();
+            assets.items = BuildItems(out var larva);
+            assets.larvaPrefab = larva;
+            assets.playerAcid = ArenaSceneBuilder.Unlit("PlayerAcid", new Color(0.35f, 0.95f, 0.75f));
+            assets.fire = ArenaSceneBuilder.Unlit("Fire", new Color(1f, 0.55f, 0.1f));
+            assets.confused = ArenaSceneBuilder.Unlit("Confused", new Color(1f, 0.45f, 0.75f));
+            assets.coin = ArenaSceneBuilder.Unlit("Gold", new Color(1f, 0.82f, 0.2f));
+            assets.sample = ArenaSceneBuilder.Unlit("Sample", new Color(0.45f, 0.95f, 1f));
+        }
+
+        // Item looks are built around the middle of the Void's body: the capsule is 1.8 tall and 0.8 wide,
+        // its eyes are at height 0.45 on the front, and its feet are at -0.9.
+        static ItemLibrary BuildItems(out LarvaBuddy larvaPrefab)
+        {
+            ArenaSceneBuilder.EnsureFolder("Assets/Data", "Items");
+            ArenaSceneBuilder.EnsureFolder("Assets/Prefabs", "Items");
+
+            var silver = ArenaSceneBuilder.Lit("ItemSilver", new Color(0.8f, 0.82f, 0.88f), 0.8f);
+            var chitin = ArenaSceneBuilder.Lit("ItemChitin", new Color(0.35f, 0.3f, 0.28f), 0.6f);
+            var white = ArenaSceneBuilder.Lit("Sugar", new Color(0.95f, 0.95f, 0.92f), 0.6f);
+            var pale = ArenaSceneBuilder.Lit("LarvaPod", new Color(0.9f, 0.85f, 0.6f), 0.5f);
+
+            var items = new System.Collections.Generic.List<ItemDefinition>();
+
+            // Needle Tip: a spike on the hand.
+            var look = new GameObject("NeedleTip");
+            Decor(PrimitiveType.Cylinder, "Spike", look.transform, new Vector3(0.45f, 0f, 0.5f), new Vector3(0.07f, 0.4f, 0.07f), silver).transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            items.Add(Item(ItemType.NeedleTip, "Needle Tip", "Shots pierce through enemies.", ItemSlot.Hands, false, 20, new Color(0.8f, 0.82f, 0.88f), look));
+
+            // Splitter Mandible: mandibles on the face.
+            look = new GameObject("SplitterMandible");
+            Decor(PrimitiveType.Cube, "Mandible L", look.transform, new Vector3(-0.14f, 0.25f, 0.5f), new Vector3(0.07f, 0.07f, 0.35f), chitin).transform.localRotation = Quaternion.Euler(0f, 25f, 0f);
+            Decor(PrimitiveType.Cube, "Mandible R", look.transform, new Vector3(0.14f, 0.25f, 0.5f), new Vector3(0.07f, 0.07f, 0.35f), chitin).transform.localRotation = Quaternion.Euler(0f, -25f, 0f);
+            items.Add(Item(ItemType.SplitterMandible, "Splitter Mandible", "Shots split into 3 on hit.", ItemSlot.Head, false, 25, new Color(0.75f, 0.45f, 0.25f), look));
+
+            // Acid Gland: a green drip from the hands.
+            look = new GameObject("AcidGland");
+            var acidMat = ArenaSceneBuilder.Unlit("PlayerAcid", new Color(0.35f, 0.95f, 0.75f));
+            Decor(PrimitiveType.Sphere, "Gland", look.transform, new Vector3(-0.45f, -0.05f, 0.3f), Vector3.one * 0.26f, acidMat);
+            Decor(PrimitiveType.Sphere, "Drip", look.transform, new Vector3(-0.45f, -0.3f, 0.3f), new Vector3(0.1f, 0.18f, 0.1f), acidMat);
+            items.Add(Item(ItemType.AcidGland, "Acid Gland", "Shots leave a small acid puddle.", ItemSlot.Hands, false, 20, new Color(0.35f, 0.95f, 0.75f), look));
+
+            // Firefly Lantern: a glowing tail light.
+            look = new GameObject("FireflyLantern");
+            Decor(PrimitiveType.Sphere, "Lantern", look.transform, new Vector3(0f, -0.25f, -0.5f), Vector3.one * 0.4f, ArenaSceneBuilder.Unlit("Fire", new Color(1f, 0.55f, 0.1f)));
+            items.Add(Item(ItemType.FireflyLantern, "Firefly Lantern", "Shots set enemies on fire.", ItemSlot.Back, false, 25, new Color(1f, 0.55f, 0.1f), look));
+
+            // Compound Eye: clusters of extra eyes.
+            look = new GameObject("CompoundEye");
+            var eyeMat = ArenaSceneBuilder.Unlit("EyeGlow", new Color(0.45f, 0.95f, 1f));
+            for (int i = 0; i < 6; i++)
+            {
+                float side = i < 3 ? -1f : 1f;
+                int n = i % 3;
+                Decor(PrimitiveType.Sphere, "Eye " + i, look.transform, new Vector3(side * (0.26f + 0.06f * n), 0.5f + 0.1f * (n - 1), 0.3f - 0.05f * n), Vector3.one * 0.09f, eyeMat);
+            }
+            items.Add(Item(ItemType.CompoundEye, "Compound Eye", "Stronger aim assist, +15% critical hits.", ItemSlot.Eyes, false, 20, new Color(0.45f, 0.95f, 1f), look));
+
+            // Extra Legs: four little legs on the back.
+            look = new GameObject("ExtraLegs");
+            for (int i = 0; i < 4; i++)
+            {
+                float side = i % 2 == 0 ? -1f : 1f;
+                float y = i < 2 ? 0.15f : -0.2f;
+                Decor(PrimitiveType.Cube, "Leg " + i, look.transform, new Vector3(side * 0.45f, y, -0.3f), new Vector3(0.5f, 0.06f, 0.06f), chitin).transform.localRotation = Quaternion.Euler(0f, side * 30f, side * -35f);
+            }
+            items.Add(Item(ItemType.ExtraLegs, "Extra Legs", "Faster movement, dodge recharges quicker.", ItemSlot.Back, false, 20, new Color(0.5f, 0.4f, 0.35f), look));
+
+            // Wing Buds: small wings.
+            look = new GameObject("WingBuds");
+            var wingMat = ArenaSceneBuilder.Lit("Wing", new Color(0.85f, 0.9f, 0.95f), 0.8f);
+            Decor(PrimitiveType.Cube, "Wing L", look.transform, new Vector3(-0.4f, 0.3f, -0.4f), new Vector3(0.6f, 0.03f, 0.3f), wingMat).transform.localRotation = Quaternion.Euler(0f, 20f, 25f);
+            Decor(PrimitiveType.Cube, "Wing R", look.transform, new Vector3(0.4f, 0.3f, -0.4f), new Vector3(0.6f, 0.03f, 0.3f), wingMat).transform.localRotation = Quaternion.Euler(0f, -20f, -25f);
+            items.Add(Item(ItemType.WingBuds, "Wing Buds", "Dodge becomes a short hover over hazards.", ItemSlot.Back, false, 20, new Color(0.85f, 0.9f, 0.95f), look));
+
+            // Chitin Plate: shell plates on the body.
+            look = new GameObject("ChitinPlate");
+            Decor(PrimitiveType.Sphere, "Chest", look.transform, new Vector3(0f, 0.05f, 0.3f), new Vector3(0.6f, 0.5f, 0.3f), chitin);
+            Decor(PrimitiveType.Sphere, "Belly", look.transform, new Vector3(0f, -0.4f, 0.28f), new Vector3(0.55f, 0.4f, 0.3f), chitin);
+            Decor(PrimitiveType.Sphere, "Back", look.transform, new Vector3(0f, -0.1f, -0.3f), new Vector3(0.6f, 0.8f, 0.3f), chitin);
+            items.Add(Item(ItemType.ChitinPlate, "Chitin Plate", "Blocks the first hit in every room.", ItemSlot.Body, false, 25, new Color(0.45f, 0.4f, 0.38f), look));
+
+            // Sugar Cube: sugar crystals on the shoulders.
+            look = new GameObject("SugarCube");
+            Decor(PrimitiveType.Cube, "Crystal L", look.transform, new Vector3(-0.38f, 0.6f, 0f), Vector3.one * 0.2f, white).transform.localRotation = Quaternion.Euler(20f, 30f, 10f);
+            Decor(PrimitiveType.Cube, "Crystal R", look.transform, new Vector3(0.38f, 0.6f, 0f), Vector3.one * 0.2f, white).transform.localRotation = Quaternion.Euler(-15f, 50f, 25f);
+            Decor(PrimitiveType.Cube, "Crystal R2", look.transform, new Vector3(0.3f, 0.72f, -0.1f), Vector3.one * 0.12f, white).transform.localRotation = Quaternion.Euler(40f, 10f, 5f);
+            items.Add(Item(ItemType.SugarCube, "Sugar Cube", "+1 max health and a full heal.", ItemSlot.Body, false, 25, new Color(0.95f, 0.95f, 0.92f), look));
+
+            // Pheromone Cloud: a pink haze around the feet.
+            look = new GameObject("PheromoneCloud");
+            Decor(PrimitiveType.Cylinder, "Haze", look.transform, new Vector3(0f, -0.87f, 0f), new Vector3(2.4f, 0.01f, 2.4f), ArenaSceneBuilder.Unlit("Confused", new Color(1f, 0.45f, 0.75f)));
+            items.Add(Item(ItemType.PheromoneCloud, "Pheromone Cloud", "Enemies near you sometimes fight each other.", ItemSlot.Aura, false, 25, new Color(1f, 0.45f, 0.75f), look));
+
+            // Larva Buddy: not worn; it follows the player around.
+            var larva = new GameObject("LarvaBuddy");
+            for (int i = 0; i < 4; i++)
+            {
+                Decor(PrimitiveType.Sphere, "Segment " + i, larva.transform, new Vector3(0f, 0.25f, 0.3f - i * 0.25f), Vector3.one * (0.42f - i * 0.05f), pale);
+            }
+            larva.AddComponent<LarvaBuddy>();
+            larvaPrefab = ArenaSceneBuilder.SavePrefab(larva, "Items/LarvaBuddy").GetComponent<LarvaBuddy>();
+            items.Add(Item(ItemType.LarvaBuddy, "Larva Buddy", "A small larva follows you and bites enemies.", ItemSlot.Companion, false, 25, new Color(0.9f, 0.85f, 0.6f), null));
+
+            // Queen's Jelly: a golden glow and a tiny crown.
+            look = new GameObject("QueensJelly");
+            var gold = ArenaSceneBuilder.Unlit("Gold", new Color(1f, 0.82f, 0.2f));
+            Decor(PrimitiveType.Cylinder, "Glow", look.transform, new Vector3(0f, -0.86f, 0f), new Vector3(1.8f, 0.01f, 1.8f), gold);
+            Decor(PrimitiveType.Cylinder, "Crown", look.transform, new Vector3(0f, 0.98f, 0f), new Vector3(0.3f, 0.08f, 0.3f), gold);
+            for (int i = 0; i < 4; i++)
+            {
+                var point = Quaternion.Euler(0f, i * 90f, 0f) * new Vector3(0.13f, 1.1f, 0f);
+                Decor(PrimitiveType.Cube, "Point " + i, look.transform, point, Vector3.one * 0.07f, gold);
+            }
+            items.Add(Item(ItemType.QueensJelly, "Queen's Jelly", "Every stat up a little.", ItemSlot.Aura, true, 0, new Color(1f, 0.82f, 0.2f), look));
+
+            const string libraryPath = "Assets/Data/Items/ItemLibrary.asset";
+            var library = AssetDatabase.LoadAssetAtPath<ItemLibrary>(libraryPath);
+            if (library == null)
+            {
+                library = ScriptableObject.CreateInstance<ItemLibrary>();
+                AssetDatabase.CreateAsset(library, libraryPath);
+            }
+            library.items = items.ToArray();
+            EditorUtility.SetDirty(library);
+            return library;
+        }
+
+        static ItemDefinition Item(ItemType type, string name, string description, ItemSlot slot, bool rare, int price, Color color, GameObject look)
+        {
+            string path = "Assets/Data/Items/" + type + ".asset";
+            var item = AssetDatabase.LoadAssetAtPath<ItemDefinition>(path);
+            if (item == null)
+            {
+                item = ScriptableObject.CreateInstance<ItemDefinition>();
+                AssetDatabase.CreateAsset(item, path);
+            }
+            item.type = type;
+            item.displayName = name;
+            item.description = description;
+            item.slot = slot;
+            item.rare = rare;
+            item.price = price;
+            item.material = ArenaSceneBuilder.Unlit("Item" + type, color);
+            item.visual = look != null ? ArenaSceneBuilder.SavePrefab(look, "Items/" + look.name) : null;
+            EditorUtility.SetDirty(item);
+            return item;
+        }
+
         // ---------- ants ----------
 
         static T Ant<T>(string name, float size, int health, Material body, Material dark, bool flying, out Transform model) where T : Enemy
@@ -193,14 +347,11 @@ namespace Shrunk.EditorTools
 
             var treasure = new GameObject("TreasurePedestal");
             Solid(PrimitiveType.Cylinder, "Pedestal", treasure.transform, new Vector3(0f, 0.5f, 0f), new Vector3(1.4f, 0.5f, 1.4f), wall);
-            Decor(PrimitiveType.Sphere, "Item Placeholder", treasure.transform, new Vector3(0f, 1.6f, 0f), Vector3.one * 0.8f, gold);
             biome.treasureProp = ArenaSceneBuilder.SavePrefab(treasure, "Props/TreasurePedestal");
 
             var shop = new GameObject("ShopStall");
             Solid(PrimitiveType.Cube, "Counter", shop.transform, new Vector3(0f, 0.6f, 0f), new Vector3(1.8f, 1.2f, 1f), root);
             Solid(PrimitiveType.Sphere, "Beetle Merchant", shop.transform, new Vector3(0f, 1f, 1.7f), new Vector3(1.6f, 1.6f, 1.6f), beetle);
-            Decor(PrimitiveType.Sphere, "Ware 1", shop.transform, new Vector3(-0.5f, 1.45f, 0f), Vector3.one * 0.45f, gold);
-            Decor(PrimitiveType.Sphere, "Ware 2", shop.transform, new Vector3(0.5f, 1.45f, 0f), Vector3.one * 0.45f, gold);
             biome.shopProp = ArenaSceneBuilder.SavePrefab(shop, "Props/ShopStall");
         }
 
