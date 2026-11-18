@@ -76,9 +76,14 @@ namespace Shrunk
                 }
                 else
                 {
-                    // Face where you aim; if you aren't aiming, face where you walk.
+                    // Shoulder and first person: face exactly where you look.
+                    // Top-down: face where you aim; if you aren't aiming, face where you walk.
                     Vector3 facing = input.aim.sqrMagnitude > 0.001f ? input.aim : input.move;
-                    if (facing.sqrMagnitude > 0.001f)
+                    if (input.faceYaw.HasValue)
+                    {
+                        transform.rotation = Quaternion.Euler(0f, input.faceYaw.Value, 0f);
+                    }
+                    else if (facing.sqrMagnitude > 0.001f)
                     {
                         var target = Quaternion.LookRotation(facing.normalized, Vector3.up);
                         transform.rotation = Quaternion.RotateTowards(transform.rotation, target, turnSpeed * Time.deltaTime);

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Shrunk
 {
     /// <summary>
-    /// Runs a floor: generates the flat layout, builds it from room prefabs, locks the doors when the player walks into
+    /// Runs a floor: generates the flat layout, carves a random shape for every room, locks the doors when the player walks into
     /// a room with enemies, opens them when the room is cleared, and moves on to the next floor at the exit.
     /// </summary>
     public class FloorManager : MonoBehaviour
@@ -18,8 +18,8 @@ namespace Shrunk
         public static event Action<FloorManager> RoomChanged;
 
         public BiomeDefinition biome;
-        [Tooltip("Distance between room centres. Must match the room prefabs' footprint.")]
-        public float cellSize = 24f;
+        /// <summary>Distance between room centres: one room's full footprint.</summary>
+        public float cellSize => RoomShape.Size * RoomShape.TileSize;
         [Tooltip("0 = a different floor every time. Any other number repeats the same run of floors.")]
         public int fixedSeed = 0;
         [Tooltip("How far past the doorway the player must be before the doors lock.")]
@@ -85,14 +85,12 @@ namespace Shrunk
             FloorNumber = number;
             int seed = fixedSeed != 0 ? fixedSeed + number : UnityEngine.Random.Range(1, int.MaxValue);
             Layout = FloorLayout.Generate(seed, FloorLayout.RoomCountForFloor(number));
-            var rng = new System.Random(seed);
 
             foreach (var node in Layout.ordered)
             {
-                Room prefab = biome.RoomFor(node.type, rng);
-                Room room = Instantiate(prefab, CellCentre(node.cell), Quaternion.identity, _roomsRoot);
-                room.name = $"{node.type} {node.cell.x},{node.cell.y} ({prefab.name})";
-                room.Configure(node.doors);
+                RoomShape shape = RoomShape.GenerateFor(Layout, node, number);
+                Room room = Room.Create(shape, biome, _roomsRoot, CellCentre(node.cell));
+                room.name = $"{node.type} {node.cell.x},{node.cell.y}";
                 _rooms.Add(node.cell, room);
 
                 // Only fight rooms need clearing.
@@ -105,7 +103,7 @@ namespace Shrunk
             var player = PlayerController.Instance;
             if (player != null)
             {
-                player.Teleport(CellCentre(Layout.start.cell) + Vector3.up * 0.05f);
+                player.Teleport(_rooms[Layout.start.cell].Centre + Vector3.up * 0.05f);
                 if (CameraFollow.Instance != null) CameraFollow.Instance.Snap();
             }
 
@@ -148,9 +146,9 @@ namespace Shrunk
             if (!IsLocked && !CurrentNode.cleared && room.ContainsInside(position, lockMargin)) Lock(room, position);
             if (IsLocked && AllDead()) Clear(room);
 
-            if (ExitOpen && CurrentNode.type == RoomType.Exit && room.exitHole != null)
+            if (ExitOpen && CurrentNode.type == RoomType.Exit && room.ExitHole != null)
             {
-                Vector3 toExit = room.exitHole.transform.position - position;
+                Vector3 toExit = room.ExitHole.transform.position - position;
                 toExit.y = 0f;
                 float distance = toExit.magnitude;
 
@@ -175,15 +173,26 @@ namespace Shrunk
             int count = biome.baseEnemiesPerRoom + (FloorNumber - 1) / Mathf.Max(1, biome.floorsPerExtraEnemy);
             count += UnityEngine.Random.Range(0, 2);
 
-            // Use the spawn points farthest from the player first.
-            var points = new List<Transform>(room.enemySpawns);
-            points.Sort((a, b) => (b.position - playerPosition).sqrMagnitude.CompareTo((a.position - playerPosition).sqrMagnitude));
-
-            for (int i = 0; i < count && i < points.Count; i++)
+            // Any open tile far enough from the player can hold an enemy. In a tiny room, fall back to the farthest tiles.
+            var points = new List<Vector3>();
+            foreach (var tile in room.Shape.interior)
             {
-                Vector3 point = points[i].position;
-                if (i > 0 && (point - playerPosition).sqrMagnitude < minSpawnDistance * minSpawnDistance) break;
-                Spawn(biome.enemies[UnityEngine.Random.Range(0, biome.enemies.Length)], point, playerPosition);
+                Vector3 point = room.TileWorld(tile);
+                if ((point - playerPosition).sqrMagnitude >= minSpawnDistance * minSpawnDistance) points.Add(point);
+            }
+            if (points.Count < count)
+            {
+                points.Clear();
+                foreach (var tile in room.Shape.interior) points.Add(room.TileWorld(tile));
+                points.Sort((a, b) => (b - playerPosition).sqrMagnitude.CompareTo((a - playerPosition).sqrMagnitude));
+                if (points.Count > count) points.RemoveRange(count, points.Count - count);
+            }
+
+            for (int i = 0; i < count && points.Count > 0; i++)
+            {
+                int pick = UnityEngine.Random.Range(0, points.Count);
+                Spawn(biome.enemies[UnityEngine.Random.Range(0, biome.enemies.Length)], points[pick], playerPosition);
+                points.RemoveAt(pick);
             }
 
             RoomChanged?.Invoke(this);
@@ -229,7 +238,7 @@ namespace Shrunk
             if (CurrentNode.type == RoomType.Exit)
             {
                 ExitOpen = true;
-                if (room.exitHole != null) room.exitHole.SetActive(true);
+                if (room.ExitHole != null) room.ExitHole.SetActive(true);
             }
 
             RoomChanged?.Invoke(this);

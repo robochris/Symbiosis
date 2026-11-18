@@ -42,13 +42,28 @@ namespace Shrunk
             ShotsFired++;
         }
 
+        /// <summary>True when an enemy is inside the aim cone and in range. Used for auto-fire on touch.</summary>
+        public bool HasTarget(Vector3 aimDirection)
+        {
+            if (aimDirection.sqrMagnitude < 0.001f) return false;
+            Vector3 origin = muzzle != null ? muzzle.position : transform.position;
+            return FindTarget(origin, aimDirection.normalized, out _) != null;
+        }
+
         Vector3 ApplyAimAssist(Vector3 origin, Vector3 direction)
         {
             if (aimAssistStrength <= 0f) return direction;
+            return FindTarget(origin, direction, out Vector3 toTarget) == null
+                ? direction
+                : Vector3.Slerp(direction, toTarget, aimAssistStrength).normalized;
+        }
 
+        // The enemy closest to the centre of the aim cone, if any.
+        Enemy FindTarget(Vector3 origin, Vector3 direction, out Vector3 bestDirection)
+        {
             Enemy best = null;
             float bestAngle = aimAssistAngle;
-            Vector3 bestDirection = direction;
+            bestDirection = direction;
 
             foreach (var enemy in Enemy.Active)
             {
@@ -67,7 +82,7 @@ namespace Shrunk
                 }
             }
 
-            return best == null ? direction : Vector3.Slerp(direction, bestDirection, aimAssistStrength).normalized;
+            return best;
         }
     }
 }

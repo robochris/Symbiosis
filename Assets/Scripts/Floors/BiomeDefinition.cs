@@ -2,19 +2,24 @@ using UnityEngine;
 
 namespace Shrunk
 {
-    /// <summary>A biome as data: which rooms and enemies it uses. Adding a biome means making a new one of these.</summary>
+    /// <summary>A biome as data: how its rooms look and which enemies live there. Adding a biome means making a new one of these.</summary>
     [CreateAssetMenu(menuName = "Shrunk/Biome", fileName = "NewBiome")]
     public class BiomeDefinition : ScriptableObject
     {
         public string displayName = "Biome";
 
-        [Header("Rooms")]
-        public Room startRoom;
-        public Room exitRoom;
-        public Room treasureRoom;
-        public Room shopRoom;
-        [Tooltip("Fight rooms, picked at random.")]
-        public Room[] normalRooms;
+        [Header("Room look")]
+        public Material floorMaterial;
+        public Material wallMaterial;
+        public Material doorMaterial;
+        public float wallHeight = 3f;
+
+        [Header("Special room props (placed in the middle of the room)")]
+        public GameObject startProp;
+        [Tooltip("The way down. Hidden until the exit room is cleared.")]
+        public GameObject exitProp;
+        public GameObject treasureProp;
+        public GameObject shopProp;
 
         [Header("Enemies")]
         [Tooltip("Picked at random for each spawn.")]
@@ -24,15 +29,15 @@ namespace Shrunk
         [Tooltip("One more enemy per room every this many floors.")]
         public int floorsPerExtraEnemy = 3;
 
-        public Room RoomFor(RoomType type, System.Random rng)
+        public GameObject PropFor(RoomType type)
         {
             switch (type)
             {
-                case RoomType.Start: return startRoom;
-                case RoomType.Exit: return exitRoom;
-                case RoomType.Treasure: return treasureRoom;
-                case RoomType.Shop: return shopRoom;
-                default: return normalRooms[rng.Next(normalRooms.Length)];
+                case RoomType.Start: return startProp;
+                case RoomType.Exit: return exitProp;
+                case RoomType.Treasure: return treasureProp;
+                case RoomType.Shop: return shopProp;
+                default: return null;
             }
         }
     }

@@ -1,19 +1,22 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
 namespace Shrunk.EditorTools
 {
     /// <summary>
-    /// The flat debug view: floors drawn as coloured squares, no 3D. Menu: Shrunk > Floor Layout Debug View.
-    /// Layout bugs are obvious here and painful to spot once rooms are built.
+    /// The flat debug view: a whole floor drawn in 2D, every room with its real carved shape, no 3D.
+    /// Menu: Shrunk > Floor Layout Debug View. Layout bugs are obvious here and painful to spot once rooms are built.
     /// </summary>
     public class FloorLayoutWindow : EditorWindow
     {
         int _seed = 1;
         int _floor = 1;
         FloorLayout _layout;
+        readonly Dictionary<Vector2Int, RoomShape> _shapes = new Dictionary<Vector2Int, RoomShape>();
+        readonly List<string> _problems = new List<string>();
 
-        [MenuItem("Shrunk/Floor Layout Debug View")]
+        [MenuItem("Shrunk/Floor Layout Debug View", priority = 40)]
         static void Open()
         {
             GetWindow<FloorLayoutWindow>("Floor Layout");
@@ -31,6 +34,20 @@ namespace Shrunk.EditorTools
             }
         }
 
+        void Regenerate()
+        {
+            _layout = FloorLayout.Generate(_seed, FloorLayout.RoomCountForFloor(_floor));
+            _shapes.Clear();
+            _problems.Clear();
+            _problems.AddRange(_layout.Validate());
+            foreach (var node in _layout.ordered)
+            {
+                var shape = RoomShape.GenerateFor(_layout, node, _floor);
+                _shapes[node.cell] = shape;
+                foreach (var problem in shape.Validate()) _problems.Add($"room {node.cell}: {problem}");
+            }
+        }
+
         void OnGUI()
         {
             EditorGUI.BeginChangeCheck();
@@ -45,25 +62,24 @@ namespace Shrunk.EditorTools
                 if (GUILayout.Button("Random seed")) { _seed = Random.Range(1, int.MaxValue); changed = true; }
             }
 
-            if (_layout == null || changed) _layout = FloorLayout.Generate(_seed, FloorLayout.RoomCountForFloor(_floor));
+            if (_layout == null || changed) Regenerate();
 
-            var problems = _layout.Validate();
-            if (problems.Count == 0)
+            if (_problems.Count == 0)
             {
                 EditorGUILayout.HelpBox($"{_layout.rooms.Count} rooms, exit {_layout.exit.distance} rooms from the start. No problems.", MessageType.Info);
             }
             else
             {
-                EditorGUILayout.HelpBox(string.Join("\n", problems), MessageType.Error);
+                EditorGUILayout.HelpBox(string.Join("\n", _problems), MessageType.Error);
             }
 
-            EditorGUILayout.LabelField("Start = cyan   Exit = green   Treasure = gold   Shop = blue   Number = rooms from the start", EditorStyles.miniLabel);
+            EditorGUILayout.LabelField("Start = cyan   Exit = green   Treasure = gold   Shop = blue   Dark = solid earth   White dot = room centre", EditorStyles.miniLabel);
             Draw(GUILayoutUtility.GetRect(100f, 4000f, 100f, 4000f));
         }
 
         void Draw(Rect area)
         {
-            EditorGUI.DrawRect(area, new Color(0.12f, 0.12f, 0.12f));
+            EditorGUI.DrawRect(area, new Color(0.08f, 0.08f, 0.08f));
 
             int minX = int.MaxValue, maxX = int.MinValue, minY = int.MaxValue, maxY = int.MinValue;
             foreach (var cell in _layout.rooms.Keys)
@@ -73,28 +89,31 @@ namespace Shrunk.EditorTools
             }
 
             int columns = maxX - minX + 1, rows = maxY - minY + 1;
-            float size = Mathf.Floor(Mathf.Min(area.width / columns, area.height / rows, 64f));
-            float originX = area.x + (area.width - columns * size) * 0.5f;
-            float originY = area.y + (area.height - rows * size) * 0.5f;
-            float gap = Mathf.Max(2f, size * 0.12f);
-
-            var label = new GUIStyle(EditorStyles.boldLabel) { alignment = TextAnchor.MiddleCenter };
-            label.normal.textColor = Color.black;
+            float tile = Mathf.Floor(Mathf.Min(area.width / (columns * RoomShape.Size), area.height / (rows * RoomShape.Size), 12f));
+            tile = Mathf.Max(tile, 1f);
+            float room = tile * RoomShape.Size;
+            float originX = area.x + (area.width - columns * room) * 0.5f;
+            float originY = area.y + (area.height - rows * room) * 0.5f;
+            var earth = new Color(0.2f, 0.15f, 0.11f);
 
             foreach (var node in _layout.ordered)
             {
-                float x = originX + (node.cell.x - minX) * size;
-                float y = originY + (maxY - node.cell.y) * size; // grid Y goes up, screen Y goes down
-                var square = new Rect(x + gap, y + gap, size - gap * 2f, size - gap * 2f);
+                float x = originX + (node.cell.x - minX) * room;
+                float y = originY + (maxY - node.cell.y) * room; // grid Y goes up, screen Y goes down
+                EditorGUI.DrawRect(new Rect(x, y, room, room), earth);
+
+                var shape = _shapes[node.cell];
                 var color = ColorFor(node.type);
-                EditorGUI.DrawRect(square, color);
+                for (int tx = 0; tx < RoomShape.Size; tx++)
+                {
+                    for (int ty = 0; ty < RoomShape.Size; ty++)
+                    {
+                        if (!shape.open[tx, ty]) continue;
+                        EditorGUI.DrawRect(new Rect(x + tx * tile, y + (RoomShape.Size - 1 - ty) * tile, tile, tile), color);
+                    }
+                }
 
-                // Doors: a bridge across the gap to each neighbour.
-                float door = size * 0.3f;
-                if ((node.doors & Doors.East) != 0) EditorGUI.DrawRect(new Rect(square.xMax, square.center.y - door * 0.5f, gap * 2f, door), color);
-                if ((node.doors & Doors.South) != 0) EditorGUI.DrawRect(new Rect(square.center.x - door * 0.5f, square.yMax, door, gap * 2f), color);
-
-                if (size >= 24f) GUI.Label(square, node.distance.ToString(), label);
+                EditorGUI.DrawRect(new Rect(x + shape.centre.x * tile + tile * 0.25f, y + (RoomShape.Size - 1 - shape.centre.y) * tile + tile * 0.25f, tile * 0.5f, tile * 0.5f), Color.white);
             }
         }
     }

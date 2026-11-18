@@ -221,10 +221,17 @@ namespace Shrunk.EditorTools
             }
 
             var kills = UiText("Kills", parent, font, "Ants: 0", 44, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-260f, -80f), new Vector2(400f, 60f));
-            var hint = UiText("Desktop Hint", parent, font, "WASD move  ·  mouse aim  ·  hold click to fire  ·  Space dodge", 30, TextAnchor.LowerCenter, new Vector2(0.5f, 0f), new Vector2(0f, 50f), new Vector2(1200f, 50f));
+            var hint = UiText("Desktop Hint", parent, font, "WASD move  ·  mouse aim  ·  hold click to fire  ·  Space dodge", 30, TextAnchor.LowerCenter, new Vector2(0.5f, 0f), new Vector2(0f, 50f), new Vector2(1700f, 50f));
             hint.color = new Color(1f, 1f, 1f, 0.6f);
 
+            var crosshair = UiImage("Crosshair", parent, knob, new Color(1f, 1f, 1f, 0.9f), new Vector2(0.5f, 0.5f), Vector2.zero, 14f).GetComponent<Image>();
+
+            var cameraButton = UiImage("Camera Button", parent, null, new Color(0f, 0f, 0f, 0.35f), new Vector2(0.5f, 1f), new Vector2(0f, -60f), 70f);
+            cameraButton.sizeDelta = new Vector2(420f, 70f);
+            var cameraLabel = UiText("Label", cameraButton, font, "V  camera: Shoulder", 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 70f));
+
             var touch = canvasGo.AddComponent<TouchControls>();
+            touch.cameraButton = cameraButton;
             touch.moveBase = moveBase;
             touch.moveKnob = moveKnob;
             touch.aimBase = aimBase;
@@ -237,6 +244,8 @@ namespace Shrunk.EditorTools
             hud.dodgeFill = fill;
             hud.desktopHint = hint.gameObject;
             hud.touch = touch;
+            hud.crosshair = crosshair;
+            hud.cameraLabel = cameraLabel;
             return touch;
         }
 

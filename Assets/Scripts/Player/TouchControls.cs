@@ -23,6 +23,8 @@ namespace Shrunk
 
         [Header("Buttons")]
         public RectTransform dodgeButton;
+        [Tooltip("Tap to switch camera view. Stays visible on PC as a label.")]
+        public RectTransform cameraButton;
 
         [Header("Editor")]
         [Tooltip("Show the touch controls in the editor and drive them with the mouse.")]
@@ -38,6 +40,7 @@ namespace Shrunk
         Vector2 _moveOrigin, _aimOrigin;
         Vector3 _moveRest, _aimRest;
         bool _dodgeQueued;
+        bool _cameraQueued;
         bool _simulating;
 
         void Awake()
@@ -86,6 +89,14 @@ namespace Shrunk
             return queued;
         }
 
+        /// <summary>True once per camera-button tap.</summary>
+        public bool ConsumeCamera()
+        {
+            bool queued = _cameraQueued;
+            _cameraQueued = false;
+            return queued;
+        }
+
         /// <summary>Reads this frame's touches. Called by PlayerInputReader so the order is always touches first, then the player.</summary>
         public void Poll()
         {
@@ -104,6 +115,11 @@ namespace Shrunk
                     if (dodgeButton != null && RectTransformUtility.RectangleContainsScreenPoint(dodgeButton, position, null))
                     {
                         _dodgeQueued = true;
+                        continue;
+                    }
+                    if (cameraButton != null && RectTransformUtility.RectangleContainsScreenPoint(cameraButton, position, null))
+                    {
+                        _cameraQueued = true;
                         continue;
                     }
 

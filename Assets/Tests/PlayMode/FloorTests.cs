@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.AI;
@@ -26,7 +27,7 @@ namespace Shrunk.Tests
             _player.Input.overrideFrame = new InputFrame();
         }
 
-        // Walkable floor near a point. Tops of pillars and walls are navmesh islands, so anything above floor level is rejected.
+        // Walkable floor near a point. Anything above floor level (the top of a prop) is rejected.
         static Vector3 OnNavMesh(Vector3 near)
         {
             Assert.IsTrue(NavMesh.SamplePosition(near, out var hit, 2f, NavMesh.AllAreas), $"no walkable ground near {near}");
@@ -34,8 +35,11 @@ namespace Shrunk.Tests
             return hit.position;
         }
 
-        // A spot inside the room that is clear of props in every room prefab (some have a pillar or pedestal dead centre).
-        Vector3 StandingSpot(RoomNode node) => OnNavMesh(_floors.CellCentre(node.cell) + new Vector3(3f, 0f, 0f));
+        // One tile east of the room's centre: always clear floor, and never on top of the centre prop.
+        Vector3 StandingSpot(RoomNode node) => OnNavMesh(_floors.RoomAt(node.cell).Centre + new Vector3(RoomShape.TileSize, 0f, 0f));
+
+        string Describe(RoomNode node) =>
+            $"floor {_floors.FloorNumber} (seed {_floors.Layout.seed}), {node.type} room {node.cell}\n{_floors.Layout.ToAscii()}\n{_floors.RoomAt(node.cell).Shape.ToAscii()}";
 
         IEnumerator WaitUntil(System.Func<bool> condition, float timeout, string what)
         {
@@ -43,42 +47,73 @@ namespace Shrunk.Tests
             Assert.IsTrue(condition(), $"floor {_floors.FloorNumber} (seed {_floors.Layout.seed}): timed out waiting for {what}\n{_floors.Layout.ToAscii()}");
         }
 
-        // Walks into a fight room, checks the doors lock and enemies appear, kills them, checks the doors open again.
+        // Steers the player along the navmesh path to a point, the way a person would walk it.
+        IEnumerator WalkTo(Vector3 destination, float timeout, string what)
+        {
+            var path = new NavMeshPath();
+            for (float t = 0f; t < timeout; t += Time.deltaTime)
+            {
+                Vector3 position = _player.transform.position;
+                Vector3 remaining = destination - position;
+                remaining.y = 0f;
+                if (remaining.magnitude < 0.6f) break;
+
+                Vector3 next = destination;
+                if (NavMesh.CalculatePath(position, destination, NavMesh.AllAreas, path) && path.corners.Length > 1) next = path.corners[1];
+                Vector3 direction = next - position;
+                direction.y = 0f;
+                _player.Input.overrideFrame = new InputFrame { move = direction.normalized };
+                yield return null;
+            }
+            _player.Input.overrideFrame = new InputFrame();
+            Vector3 left = destination - _player.transform.position;
+            left.y = 0f;
+            Assert.Less(left.magnitude, 0.6f, $"could not walk to {what}");
+        }
+
+        // Stands in a fight room, checks the doors lock and enemies appear, kills them, checks the doors open again.
         IEnumerator FightRoom(RoomNode node)
         {
             Room room = _floors.RoomAt(node.cell);
+
             // In the exit room, stand exactly where the hole will open, to prove it never drops the player by surprise.
-            Vector3 spot = node.type == RoomType.Exit ? _floors.CellCentre(node.cell) : StandingSpot(node);
+            Vector3 spot = node.type == RoomType.Exit ? room.Centre : StandingSpot(node);
             _player.Teleport(spot + Vector3.up * 0.05f);
             yield return WaitUntil(() => _floors.IsLocked, 2f, $"{node.type} room {node.cell} to lock");
 
             Assert.AreEqual(node, _floors.CurrentNode);
             Assert.Greater(_floors.LiveEnemies.Count, 0, "locked room has no enemies");
-            for (int i = 0; i < 4; i++)
-            {
-                bool hasDoor = (node.doors & (Doors)(1 << i)) != 0;
-                Assert.AreEqual(hasDoor, room.slots[i].door.activeSelf, $"door {(Doors)(1 << i)} of locked room {node.cell}");
-            }
             foreach (var enemy in _floors.LiveEnemies)
             {
-                Assert.IsTrue(room.ContainsInside(enemy.transform.position, 0f), "enemy spawned outside its room");
+                Assert.IsTrue(room.ContainsInside(enemy.transform.position, 0f), "enemy spawned outside its room\n" + Describe(node));
+                Assert.IsTrue(NavMesh.SamplePosition(enemy.transform.position, out var hit, 1f, NavMesh.AllAreas) && hit.position.y < 0.5f,
+                    "enemy spawned inside solid earth\n" + Describe(node));
             }
 
-            // Locked means locked: something solid is in every doorway.
-            Vector3 centre = _floors.CellCentre(node.cell) + Vector3.up;
-            for (int i = 0; i < 4; i++)
+            // Locked means locked: every doorway has its barrier up, and it is solid.
+            float inner = (RoomShape.Size * 0.5f - 1.5f) * RoomShape.TileSize;
+            for (int side = 0; side < 4; side++)
             {
-                if ((node.doors & (Doors)(1 << i)) == 0) continue;
-                var d = FloorLayout.Directions[i];
+                bool hasDoor = (node.doors & (Doors)(1 << side)) != 0;
+                GameObject door = room.DoorObject(side);
+                Assert.AreEqual(hasDoor, door != null, $"door object on side {(Doors)(1 << side)}");
+                if (!hasDoor) continue;
+
+                Assert.IsTrue(door.activeSelf, $"door {(Doors)(1 << side)} of locked room {node.cell} is open");
+                var d = FloorLayout.Directions[side];
                 var direction = new Vector3(d.x, 0f, d.y);
-                Vector3 origin = centre + direction * (room.interiorHalfSize - 0.5f);
-                Assert.IsTrue(Physics.Raycast(origin, direction, 2f), $"locked door {(Doors)(1 << i)} of {node.cell} does not block");
+                Vector3 origin = room.transform.position + Vector3.up + direction * inner;
+                Assert.IsTrue(Physics.Raycast(origin, direction, out var blocked, 3f) && blocked.collider.gameObject == door,
+                    $"locked door {(Doors)(1 << side)} of {node.cell} does not block");
             }
 
-            foreach (var enemy in new System.Collections.Generic.List<Enemy>(_floors.LiveEnemies)) enemy.Health.TakeDamage(999, Vector3.forward);
+            foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.TakeDamage(999, Vector3.forward);
             yield return WaitUntil(() => !_floors.IsLocked, 2f, $"room {node.cell} to unlock");
             Assert.IsTrue(node.cleared);
-            for (int i = 0; i < 4; i++) Assert.IsFalse(room.slots[i].door.activeSelf, "door still shut after clearing");
+            for (int side = 0; side < 4; side++)
+            {
+                if (room.DoorObject(side) != null) Assert.IsFalse(room.DoorObject(side).activeSelf, "door still shut after clearing");
+            }
         }
 
         [UnityTest]
@@ -97,7 +132,7 @@ namespace Shrunk.Tests
                 Assert.IsFalse(_floors.IsLocked, "start room locked");
                 Assert.IsFalse(_floors.ExitOpen, "exit open before the exit room was cleared");
 
-                // Every room exists in 3D, with the doors the layout asked for.
+                // Every room exists in 3D with a valid shape and the doorways the layout asked for...
                 Vector3 startPoint = OnNavMesh(_player.transform.position);
                 RoomNode firstNormal = null;
                 foreach (var node in layout.ordered)
@@ -105,18 +140,14 @@ namespace Shrunk.Tests
                     Room room = _floors.RoomAt(node.cell);
                     Assert.IsNotNull(room, $"floor {floor}: no room built at {node.cell}");
                     Assert.AreEqual(node.doors, room.Doors);
-                    for (int i = 0; i < 4; i++)
-                    {
-                        bool hasDoor = (node.doors & (Doors)(1 << i)) != 0;
-                        Assert.AreEqual(!hasDoor, room.slots[i].wallFill.activeSelf, $"floor {floor}: wall {(Doors)(1 << i)} of {node.cell}");
-                    }
+                    Assert.IsEmpty(room.Shape.Validate(), "room shape\n" + Describe(node));
 
                     // ...and can actually be walked to from the start.
                     var path = new NavMeshPath();
                     Vector3 target = StandingSpot(node);
                     bool found = NavMesh.CalculatePath(startPoint, target, NavMesh.AllAreas, path);
                     Assert.IsTrue(found && path.status == NavMeshPathStatus.PathComplete,
-                        $"floor {floor} (seed {layout.seed}): {room.name} cannot be reached. found={found} status={path.status} corners={path.corners.Length} from={startPoint} to={target}\n{layout.ToAscii()}");
+                        $"cannot be reached: found={found} status={path.status} from={startPoint} to={target}\n" + Describe(node));
 
                     if (firstNormal == null && node.type == RoomType.Normal) firstNormal = node;
                 }
@@ -132,15 +163,15 @@ namespace Shrunk.Tests
 
                 Assert.IsTrue(_floors.ExitOpen, "exit did not open after the exit room was cleared");
                 Room exitRoom = _floors.RoomAt(layout.exit.cell);
-                Assert.IsTrue(exitRoom.exitHole.activeSelf);
+                Assert.IsTrue(exitRoom.ExitHole.activeSelf);
 
                 // The hole opened under the player, so nothing happens until they step off it and back on.
                 yield return new WaitForSeconds(0.2f);
                 Assert.AreEqual(floor, _floors.FloorNumber, "dropped to the next floor without stepping onto the exit");
-                _player.Teleport(exitRoom.exitHole.transform.position + new Vector3(4f, 0.05f, 4f));
+                _player.Teleport(OffTheHole(exitRoom) + Vector3.up * 0.05f);
                 yield return null;
                 yield return null;
-                _player.Teleport(exitRoom.exitHole.transform.position + Vector3.up * 0.05f);
+                _player.Teleport(exitRoom.ExitHole.transform.position + Vector3.up * 0.05f);
                 int next = floor + 1;
                 yield return WaitUntil(() => _floors.FloorNumber == next, 2f, "the next floor");
                 yield return null; // let the old rooms finish being destroyed
@@ -149,38 +180,78 @@ namespace Shrunk.Tests
             Assert.AreEqual(21, _floors.FloorsBuilt);
         }
 
+        // A clear spot in the room that is well off the exit hole: the corner of the 3×3 clear middle.
+        static Vector3 OffTheHole(Room room) => room.Centre + new Vector3(RoomShape.TileSize, 0f, RoomShape.TileSize);
+
         [UnityTest]
-        public IEnumerator Player_can_walk_through_an_open_door_but_not_a_wall()
+        public IEnumerator Player_can_walk_from_the_start_to_the_exit_room()
         {
-            var start = _floors.Layout.start;
-            int doorSide = -1, wallSide = -1;
-            for (int i = 0; i < 4; i++)
-            {
-                if ((start.doors & (Doors)(1 << i)) != 0) { if (doorSide < 0) doorSide = i; }
-                else if (wallSide < 0) wallSide = i;
-            }
-            Assert.GreaterOrEqual(doorSide, 0, "start room has no doors");
             _player.Health.SetInvulnerable(600f);
+            var layout = _floors.Layout;
 
-            if (wallSide >= 0)
+            // Rooms from the exit back to the start, following the distance numbers down.
+            var route = new List<RoomNode> { layout.exit };
+            while (route[route.Count - 1] != layout.start)
             {
-                var d = FloorLayout.Directions[wallSide];
-                _player.Input.overrideFrame = new InputFrame { move = new Vector3(d.x, 0f, d.y) };
-                yield return new WaitForSeconds(3f);
-                Assert.AreEqual(start, _floors.CurrentNode, "walked through a solid wall");
-                _player.Teleport(_floors.CellCentre(start.cell) + Vector3.up * 0.05f);
+                RoomNode here = route[route.Count - 1], closer = null;
+                foreach (var neighbour in layout.Neighbours(here))
+                {
+                    if (neighbour.distance == here.distance - 1) { closer = neighbour; break; }
+                }
+                Assert.IsNotNull(closer, "layout distances are broken");
+                route.Add(closer);
+            }
+            route.Reverse();
+
+            for (int i = 1; i < route.Count; i++)
+            {
+                RoomNode node = route[i];
+                yield return WalkTo(StandingSpot(node), 20f, Describe(node));
+                Assert.AreEqual(node, _floors.CurrentNode);
+
+                // Fight rooms lock on the way in; clear them to carry on.
+                if (_floors.IsLocked)
+                {
+                    foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.TakeDamage(999, Vector3.forward);
+                    yield return WaitUntil(() => !_floors.IsLocked, 2f, "the room to unlock");
+                }
             }
 
-            var through = FloorLayout.Directions[doorSide];
-            _player.Input.overrideFrame = new InputFrame { move = new Vector3(through.x, 0f, through.y) };
-            yield return WaitUntil(() => _floors.CurrentNode != start, 4f, "the player to walk through the doorway");
-            Assert.AreEqual(start.cell + through, _floors.CurrentNode.cell);
+            Assert.AreEqual(layout.exit, _floors.CurrentNode);
+            Assert.IsTrue(_floors.ExitOpen);
         }
 
         [UnityTest]
-        public IEnumerator Ants_path_around_cover_to_reach_the_player()
+        public IEnumerator Walls_keep_the_player_inside_the_floor()
         {
-            // Find a room with cover in it, stand behind the cover, and check an ant still gets to us.
+            // Push blindly in all four directions from the start room's centre. Wherever the player ends up
+            // must still be real floor: never inside solid earth, never outside the map.
+            _player.Health.SetInvulnerable(600f);
+            var start = _floors.Layout.start;
+            Room room = _floors.RoomAt(start.cell);
+
+            for (int side = 0; side < 4; side++)
+            {
+                _player.Teleport(room.Centre + Vector3.up * 0.05f);
+                var d = FloorLayout.Directions[side];
+                _player.Input.overrideFrame = new InputFrame { move = new Vector3(d.x, 0f, d.y) };
+                yield return new WaitForSeconds(2.5f);
+
+                Vector3 position = _player.transform.position;
+                Assert.Greater(position.y, -0.5f, "fell through the floor");
+                Assert.IsTrue(NavMesh.SamplePosition(position, out var hit, 1f, NavMesh.AllAreas) && hit.position.y < 0.5f,
+                    $"player ended up inside solid earth or outside the floor at {position}\n" + Describe(start));
+
+                // Walking may have locked a neighbouring fight room; clear it so the next push starts clean.
+                foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.TakeDamage(999, Vector3.forward);
+                yield return null;
+                yield return null;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Ants_reach_the_player_inside_a_carved_room()
+        {
             RoomNode target = null;
             foreach (var node in _floors.Layout.ordered)
             {
@@ -192,7 +263,7 @@ namespace Shrunk.Tests
             yield return WaitUntil(() => _floors.IsLocked, 2f, "the room to lock");
 
             int max = _player.Health.maxHealth;
-            yield return WaitUntil(() => _player.Health.Current < max, 10f, "an ant to reach and bite the player");
+            yield return WaitUntil(() => _player.Health.Current < max, 12f, "an ant to reach and bite the player\n" + Describe(target));
         }
     }
 }
