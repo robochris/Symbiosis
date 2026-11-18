@@ -21,7 +21,28 @@ MonoBehaviour:
   exitProp: {fileID: 1403081933625777294, guid: 204faba197fa9854a966e5a107a9b9e1, type: 3}
   treasureProp: {fileID: 1235595317397215819, guid: 62bb75bdd9d1be5489564243f71fe3d0, type: 3}
   shopProp: {fileID: 4783187061587282082, guid: 4163612879fcbbc4590053e60f9712e7, type: 3}
-  enemies:
-  - {fileID: 730332859401137861, guid: 013fa70fddaed9547afe20670ebaa035, type: 3}
+  spawnTable:
+  - prefab: {fileID: 3101907269320609805, guid: 6d01fc171c7482245b3e9320fbaf4c63, type: 3}
+    weight: 5
+    minFloor: 1
+  - prefab: {fileID: 6225536275309269140, guid: 20f8e0a3198c18847853f3bebe2d21dd, type: 3}
+    weight: 2
+    minFloor: 2
+  - prefab: {fileID: 464411166869319775, guid: 1ef9669a631494149b9dc1fa6f8bef34, type: 3}
+    weight: 2
+    minFloor: 3
+  - prefab: {fileID: 5576533153254814423, guid: b13c802514ca83e4bb16c1fb416d996b, type: 3}
+    weight: 2
+    minFloor: 4
+  swarmEnemy: {fileID: 3101907269320609805, guid: 6d01fc171c7482245b3e9320fbaf4c63, type: 3}
   baseEnemiesPerRoom: 2
   floorsPerExtraEnemy: 3
+  mutations:
+  - {fileID: 11400000, guid: 1a8a5af7fbefee247845ee27987d9a52, type: 2}
+  - {fileID: 11400000, guid: 090677eaf5b9b0f4489da51d0d120134, type: 2}
+  - {fileID: 11400000, guid: f9867f3f1696f9f4184512eb7f32400c, type: 2}
+  - {fileID: 11400000, guid: a9df033bc8543634f91fdc388818f376, type: 2}
+  - {fileID: 11400000, guid: 0e8c54c9ecfaa4949ae02420ccdd2908, type: 2}
+  - {fileID: 11400000, guid: 2611cb811d215f848bc53ba5848175a6, type: 2}
+  - {fileID: 11400000, guid: fe3ff2e68b234d44898c9de09e882be5, type: 2}
+  - {fileID: 11400000, guid: 62081c1088a526540a37ece529fe51d8, type: 2}

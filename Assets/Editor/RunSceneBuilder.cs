@@ -8,15 +8,13 @@ using UnityEngine.UI;
 namespace Shrunk.EditorTools
 {
     /// <summary>
-    /// Builds the Run scene, the Ant Colony biome data file and the placeholder props for special rooms.
-    /// Rooms themselves are not built here: every room is carved at random while the game runs.
-    /// Menu: Shrunk > Rebuild Run Scene. Rebuilding replaces the scene and props, so hand edits to them are lost.
+    /// Builds the Run scene. Rooms are not built here: every room is carved at random while the game runs.
+    /// Menu: Shrunk > Rebuild Run Scene. Rebuilding replaces the scene, prefabs and data files, so hand edits to them are lost.
     /// </summary>
     public static class RunSceneBuilder
     {
         const string ScenePath = "Assets/Scenes/Run.unity";
         const string ArenaPath = "Assets/Scenes/Arena.unity";
-        const string BiomePath = "Assets/Data/AntColony.asset";
 
         [MenuItem("Shrunk/Rebuild Everything", priority = 20)]
         public static void BuildAll()
@@ -28,21 +26,11 @@ namespace Shrunk.EditorTools
         [MenuItem("Shrunk/Rebuild Run Scene", priority = 21)]
         public static void Build()
         {
-            ArenaSceneBuilder.EnsureFolder("Assets", "Materials");
-            ArenaSceneBuilder.EnsureFolder("Assets", "Prefabs");
-            ArenaSceneBuilder.EnsureFolder("Assets/Prefabs", "Props");
-            ArenaSceneBuilder.EnsureFolder("Assets", "Data");
             ArenaSceneBuilder.EnsureFolder("Assets", "Scenes");
+            var biome = ContentBuilder.Build(out var bulletPrefab);
 
             var voidBody = ArenaSceneBuilder.Lit("VoidBody", new Color(0.03f, 0.03f, 0.05f), 0.35f);
             var eyeGlow = ArenaSceneBuilder.Unlit("EyeGlow", new Color(0.45f, 0.95f, 1f));
-            var bulletGlow = ArenaSceneBuilder.Unlit("BulletGlow", new Color(0.6f, 1f, 0.95f));
-            var antBody = ArenaSceneBuilder.Lit("AntBody", new Color(0.55f, 0.16f, 0.10f), 0.4f);
-            var antDark = ArenaSceneBuilder.Lit("AntDark", new Color(0.16f, 0.06f, 0.05f), 0.4f);
-
-            var bulletPrefab = ArenaSceneBuilder.BuildBulletPrefab(bulletGlow);
-            var antPrefab = ArenaSceneBuilder.BuildAntPrefab(antBody, antDark);
-            var biome = BuildBiome(antPrefab);
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             ArenaSceneBuilder.BuildLighting();
@@ -70,8 +58,6 @@ namespace Shrunk.EditorTools
             if (File.Exists(ArenaPath)) scenes.Add(new EditorBuildSettingsScene(ArenaPath, true));
             EditorBuildSettings.scenes = scenes.ToArray();
         }
-
-        // ---------- HUD additions ----------
 
         static void ExtendHud(GameObject canvas)
         {
@@ -107,61 +93,5 @@ namespace Shrunk.EditorTools
 
             frame.AddComponent<Minimap>().container = tiles;
         }
-
-        // ---------- biome ----------
-
-        static BiomeDefinition BuildBiome(Enemy ant)
-        {
-            var wall = ArenaSceneBuilder.Lit("Wall", new Color(0.23f, 0.15f, 0.10f), 0.05f);
-            var root = ArenaSceneBuilder.Lit("Root", new Color(0.3f, 0.2f, 0.12f), 0.1f);
-            var gold = ArenaSceneBuilder.Unlit("Gold", new Color(1f, 0.82f, 0.2f));
-            var black = ArenaSceneBuilder.Unlit("ExitHole", new Color(0.01f, 0.01f, 0.02f));
-            var pad = ArenaSceneBuilder.Unlit("StartPad", new Color(0.2f, 0.5f, 0.55f));
-            var beetle = ArenaSceneBuilder.Lit("Beetle", new Color(0.1f, 0.25f, 0.2f), 0.7f);
-
-            var biome = AssetDatabase.LoadAssetAtPath<BiomeDefinition>(BiomePath);
-            if (biome == null)
-            {
-                biome = ScriptableObject.CreateInstance<BiomeDefinition>();
-                AssetDatabase.CreateAsset(biome, BiomePath);
-            }
-
-            biome.displayName = "Backyard Ant Colony";
-            biome.floorMaterial = ArenaSceneBuilder.Lit("Soil", new Color(0.36f, 0.25f, 0.16f), 0.05f);
-            biome.wallMaterial = wall;
-            biome.doorMaterial = ArenaSceneBuilder.Lit("DoorLocked", new Color(0.85f, 0.3f, 0.15f), 0.3f);
-            biome.enemies = new[] { ant };
-
-            // Each prop fits inside the 3×3 tiles (6 m square) that every room keeps clear around its centre.
-            var startProp = new GameObject("StartPad");
-            Decor(PrimitiveType.Cylinder, "Pad", startProp.transform, new Vector3(0f, 0.01f, 0f), new Vector3(4f, 0.01f, 4f), pad);
-            biome.startProp = ArenaSceneBuilder.SavePrefab(startProp, "Props/StartPad");
-
-            var exit = new GameObject("ExitHole");
-            Decor(PrimitiveType.Cylinder, "Rim", exit.transform, new Vector3(0f, 0.01f, 0f), new Vector3(3.6f, 0.01f, 3.6f), gold);
-            Decor(PrimitiveType.Cylinder, "Hole", exit.transform, new Vector3(0f, 0.02f, 0f), new Vector3(3f, 0.02f, 3f), black);
-            biome.exitProp = ArenaSceneBuilder.SavePrefab(exit, "Props/ExitHole");
-
-            var treasure = new GameObject("TreasurePedestal");
-            Solid(PrimitiveType.Cylinder, "Pedestal", treasure.transform, new Vector3(0f, 0.5f, 0f), new Vector3(1.4f, 0.5f, 1.4f), wall);
-            Decor(PrimitiveType.Sphere, "Item Placeholder", treasure.transform, new Vector3(0f, 1.6f, 0f), Vector3.one * 0.8f, gold);
-            biome.treasureProp = ArenaSceneBuilder.SavePrefab(treasure, "Props/TreasurePedestal");
-
-            var shop = new GameObject("ShopStall");
-            Solid(PrimitiveType.Cube, "Counter", shop.transform, new Vector3(0f, 0.6f, 0f), new Vector3(1.8f, 1.2f, 1f), root);
-            Solid(PrimitiveType.Sphere, "Beetle Merchant", shop.transform, new Vector3(0f, 1f, 1.7f), new Vector3(1.6f, 1.6f, 1.6f), beetle);
-            Decor(PrimitiveType.Sphere, "Ware 1", shop.transform, new Vector3(-0.5f, 1.45f, 0f), Vector3.one * 0.45f, gold);
-            Decor(PrimitiveType.Sphere, "Ware 2", shop.transform, new Vector3(0.5f, 1.45f, 0f), Vector3.one * 0.45f, gold);
-            biome.shopProp = ArenaSceneBuilder.SavePrefab(shop, "Props/ShopStall");
-
-            EditorUtility.SetDirty(biome);
-            return biome;
-        }
-
-        static GameObject Solid(PrimitiveType type, string name, Transform parent, Vector3 position, Vector3 scale, Material material) =>
-            ArenaSceneBuilder.Primitive(type, name, parent, position, scale, material, true);
-
-        static GameObject Decor(PrimitiveType type, string name, Transform parent, Vector3 position, Vector3 scale, Material material) =>
-            ArenaSceneBuilder.Primitive(type, name, parent, position, scale, material, false);
     }
 }

@@ -1,8 +1,21 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Shrunk
 {
-    /// <summary>A biome as data: how its rooms look and which enemies live there. Adding a biome means making a new one of these.</summary>
+    /// <summary>One line of a biome's enemy list.</summary>
+    [Serializable]
+    public class EnemySpawnEntry
+    {
+        public Enemy prefab;
+        [Tooltip("How often it is picked compared to the others.")]
+        public int weight = 1;
+        [Tooltip("First floor of the biome it can appear on.")]
+        public int minFloor = 1;
+    }
+
+    /// <summary>A biome as data: how its rooms look, which enemies live there and which mutations they can roll. Adding a biome means making a new one of these.</summary>
     [CreateAssetMenu(menuName = "Shrunk/Biome", fileName = "NewBiome")]
     public class BiomeDefinition : ScriptableObject
     {
@@ -22,12 +35,17 @@ namespace Shrunk
         public GameObject shopProp;
 
         [Header("Enemies")]
-        [Tooltip("Picked at random for each spawn.")]
-        public Enemy[] enemies;
+        public EnemySpawnEntry[] spawnTable;
+        [Tooltip("What a Swarm Call brings in.")]
+        public Enemy swarmEnemy;
         [Tooltip("Enemies in a fight room on floor 1.")]
         public int baseEnemiesPerRoom = 2;
         [Tooltip("One more enemy per room every this many floors.")]
         public int floorsPerExtraEnemy = 3;
+
+        [Header("Mutations")]
+        [Tooltip("What enemies here can roll: the universal ones plus this biome's own.")]
+        public MutationDefinition[] mutations;
 
         public GameObject PropFor(RoomType type)
         {
@@ -39,6 +57,35 @@ namespace Shrunk
                 case RoomType.Shop: return shopProp;
                 default: return null;
             }
+        }
+
+        /// <summary>A random enemy from the ones allowed on this floor, by weight.</summary>
+        public Enemy PickEnemy(int floor, System.Random rng)
+        {
+            int total = 0;
+            foreach (var entry in spawnTable) if (entry.prefab != null && floor >= entry.minFloor) total += Mathf.Max(0, entry.weight);
+            if (total <= 0) return swarmEnemy;
+
+            int roll = rng.Next(total);
+            foreach (var entry in spawnTable)
+            {
+                if (entry.prefab == null || floor < entry.minFloor) continue;
+                roll -= Mathf.Max(0, entry.weight);
+                if (roll < 0) return entry.prefab;
+            }
+            return swarmEnemy;
+        }
+
+        public Enemy EnemyNamed(string prefabName)
+        {
+            foreach (var entry in spawnTable) if (entry.prefab != null && entry.prefab.name == prefabName) return entry.prefab;
+            return null;
+        }
+
+        public MutationDefinition Mutation(MutationType type)
+        {
+            foreach (var mutation in mutations) if (mutation != null && mutation.type == type) return mutation;
+            return null;
         }
     }
 }

@@ -1,0 +1,250 @@
+using System.Collections;
+using System.Collections.Generic;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+
+namespace Shrunk.Tests
+{
+    /// <summary>Milestone 3: each ant behaviour and each mutation, tried one at a time in the empty arena.</summary>
+    public class EnemyTests
+    {
+        PlayerController _player;
+        EnemySpawner _spawner;
+        BiomeDefinition _biome;
+
+        [UnitySetUp]
+        public IEnumerator LoadArena()
+        {
+            SceneManager.LoadScene("Arena");
+            yield return null;
+            yield return null;
+            _player = PlayerController.Instance;
+            _spawner = Object.FindAnyObjectByType<EnemySpawner>();
+            Assert.IsNotNull(_player);
+            Assert.IsNotNull(_spawner);
+            _biome = _spawner.biome;
+            Assert.IsNotNull(_biome, "arena spawner has no biome");
+            _player.Input.overrideFrame = new InputFrame();
+
+            // Empty the arena and stop it restocking; the tests bring their own ants.
+            _spawner.maxAlive = 0;
+            foreach (var enemy in new List<Enemy>(Enemy.Active)) Object.Destroy(enemy.gameObject);
+            yield return null;
+            Assert.AreEqual(0, Enemy.Active.Count);
+        }
+
+        Enemy Spawn(string prefabName, Vector3 position, params MutationType[] mutations)
+        {
+            Enemy prefab = _biome.EnemyNamed(prefabName);
+            Assert.IsNotNull(prefab, "no enemy called " + prefabName);
+            var list = new List<MutationDefinition>();
+            foreach (var type in mutations)
+            {
+                var mutation = _biome.Mutation(type);
+                Assert.IsNotNull(mutation, "no mutation " + type);
+                list.Add(mutation);
+            }
+            return _spawner.SpawnAt(prefab, position, list);
+        }
+
+        float DistanceToPlayer(Enemy enemy)
+        {
+            Vector3 to = enemy.transform.position - _player.transform.position;
+            to.y = 0f;
+            return to.magnitude;
+        }
+
+        IEnumerator WaitUntil(System.Func<bool> condition, float timeout, string what)
+        {
+            for (float t = 0f; t < timeout && !condition(); t += Time.deltaTime) yield return null;
+            Assert.IsTrue(condition(), "timed out waiting for " + what);
+        }
+
+        bool PlayerHurt => _player.Health.Current < _player.Health.maxHealth;
+
+        // ---------- behaviours ----------
+
+        [UnityTest]
+        public IEnumerator Charger_winds_up_then_charges_into_a_still_player()
+        {
+            var soldier = (ChargerEnemy)Spawn("SoldierAnt", new Vector3(0f, 0f, 8f));
+            yield return WaitUntil(() => soldier.Current == ChargerEnemy.State.Windup, 2f, "the wind-up");
+            Assert.IsFalse(PlayerHurt, "hurt before the charge started");
+            Vector3 before = soldier.transform.position;
+            yield return WaitUntil(() => soldier.Current == ChargerEnemy.State.Charge, 2f, "the charge");
+            yield return WaitUntil(() => PlayerHurt, 2f, "the charge to hit");
+            Assert.Greater((soldier.transform.position - before).magnitude, 4f, "the charge barely moved");
+        }
+
+        [UnityTest]
+        public IEnumerator Charger_misses_a_player_who_steps_aside()
+        {
+            var soldier = (ChargerEnemy)Spawn("SoldierAnt", new Vector3(0f, 0f, 8f));
+            yield return WaitUntil(() => soldier.Current == ChargerEnemy.State.Charge, 4f, "the charge");
+            _player.Input.overrideFrame = new InputFrame { move = Vector3.right };
+            yield return WaitUntil(() => soldier.Current == ChargerEnemy.State.Recover, 3f, "the charge to end");
+            Assert.IsFalse(PlayerHurt, "the charge turned to follow the player");
+        }
+
+        [UnityTest]
+        public IEnumerator Shooter_backs_off_and_spits_at_the_player()
+        {
+            var spitter = (ShooterEnemy)Spawn("SpitterAnt", new Vector3(0f, 0f, 3f));
+            yield return new WaitForSeconds(2f);
+            Assert.Greater(DistanceToPlayer(spitter), 5f, "spitter stayed in the player's face");
+            yield return WaitUntil(() => spitter.ShotsFired > 0, 4f, "a shot");
+            yield return WaitUntil(() => PlayerHurt, 4f, "the spit to hit a still player");
+        }
+
+        [UnityTest]
+        public IEnumerator Flyer_circles_then_dives_to_bite()
+        {
+            var flyer = (FlyerEnemy)Spawn("WingedAnt", new Vector3(0f, 0f, 9f));
+            yield return new WaitForSeconds(0.3f);
+            Assert.Greater(flyer.visual.localPosition.y, 0.7f, "flyer is not off the ground");
+            yield return WaitUntil(() => flyer.Current == FlyerEnemy.State.Dive, 8f, "a dive");
+            yield return WaitUntil(() => PlayerHurt, 10f, "a dive to land a bite");
+        }
+
+        // ---------- mutations ----------
+
+        [UnityTest]
+        public IEnumerator Fast_ants_cover_more_ground()
+        {
+            var normal = Spawn("WorkerAnt", new Vector3(-6f, 0f, 14f));
+            var fast = Spawn("WorkerAnt", new Vector3(6f, 0f, 14f), MutationType.Fast);
+            float normalStart = DistanceToPlayer(normal), fastStart = DistanceToPlayer(fast);
+            yield return new WaitForSeconds(1.5f);
+            float normalMoved = normalStart - DistanceToPlayer(normal), fastMoved = fastStart - DistanceToPlayer(fast);
+            Assert.Greater(fastMoved, normalMoved * 1.3f, $"fast moved {fastMoved:F1}, normal moved {normalMoved:F1}");
+        }
+
+        [UnityTest]
+        public IEnumerator Armored_ants_take_half_damage()
+        {
+            var ant = Spawn("WorkerAnt", new Vector3(0f, 0f, 12f), MutationType.Armored);
+            int max = ant.Health.maxHealth;
+            for (int i = 0; i < 4; i++) ant.Health.TakeDamage(1, ant.transform.forward);
+            Assert.AreEqual(max - 2, ant.Health.Current);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Hardened_shell_blocks_the_front_but_not_the_back()
+        {
+            var ant = Spawn("WorkerAnt", new Vector3(0f, 0f, 12f), MutationType.HardenedShell);
+            int max = ant.Health.maxHealth;
+
+            // A shot from the player travels the opposite way to the ant's facing: it hits the shell.
+            ant.Health.TakeDamage(1, -ant.transform.forward);
+            Assert.AreEqual(max, ant.Health.Current, "shot from the front got through");
+
+            ant.Health.TakeDamage(1, ant.transform.forward);
+            Assert.AreEqual(max - 1, ant.Health.Current, "shot from behind was blocked");
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Regenerating_ants_heal_when_left_alone()
+        {
+            var ant = Spawn("SoldierAnt", new Vector3(0f, 0f, 14f), MutationType.Regenerates);
+            int max = ant.Health.maxHealth;
+            ant.Health.TakeDamage(3, ant.transform.forward);
+            Assert.AreEqual(max - 3, ant.Health.Current);
+
+            yield return new WaitForSeconds(1.5f);
+            Assert.AreEqual(max - 3, ant.Health.Current, "healed before 2 seconds without a hit");
+            yield return new WaitForSeconds(2.5f);
+            Assert.AreEqual(max, ant.Health.Current, "did not heal back up");
+        }
+
+        [UnityTest]
+        public IEnumerator Exploding_ants_burst_after_a_fuse()
+        {
+            var ant = Spawn("WorkerAnt", _player.transform.position + new Vector3(1.5f, 0f, 0f), MutationType.ExplodesOnDeath);
+            ant.Health.Kill();
+            yield return new WaitForSeconds(0.4f);
+            Assert.IsFalse(PlayerHurt, "blast went off with no fuse");
+            yield return WaitUntil(() => PlayerHurt, 1f, "the blast");
+        }
+
+        [UnityTest]
+        public IEnumerator Exploding_ants_can_be_outrun()
+        {
+            var ant = Spawn("WorkerAnt", _player.transform.position + new Vector3(1.5f, 0f, 0f), MutationType.ExplodesOnDeath);
+            ant.Health.Kill();
+            _player.Input.overrideFrame = new InputFrame { move = Vector3.left };
+            yield return new WaitForSeconds(1.2f);
+            Assert.IsFalse(PlayerHurt, "walking away from the blast did not save the player");
+            Assert.AreEqual(0, GroundHazard.All.Count, "the blast never cleaned itself up");
+        }
+
+        [UnityTest]
+        public IEnumerator Acid_blood_leaves_a_pool_that_hurts()
+        {
+            var ant = Spawn("WorkerAnt", _player.transform.position + new Vector3(0.8f, 0f, 0f), MutationType.AcidBlood);
+            ant.Health.Kill();
+            yield return WaitUntil(() => PlayerHurt, 1f, "the acid to burn a player standing in it");
+            Assert.AreEqual(1, GroundHazard.All.Count);
+            yield return new WaitForSeconds(5.5f);
+            Assert.AreEqual(0, GroundHazard.All.Count, "the pool never dried up");
+        }
+
+        [UnityTest]
+        public IEnumerator Swarm_call_brings_three_workers_once()
+        {
+            var ant = Spawn("SoldierAnt", new Vector3(0f, 0f, 14f), MutationType.SwarmCall);
+            ant.Health.TakeDamage(4, ant.transform.forward);
+            Assert.AreEqual(1, Enemy.Active.Count, "called for help above half health");
+
+            ant.Health.TakeDamage(1, ant.transform.forward);
+            yield return null;
+            Assert.AreEqual(4, Enemy.Active.Count, "half health did not bring three workers");
+
+            ant.Health.TakeDamage(1, ant.transform.forward);
+            yield return null;
+            Assert.AreEqual(4, Enemy.Active.Count, "called for help twice");
+        }
+
+        [UnityTest]
+        public IEnumerator Pheromone_trail_speeds_up_the_ant_behind()
+        {
+            var leader = Spawn("WorkerAnt", new Vector3(0f, 0f, 9f), MutationType.PheromoneTrail);
+            var follower = Spawn("WorkerAnt", new Vector3(0f, 0f, 13f));
+            _player.Health.SetInvulnerable(60f);
+
+            bool followerBuffed = false, leaderBuffed = false;
+            for (float t = 0f; t < 4f; t += Time.deltaTime)
+            {
+                followerBuffed |= follower.IsBuffed;
+                leaderBuffed |= leader.IsBuffed;
+                yield return null;
+            }
+            Assert.IsTrue(followerBuffed, "the ant following the trail was never sped up");
+            Assert.IsFalse(leaderBuffed, "the trail's own maker was sped up by it");
+        }
+
+        [UnityTest]
+        public IEnumerator Mutated_ants_show_a_badge_for_each_mutation_and_lose_them_when_reused()
+        {
+            var ant = Spawn("WorkerAnt", new Vector3(0f, 0f, 12f), MutationType.Fast, MutationType.Armored, MutationType.AcidBlood);
+            yield return null;
+            Assert.AreEqual(3, ant.Mutations.Active.Count);
+            Assert.AreEqual(4, ant.Mutations.TotalCost);
+
+            int badges = 0;
+            foreach (Transform child in ant.transform) if (child.name.EndsWith("badge")) badges++;
+            Assert.AreEqual(3, badges);
+
+            // Switching the ant off and on again (what the pool does) must leave it plain.
+            ant.gameObject.SetActive(false);
+            ant.gameObject.SetActive(true);
+            yield return null;
+            Assert.AreEqual(0, ant.Mutations.Active.Count);
+            Assert.AreEqual(1f, ant.SpeedMultiplier);
+            Assert.AreEqual(1f, ant.Health.damageMultiplier);
+        }
+    }
+}

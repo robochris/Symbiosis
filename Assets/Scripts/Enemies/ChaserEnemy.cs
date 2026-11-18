@@ -36,10 +36,8 @@ namespace Shrunk
             Current = State.Approach;
         }
 
-        void Update()
+        protected override void Think()
         {
-            if (Health.IsDead) return;
-
             var player = PlayerController.Instance;
             if (player == null || player.Health.IsDead)
             {
@@ -58,7 +56,7 @@ namespace Shrunk
             {
                 case State.Approach:
                     Face(SteerToward(player.transform.position) - transform.position, turnSpeed);
-                    Move(transform.forward * moveSpeed);
+                    Move(transform.forward * (moveSpeed * SpeedScale));
                     if (distance <= attackRange) Enter(State.Windup, windupTime);
                     break;
 
@@ -93,15 +91,11 @@ namespace Shrunk
             _timer = duration;
         }
 
+        // Faster enemies also attack faster.
         bool Tick()
         {
-            _timer -= Time.deltaTime;
+            _timer -= Time.deltaTime * SpeedScale;
             return _timer <= 0f;
-        }
-
-        void SetVisualScale(float scale)
-        {
-            if (visual != null) visual.localScale = Vector3.one * scale;
         }
     }
 }

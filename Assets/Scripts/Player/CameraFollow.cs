@@ -33,6 +33,8 @@ namespace Shrunk
 
         [Header("Looking (shoulder and first person)")]
         public float startPitch = 14f;
+        [Tooltip("On: the view only turns left and right and stays at the start pitch. Off: you can also look up and down.")]
+        public bool lockVertical = true;
         [Tooltip("How far you can look up (negative) and down, in degrees.")]
         public float minPitch = -25f;
         public float maxPitch = 55f;
@@ -107,7 +109,7 @@ namespace Shrunk
         public void AddLook(float yawDegrees, float pitchDegrees)
         {
             LookYaw = Mathf.Repeat(LookYaw + yawDegrees, 360f);
-            LookPitch = Mathf.Clamp(LookPitch - pitchDegrees, minPitch, maxPitch);
+            LookPitch = lockVertical ? startPitch : Mathf.Clamp(LookPitch - pitchDegrees, minPitch, maxPitch);
         }
 
         /// <summary>The world point under the crosshair: where shots should go in look modes.</summary>

@@ -27,6 +27,8 @@ namespace Shrunk
         [Tooltip("Enemies never appear closer to the player than this.")]
         public float minSpawnDistance = 6f;
         public float exitRadius = 1.4f;
+        [Tooltip("How many biomes into the run this is. Raises the mutation budget: 1 point at depth 1, up to 5 at depth 5.")]
+        public int depth = 1;
 
         public int FloorNumber { get; private set; }
         public FloorLayout Layout { get; private set; }
@@ -59,6 +61,16 @@ namespace Shrunk
             _surface = _roomsRoot.gameObject.AddComponent<NavMeshSurface>();
             _surface.collectObjects = CollectObjects.Children;
             _surface.useGeometry = UnityEngine.AI.NavMeshCollectGeometry.PhysicsColliders;
+        }
+
+        void OnEnable()
+        {
+            Enemy.SummonRequested += OnSummon;
+        }
+
+        void OnDisable()
+        {
+            Enemy.SummonRequested -= OnSummon;
         }
 
         void OnDestroy()
@@ -117,6 +129,8 @@ namespace Shrunk
             for (int i = 0; i < _live.Count; i++) _livePools[i].Release(_live[i]);
             _live.Clear();
             _livePools.Clear();
+            GroundHazard.ClearAll();
+            PheromoneTrail.ClearAll();
 
             // Destroy only happens at the end of the frame; switching the old rooms off keeps them out of the new navmesh.
             foreach (var room in _rooms.Values)
@@ -188,17 +202,37 @@ namespace Shrunk
                 if (points.Count > count) points.RemoveRange(count, points.Count - count);
             }
 
+            var rng = new System.Random(UnityEngine.Random.Range(0, int.MaxValue));
+            int budget = MutationBudget.MaxPoints(depth, FloorNumber);
             for (int i = 0; i < count && points.Count > 0; i++)
             {
                 int pick = UnityEngine.Random.Range(0, points.Count);
-                Spawn(biome.enemies[UnityEngine.Random.Range(0, biome.enemies.Length)], points[pick], playerPosition);
+                Enemy enemy = Spawn(biome.PickEnemy(FloorNumber, rng), points[pick], playerPosition);
+                if (enemy.Mutations != null) enemy.Mutations.Apply(MutationBudget.Roll(rng, biome.mutations, budget));
                 points.RemoveAt(pick);
             }
 
             RoomChanged?.Invoke(this);
         }
 
-        void Spawn(Enemy prefab, Vector3 position, Vector3 lookAt)
+        // Swarm Call: bring in the biome's swarm enemy on the open tiles nearest the caller. They join the fight,
+        // so the room stays locked until they are dead too.
+        void OnSummon(Enemy source, int count)
+        {
+            if (!IsLocked || CurrentNode == null || biome.swarmEnemy == null) return;
+            Room room = CurrentRoom;
+            Vector3 origin = source.transform.position;
+
+            var tiles = new List<Vector3>();
+            foreach (var tile in room.Shape.interior) tiles.Add(room.TileWorld(tile));
+            tiles.Sort((a, b) => (a - origin).sqrMagnitude.CompareTo((b - origin).sqrMagnitude));
+
+            var player = PlayerController.Instance;
+            Vector3 lookAt = player != null ? player.transform.position : origin;
+            for (int i = 0; i < count && i < tiles.Count; i++) Spawn(biome.swarmEnemy, tiles[i], lookAt);
+        }
+
+        Enemy Spawn(Enemy prefab, Vector3 position, Vector3 lookAt)
         {
             if (!_pools.TryGetValue(prefab, out var pool))
             {
@@ -214,6 +248,7 @@ namespace Shrunk
             enemy.gameObject.SetActive(true);
             _live.Add(enemy);
             _livePools.Add(pool);
+            return enemy;
         }
 
         bool AllDead()

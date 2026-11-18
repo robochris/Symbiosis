@@ -70,6 +70,65 @@ namespace Shrunk.Tests
             }
         }
 
+        [UnityTest, Explicit]
+        public IEnumerator Capture_enemy_lineup()
+        {
+            SceneManager.LoadScene("Arena");
+            yield return null;
+            yield return null;
+
+            var player = PlayerController.Instance;
+            var spawner = Object.FindAnyObjectByType<EnemySpawner>();
+            var follow = CameraFollow.Instance;
+            var biome = spawner.biome;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            spawner.maxAlive = 0;
+            foreach (var enemy in new System.Collections.Generic.List<Enemy>(Enemy.Active)) Object.Destroy(enemy.gameObject);
+            yield return null;
+
+            // Back row: the four ants, plain. Front rows: a worker with each mutation.
+            string[] ants = { "WorkerAnt", "SoldierAnt", "SpitterAnt", "WingedAnt" };
+            for (int i = 0; i < ants.Length; i++)
+            {
+                Freeze(spawner.SpawnAt(biome.EnemyNamed(ants[i]), new Vector3(-6f + i * 4f, 0f, 10f), null));
+            }
+            for (int i = 0; i < biome.mutations.Length; i++)
+            {
+                var position = new Vector3(-6f + (i % 4) * 4f, 0f, 6f - (i / 4) * 3.5f);
+                Freeze(spawner.SpawnAt(biome.EnemyNamed("WorkerAnt"), position, new[] { biome.mutations[i] }));
+            }
+            // And one carrying three at once.
+            Freeze(spawner.SpawnAt(biome.EnemyNamed("SoldierAnt"), new Vector3(0f, 0f, -1.5f),
+                new[] { biome.Mutation(MutationType.HardenedShell), biome.Mutation(MutationType.Fast), biome.Mutation(MutationType.ExplodesOnDeath) }));
+
+            player.Teleport(new Vector3(0f, 0.05f, -7f));
+            player.transform.rotation = Quaternion.identity;
+            yield return new WaitForSeconds(0.5f);
+
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+
+            follow.SetMode(CameraMode.Shoulder);
+            yield return null;
+            yield return null;
+            Save(Path.Combine(folder, "lineup-Shoulder.png"));
+
+            follow.SetMode(CameraMode.TopDown);
+            follow.target = null;
+            follow.enabled = false;
+            Camera.main.transform.SetPositionAndRotation(new Vector3(0f, 13f, -6f), Quaternion.Euler(55f, 0f, 0f));
+            yield return null;
+            Save(Path.Combine(folder, "lineup-Above.png"));
+        }
+
+        // Stops an ant thinking so it stands still for its picture; its mutation tells keep animating.
+        static void Freeze(Enemy enemy)
+        {
+            enemy.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+            enemy.enabled = false;
+        }
+
         static void Save(string path)
         {
             var cam = Camera.main;

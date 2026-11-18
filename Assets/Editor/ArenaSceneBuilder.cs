@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace Shrunk.EditorTools
 {
     /// <summary>
-    /// Builds the Milestone 1 test arena from scratch: materials, the bullet and ant prefabs, and the Arena scene.
+    /// Builds the Arena scene: one empty room for trying out a single enemy. Also holds the helpers the other builders share.
     /// Menu: Shrunk > Rebuild Arena Scene. Rebuilding replaces the scene and prefabs, so hand edits to them are lost.
     /// </summary>
     public static class ArenaSceneBuilder
@@ -26,13 +26,9 @@ namespace Shrunk.EditorTools
             var soil = Lit("Soil", new Color(0.36f, 0.25f, 0.16f), 0.05f);
             var wall = Lit("Wall", new Color(0.23f, 0.15f, 0.10f), 0.05f);
             var voidBody = Lit("VoidBody", new Color(0.03f, 0.03f, 0.05f), 0.35f);
-            var antBody = Lit("AntBody", new Color(0.55f, 0.16f, 0.10f), 0.4f);
-            var antDark = Lit("AntDark", new Color(0.16f, 0.06f, 0.05f), 0.4f);
             var eyeGlow = Unlit("EyeGlow", new Color(0.45f, 0.95f, 1f));
-            var bulletGlow = Unlit("BulletGlow", new Color(0.6f, 1f, 0.95f));
 
-            var bulletPrefab = BuildBulletPrefab(bulletGlow);
-            var antPrefab = BuildAntPrefab(antBody, antDark);
+            var biome = ContentBuilder.Build(out var bulletPrefab);
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -46,7 +42,7 @@ namespace Shrunk.EditorTools
             var game = new GameObject("Game");
             game.AddComponent<GameLoop>();
             var spawner = game.AddComponent<EnemySpawner>();
-            spawner.prefab = antPrefab;
+            spawner.biome = biome;
             spawner.arenaHalfSize = ArenaHalfSize - 3f;
 
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -137,49 +133,6 @@ namespace Shrunk.EditorTools
             player.visual = visual;
             root.AddComponent<HitFlash>();
             return root;
-        }
-
-        // ---------- prefabs ----------
-
-        internal static Bullet BuildBulletPrefab(Material glow)
-        {
-            var go = new GameObject("Bullet");
-            Primitive(PrimitiveType.Sphere, "Visual", go.transform, Vector3.zero, new Vector3(0.22f, 0.22f, 0.5f), glow, false);
-            go.AddComponent<Bullet>();
-            return SavePrefab(go, "Bullet").GetComponent<Bullet>();
-        }
-
-        internal static Enemy BuildAntPrefab(Material body, Material dark)
-        {
-            var root = new GameObject("Worker Ant");
-
-            var controller = root.AddComponent<CharacterController>();
-            controller.height = 1.2f;
-            controller.radius = 0.55f;
-            controller.center = new Vector3(0f, 0.6f, 0f);
-
-            var health = root.AddComponent<Health>();
-            health.team = Team.Enemy;
-            health.maxHealth = 5;
-
-            var visual = new GameObject("Visual").transform;
-            visual.SetParent(root.transform, false);
-            Primitive(PrimitiveType.Sphere, "Abdomen", visual, new Vector3(0f, 0.6f, -0.65f), new Vector3(0.85f, 0.75f, 1.05f), body, false);
-            Primitive(PrimitiveType.Sphere, "Thorax", visual, new Vector3(0f, 0.55f, 0f), new Vector3(0.55f, 0.5f, 0.65f), dark, false);
-            Primitive(PrimitiveType.Sphere, "Head", visual, new Vector3(0f, 0.65f, 0.5f), new Vector3(0.6f, 0.5f, 0.55f), body, false);
-            Primitive(PrimitiveType.Cube, "Mandible L", visual, new Vector3(-0.14f, 0.55f, 0.85f), new Vector3(0.08f, 0.08f, 0.3f), dark, false).transform.localRotation = Quaternion.Euler(0f, 20f, 0f);
-            Primitive(PrimitiveType.Cube, "Mandible R", visual, new Vector3(0.14f, 0.55f, 0.85f), new Vector3(0.08f, 0.08f, 0.3f), dark, false).transform.localRotation = Quaternion.Euler(0f, -20f, 0f);
-            for (int i = 0; i < 3; i++)
-            {
-                float z = -0.25f + i * 0.25f;
-                Primitive(PrimitiveType.Cube, "Leg L" + i, visual, new Vector3(-0.5f, 0.3f, z), new Vector3(0.7f, 0.07f, 0.07f), dark, false).transform.localRotation = Quaternion.Euler(0f, 0f, 35f);
-                Primitive(PrimitiveType.Cube, "Leg R" + i, visual, new Vector3(0.5f, 0.3f, z), new Vector3(0.7f, 0.07f, 0.07f), dark, false).transform.localRotation = Quaternion.Euler(0f, 0f, -35f);
-            }
-
-            var chaser = root.AddComponent<ChaserEnemy>();
-            chaser.visual = visual;
-            root.AddComponent<HitFlash>();
-            return SavePrefab(root, "WorkerAnt").GetComponent<Enemy>();
         }
 
         // ---------- HUD ----------

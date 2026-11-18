@@ -107,7 +107,7 @@ namespace Shrunk.Tests
                     $"locked door {(Doors)(1 << side)} of {node.cell} does not block");
             }
 
-            foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.TakeDamage(999, Vector3.forward);
+            foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.Kill();
             yield return WaitUntil(() => !_floors.IsLocked, 2f, $"room {node.cell} to unlock");
             Assert.IsTrue(node.cleared);
             for (int side = 0; side < 4; side++)
@@ -212,7 +212,7 @@ namespace Shrunk.Tests
                 // Fight rooms lock on the way in; clear them to carry on.
                 if (_floors.IsLocked)
                 {
-                    foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.TakeDamage(999, Vector3.forward);
+                    foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.Kill();
                     yield return WaitUntil(() => !_floors.IsLocked, 2f, "the room to unlock");
                 }
             }
@@ -243,10 +243,57 @@ namespace Shrunk.Tests
                     $"player ended up inside solid earth or outside the floor at {position}\n" + Describe(start));
 
                 // Walking may have locked a neighbouring fight room; clear it so the next push starts clean.
-                foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.TakeDamage(999, Vector3.forward);
+                foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.Kill();
                 yield return null;
                 yield return null;
             }
+        }
+
+        [UnityTest]
+        public IEnumerator Deep_floors_spawn_mixed_ants_mutated_within_budget()
+        {
+            _player.Health.SetInvulnerable(600f);
+            _floors.depth = 5;
+            _floors.BuildFloor(7);
+            yield return null;
+
+            int budget = MutationBudget.MaxPoints(5, 7);
+            var kinds = new HashSet<string>();
+            var mutationsSeen = new HashSet<MutationType>();
+            int enemies = 0, mutated = 0;
+
+            foreach (var node in _floors.Layout.ordered)
+            {
+                if (node.type != RoomType.Normal) continue;
+                _player.Teleport(StandingSpot(node) + Vector3.up * 0.05f);
+                yield return WaitUntil(() => _floors.IsLocked, 2f, "the room to lock");
+
+                foreach (var enemy in _floors.LiveEnemies)
+                {
+                    enemies++;
+                    kinds.Add(enemy.GetType().Name);
+                    Assert.IsNotNull(enemy.Mutations, enemy.name + " cannot carry mutations");
+                    Assert.LessOrEqual(enemy.Mutations.TotalCost, budget, enemy.name + " is over the mutation budget");
+                    if (enemy.Mutations.Active.Count > 0) mutated++;
+                    foreach (var mutation in enemy.Mutations.Active) mutationsSeen.Add(mutation.type);
+                }
+
+                foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.Kill();
+                yield return null;
+                // A Swarm Call or two may have brought more in; keep clearing until the room opens.
+                for (int i = 0; i < 20 && _floors.IsLocked; i++)
+                {
+                    foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.Kill();
+                    yield return null;
+                }
+                Assert.IsFalse(_floors.IsLocked, "room never unlocked");
+            }
+
+            Debug.Log($"[Shrunk] Depth 5, floor 7: {enemies} enemies, {mutated} mutated, kinds: {string.Join(", ", kinds)}; mutations: {string.Join(", ", mutationsSeen)}");
+            Assert.Greater(enemies, 8);
+            Assert.Greater(mutated, enemies / 2, "too few enemies were mutated at depth 5");
+            Assert.GreaterOrEqual(kinds.Count, 3, "floor 7 should mix at least three kinds of ant");
+            Assert.GreaterOrEqual(mutationsSeen.Count, 5, "too little variety in mutations");
         }
 
         [UnityTest]
