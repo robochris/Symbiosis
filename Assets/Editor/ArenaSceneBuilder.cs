@@ -1,0 +1,341 @@
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace Shrunk.EditorTools
+{
+    /// <summary>
+    /// Builds the Milestone 1 test arena from scratch: materials, the bullet and ant prefabs, and the Arena scene.
+    /// Menu: Shrunk > Rebuild Arena Scene. Rebuilding replaces the scene and prefabs, so hand edits to them are lost.
+    /// </summary>
+    public static class ArenaSceneBuilder
+    {
+        const string ScenePath = "Assets/Scenes/Arena.unity";
+        const string MaterialFolder = "Assets/Materials";
+        const string PrefabFolder = "Assets/Prefabs";
+        const float ArenaHalfSize = 15f;
+
+        [MenuItem("Shrunk/Rebuild Arena Scene")]
+        public static void Build()
+        {
+            EnsureFolder("Assets", "Materials");
+            EnsureFolder("Assets", "Prefabs");
+            EnsureFolder("Assets", "Scenes");
+
+            var soil = Lit("Soil", new Color(0.36f, 0.25f, 0.16f), 0.05f);
+            var wall = Lit("Wall", new Color(0.23f, 0.15f, 0.10f), 0.05f);
+            var voidBody = Lit("VoidBody", new Color(0.03f, 0.03f, 0.05f), 0.35f);
+            var antBody = Lit("AntBody", new Color(0.55f, 0.16f, 0.10f), 0.4f);
+            var antDark = Lit("AntDark", new Color(0.16f, 0.06f, 0.05f), 0.4f);
+            var eyeGlow = Unlit("EyeGlow", new Color(0.45f, 0.95f, 1f));
+            var bulletGlow = Unlit("BulletGlow", new Color(0.6f, 1f, 0.95f));
+
+            var bulletPrefab = BuildBulletPrefab(bulletGlow);
+            var antPrefab = BuildAntPrefab(antBody, antDark);
+
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            BuildLighting();
+            BuildRoom(soil, wall);
+            var player = BuildPlayer(voidBody, eyeGlow, bulletPrefab);
+            BuildCamera(player.transform);
+            var touch = BuildHud();
+            player.GetComponent<PlayerInputReader>().touch = touch;
+
+            var game = new GameObject("Game");
+            game.AddComponent<GameLoop>();
+            var spawner = game.AddComponent<EnemySpawner>();
+            spawner.prefab = antPrefab;
+            spawner.arenaHalfSize = ArenaHalfSize - 3f;
+
+            EditorSceneManager.SaveScene(scene, ScenePath);
+            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Shrunk] Arena scene rebuilt at " + ScenePath);
+        }
+
+        // ---------- world ----------
+
+        static void BuildLighting()
+        {
+            var sun = new GameObject("Sun").AddComponent<Light>();
+            sun.type = LightType.Directional;
+            sun.intensity = 1.3f;
+            sun.color = new Color(1f, 0.95f, 0.85f);
+            sun.shadows = LightShadows.Soft;
+            sun.transform.rotation = Quaternion.Euler(52f, -35f, 0f);
+
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            RenderSettings.ambientLight = new Color(0.42f, 0.4f, 0.45f);
+            RenderSettings.skybox = null;
+        }
+
+        static void BuildRoom(Material soil, Material wall)
+        {
+            var room = new GameObject("Room").transform;
+            float size = ArenaHalfSize * 2f;
+
+            Primitive(PrimitiveType.Cube, "Floor", room, new Vector3(0f, -0.5f, 0f), new Vector3(size, 1f, size), soil, true);
+
+            const float height = 3f, thickness = 1f;
+            float edge = ArenaHalfSize + thickness * 0.5f;
+            Primitive(PrimitiveType.Cube, "Wall North", room, new Vector3(0f, height * 0.5f, edge), new Vector3(size + thickness * 2f, height, thickness), wall, true);
+            Primitive(PrimitiveType.Cube, "Wall South", room, new Vector3(0f, height * 0.5f, -edge), new Vector3(size + thickness * 2f, height, thickness), wall, true);
+            Primitive(PrimitiveType.Cube, "Wall East", room, new Vector3(edge, height * 0.5f, 0f), new Vector3(thickness, height, size), wall, true);
+            Primitive(PrimitiveType.Cube, "Wall West", room, new Vector3(-edge, height * 0.5f, 0f), new Vector3(thickness, height, size), wall, true);
+        }
+
+        static void BuildCamera(Transform target)
+        {
+            var go = new GameObject("Main Camera") { tag = "MainCamera" };
+            var cam = go.AddComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color(0.08f, 0.06f, 0.05f);
+            cam.fieldOfView = 50f;
+            cam.nearClipPlane = 0.3f;
+            cam.farClipPlane = 100f;
+            go.AddComponent<AudioListener>();
+            go.AddComponent<CameraFollow>().target = target;
+        }
+
+        // ---------- player ----------
+
+        static GameObject BuildPlayer(Material body, Material eyes, Bullet bulletPrefab)
+        {
+            var root = new GameObject("Player (The Void)");
+            root.transform.position = new Vector3(0f, 0.05f, 0f);
+
+            var controller = root.AddComponent<CharacterController>();
+            controller.height = 1.8f;
+            controller.radius = 0.4f;
+            controller.center = new Vector3(0f, 0.9f, 0f);
+
+            var health = root.AddComponent<Health>();
+            health.team = Team.Player;
+            health.maxHealth = 3;
+            health.hitInvulnerability = 0.8f;
+
+            var visual = new GameObject("Visual").transform;
+            visual.SetParent(root.transform, false);
+            visual.localPosition = new Vector3(0f, 0.9f, 0f);
+            Primitive(PrimitiveType.Capsule, "Body", visual, Vector3.zero, new Vector3(0.8f, 0.9f, 0.8f), body, false);
+            Primitive(PrimitiveType.Sphere, "Eye L", visual, new Vector3(-0.15f, 0.45f, 0.34f), Vector3.one * 0.13f, eyes, false);
+            Primitive(PrimitiveType.Sphere, "Eye R", visual, new Vector3(0.15f, 0.45f, 0.34f), Vector3.one * 0.13f, eyes, false);
+
+            var muzzle = new GameObject("Muzzle").transform;
+            muzzle.SetParent(root.transform, false);
+            muzzle.localPosition = new Vector3(0f, 0.7f, 0.6f);
+
+            var weapon = root.AddComponent<Weapon>();
+            weapon.bulletPrefab = bulletPrefab;
+            weapon.muzzle = muzzle;
+
+            root.AddComponent<PlayerInputReader>();
+            var player = root.AddComponent<PlayerController>();
+            player.weapon = weapon;
+            player.visual = visual;
+            root.AddComponent<HitFlash>();
+            return root;
+        }
+
+        // ---------- prefabs ----------
+
+        static Bullet BuildBulletPrefab(Material glow)
+        {
+            var go = new GameObject("Bullet");
+            Primitive(PrimitiveType.Sphere, "Visual", go.transform, Vector3.zero, new Vector3(0.22f, 0.22f, 0.5f), glow, false);
+            go.AddComponent<Bullet>();
+            return SavePrefab(go, "Bullet").GetComponent<Bullet>();
+        }
+
+        static Enemy BuildAntPrefab(Material body, Material dark)
+        {
+            var root = new GameObject("Worker Ant");
+
+            var controller = root.AddComponent<CharacterController>();
+            controller.height = 1.2f;
+            controller.radius = 0.55f;
+            controller.center = new Vector3(0f, 0.6f, 0f);
+
+            var health = root.AddComponent<Health>();
+            health.team = Team.Enemy;
+            health.maxHealth = 5;
+
+            var visual = new GameObject("Visual").transform;
+            visual.SetParent(root.transform, false);
+            Primitive(PrimitiveType.Sphere, "Abdomen", visual, new Vector3(0f, 0.6f, -0.65f), new Vector3(0.85f, 0.75f, 1.05f), body, false);
+            Primitive(PrimitiveType.Sphere, "Thorax", visual, new Vector3(0f, 0.55f, 0f), new Vector3(0.55f, 0.5f, 0.65f), dark, false);
+            Primitive(PrimitiveType.Sphere, "Head", visual, new Vector3(0f, 0.65f, 0.5f), new Vector3(0.6f, 0.5f, 0.55f), body, false);
+            Primitive(PrimitiveType.Cube, "Mandible L", visual, new Vector3(-0.14f, 0.55f, 0.85f), new Vector3(0.08f, 0.08f, 0.3f), dark, false).transform.localRotation = Quaternion.Euler(0f, 20f, 0f);
+            Primitive(PrimitiveType.Cube, "Mandible R", visual, new Vector3(0.14f, 0.55f, 0.85f), new Vector3(0.08f, 0.08f, 0.3f), dark, false).transform.localRotation = Quaternion.Euler(0f, -20f, 0f);
+            for (int i = 0; i < 3; i++)
+            {
+                float z = -0.25f + i * 0.25f;
+                Primitive(PrimitiveType.Cube, "Leg L" + i, visual, new Vector3(-0.5f, 0.3f, z), new Vector3(0.7f, 0.07f, 0.07f), dark, false).transform.localRotation = Quaternion.Euler(0f, 0f, 35f);
+                Primitive(PrimitiveType.Cube, "Leg R" + i, visual, new Vector3(0.5f, 0.3f, z), new Vector3(0.7f, 0.07f, 0.07f), dark, false).transform.localRotation = Quaternion.Euler(0f, 0f, -35f);
+            }
+
+            var chaser = root.AddComponent<ChaserEnemy>();
+            chaser.visual = visual;
+            root.AddComponent<HitFlash>();
+            return SavePrefab(root, "WorkerAnt").GetComponent<Enemy>();
+        }
+
+        // ---------- HUD ----------
+
+        static TouchControls BuildHud()
+        {
+            var canvasGo = new GameObject("HUD", typeof(Canvas), typeof(CanvasScaler));
+            var canvas = canvasGo.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            var scaler = canvasGo.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.matchWidthOrHeight = 0.5f;
+
+            var knob = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var parent = canvasGo.transform;
+            var white = new Color(1f, 1f, 1f, 0.22f);
+            var glow = new Color(0.45f, 0.95f, 1f, 1f);
+
+            // Sticks rest in the lower corners and jump to wherever the thumb lands.
+            var moveBase = UiImage("Move Stick", parent, knob, white, Vector2.zero, new Vector2(300f, 280f), 260f);
+            var moveKnob = UiImage("Knob", moveBase, knob, new Color(1f, 1f, 1f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, 110f);
+            var aimBase = UiImage("Aim Stick", parent, knob, white, new Vector2(1f, 0f), new Vector2(-520f, 280f), 260f);
+            var aimKnob = UiImage("Knob", aimBase, knob, new Color(glow.r, glow.g, glow.b, 0.6f), new Vector2(0.5f, 0.5f), Vector2.zero, 110f);
+
+            var dodge = UiImage("Dodge Button", parent, knob, white, new Vector2(1f, 0f), new Vector2(-190f, 200f), 200f);
+            var fill = UiImage("Ready Ring", dodge, knob, new Color(glow.r, glow.g, glow.b, 0.55f), new Vector2(0.5f, 0.5f), Vector2.zero, 200f).GetComponent<Image>();
+            fill.type = Image.Type.Filled;
+            fill.fillMethod = Image.FillMethod.Radial360;
+            fill.fillOrigin = (int)Image.Origin360.Top;
+            var dodgeLabel = UiText("Label", dodge, font, "DODGE", 34, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(200f, 60f));
+            dodgeLabel.color = Color.white;
+
+            var pips = new Image[3];
+            for (int i = 0; i < pips.Length; i++)
+            {
+                pips[i] = UiImage("Health " + (i + 1), parent, knob, glow, new Vector2(0f, 1f), new Vector2(80f + i * 70f, -80f), 54f).GetComponent<Image>();
+            }
+
+            var kills = UiText("Kills", parent, font, "Ants: 0", 44, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-260f, -80f), new Vector2(400f, 60f));
+            var hint = UiText("Desktop Hint", parent, font, "WASD move  ·  mouse aim  ·  hold click to fire  ·  Space dodge", 30, TextAnchor.LowerCenter, new Vector2(0.5f, 0f), new Vector2(0f, 50f), new Vector2(1200f, 50f));
+            hint.color = new Color(1f, 1f, 1f, 0.6f);
+
+            var touch = canvasGo.AddComponent<TouchControls>();
+            touch.moveBase = moveBase;
+            touch.moveKnob = moveKnob;
+            touch.aimBase = aimBase;
+            touch.aimKnob = aimKnob;
+            touch.dodgeButton = dodge;
+
+            var hud = canvasGo.AddComponent<Hud>();
+            hud.healthPips = pips;
+            hud.killsText = kills;
+            hud.dodgeFill = fill;
+            hud.desktopHint = hint.gameObject;
+            hud.touch = touch;
+            return touch;
+        }
+
+        static RectTransform UiImage(string name, Transform parent, Sprite sprite, Color color, Vector2 anchor, Vector2 position, float size)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            var rect = go.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.anchorMin = rect.anchorMax = anchor;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = position;
+            rect.sizeDelta = new Vector2(size, size);
+            var image = go.GetComponent<Image>();
+            image.sprite = sprite;
+            image.color = color;
+            image.raycastTarget = false;
+            return rect;
+        }
+
+        static Text UiText(string name, Transform parent, Font font, string content, int size, TextAnchor alignment, Vector2 anchor, Vector2 position, Vector2 box)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+            var rect = go.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.anchorMin = rect.anchorMax = anchor;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = position;
+            rect.sizeDelta = box;
+            var text = go.GetComponent<Text>();
+            text.font = font;
+            text.text = content;
+            text.fontSize = size;
+            text.alignment = alignment;
+            text.color = Color.white;
+            text.raycastTarget = false;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
+            return text;
+        }
+
+        // ---------- helpers ----------
+
+        static GameObject Primitive(PrimitiveType type, string name, Transform parent, Vector3 localPosition, Vector3 localScale, Material material, bool keepCollider)
+        {
+            var go = GameObject.CreatePrimitive(type);
+            go.name = name;
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPosition;
+            go.transform.localScale = localScale;
+            go.GetComponent<Renderer>().sharedMaterial = material;
+            if (!keepCollider) Object.DestroyImmediate(go.GetComponent<Collider>());
+            return go;
+        }
+
+        static GameObject SavePrefab(GameObject instance, string name)
+        {
+            var prefab = PrefabUtility.SaveAsPrefabAsset(instance, PrefabFolder + "/" + name + ".prefab");
+            Object.DestroyImmediate(instance);
+            return prefab;
+        }
+
+        static Material Lit(string name, Color color, float smoothness)
+        {
+            var material = LoadOrCreate(name, "Universal Render Pipeline/Lit");
+            material.SetColor("_BaseColor", color);
+            material.SetFloat("_Smoothness", smoothness);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        static Material Unlit(string name, Color color)
+        {
+            var material = LoadOrCreate(name, "Universal Render Pipeline/Unlit");
+            material.SetColor("_BaseColor", color);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        // Reuses the existing asset so hand-tuned references to it survive a rebuild.
+        static Material LoadOrCreate(string name, string shaderName)
+        {
+            string path = MaterialFolder + "/" + name + ".mat";
+            var shader = Shader.Find(shaderName);
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
+            return material;
+        }
+
+        static void EnsureFolder(string parent, string name)
+        {
+            if (!AssetDatabase.IsValidFolder(parent + "/" + name)) AssetDatabase.CreateFolder(parent, name);
+        }
+    }
+}
