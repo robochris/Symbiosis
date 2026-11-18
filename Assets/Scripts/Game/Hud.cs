@@ -27,6 +27,8 @@ namespace Shrunk
         [Tooltip("Text on the camera button.")]
         public Text cameraLabel;
         public TouchControls touch;
+        [Tooltip("In the lab: show banked samples instead of this run's.")]
+        public bool lab;
         [Tooltip("Shown only while a boss is in play.")]
         public GameObject bossBar;
         public Image bossFill;
@@ -36,7 +38,7 @@ namespace Shrunk
         int _shownKills = -1;
         int _shownFloor = -1;
         int _shownMode = -1;
-        int _shownCoins = -1, _shownSamples = -1;
+        int _shownCoins = -1, _shownSamples = -1, _shownDepth = -1;
         Text _hintText;
         string _toast;
         float _toastUntil;
@@ -125,11 +127,27 @@ namespace Shrunk
                 killsText.text = "Ants: " + _shownKills;
             }
 
-            if (resourcesText != null && (_shownCoins != RunState.Coins || _shownSamples != RunState.Samples))
+            if (resourcesText != null && lab)
+            {
+                MetaSave meta = SaveSystem.Data.meta;
+                if (_shownSamples != meta.samples || _shownCoins != meta.rareMaterials)
+                {
+                    _shownSamples = meta.samples;
+                    _shownCoins = meta.rareMaterials;
+                    resourcesText.text = meta.rareMaterials > 0
+                        ? $"Samples {meta.samples}   ·   Rare materials {meta.rareMaterials}"
+                        : $"Samples {meta.samples}";
+                }
+            }
+            else if (resourcesText != null && (_shownCoins != RunState.Coins || _shownSamples != RunState.Samples || (floors != null && _shownDepth != floors.depth)))
             {
                 _shownCoins = RunState.Coins;
                 _shownSamples = RunState.Samples;
-                resourcesText.text = $"Coins {_shownCoins}   ·   Samples {_shownSamples}";
+                _shownDepth = floors != null ? floors.depth : 1;
+                float multiplier = RunDirector.RewardMultiplier(_shownDepth);
+                resourcesText.text = multiplier > 1f
+                    ? $"Coins {_shownCoins}   ·   Samples {_shownSamples} (×{multiplier:0.#})"
+                    : $"Coins {_shownCoins}   ·   Samples {_shownSamples}";
             }
         }
 
@@ -196,7 +214,7 @@ namespace Shrunk
             Pickup near = Pickup.NearestItem(player.transform.position, 3.5f);
             if (near == null)
             {
-                promptText.text = "";
+                promptText.text = WorldPrompt.For(player.transform.position) ?? "";
                 return;
             }
 

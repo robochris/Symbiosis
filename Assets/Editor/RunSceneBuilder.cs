@@ -21,6 +21,7 @@ namespace Shrunk.EditorTools
         {
             ArenaSceneBuilder.Build();
             Build();
+            LabSceneBuilder.Build();
         }
 
         [MenuItem("Shrunk/Rebuild Run Scene", priority = 21)]
@@ -44,6 +45,7 @@ namespace Shrunk.EditorTools
             ContentBuilder.AddGameAssets(game);
             game.AddComponent<GameLoop>();
             game.AddComponent<FloorManager>().biome = biome;
+            game.AddComponent<RunDirector>();
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             UpdateBuildScenes();
@@ -51,10 +53,11 @@ namespace Shrunk.EditorTools
             Debug.Log("[Shrunk] Run scene rebuilt at " + ScenePath);
         }
 
-        /// <summary>The Run scene is what the game starts in; the Arena stays in the build as a test room.</summary>
+        /// <summary>The game starts in the Lab; the Run scene is an expedition; the Arena stays in the build as a test room.</summary>
         internal static void UpdateBuildScenes()
         {
             var scenes = new List<EditorBuildSettingsScene>();
+            if (File.Exists(LabSceneBuilder.ScenePath)) scenes.Add(new EditorBuildSettingsScene(LabSceneBuilder.ScenePath, true));
             if (File.Exists(ScenePath)) scenes.Add(new EditorBuildSettingsScene(ScenePath, true));
             if (File.Exists(ArenaPath)) scenes.Add(new EditorBuildSettingsScene(ArenaPath, true));
             EditorBuildSettings.scenes = scenes.ToArray();

@@ -16,6 +16,8 @@ namespace Shrunk
         public static event Action<FloorManager> FloorBuilt;
         /// <summary>The player walked into another room, or the current room's state changed.</summary>
         public static event Action<FloorManager> RoomChanged;
+        /// <summary>The player stepped into the extract portal after a biome boss.</summary>
+        public static event Action ExtractChosen;
 
         public BiomeDefinition biome;
         /// <summary>Distance between room centres: one room's full footprint.</summary>
@@ -40,6 +42,10 @@ namespace Shrunk
         public Room CurrentRoom => CurrentNode != null ? _rooms[CurrentNode.cell] : null;
         public bool IsLocked { get; private set; }
         public bool ExitOpen { get; private set; }
+        /// <summary>After a biome boss: the way home. Null until then.</summary>
+        public GameObject ExtractPortal { get; private set; }
+        /// <summary>After a biome boss: the way on to the next biome, one depth deeper. Null until then.</summary>
+        public GameObject DeeperPortal { get; private set; }
         public IReadOnlyList<Enemy> LiveEnemies => _live;
         public int FloorsBuilt { get; private set; }
 
@@ -51,6 +57,8 @@ namespace Shrunk
         Transform _enemiesRoot;
         NavMeshSurface _surface;
         bool _exitArmed;
+        readonly StepPad _extractPad = new StepPad { radius = 1.5f };
+        readonly StepPad _deeperPad = new StepPad { radius = 1.5f };
 
         void Awake()
         {
@@ -69,12 +77,14 @@ namespace Shrunk
 
         void OnEnable()
         {
+            WorldPrompt.Add(PortalPrompt);
             Enemy.SummonRequested += OnSummon;
             Enemy.MinionRequested += OnMinion;
         }
 
         void OnDisable()
         {
+            WorldPrompt.Remove(PortalPrompt);
             Enemy.SummonRequested -= OnSummon;
             Enemy.MinionRequested -= OnMinion;
         }
@@ -86,7 +96,8 @@ namespace Shrunk
 
         void Start()
         {
-            BuildFloor(1);
+            // In a real run the RunDirector decides which floor to build (a new run, or a saved one).
+            if (GetComponent<RunDirector>() == null) BuildFloor(1);
         }
 
         public Room RoomAt(Vector2Int cell) => _rooms.TryGetValue(cell, out var room) ? room : null;
@@ -96,12 +107,13 @@ namespace Shrunk
         public Vector2Int CellOf(Vector3 position) =>
             new Vector2Int(Mathf.RoundToInt(position.x / cellSize), Mathf.RoundToInt(position.z / cellSize));
 
-        public void BuildFloor(int number)
+        /// <param name="seedOverride">Non-zero rebuilds one exact floor, e.g. when a saved run is loaded.</param>
+        public void BuildFloor(int number, int seedOverride = 0)
         {
             ClearFloor();
 
             FloorNumber = number;
-            int seed = fixedSeed != 0 ? fixedSeed + number : UnityEngine.Random.Range(1, int.MaxValue);
+            int seed = seedOverride != 0 ? seedOverride : fixedSeed != 0 ? fixedSeed + number : UnityEngine.Random.Range(1, int.MaxValue);
             Layout = FloorLayout.Generate(seed, FloorLayout.RoomCountForFloor(number));
 
             foreach (var node in Layout.ordered)
@@ -182,6 +194,8 @@ namespace Shrunk
 
             CurrentNode = null;
             Boss = null;
+            ExtractPortal = null;
+            DeeperPortal = null;
             IsLocked = false;
             ExitOpen = false;
             _exitArmed = false;
@@ -209,7 +223,20 @@ namespace Shrunk
             }
             if (IsLocked && AllDead()) Clear(room);
 
-            if (ExitOpen && CurrentNode.type == RoomType.Exit && room.ExitHole != null)
+            // The portal room: after a biome boss the player chooses to go home or push on.
+            if (ExtractPortal != null && _extractPad.SteppedOn(ExtractPortal.transform.position, position))
+            {
+                ExtractChosen?.Invoke();
+                return;
+            }
+            if (DeeperPortal != null && _deeperPad.SteppedOn(DeeperPortal.transform.position, position))
+            {
+                depth++;
+                BuildFloor(FloorNumber + 1);
+                return;
+            }
+
+            if (ExitOpen && ExtractPortal == null && CurrentNode.type == RoomType.Exit && room.ExitHole != null)
             {
                 Vector3 toExit = room.ExitHole.transform.position - position;
                 toExit.y = 0f;
@@ -281,6 +308,24 @@ namespace Shrunk
             }
 
             RoomChanged?.Invoke(this);
+        }
+
+        string PortalPrompt(Vector3 playerPosition)
+        {
+            if (ExtractPortal != null && _extractPad.Distance(ExtractPortal.transform.position, playerPosition) < 3.5f)
+            {
+                float multiplier = RunDirector.RewardMultiplier(depth);
+                int worth = Mathf.RoundToInt(RunState.Samples * multiplier);
+                return multiplier > 1f
+                    ? $"Extract: go home with {RunState.Samples} samples ×{multiplier:0.#} = {worth}. Step in to leave."
+                    : $"Extract: go home with {worth} samples. Step in to leave.";
+            }
+            if (DeeperPortal != null && _deeperPad.Distance(DeeperPortal.transform.position, playerPosition) < 3.5f)
+            {
+                return $"Go deeper: {biome.displayName} again, depth {depth + 1}. Samples will be worth ×{RunDirector.RewardMultiplier(depth + 1):0.#}; " +
+                       $"enemies carry up to {MutationBudget.MaxPoints(depth + 1, 1)} mutation points. Step in to push on.";
+            }
+            return null;
         }
 
         BossEnemy BossForFloor()
@@ -369,7 +414,16 @@ namespace Shrunk
             if (CurrentNode.type == RoomType.Exit)
             {
                 ExitOpen = true;
-                if (room.ExitHole != null) room.ExitHole.SetActive(true);
+                if (FloorInBiome == 10 && biome.extractPortalProp != null && biome.deeperPortalProp != null)
+                {
+                    // The biome boss is dead: two portals instead of a hole in the floor.
+                    ExtractPortal = Instantiate(biome.extractPortalProp, room.Centre + new Vector3(-4f, 0f, 0f), Quaternion.identity, room.transform);
+                    DeeperPortal = Instantiate(biome.deeperPortalProp, room.Centre + new Vector3(4f, 0f, 0f), Quaternion.identity, room.transform);
+                }
+                else if (room.ExitHole != null)
+                {
+                    room.ExitHole.SetActive(true);
+                }
             }
 
             RoomChanged?.Invoke(this);

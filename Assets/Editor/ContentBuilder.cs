@@ -439,6 +439,57 @@ namespace Shrunk.EditorTools
             Solid(PrimitiveType.Cube, "Counter", shop.transform, new Vector3(0f, 0.6f, 0f), new Vector3(1.8f, 1.2f, 1f), root);
             Solid(PrimitiveType.Sphere, "Beetle Merchant", shop.transform, new Vector3(0f, 1f, 1.7f), new Vector3(1.6f, 1.6f, 1.6f), beetle);
             biome.shopProp = ArenaSceneBuilder.SavePrefab(shop, "Props/ShopStall");
+
+            // The portal room after the biome boss: one way home, one way deeper.
+            var sample = ArenaSceneBuilder.Unlit("Sample", new Color(0.45f, 0.95f, 1f));
+            var deep = ArenaSceneBuilder.Unlit("Telegraph", new Color(1f, 0.25f, 0.2f));
+            biome.extractPortalProp = ArenaSceneBuilder.SavePrefab(Portal("ExtractPortal", sample, black, wall), "Props/ExtractPortal");
+            biome.deeperPortalProp = ArenaSceneBuilder.SavePrefab(Portal("DeeperPortal", deep, black, wall), "Props/DeeperPortal");
+        }
+
+        /// <summary>A glowing ring on the floor between two posts.</summary>
+        public static GameObject Portal(string name, Material glow, Material inner, Material post)
+        {
+            var portal = new GameObject(name);
+            Decor(PrimitiveType.Cylinder, "Ring", portal.transform, new Vector3(0f, 0.02f, 0f), new Vector3(3.2f, 0.02f, 3.2f), glow);
+            Decor(PrimitiveType.Cylinder, "Inside", portal.transform, new Vector3(0f, 0.03f, 0f), new Vector3(2.5f, 0.02f, 2.5f), inner);
+            Decor(PrimitiveType.Cube, "Post L", portal.transform, new Vector3(-1.9f, 1.4f, 0f), new Vector3(0.35f, 2.8f, 0.35f), post);
+            Decor(PrimitiveType.Cube, "Post R", portal.transform, new Vector3(1.9f, 1.4f, 0f), new Vector3(0.35f, 2.8f, 0.35f), post);
+            Decor(PrimitiveType.Cube, "Lintel", portal.transform, new Vector3(0f, 2.9f, 0f), new Vector3(4.2f, 0.3f, 0.35f), glow);
+            return portal;
+        }
+
+        /// <summary>The six demo upgrades, with the design doc's costs.</summary>
+        public static UpgradeDefinition[] BuildUpgrades()
+        {
+            ArenaSceneBuilder.EnsureFolder("Assets", "Data");
+            ArenaSceneBuilder.EnsureFolder("Assets/Data", "Upgrades");
+            return new[]
+            {
+                Upgrade(UpgradeType.ThickerShadow, "Thicker Shadow", "+1 max health per level.", 50, 150, 400),
+                Upgrade(UpgradeType.QuickReflexes, "Quick Reflexes", "Dodge recharges 15% faster per level.", 100, 300),
+                Upgrade(UpgradeType.SamplePouch, "Sample Pouch", "Keep more samples on death: 25%, then 35%, then 45%.", 150, 450),
+                Upgrade(UpgradeType.OverchargeCoil, "Overcharge Coil", "The hero power meter fills 20% faster per level.", 200, 500),
+                Upgrade(UpgradeType.FieldKit, "Field Kit", "Start every run with one random common item.", 350),
+                Upgrade(UpgradeType.LuckyFind, "Lucky Find", "Treasure rooms offer a choice of 2 items.", 600),
+            };
+        }
+
+        static UpgradeDefinition Upgrade(UpgradeType type, string name, string description, params int[] costs)
+        {
+            string path = "Assets/Data/Upgrades/" + type + ".asset";
+            var upgrade = AssetDatabase.LoadAssetAtPath<UpgradeDefinition>(path);
+            if (upgrade == null)
+            {
+                upgrade = ScriptableObject.CreateInstance<UpgradeDefinition>();
+                AssetDatabase.CreateAsset(upgrade, path);
+            }
+            upgrade.type = type;
+            upgrade.displayName = name;
+            upgrade.description = description;
+            upgrade.costs = costs;
+            EditorUtility.SetDirty(upgrade);
+            return upgrade;
         }
 
         static GameObject Solid(PrimitiveType type, string name, Transform parent, Vector3 position, Vector3 scale, Material material) =>

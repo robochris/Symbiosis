@@ -490,7 +490,7 @@ namespace Shrunk.Tests
             Assert.Greater(coins, 0, "no coins dropped");
             Assert.AreEqual(1, samples, "no sample dropped");
 
-            yield return WaitUntil(() => RunState.Coins == coins && RunState.Samples == 1, 3f, "the drops to be collected");
+            yield return WaitUntil(() => RunState.Coins == coins && RunState.Samples == Loot.SamplesPerEnemy, 3f, "the drops to be collected");
             Assert.AreEqual(1, RunState.Kills);
         }
 
@@ -499,13 +499,13 @@ namespace Shrunk.Tests
         {
             var plain = Dummy(new Vector3(0f, 0f, 2f));
             plain.Health.Kill();
-            yield return WaitUntil(() => RunState.Samples == 1, 3f, "the plain ant's sample");
+            yield return WaitUntil(() => RunState.Samples == Loot.SamplesPerEnemy, 3f, "the plain ant's sample");
 
             var mutated = _spawner.SpawnAt(_biome.EnemyNamed("WorkerAnt"), new Vector3(0f, 0f, 2f),
                 new[] { _biome.Mutation(MutationType.Armored), _biome.Mutation(MutationType.Fast) });
             mutated.frozen = true;
             mutated.Health.Kill();
-            yield return WaitUntil(() => RunState.Samples == 1 + 4, 3f, "the mutated ant's samples (1 + 3 mutation points)");
+            yield return WaitUntil(() => RunState.Samples == 2 * Loot.SamplesPerEnemy + 3, 3f, "the mutated ant's samples (the usual amount + 3 mutation points)");
         }
     }
 }

@@ -17,6 +17,9 @@ namespace Shrunk.Tests
         [UnitySetUp]
         public IEnumerator LoadRun()
         {
+            // Its own save file, wiped, so the player's real progress and upgrades never affect the tests.
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
             SceneManager.LoadScene("Run");
             yield return null;
             yield return null;
@@ -163,6 +166,19 @@ namespace Shrunk.Tests
 
                 Assert.IsTrue(_floors.ExitOpen, "exit did not open after the exit room was cleared");
                 Room exitRoom = _floors.RoomAt(layout.exit.cell);
+                int next = floor + 1;
+
+                // Floor 10 of a biome ends in the portal room instead of a hole: take the portal deeper.
+                if (_floors.FloorInBiome == 10)
+                {
+                    Assert.IsNotNull(_floors.DeeperPortal, "no portal after the biome boss");
+                    int depthBefore = _floors.depth;
+                    _player.Teleport(_floors.DeeperPortal.transform.position + Vector3.up * 0.05f);
+                    yield return WaitUntil(() => _floors.FloorNumber == next, 2f, "the next biome");
+                    Assert.AreEqual(depthBefore + 1, _floors.depth);
+                    yield return null;
+                    continue;
+                }
                 Assert.IsTrue(exitRoom.ExitHole.activeSelf);
 
                 // The hole opened under the player, so nothing happens until they step off it and back on.
@@ -172,7 +188,6 @@ namespace Shrunk.Tests
                 yield return null;
                 yield return null;
                 _player.Teleport(exitRoom.ExitHole.transform.position + Vector3.up * 0.05f);
-                int next = floor + 1;
                 yield return WaitUntil(() => _floors.FloorNumber == next, 2f, "the next floor");
                 yield return null; // let the old rooms finish being destroyed
             }

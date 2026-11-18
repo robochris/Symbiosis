@@ -146,6 +146,8 @@ namespace Shrunk
     {
         /// <summary>Chance of an item from an unmutated enemy; each mutation point adds this much again.</summary>
         public const float ItemChance = 0.02f;
+        /// <summary>Samples from an unmutated enemy; each mutation point adds one more.</summary>
+        public const int SamplesPerEnemy = 2;
 
         public static void Drop(Enemy enemy)
         {
@@ -157,7 +159,7 @@ namespace Shrunk
             int coins = Mathf.Min(8, 1 + enemy.Health.maxHealth / 4);
             for (int i = 0; i < coins; i++) Pickup.Coin(origin + Scatter(), 1);
 
-            Pickup.Sample(origin + Scatter(), 1 + points);
+            Pickup.Sample(origin + Scatter(), SamplesPerEnemy + points);
 
             var assets = GameAssets.Instance;
             // Bosses have their own item rewards.

@@ -17,6 +17,8 @@ namespace Shrunk.Tests
         [UnityTest, Explicit]
         public IEnumerator Capture_camera_views()
         {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
             SceneManager.LoadScene("Run");
             yield return null;
             yield return null;
@@ -162,6 +164,57 @@ namespace Shrunk.Tests
                 yield return null;
                 Save(Path.Combine(folder, "items-back-" + (i + 1) + ".png"));
             }
+        }
+
+        [UnityTest, Explicit]
+        public IEnumerator Capture_lab_and_portal_room()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            Upgrades.SetLevel(UpgradeType.ThickerShadow, 2);
+            Upgrades.SetLevel(UpgradeType.FieldKit, 1);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            PlayerController.Instance.Input.overrideFrame = new InputFrame();
+            var follow = CameraFollow.Instance;
+            yield return new WaitForSeconds(0.3f);
+            Save(Path.Combine(folder, "lab-Shoulder.png"));
+            follow.enabled = false;
+            Camera.main.transform.SetPositionAndRotation(new Vector3(0f, 15f, -9f), Quaternion.Euler(58f, 0f, 0f));
+            yield return null;
+            Save(Path.Combine(folder, "lab-Above.png"));
+
+            SaveSystem.Wipe();
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            floors.BuildFloor(10);
+            yield return null;
+            Room arena = floors.RoomAt(floors.Layout.exit.cell);
+            player.Teleport(arena.Centre + new Vector3(0f, 0.05f, -7f));
+            player.transform.rotation = Quaternion.identity;
+            yield return new WaitForSeconds(2.5f);
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            yield return null;
+            yield return null;
+            Save(Path.Combine(folder, "queen-fight.png"));
+
+            floors.Boss.Health.Kill();
+            yield return new WaitForSeconds(0.6f);
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            yield return null;
+            yield return null;
+            Save(Path.Combine(folder, "portal-room.png"));
+            SaveSystem.Wipe();
         }
 
         // Stops an ant thinking so it stands still for its picture; its mutation tells keep animating.

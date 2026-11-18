@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 
 namespace Shrunk
 {
-    /// <summary>Milestone 1 loop: count kills, and restart the arena when the player dies.</summary>
+    /// <summary>Counts kills and drops loot. In the test arena it also restarts the scene when the player dies.</summary>
     public class GameLoop : MonoBehaviour
     {
         public static int Kills => RunState.Kills;
@@ -49,6 +49,8 @@ namespace Shrunk
 
         void OnPlayerDied()
         {
+            // In a real run the RunDirector settles up and sends the player back to the lab.
+            if (RunDirector.Instance != null) return;
             StartCoroutine(Restart());
         }
 

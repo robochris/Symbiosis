@@ -33,6 +33,10 @@ namespace Shrunk
         public GameObject exitProp;
         public GameObject treasureProp;
         public GameObject shopProp;
+        [Tooltip("After the biome boss: the portal home.")]
+        public GameObject extractPortalProp;
+        [Tooltip("After the biome boss: the portal to the next biome, one depth deeper.")]
+        public GameObject deeperPortalProp;
 
         [Header("Enemies")]
         public EnemySpawnEntry[] spawnTable;
