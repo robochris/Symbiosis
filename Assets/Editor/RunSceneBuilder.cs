@@ -34,7 +34,7 @@ namespace Shrunk.EditorTools
             var eyeGlow = ArenaSceneBuilder.Unlit("EyeGlow", new Color(0.45f, 0.95f, 1f));
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            ArenaSceneBuilder.BuildLighting();
+            ArenaSceneBuilder.BuildLighting(underground: true);
             var player = ArenaSceneBuilder.BuildPlayer(voidBody, eyeGlow, bulletPrefab);
             ArenaSceneBuilder.BuildCamera(player.transform);
             var touch = ArenaSceneBuilder.BuildHud();

@@ -12,10 +12,13 @@ namespace Shrunk
     public class RoomShape
     {
         /// <summary>Tiles along each side, including the one-tile border that holds the doorways.</summary>
-        public const int Size = 12;
+        public const int Size = 17;
         /// <summary>Metres per tile. Size × TileSize is the room's footprint on the floor grid.</summary>
         public const float TileSize = 2f;
+        /// <summary>Tiles across a doorway, and across the tunnel that leads in from it.</summary>
+        public const int DoorWidth = 3;
         const int Min = 1, Max = Size - 2; // the inside, without the border
+        const int DoorLo = (Size - DoorWidth) / 2;
 
         public int seed;
         public Doors doors;
@@ -28,16 +31,27 @@ namespace Shrunk
         /// <summary>Open tiles inside the border: places things can stand.</summary>
         public readonly List<Vector2Int> interior = new List<Vector2Int>();
 
-        /// <summary>The two border tiles that form the doorway on a side (0 North, 1 East, 2 South, 3 West).</summary>
-        public static void DoorTiles(int side, out Vector2Int a, out Vector2Int b)
+        /// <summary>One of the border tiles that form the doorway on a side (0 North, 1 East, 2 South, 3 West). index runs 0 to DoorWidth - 1.</summary>
+        public static Vector2Int DoorTile(int side, int index)
         {
-            const int lo = Size / 2 - 1, hi = Size / 2;
+            int along = DoorLo + index;
             switch (side)
             {
-                case 0: a = new Vector2Int(lo, Size - 1); b = new Vector2Int(hi, Size - 1); break;
-                case 1: a = new Vector2Int(Size - 1, lo); b = new Vector2Int(Size - 1, hi); break;
-                case 2: a = new Vector2Int(lo, 0); b = new Vector2Int(hi, 0); break;
-                default: a = new Vector2Int(0, lo); b = new Vector2Int(0, hi); break;
+                case 0: return new Vector2Int(along, Size - 1);
+                case 1: return new Vector2Int(Size - 1, along);
+                case 2: return new Vector2Int(along, 0);
+                default: return new Vector2Int(0, along);
+            }
+        }
+
+        bool HasDoor(int side) => (doors & (Doors)(1 << side)) != 0;
+
+        void OpenDoorway(int side)
+        {
+            for (int i = 0; i < DoorWidth; i++)
+            {
+                Vector2Int tile = DoorTile(side, i);
+                open[tile.x, tile.y] = true;
             }
         }
 
@@ -51,9 +65,9 @@ namespace Shrunk
             int seed = unchecked(layout.seed * 73856093 ^ node.cell.x * 19349663 ^ node.cell.y * 83492791);
             var rng = new System.Random(seed);
 
-            // Floors 1-5 keep chambers small; deeper floors mix in big ones.
+            // Floors 1-5 keep chambers on the small side; deeper floors use the big ones.
             int floor = FloorLayout.FloorInBiome(floorNumber);
-            float size = floor <= 5 ? (float)rng.NextDouble() * 0.3f : 0.45f + (float)rng.NextDouble() * 0.55f;
+            float size = floor <= 5 ? (float)rng.NextDouble() * 0.35f : 0.5f + (float)rng.NextDouble() * 0.5f;
 
             // The exit room of a boss floor is the boss's arena: the whole square, wide open.
             bool arena = node.type == RoomType.Exit && FloorLayout.IsBossFloor(floorNumber);
@@ -76,23 +90,22 @@ namespace Shrunk
                 shape.centre = new Vector2Int(Size / 2, Size / 2);
                 for (int side = 0; side < 4; side++)
                 {
-                    if ((doors & (Doors)(1 << side)) == 0) continue;
-                    DoorTiles(side, out var a, out var b);
-                    shape.open[a.x, a.y] = true;
-                    shape.open[b.x, b.y] = true;
+                    if (shape.HasDoor(side)) shape.OpenDoorway(side);
                 }
                 shape.CollectInterior();
                 return shape;
             }
 
             // 1. The main chamber: an oval or a box somewhere inside the room.
-            int half = fight ? Mathf.Clamp(Mathf.RoundToInt(Mathf.Lerp(2f, 4f, size01)), 2, 4) : 2;
+            // Half-widths in tiles: a fight chamber is 9 to 15 tiles across (18 to 30 m), the quiet rooms 7.
+            int half = fight ? Mathf.Clamp(Mathf.RoundToInt(Mathf.Lerp(4f, 7f, size01)), 4, 7) : 3;
             int halfX = half, halfY = half;
-            if (fight && half > 2)
+            if (fight && half > 4)
             {
                 int squash = rng.Next(3);
-                if (squash == 0) halfX--;
-                else if (squash == 1) halfY--;
+                int by = rng.Next(1, 3);
+                if (squash == 0) halfX = Mathf.Max(4, halfX - by);
+                else if (squash == 1) halfY = Mathf.Max(4, halfY - by);
             }
 
             int cx = rng.Next(Min + halfX, Max - halfX + 1);
@@ -115,13 +128,13 @@ namespace Shrunk
             // 2. Side pockets: a few round bulges that overlap the chamber, for an uneven outline.
             if (fight)
             {
-                int pockets = rng.Next(0, size01 < 0.35f ? 2 : 3);
+                int pockets = rng.Next(0, size01 < 0.4f ? 3 : 4);
                 for (int i = 0; i < pockets; i++)
                 {
                     var from = shape.RandomOpen(rng);
-                    int px = Mathf.Clamp(from.x + rng.Next(-2, 3), Min, Max);
-                    int py = Mathf.Clamp(from.y + rng.Next(-2, 3), Min, Max);
-                    int radius = rng.Next(1, 3);
+                    int px = Mathf.Clamp(from.x + rng.Next(-3, 4), Min, Max);
+                    int py = Mathf.Clamp(from.y + rng.Next(-3, 4), Min, Max);
+                    int radius = rng.Next(1, 4);
                     for (int x = px - radius; x <= px + radius; x++)
                     {
                         for (int y = py - radius; y <= py + radius; y++)
@@ -133,13 +146,11 @@ namespace Shrunk
                 }
             }
 
-            // 3. Tunnels: a two-tile-wide path from each doorway to the chamber.
+            // 3. Tunnels: a path as wide as the doorway, from each doorway to the chamber.
             for (int side = 0; side < 4; side++)
             {
-                if ((doors & (Doors)(1 << side)) == 0) continue;
-                DoorTiles(side, out var a, out var b);
-                shape.open[a.x, a.y] = true;
-                shape.open[b.x, b.y] = true;
+                if (!shape.HasDoor(side)) continue;
+                shape.OpenDoorway(side);
                 shape.CarveTunnel(side, cx, cy);
             }
 
@@ -149,7 +160,7 @@ namespace Shrunk
             // 4. Pillars: lumps of earth left standing as cover, as long as they don't cut anything off.
             if (fight)
             {
-                int tries = rng.Next(0, 6);
+                int tries = rng.Next(0, 4 + half * 2);
                 for (int i = 0; i < tries; i++)
                 {
                     var tile = shape.RandomOpen(rng);
@@ -172,19 +183,19 @@ namespace Shrunk
             return tiles[rng.Next(tiles.Count)];
         }
 
-        // A 2×2 brush walks from just inside the doorway to the chamber centre: straight in first, then across.
+        // A square brush as wide as the doorway walks from just inside it to the chamber centre: straight in first, then across.
         void CarveTunnel(int side, int cx, int cy)
         {
-            const int lo = Size / 2 - 1;
+            const int last = Max - (DoorWidth - 1); // furthest the brush's corner can go
             int x, y;
             switch (side)
             {
-                case 0: x = lo; y = Max - 1; break;
-                case 1: x = Max - 1; y = lo; break;
-                case 2: x = lo; y = Min; break;
-                default: x = Min; y = lo; break;
+                case 0: x = DoorLo; y = last; break;
+                case 1: x = last; y = DoorLo; break;
+                case 2: x = DoorLo; y = Min; break;
+                default: x = Min; y = DoorLo; break;
             }
-            int tx = Mathf.Clamp(cx, Min, Max - 1), ty = Mathf.Clamp(cy, Min, Max - 1);
+            int tx = Mathf.Clamp(cx - DoorWidth / 2, Min, last), ty = Mathf.Clamp(cy - DoorWidth / 2, Min, last);
             bool vertical = side == 0 || side == 2;
 
             Stamp(x, y);
@@ -203,7 +214,9 @@ namespace Shrunk
 
         void Stamp(int x, int y)
         {
-            open[x, y] = open[x + 1, y] = open[x, y + 1] = open[x + 1, y + 1] = true;
+            for (int dx = 0; dx < DoorWidth; dx++)
+                for (int dy = 0; dy < DoorWidth; dy++)
+                    open[x + dx, y + dy] = true;
         }
 
         bool CanBePillar(Vector2Int tile)
@@ -214,10 +227,12 @@ namespace Shrunk
             // ...and not near a doorway, where it would block the way in.
             for (int side = 0; side < 4; side++)
             {
-                if ((doors & (Doors)(1 << side)) == 0) continue;
-                DoorTiles(side, out var a, out var b);
-                if (Mathf.Abs(tile.x - a.x) + Mathf.Abs(tile.y - a.y) <= 3) return false;
-                if (Mathf.Abs(tile.x - b.x) + Mathf.Abs(tile.y - b.y) <= 3) return false;
+                if (!HasDoor(side)) continue;
+                for (int i = 0; i < DoorWidth; i++)
+                {
+                    Vector2Int door = DoorTile(side, i);
+                    if (Mathf.Abs(tile.x - door.x) + Mathf.Abs(tile.y - door.y) <= 3) return false;
+                }
             }
             return true;
         }
@@ -288,11 +303,13 @@ namespace Shrunk
             var doorTiles = new HashSet<Vector2Int>();
             for (int side = 0; side < 4; side++)
             {
-                if ((doors & (Doors)(1 << side)) == 0) continue;
-                DoorTiles(side, out var a, out var b);
-                doorTiles.Add(a);
-                doorTiles.Add(b);
-                if (!open[a.x, a.y] || !open[b.x, b.y]) problems.Add($"doorway {(Doors)(1 << side)} is blocked");
+                if (!HasDoor(side)) continue;
+                for (int i = 0; i < DoorWidth; i++)
+                {
+                    Vector2Int door = DoorTile(side, i);
+                    doorTiles.Add(door);
+                    if (!open[door.x, door.y]) problems.Add($"doorway {(Doors)(1 << side)} is blocked");
+                }
             }
 
             for (int x = 0; x < Size; x++)

@@ -10,7 +10,9 @@ namespace Shrunk
         /// <summary>Through the character's eyes.</summary>
         FirstPerson,
         /// <summary>Pulled back and above at a fixed angle, so most of the room stays in view.</summary>
-        TopDown
+        TopDown,
+        /// <summary>Behind the character like Shoulder, but further back and higher: the character is smaller and more of the room shows.</summary>
+        Wide
     }
 
     /// <summary>The game camera. Shoulder and first person turn with the player's look input; top-down stays fixed.</summary>
@@ -27,6 +29,12 @@ namespace Shrunk
         public float shoulderHeight = 1.9f;
         [Tooltip("Sideways offset, so the character doesn't cover the crosshair.")]
         public float shoulderSide = 0.9f;
+
+        [Header("Wide (behind, further back and higher)")]
+        public float wideDistance = 8f;
+        public float wideHeight = 2f;
+        [Tooltip("How far the view tilts down, in degrees.")]
+        public float widePitch = 24f;
 
         [Header("First person")]
         public float eyeHeight = 1.55f;
@@ -54,6 +62,26 @@ namespace Shrunk
         public float LookYaw { get; private set; }
         public float LookPitch { get; private set; }
         public bool IsLookMode => mode != CameraMode.TopDown;
+
+        /// <summary>The order the camera button steps through.</summary>
+        public static readonly CameraMode[] Order = { CameraMode.Shoulder, CameraMode.Wide, CameraMode.FirstPerson, CameraMode.TopDown };
+
+        public static CameraMode After(CameraMode mode)
+        {
+            int index = Array.IndexOf(Order, mode);
+            return Order[(index + 1) % Order.Length];
+        }
+
+        public static string NameOf(CameraMode mode)
+        {
+            switch (mode)
+            {
+                case CameraMode.Shoulder: return "Shoulder";
+                case CameraMode.Wide: return "Wide";
+                case CameraMode.FirstPerson: return "First person";
+                default: return "Top-down";
+            }
+        }
         public event Action<CameraMode> ModeChanged;
 
         static readonly RaycastHit[] Hits = new RaycastHit[16];
@@ -81,10 +109,10 @@ namespace Shrunk
             Apply();
         }
 
-        /// <summary>Shoulder → first person → top-down → shoulder.</summary>
+        /// <summary>Shoulder → wide → first person → top-down → shoulder.</summary>
         public void CycleMode()
         {
-            SetMode((CameraMode)(((int)mode + 1) % 3));
+            SetMode(After(mode));
         }
 
         public void SetMode(CameraMode newMode)
@@ -127,7 +155,7 @@ namespace Shrunk
             Vector3 forward = transform.forward;
 
             // Ignore anything between the camera and the character.
-            float skip = mode == CameraMode.Shoulder ? shoulderDistance : 0f;
+            float skip = mode == CameraMode.Shoulder ? shoulderDistance : mode == CameraMode.Wide ? wideDistance : 0f;
             int count = Physics.RaycastNonAlloc(origin, forward, Hits, maxDistance, ~0, QueryTriggerInteraction.Ignore);
             float nearest = maxDistance;
             for (int i = 0; i < count; i++)
@@ -180,6 +208,14 @@ namespace Shrunk
                     Vector3 pivot = _focus + Vector3.up * shoulderHeight;
                     Vector3 offset = rotation * new Vector3(shoulderSide, 0f, -shoulderDistance);
                     position = pivot + offset.normalized * ClearDistance(pivot, offset.normalized, offset.magnitude);
+                    break;
+
+                case CameraMode.Wide:
+                    // Same idea as Shoulder, centred: from this high the character sits below the crosshair anyway.
+                    rotation = Quaternion.Euler(LookPitch + widePitch - startPitch, LookYaw, 0f);
+                    Vector3 widePivot = _focus + Vector3.up * wideHeight;
+                    Vector3 back = rotation * Vector3.back;
+                    position = widePivot + back * ClearDistance(widePivot, back, wideDistance);
                     break;
 
                 default:

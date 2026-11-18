@@ -29,9 +29,15 @@ namespace Shrunk
             var room = go.AddComponent<Room>();
             room.Shape = shape;
 
-            RoomMesh.Build(shape, biome.wallHeight, out room._visual, out room._collision);
+            bool ceiling = biome.ceiling && biome.ceilingMaterial != null;
+            RoomMesh.Build(shape, biome.wallHeight, ceiling, out room._visual, out room._collision);
             go.AddComponent<MeshFilter>().sharedMesh = room._visual;
-            go.AddComponent<MeshRenderer>().sharedMaterials = new[] { biome.floorMaterial, biome.wallMaterial };
+            var renderer = go.AddComponent<MeshRenderer>();
+            renderer.sharedMaterials = ceiling
+                ? new[] { biome.floorMaterial, biome.wallMaterial, biome.ceilingMaterial }
+                : new[] { biome.floorMaterial, biome.wallMaterial };
+            // Underground the light is even: tall walls throwing shadows across the floor would hide half the room.
+            if (ceiling) renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             go.AddComponent<MeshCollider>().sharedMesh = room._collision;
 
             // A barrier in each doorway, switched on while the room is locked.
@@ -46,7 +52,7 @@ namespace Shrunk
                 door.name = (Doors)(1 << side) + " Door";
                 door.transform.SetParent(go.transform, false);
                 door.transform.localPosition = new Vector3(d.x * edge, biome.wallHeight * 0.5f, d.y * edge);
-                door.transform.localScale = new Vector3(alongX ? RoomShape.TileSize * 2f : 0.8f, biome.wallHeight, alongX ? 0.8f : RoomShape.TileSize * 2f);
+                door.transform.localScale = new Vector3(alongX ? RoomShape.TileSize * RoomShape.DoorWidth : 0.8f, biome.wallHeight, alongX ? 0.8f : RoomShape.TileSize * RoomShape.DoorWidth);
                 door.GetComponent<Renderer>().sharedMaterial = biome.doorMaterial;
                 door.SetActive(false);
                 room._doors[side] = door;
@@ -93,11 +99,16 @@ namespace Shrunk
         }
     }
 
-    /// <summary>Turns a flat RoomShape into meshes: floor under open tiles, walls where open meets solid, a cap on solid tiles.</summary>
+    /// <summary>
+    /// Turns a flat RoomShape into meshes: floor under open tiles, walls where open meets solid, a cap on solid tiles,
+    /// and (underground) a ceiling over the open tiles. The ceiling only shows from below, so a camera above the room
+    /// still sees in.
+    /// </summary>
     public static class RoomMesh
     {
-        public static void Build(RoomShape shape, float wallHeight, out Mesh visual, out Mesh collision)
+        public static void Build(RoomShape shape, float wallHeight, bool withCeiling, out Mesh visual, out Mesh collision)
         {
+            var ceiling = new List<int>();
             var vertices = new List<Vector3>();
             var normals = new List<Vector3>();
             var floor = new List<int>();
@@ -123,6 +134,9 @@ namespace Shrunk
 
                     Quad(vertices, normals, floor, Vector3.up,
                         new Vector3(x0, 0f, z0), new Vector3(x0, 0f, z1), new Vector3(x1, 0f, z1), new Vector3(x1, 0f, z0));
+                    if (withCeiling)
+                        Quad(vertices, normals, ceiling, Vector3.down,
+                            new Vector3(x0, wallHeight, z0), new Vector3(x1, wallHeight, z0), new Vector3(x1, wallHeight, z1), new Vector3(x0, wallHeight, z1));
 
                     // A wall on each side that borders solid earth. Outside the grid is the next room's doorway: no wall.
                     if (Solid(shape, x, y + 1))
@@ -143,18 +157,21 @@ namespace Shrunk
             visual = new Mesh { name = "Room Visual" };
             visual.SetVertices(vertices);
             visual.SetNormals(normals);
-            visual.subMeshCount = 2;
+            visual.subMeshCount = withCeiling ? 3 : 2;
             visual.SetTriangles(floor, 0);
             var wallsAndCaps = new List<int>(walls);
             wallsAndCaps.AddRange(caps);
             visual.SetTriangles(wallsAndCaps, 1);
+            if (withCeiling) visual.SetTriangles(ceiling, 2);
             visual.RecalculateBounds();
 
             // Collision leaves the caps out: nothing walks up there, and it keeps them off the navmesh.
+            // The ceiling is in, so the camera stays under it; it is one-sided, so nothing cast downward hits it.
             collision = new Mesh { name = "Room Collision" };
             collision.SetVertices(vertices);
             var solid = new List<int>(floor);
             solid.AddRange(walls);
+            solid.AddRange(ceiling);
             collision.SetTriangles(solid, 0);
             collision.RecalculateBounds();
         }

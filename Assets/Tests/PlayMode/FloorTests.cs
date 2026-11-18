@@ -402,7 +402,7 @@ namespace Shrunk.Tests
 
                 Room arena = _floors.RoomAt(layout.exit.cell);
                 Assert.IsTrue(arena.Shape.isArena, "the boss room should be a wide-open arena");
-                Assert.AreEqual(100, arena.Shape.interior.Count);
+                Assert.AreEqual((RoomShape.Size - 2) * (RoomShape.Size - 2), arena.Shape.interior.Count);
                 Assert.IsNull(_floors.Boss, "boss appeared before the player walked in");
 
                 _player.Teleport(arena.Centre + new Vector3(0f, 0.05f, -6f));

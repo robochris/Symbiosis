@@ -27,7 +27,7 @@ namespace Shrunk
         [Tooltip("How far past the doorway the player must be before the doors lock.")]
         public float lockMargin = 1.5f;
         [Tooltip("Enemies never appear closer to the player than this.")]
-        public float minSpawnDistance = 6f;
+        public float minSpawnDistance = 8f;
         public float exitRadius = 1.4f;
         [Tooltip("How many biomes into the run this is. Raises the mutation budget: 1 point at depth 1, up to 5 at depth 5.")]
         public int depth = 1;

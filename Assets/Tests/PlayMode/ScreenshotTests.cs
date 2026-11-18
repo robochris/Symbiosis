@@ -33,7 +33,7 @@ namespace Shrunk.Tests
             Directory.CreateDirectory(folder);
 
             // Start room, each view.
-            foreach (CameraMode mode in new[] { CameraMode.Shoulder, CameraMode.FirstPerson, CameraMode.TopDown })
+            foreach (CameraMode mode in CameraFollow.Order)
             {
                 follow.SetMode(mode);
                 yield return new WaitForSeconds(0.3f);
@@ -41,17 +41,21 @@ namespace Shrunk.Tests
             }
 
             // A fight room with ants in it, each view.
+            // The biggest fight room on a deep floor, so the pictures show how much room there is.
+            floors.BuildFloor(8, 4242);
+            yield return null;
             RoomNode fight = null;
             foreach (var node in floors.Layout.ordered)
             {
-                if (node.type == RoomType.Normal) { fight = node; break; }
+                if (node.type != RoomType.Normal) continue;
+                if (fight == null || floors.RoomAt(node.cell).Shape.interior.Count > floors.RoomAt(fight.cell).Shape.interior.Count) fight = node;
             }
             Assert.IsNotNull(fight);
             Room room = floors.RoomAt(fight.cell);
             player.Teleport(room.Centre + Vector3.up * 0.05f);
             yield return new WaitForSeconds(1.2f);
 
-            foreach (CameraMode mode in new[] { CameraMode.Shoulder, CameraMode.FirstPerson, CameraMode.TopDown })
+            foreach (CameraMode mode in CameraFollow.Order)
             {
                 // Turn to face the nearest ant so the picture shows one.
                 Enemy nearest = null;

@@ -25,7 +25,10 @@ namespace Shrunk
         public Material floorMaterial;
         public Material wallMaterial;
         public Material doorMaterial;
-        public float wallHeight = 3f;
+        public float wallHeight = 6f;
+        [Tooltip("On for underground biomes: a roof over every room, so the camera never sees over the walls.")]
+        public bool ceiling = true;
+        public Material ceilingMaterial;
 
         [Header("Special room props (placed in the middle of the room)")]
         public GameObject startProp;

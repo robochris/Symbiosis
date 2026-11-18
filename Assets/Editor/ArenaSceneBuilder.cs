@@ -54,18 +54,28 @@ namespace Shrunk.EditorTools
 
         // ---------- world ----------
 
-        internal static void BuildLighting()
+        /// <param name="underground">Softer sun, much brighter fill light and a little dark haze: for rooms with a roof, where walls facing away from the sun would otherwise be black.</param>
+        internal static void BuildLighting(bool underground = false)
         {
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
-            sun.intensity = 1.3f;
+            sun.intensity = underground ? 0.9f : 1.3f;
             sun.color = new Color(1f, 0.95f, 0.85f);
             sun.shadows = LightShadows.Soft;
             sun.transform.rotation = Quaternion.Euler(52f, -35f, 0f);
 
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.42f, 0.4f, 0.45f);
+            RenderSettings.ambientLight = underground ? new Color(0.95f, 0.88f, 0.82f) : new Color(0.42f, 0.4f, 0.45f);
             RenderSettings.skybox = null;
+            RenderSettings.fog = underground;
+            if (underground)
+            {
+                // Far ends of long rooms fade into the dark, the same colour as the camera's background.
+                RenderSettings.fogMode = FogMode.Linear;
+                RenderSettings.fogColor = new Color(0.08f, 0.06f, 0.05f);
+                RenderSettings.fogStartDistance = 22f;
+                RenderSettings.fogEndDistance = 90f;
+            }
         }
 
         internal static void BuildRoom(Material soil, Material wall)

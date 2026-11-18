@@ -46,7 +46,7 @@ namespace Shrunk
 
         public static CameraMode Camera
         {
-            get => (CameraMode)Mathf.Clamp(PlayerPrefs.GetInt(Prefix + "camera", (int)CameraMode.Shoulder), 0, 2);
+            get => (CameraMode)Mathf.Clamp(PlayerPrefs.GetInt(Prefix + "camera", (int)CameraMode.Shoulder), 0, 3);
             set => SetInt("camera", (int)value);
         }
 

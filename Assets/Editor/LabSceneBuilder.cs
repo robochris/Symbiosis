@@ -31,13 +31,17 @@ namespace Shrunk.EditorTools
             ArenaSceneBuilder.BuildLighting();
 
             // ----- the room -----
-            const float halfWidth = 11f, halfDepth = 8f, height = 4f;
+            const float halfWidth = 11f, halfDepth = 8f, height = 6f;
             var room = new GameObject("Lab Room").transform;
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Floor", room, new Vector3(0f, -0.5f, 0f), new Vector3(halfWidth * 2f, 1f, halfDepth * 2f), floorMat, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall North", room, new Vector3(0f, height * 0.5f, halfDepth + 0.5f), new Vector3(halfWidth * 2f + 2f, height, 1f), wallMat, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall South", room, new Vector3(0f, height * 0.5f, -halfDepth - 0.5f), new Vector3(halfWidth * 2f + 2f, height, 1f), wallMat, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall East", room, new Vector3(halfWidth + 0.5f, height * 0.5f, 0f), new Vector3(1f, height, halfDepth * 2f), wallMat, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall West", room, new Vector3(-halfWidth - 0.5f, height * 0.5f, 0f), new Vector3(1f, height, halfDepth * 2f), wallMat, true);
+
+            // A roof that only shows from below, so the camera never sees out over the walls.
+            var roof = ArenaSceneBuilder.Primitive(PrimitiveType.Quad, "Ceiling", room, new Vector3(0f, height, 0f), new Vector3(halfWidth * 2f + 2f, halfDepth * 2f + 2f, 1f), wallMat, true);
+            roof.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
 
             // ----- the workbench: a long bench with one pad per upgrade in front of it -----
             var bench = new GameObject("Workbench").transform;
@@ -81,7 +85,8 @@ namespace Shrunk.EditorTools
 
             // ----- player, camera, HUD -----
             var player = ArenaSceneBuilder.BuildPlayer(voidBody, eyeGlow, bulletPrefab);
-            player.transform.position = new Vector3(0f, 0.05f, -1f);
+            // Start facing the portal, with the workbench behind: the first thing you see is the way into a run.
+            player.transform.SetPositionAndRotation(new Vector3(0f, 0.05f, 1.5f), Quaternion.Euler(0f, 180f, 0f));
             ArenaSceneBuilder.BuildCamera(player.transform);
             var touch = ArenaSceneBuilder.BuildHud();
             player.GetComponent<PlayerInputReader>().touch = touch;

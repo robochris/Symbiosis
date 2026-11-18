@@ -84,10 +84,16 @@ namespace Shrunk.Tests
 
             Assert.AreEqual(CameraMode.Shoulder, follow.mode);
             UseRow("Camera");
+            Assert.AreEqual(CameraMode.Wide, follow.mode);
+            Assert.That(Row("Camera"), Does.Contain("Wide"));
+            UseRow("Camera");
             Assert.AreEqual(CameraMode.FirstPerson, follow.mode);
             Assert.That(Row("Camera"), Does.Contain("First person"));
             UseRow("Camera");
             Assert.AreEqual(CameraMode.TopDown, follow.mode);
+            UseRow("Camera");
+            Assert.AreEqual(CameraMode.Shoulder, follow.mode, "the camera row should come back round to Shoulder");
+            GameSettings.Camera = CameraMode.TopDown;
 
             Assert.AreEqual(1f, Player.weapon.aimAssistStrength);
             Assert.That(Row("Aim assist"), Does.Contain("Full"));
@@ -119,6 +125,7 @@ namespace Shrunk.Tests
         {
             yield return Load("Arena");
             PauseMenu.Instance.Open();
+            UseRow("Camera");
             UseRow("Camera");
             UseRow("Camera");
             UseRow("Touch controls");

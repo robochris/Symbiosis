@@ -103,7 +103,7 @@ namespace Shrunk
             {
                 _shownMode = (int)follow.mode;
                 bool onTouch = touch != null && touch.Active;
-                string name = follow.mode == CameraMode.Shoulder ? "Shoulder" : follow.mode == CameraMode.FirstPerson ? "First person" : "Top-down";
+                string name = CameraFollow.NameOf(follow.mode);
                 if (crosshair != null) crosshair.enabled = follow.IsLookMode;
                 if (cameraLabel != null) cameraLabel.text = onTouch ? "CAM: " + name : "V  camera: " + name;
                 if (_hintText != null)

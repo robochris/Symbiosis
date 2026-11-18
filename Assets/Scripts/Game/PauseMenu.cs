@@ -75,7 +75,7 @@ namespace Shrunk
             MakeText(panel, "PAUSED", 70, new Vector2(0f, 420f), new Vector2(900f, 90f));
 
             Add("Resume", null, Close);
-            Add("Camera", () => CameraName(GameSettings.Camera), () => GameSettings.Camera = (CameraMode)(((int)GameSettings.Camera + 1) % 3));
+            Add("Camera", () => CameraName(GameSettings.Camera), () => GameSettings.Camera = CameraFollow.After(GameSettings.Camera));
             Add("Aim assist", () => Level(GameSettings.AimAssist, "Off", "Low", "Medium", "Full"), () => GameSettings.AimAssist = Next(GameSettings.AimAssist, 0f, 0.35f, 0.7f, 1f));
             Add("Look speed", () => Level((GameSettings.LookSpeed - 0.6f) / 0.9f, "Slow", "Normal", "Fast"), () => GameSettings.LookSpeed = Next(GameSettings.LookSpeed, 0.6f, 1f, 1.5f));
             Add("Looking up and down", () => GameSettings.LockVertical ? "Locked" : "Free", () => GameSettings.LockVertical = !GameSettings.LockVertical);
@@ -141,8 +141,7 @@ namespace Shrunk
             return text;
         }
 
-        static string CameraName(CameraMode mode) =>
-            mode == CameraMode.Shoulder ? "Shoulder" : mode == CameraMode.FirstPerson ? "First person" : "Top-down";
+        static string CameraName(CameraMode mode) => CameraFollow.NameOf(mode);
 
         // Picks the name for a 0-1 value from evenly spaced names.
         static string Level(float value01, params string[] names) =>
