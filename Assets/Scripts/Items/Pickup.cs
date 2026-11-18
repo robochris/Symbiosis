@@ -149,16 +149,19 @@ namespace Shrunk
 
         public static void Drop(Enemy enemy)
         {
+            if (!enemy.dropsLoot) return;
             Vector3 origin = enemy.transform.position;
             int points = enemy.Mutations != null ? enemy.Mutations.TotalCost : 0;
 
-            int coins = 1 + enemy.Health.maxHealth / 4;
+            if (enemy is BossEnemy boss) boss.DropRewards();
+            int coins = Mathf.Min(8, 1 + enemy.Health.maxHealth / 4);
             for (int i = 0; i < coins; i++) Pickup.Coin(origin + Scatter(), 1);
 
             Pickup.Sample(origin + Scatter(), 1 + points);
 
             var assets = GameAssets.Instance;
-            if (assets != null && assets.items != null && UnityEngine.Random.value < ItemChance * (1 + points))
+            // Bosses have their own item rewards.
+            if (!(enemy is BossEnemy) && assets != null && assets.items != null && UnityEngine.Random.value < ItemChance * (1 + points))
             {
                 var picks = assets.items.RandomCommon(new System.Random(UnityEngine.Random.Range(0, int.MaxValue)), 1);
                 if (picks.Count > 0) Pickup.Item(picks[0], origin, 0);

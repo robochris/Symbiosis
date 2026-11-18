@@ -27,12 +27,14 @@ namespace Shrunk
         {
             Enemy.Killed += OnKilled;
             Enemy.SummonRequested += OnSummon;
+            Enemy.MinionRequested += OnMinion;
         }
 
         void OnDisable()
         {
             Enemy.Killed -= OnKilled;
             Enemy.SummonRequested -= OnSummon;
+            Enemy.MinionRequested -= OnMinion;
         }
 
         void Start()
@@ -60,6 +62,19 @@ namespace Shrunk
                 Vector3 offset = Quaternion.Euler(0f, 360f * i / count, 0f) * Vector3.forward * 2f;
                 SpawnAt(biome.swarmEnemy, source.transform.position + offset, null);
             }
+        }
+
+        void OnMinion(Enemy source, Enemy minionPrefab, Vector3 position, bool mutate)
+        {
+            var rng = new System.Random(Random.Range(0, int.MaxValue));
+            if (minionPrefab == null && biome != null) minionPrefab = biome.PickEnemy(10, rng);
+            if (minionPrefab == null) return;
+
+            // Stay inside the arena walls.
+            float limit = arenaHalfSize + 1.5f;
+            position.x = Mathf.Clamp(position.x, -limit, limit);
+            position.z = Mathf.Clamp(position.z, -limit, limit);
+            SpawnAt(minionPrefab, position, mutate && biome != null ? MutationBudget.Roll(rng, biome.mutations, 1) : null);
         }
 
         void SpawnRandom()

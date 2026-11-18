@@ -40,7 +40,11 @@ namespace Shrunk.Tests
         {
             Assert.AreEqual(8, FloorLayout.RoomCountForFloor(1));
             Assert.AreEqual(15, FloorLayout.RoomCountForFloor(9));
-            Assert.AreEqual(15, FloorLayout.RoomCountForFloor(10));
+            Assert.AreEqual(5, FloorLayout.RoomCountForFloor(5), "boss floors are short");
+            Assert.AreEqual(5, FloorLayout.RoomCountForFloor(10), "boss floors are short");
+            Assert.AreEqual(8, FloorLayout.RoomCountForFloor(11), "floor 11 is floor 1 of the next biome");
+            Assert.IsTrue(FloorLayout.IsBossFloor(5) && FloorLayout.IsBossFloor(10) && FloorLayout.IsBossFloor(15));
+            Assert.IsFalse(FloorLayout.IsBossFloor(4) || FloorLayout.IsBossFloor(11));
 
             // Extra dead ends for treasure and shop may add a room or two, never more.
             for (int seed = 1; seed <= 500; seed++)

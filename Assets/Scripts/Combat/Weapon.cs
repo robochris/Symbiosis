@@ -86,7 +86,7 @@ namespace Shrunk
 
             foreach (var enemy in Enemy.Active)
             {
-                if (enemy.Health.IsDead) continue;
+                if (enemy.Health.IsDead || !enemy.Targetable) continue;
                 Vector3 to = enemy.transform.position - origin;
                 to.y = 0f;
                 float distance = to.magnitude;

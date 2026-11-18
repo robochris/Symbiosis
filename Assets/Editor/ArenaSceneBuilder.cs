@@ -220,6 +220,21 @@ namespace Shrunk.EditorTools
             hud.promptText = prompt;
             hud.powerFill = powerFill;
             hud.powerLabel = powerLabel;
+
+            // Boss health bar, under the camera label.
+            var bossBar = UiImage("Boss Bar", parent, null, new Color(0f, 0f, 0f, 0.55f), new Vector2(0.5f, 1f), new Vector2(0f, -150f), 30f);
+            bossBar.sizeDelta = new Vector2(900f, 34f);
+            var bossFill = UiImage("Fill", bossBar, null, new Color(0.85f, 0.2f, 0.15f, 1f), new Vector2(0.5f, 0.5f), Vector2.zero, 30f);
+            bossFill.sizeDelta = new Vector2(892f, 26f);
+            var bossFillImage = bossFill.GetComponent<Image>();
+            bossFillImage.sprite = knob; // a filled image needs some sprite to cut
+            bossFillImage.type = Image.Type.Filled;
+            bossFillImage.fillMethod = Image.FillMethod.Horizontal;
+            bossFillImage.fillOrigin = (int)Image.OriginHorizontal.Left;
+            hud.bossName = UiText("Name", bossBar, font, "Boss", 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0f, 38f), new Vector2(900f, 40f));
+            hud.bossBar = bossBar.gameObject;
+            hud.bossFill = bossFillImage;
+            bossBar.gameObject.SetActive(false);
             return touch;
         }
 

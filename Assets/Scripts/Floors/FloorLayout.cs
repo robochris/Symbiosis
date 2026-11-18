@@ -55,10 +55,17 @@ namespace Shrunk
         public RoomNode start;
         public RoomNode exit;
 
-        /// <summary>About 8 rooms on floor 1, growing to about 15 by floor 9.</summary>
+        /// <summary>A biome is 10 floors. Floor 11 of a run is floor 1 of the next biome.</summary>
+        public static int FloorInBiome(int floorNumber) => (Mathf.Max(1, floorNumber) - 1) % 10 + 1;
+
+        /// <summary>Floor 5 of a biome has the mini boss, floor 10 the biome boss.</summary>
+        public static bool IsBossFloor(int floorNumber) => FloorInBiome(floorNumber) % 5 == 0;
+
+        /// <summary>About 8 rooms on floor 1, growing to about 15 by floor 9. Boss floors are short: the boss is the point.</summary>
         public static int RoomCountForFloor(int floorNumber)
         {
-            float t = Mathf.Clamp01((floorNumber - 1) / 8f);
+            if (IsBossFloor(floorNumber)) return 5;
+            float t = Mathf.Clamp01((FloorInBiome(floorNumber) - 1) / 8f);
             return Mathf.RoundToInt(Mathf.Lerp(8f, 15f, t));
         }
 

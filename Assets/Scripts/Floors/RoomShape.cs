@@ -20,6 +20,8 @@ namespace Shrunk
         public int seed;
         public Doors doors;
         public RoomType type;
+        /// <summary>A boss room: the whole square, wide open.</summary>
+        public bool isArena;
         public readonly bool[,] open = new bool[Size, Size];
         /// <summary>Middle of the main chamber. It and the eight tiles around it are always open and free of pillars.</summary>
         public Vector2Int centre;
@@ -50,16 +52,38 @@ namespace Shrunk
             var rng = new System.Random(seed);
 
             // Floors 1-5 keep chambers small; deeper floors mix in big ones.
-            float size = floorNumber <= 5 ? (float)rng.NextDouble() * 0.3f : 0.45f + (float)rng.NextDouble() * 0.55f;
-            return Generate(seed, node.doors, node.type, size);
+            int floor = FloorLayout.FloorInBiome(floorNumber);
+            float size = floor <= 5 ? (float)rng.NextDouble() * 0.3f : 0.45f + (float)rng.NextDouble() * 0.55f;
+
+            // The exit room of a boss floor is the boss's arena: the whole square, wide open.
+            bool arena = node.type == RoomType.Exit && FloorLayout.IsBossFloor(floorNumber);
+            return Generate(seed, node.doors, node.type, size, arena);
         }
 
         /// <param name="size01">0 = the smallest chamber, 1 = the largest.</param>
-        public static RoomShape Generate(int seed, Doors doors, RoomType type, float size01)
+        /// <param name="arena">True for a boss room: every inside tile open, no cover.</param>
+        public static RoomShape Generate(int seed, Doors doors, RoomType type, float size01, bool arena = false)
         {
             var rng = new System.Random(seed);
-            var shape = new RoomShape { seed = seed, doors = doors, type = type };
-            bool fight = type == RoomType.Normal || type == RoomType.Exit;
+            var shape = new RoomShape { seed = seed, doors = doors, type = type, isArena = arena };
+            bool fight = (type == RoomType.Normal || type == RoomType.Exit) && !arena;
+
+            if (arena)
+            {
+                for (int x = Min; x <= Max; x++)
+                    for (int y = Min; y <= Max; y++)
+                        shape.open[x, y] = true;
+                shape.centre = new Vector2Int(Size / 2, Size / 2);
+                for (int side = 0; side < 4; side++)
+                {
+                    if ((doors & (Doors)(1 << side)) == 0) continue;
+                    DoorTiles(side, out var a, out var b);
+                    shape.open[a.x, a.y] = true;
+                    shape.open[b.x, b.y] = true;
+                }
+                shape.CollectInterior();
+                return shape;
+            }
 
             // 1. The main chamber: an oval or a box somewhere inside the room.
             int half = fight ? Mathf.Clamp(Mathf.RoundToInt(Mathf.Lerp(2f, 4f, size01)), 2, 4) : 2;

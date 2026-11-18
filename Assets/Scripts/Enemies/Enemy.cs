@@ -18,6 +18,11 @@ namespace Shrunk
         public static event Action<Enemy> Killed;
         /// <summary>An enemy is calling for help: spawn this many of the biome's swarm enemy next to it.</summary>
         public static event Action<Enemy, int> SummonRequested;
+        /// <summary>
+        /// An enemy wants another enemy put into the fight: (who asked, which prefab or null for a random one from
+        /// the biome, where, whether it should roll mutations).
+        /// </summary>
+        public static event Action<Enemy, Enemy, Vector3, bool> MinionRequested;
 
         [Tooltip("The body; scaled for telegraphs and the death pop.")]
         public Transform visual;
@@ -25,6 +30,8 @@ namespace Shrunk
         public float knockbackDecay = 14f;
         [Tooltip("Stands still and never attacks, but can still be hit, burned and killed. For target practice and tests.")]
         public bool frozen;
+        [Tooltip("Off for things that would be farmed otherwise: larvae and eggs.")]
+        public bool dropsLoot = true;
 
         public Health Health { get; private set; }
         public EnemyMutations Mutations { get; private set; }
@@ -32,6 +39,8 @@ namespace Shrunk
         public float SpeedMultiplier { get; set; } = 1f;
         /// <summary>Lasting size change from mutations.</summary>
         public float BaseScale { get; set; } = 1f;
+        /// <summary>False while it can't be shot at all (a burrowed boss). Aim assist and companions skip it.</summary>
+        public bool Targetable { get; protected set; } = true;
         public bool IsBuffed => Time.time < _buffUntil;
         public bool IsBurning => Time.time < _burnUntil;
         /// <summary>Confused enemies attack the nearest other enemy instead of the player.</summary>
@@ -78,6 +87,7 @@ namespace Shrunk
             if (_confusedTell != null) _confusedTell.SetActive(false);
             SpeedMultiplier = 1f;
             BaseScale = 1f;
+            Targetable = true;
             SetVisualScale(1f);
         }
 
@@ -208,6 +218,17 @@ namespace Shrunk
         public void Buff(float seconds)
         {
             _buffUntil = Mathf.Max(_buffUntil, Time.time + seconds);
+        }
+
+        protected void RequestMinion(Enemy prefab, Vector3 position, bool mutate)
+        {
+            MinionRequested?.Invoke(this, prefab, position, mutate);
+        }
+
+        /// <summary>Leaves the fight without dying: no loot, no kill counted.</summary>
+        public void Vanish()
+        {
+            gameObject.SetActive(false);
         }
 
         public void RequestSummon(int count)

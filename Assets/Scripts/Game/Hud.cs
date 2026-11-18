@@ -27,6 +27,10 @@ namespace Shrunk
         [Tooltip("Text on the camera button.")]
         public Text cameraLabel;
         public TouchControls touch;
+        [Tooltip("Shown only while a boss is in play.")]
+        public GameObject bossBar;
+        public Image bossFill;
+        public Text bossName;
 
         readonly List<Image> _pips = new List<Image>();
         int _shownKills = -1;
@@ -78,6 +82,18 @@ namespace Shrunk
                 if (dodgeFill != null) dodgeFill.fillAmount = player.DodgeReady01;
                 UpdatePower(player.Power);
                 UpdatePrompt(player);
+            }
+
+            if (bossBar != null)
+            {
+                BossEnemy boss = BossEnemy.InPlay;
+                bool show = boss != null && !boss.Health.IsDead;
+                if (bossBar.activeSelf != show) bossBar.SetActive(show);
+                if (show)
+                {
+                    if (bossFill != null) bossFill.fillAmount = boss.Health01;
+                    if (bossName != null) bossName.text = boss.Phase > 1 ? $"{boss.displayName}  ·  phase {boss.Phase}" : boss.displayName;
+                }
             }
 
             var follow = CameraFollow.Instance;

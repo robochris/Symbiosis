@@ -68,7 +68,7 @@ namespace Shrunk
             float bestDistance = guardRadius * guardRadius;
             foreach (var enemy in Enemy.Active)
             {
-                if (enemy.Health.IsDead) continue;
+                if (enemy.Health.IsDead || !enemy.Targetable) continue;
                 float distance = (enemy.transform.position - around).sqrMagnitude;
                 if (distance < bestDistance)
                 {

@@ -65,6 +65,90 @@ namespace Shrunk.EditorTools
             winged.GetComponent<EnemyMutations>().badgeHeight = 2.9f;
             var wingedPrefab = SaveEnemy(winged);
 
+            // ----- bosses and what they bring -----
+            var pale = ArenaSceneBuilder.Lit("LarvaPod", new Color(0.9f, 0.85f, 0.6f), 0.5f);
+            var telegraph = ArenaSceneBuilder.Unlit("Telegraph", new Color(1f, 0.25f, 0.2f));
+            var enemyAcid = ArenaSceneBuilder.Unlit("MutationAcidBlood", new Color(0.7f, 1f, 0.2f));
+            var royal = ArenaSceneBuilder.Lit("QueenBody", new Color(0.45f, 0.1f, 0.35f), 0.6f);
+            var gold = ArenaSceneBuilder.Unlit("Gold", new Color(1f, 0.82f, 0.2f));
+
+            // Larva: a few pale segments on the floor. Grows into a Worker.
+            var larvaRoot = new GameObject("Larva");
+            var larvaController = larvaRoot.AddComponent<CharacterController>();
+            larvaController.radius = 0.4f;
+            larvaController.height = 0.8f;
+            larvaController.center = new Vector3(0f, 0.4f, 0f);
+            var larvaHealth = larvaRoot.AddComponent<Health>();
+            larvaHealth.team = Team.Enemy;
+            larvaHealth.maxHealth = 2;
+            var larvaVisual = new GameObject("Visual").transform;
+            larvaVisual.SetParent(larvaRoot.transform, false);
+            for (int i = 0; i < 3; i++)
+            {
+                Decor(PrimitiveType.Sphere, "Segment " + i, larvaVisual, new Vector3(0f, 0.3f, 0.3f - i * 0.3f), Vector3.one * (0.5f - i * 0.06f), pale);
+            }
+            var larva = larvaRoot.AddComponent<LarvaEnemy>();
+            larva.visual = larvaVisual;
+            larva.growsInto = workerPrefab;
+            larva.dropsLoot = false;
+            larva.knockbackOnHit = 1f;
+            larvaRoot.AddComponent<HitFlash>();
+            var larvaPrefab = (LarvaEnemy)SaveEnemy(larva);
+
+            // Egg cluster: a clump of eggs against the wall.
+            var eggRoot = new GameObject("EggCluster");
+            var eggController = eggRoot.AddComponent<CharacterController>();
+            eggController.radius = 0.9f;
+            eggController.height = 1.8f;
+            eggController.center = new Vector3(0f, 0.9f, 0f);
+            var eggHealth = eggRoot.AddComponent<Health>();
+            eggHealth.team = Team.Enemy;
+            eggHealth.maxHealth = 6;
+            var eggVisual = new GameObject("Visual").transform;
+            eggVisual.SetParent(eggRoot.transform, false);
+            Vector3[] eggSpots = { new Vector3(0f, 0.5f, 0f), new Vector3(0.55f, 0.4f, 0.2f), new Vector3(-0.5f, 0.4f, 0.25f), new Vector3(0.1f, 0.4f, -0.55f), new Vector3(0.1f, 1.05f, 0f) };
+            for (int i = 0; i < eggSpots.Length; i++)
+            {
+                Decor(PrimitiveType.Sphere, "Egg " + i, eggVisual, eggSpots[i], new Vector3(0.7f, 0.95f, 0.7f), pale);
+            }
+            var egg = eggRoot.AddComponent<EggEnemy>();
+            egg.visual = eggVisual;
+            egg.dropsLoot = false;
+            egg.knockbackOnHit = 0f;
+            eggRoot.AddComponent<HitFlash>();
+            var eggPrefab = (EggEnemy)SaveEnemy(egg);
+
+            // Brood Mother: a giant ant with a swollen egg sac on her back (the weak point).
+            var mother = Ant<BroodMother>("BroodMother", 3f, 140, soldierBody, antDark, false, out var motherModel);
+            Decor(PrimitiveType.Sphere, "Egg Sac", motherModel, new Vector3(0f, 0.95f, -0.85f), new Vector3(0.95f, 0.8f, 1.1f), pale);
+            mother.displayName = "Brood Mother";
+            mother.larvaPrefab = larvaPrefab;
+            mother.telegraphMaterial = telegraph;
+            mother.sampleReward = 12;
+            mother.knockbackOnHit = 0f;
+            var motherPrefab = (BossEnemy)SaveEnemy(mother);
+
+            // Ant Queen: bigger still, royal purple, with a crown.
+            var queen = Ant<AntQueen>("AntQueen", 3.4f, 300, royal, antDark, false, out var queenModel);
+            Decor(PrimitiveType.Cylinder, "Crown", queenModel, new Vector3(0f, 0.98f, 0.5f), new Vector3(0.4f, 0.06f, 0.4f), gold);
+            for (int i = 0; i < 5; i++)
+            {
+                Decor(PrimitiveType.Cube, "Crown Point " + i, queenModel, new Vector3(0f, 1.08f, 0.5f) + Quaternion.Euler(0f, i * 72f, 0f) * new Vector3(0.17f, 0f, 0f), Vector3.one * 0.08f, gold);
+            }
+            var queenMuzzle = new GameObject("Muzzle").transform;
+            queenMuzzle.SetParent(queen.transform, false);
+            queenMuzzle.localPosition = new Vector3(0f, 0.7f, 3.6f);
+            queen.displayName = "Ant Queen";
+            queen.muzzle = queenMuzzle;
+            queen.projectilePrefab = spitPrefab;
+            queen.eggPrefab = eggPrefab;
+            queen.soldierPrefab = soldierPrefab;
+            queen.telegraphMaterial = telegraph;
+            queen.acidMaterial = enemyAcid;
+            queen.sampleReward = 30;
+            queen.knockbackOnHit = 0f;
+            var queenPrefab = (BossEnemy)SaveEnemy(queen);
+
             // ----- biome -----
             var biome = AssetDatabase.LoadAssetAtPath<BiomeDefinition>(BiomePath);
             if (biome == null)
@@ -78,6 +162,8 @@ namespace Shrunk.EditorTools
             biome.wallMaterial = ArenaSceneBuilder.Lit("Wall", new Color(0.23f, 0.15f, 0.10f), 0.05f);
             biome.doorMaterial = ArenaSceneBuilder.Lit("DoorLocked", new Color(0.85f, 0.3f, 0.15f), 0.3f);
             biome.swarmEnemy = workerPrefab;
+            biome.miniBoss = motherPrefab;
+            biome.boss = queenPrefab;
             biome.spawnTable = new[]
             {
                 new EnemySpawnEntry { prefab = workerPrefab, weight = 5, minFloor = 1 },

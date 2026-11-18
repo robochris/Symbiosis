@@ -22,6 +22,8 @@ namespace Shrunk
         [NonSerialized] public float damageMultiplier = 1f;
         /// <summary>Given the direction a hit is travelling, returns true to stop it completely (a shell, a shield).</summary>
         [NonSerialized] public Func<Vector3, bool> ShouldBlock;
+        /// <summary>Given the direction a hit is travelling, returns a whole-number multiplier (a weak point returns 2).</summary>
+        [NonSerialized] public Func<Vector3, int> DamageScaler;
 
         /// <summary>Amount actually lost (can be 0 for an armored hit), and the direction the hit was travelling.</summary>
         public event Action<int, Vector3> Damaged;
@@ -39,12 +41,18 @@ namespace Shrunk
             _carry = 0f;
             damageMultiplier = 1f;
             ShouldBlock = null;
+            DamageScaler = null;
             LastDamageTime = -999f;
         }
 
         public void SetInvulnerable(float seconds)
         {
             _invulnerableUntil = Mathf.Max(_invulnerableUntil, Time.time + seconds);
+        }
+
+        public void ClearInvulnerability()
+        {
+            _invulnerableUntil = 0f;
         }
 
         /// <summary>Returns true if the hit connected (even if armor or a shell soaked it up).</summary>
@@ -59,6 +67,7 @@ namespace Shrunk
             }
 
             // Half damage on a 1-damage shot means every second shot counts, so fractions are carried over.
+            if (DamageScaler != null) amount *= Mathf.Max(1, DamageScaler(hitDirection));
             _carry += amount * damageMultiplier;
             int whole = Mathf.FloorToInt(_carry + 0.0001f);
             _carry -= whole;

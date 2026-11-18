@@ -368,10 +368,44 @@ namespace Shrunk.Tests
 
             RoomNode other = null;
             foreach (var neighbour in _floors.Layout.Neighbours(_floors.Layout.start)) { other = neighbour; break; }
-            _player.Health.SetInvulnerable(0f);
+            _player.Health.ClearInvulnerability();
             _player.Teleport(StandingSpot(other) + Vector3.up * 0.05f);
             yield return WaitUntil(() => _floors.CurrentNode == other, 1f, "the room change");
             Assert.AreEqual(1, _player.Items.ShieldCharges);
+        }
+
+        [UnityTest]
+        public IEnumerator Floor_5_has_the_Brood_Mother_and_floor_10_the_Ant_Queen()
+        {
+            _player.Health.SetInvulnerable(600f);
+            foreach (int floor in new[] { 5, 10 })
+            {
+                _floors.BuildFloor(floor);
+                yield return null;
+                var layout = _floors.Layout;
+                Assert.LessOrEqual(layout.rooms.Count, 7, "boss floors should be short");
+
+                Room arena = _floors.RoomAt(layout.exit.cell);
+                Assert.IsTrue(arena.Shape.isArena, "the boss room should be a wide-open arena");
+                Assert.AreEqual(100, arena.Shape.interior.Count);
+                Assert.IsNull(_floors.Boss, "boss appeared before the player walked in");
+
+                _player.Teleport(arena.Centre + new Vector3(0f, 0.05f, -6f));
+                yield return WaitUntil(() => _floors.IsLocked, 2f, "the boss room to lock");
+                Assert.IsNotNull(_floors.Boss);
+                if (floor == 5) Assert.IsInstanceOf<BroodMother>(_floors.Boss);
+                else Assert.IsInstanceOf<AntQueen>(_floors.Boss);
+                Assert.AreEqual(1, _floors.LiveEnemies.Count, "the boss should start alone");
+                Assert.Greater((_floors.Boss.transform.position - _player.transform.position).magnitude, 4f, "boss appeared on top of the player");
+
+                // Let it bring its company in, then kill only the boss: everything else should go with it.
+                yield return new WaitForSeconds(floor == 5 ? 5f : 0.5f);
+                Assert.Greater(_floors.LiveEnemies.Count, 1, "the boss brought nothing with it");
+                _floors.Boss.Health.Kill();
+                yield return WaitUntil(() => !_floors.IsLocked, 2f, "the room to open once the boss is dead");
+                Assert.IsTrue(_floors.ExitOpen);
+                Assert.AreEqual(0, Enemy.Active.Count, "the boss's company outlived it");
+            }
         }
 
         [UnityTest]

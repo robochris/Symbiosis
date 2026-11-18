@@ -36,6 +36,10 @@ namespace Shrunk
 
         [Header("Enemies")]
         public EnemySpawnEntry[] spawnTable;
+        [Tooltip("Floor 5.")]
+        public BossEnemy miniBoss;
+        [Tooltip("Floor 10.")]
+        public BossEnemy boss;
         [Tooltip("What a Swarm Call brings in.")]
         public Enemy swarmEnemy;
         [Tooltip("Enemies in a fight room on floor 1.")]

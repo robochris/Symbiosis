@@ -20,6 +20,8 @@ namespace Shrunk
         [Tooltip("Blasts only: seconds before it goes off.")]
         public float fuse = 0f;
         public bool isBlast;
+        [Tooltip("Blasts only: a disc on the floor instead of a ball.")]
+        public bool flat;
         [Tooltip("Also sets what it hurts on fire.")]
         public bool burning;
         [Tooltip("Seconds between hits on enemies standing in it.")]
@@ -48,6 +50,19 @@ namespace Shrunk
             hazard.fuse = 0.7f;
             hazard.lifetime = 0.15f;
             hazard.transform.localScale = Vector3.one * 0.6f;
+            return hazard;
+        }
+
+        /// <summary>A flat warning disc that fills in, then hurts the player if they are still on it. For boss attacks.</summary>
+        public static GroundHazard SpawnBlast(Vector3 position, float radius, float fuse, Material material)
+        {
+            var hazard = Create(PrimitiveType.Cylinder, "Blast", Flat(position, 0.05f), material);
+            hazard.isBlast = true;
+            hazard.flat = true;
+            hazard.radius = radius;
+            hazard.fuse = fuse;
+            hazard.lifetime = 0.2f;
+            hazard.transform.localScale = new Vector3(0.5f, 0.02f, 0.5f);
             return hazard;
         }
 
@@ -97,7 +112,7 @@ namespace Shrunk
                 {
                     // Swell toward full size so the danger area is readable before it lands.
                     float size = Mathf.Lerp(0.6f, radius * 2f, _age / fuse);
-                    transform.localScale = Vector3.one * size;
+                    transform.localScale = flat ? new Vector3(size, 0.02f, size) : Vector3.one * size;
                     if (_age >= fuse)
                     {
                         _wentOff = true;

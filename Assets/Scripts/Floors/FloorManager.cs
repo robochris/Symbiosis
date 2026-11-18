@@ -31,6 +31,10 @@ namespace Shrunk
         public int depth = 1;
 
         public int FloorNumber { get; private set; }
+        /// <summary>1-10: which floor of the current biome this is.</summary>
+        public int FloorInBiome => FloorLayout.FloorInBiome(FloorNumber);
+        /// <summary>The boss of the current floor once its fight has started, or null.</summary>
+        public BossEnemy Boss { get; private set; }
         public FloorLayout Layout { get; private set; }
         public RoomNode CurrentNode { get; private set; }
         public Room CurrentRoom => CurrentNode != null ? _rooms[CurrentNode.cell] : null;
@@ -66,11 +70,13 @@ namespace Shrunk
         void OnEnable()
         {
             Enemy.SummonRequested += OnSummon;
+            Enemy.MinionRequested += OnMinion;
         }
 
         void OnDisable()
         {
             Enemy.SummonRequested -= OnSummon;
+            Enemy.MinionRequested -= OnMinion;
         }
 
         void OnDestroy()
@@ -175,6 +181,7 @@ namespace Shrunk
             _rooms.Clear();
 
             CurrentNode = null;
+            Boss = null;
             IsLocked = false;
             ExitOpen = false;
             _exitArmed = false;
@@ -192,6 +199,14 @@ namespace Shrunk
             Room room = CurrentRoom;
 
             if (!IsLocked && !CurrentNode.cleared && room.ContainsInside(position, lockMargin)) Lock(room, position);
+            // When the boss falls, the fight is over: whatever it brought with it goes too.
+            if (IsLocked && Boss != null && Boss.Health.IsDead)
+            {
+                foreach (var enemy in _live)
+                {
+                    if (enemy != Boss && enemy.gameObject.activeSelf && !enemy.Health.IsDead) enemy.Vanish();
+                }
+            }
             if (IsLocked && AllDead()) Clear(room);
 
             if (ExitOpen && CurrentNode.type == RoomType.Exit && room.ExitHole != null)
@@ -218,7 +233,26 @@ namespace Shrunk
             IsLocked = true;
             room.SetLocked(true);
 
-            int count = biome.baseEnemiesPerRoom + (FloorNumber - 1) / Mathf.Max(1, biome.floorsPerExtraEnemy);
+            // Boss floors: the exit room holds the boss, alone. It brings its own company.
+            BossEnemy bossPrefab = CurrentNode.type == RoomType.Exit ? BossForFloor() : null;
+            if (bossPrefab != null)
+            {
+                Vector3 centre = room.Centre;
+                Vector3 away = centre - playerPosition;
+                away.y = 0f;
+                // Not on top of the player if they ran to the middle.
+                Vector3 spot = away.magnitude < 6f ? centre + (away.sqrMagnitude > 0.01f ? away.normalized : Vector3.forward) * 6f : centre;
+                Boss = (BossEnemy)Spawn(bossPrefab, spot, playerPosition);
+                if (Boss.Mutations != null && depth > 1)
+                {
+                    var bossRng = new System.Random(UnityEngine.Random.Range(0, int.MaxValue));
+                    Boss.Mutations.Apply(MutationBudget.Roll(bossRng, biome.mutations, depth - 1));
+                }
+                RoomChanged?.Invoke(this);
+                return;
+            }
+
+            int count = biome.baseEnemiesPerRoom + (FloorInBiome - 1) / Mathf.Max(1, biome.floorsPerExtraEnemy);
             count += UnityEngine.Random.Range(0, 2);
 
             // Any open tile far enough from the player can hold an enemy. In a tiny room, fall back to the farthest tiles.
@@ -237,16 +271,43 @@ namespace Shrunk
             }
 
             var rng = new System.Random(UnityEngine.Random.Range(0, int.MaxValue));
-            int budget = MutationBudget.MaxPoints(depth, FloorNumber);
+            int budget = MutationBudget.MaxPoints(depth, FloorInBiome);
             for (int i = 0; i < count && points.Count > 0; i++)
             {
                 int pick = UnityEngine.Random.Range(0, points.Count);
-                Enemy enemy = Spawn(biome.PickEnemy(FloorNumber, rng), points[pick], playerPosition);
+                Enemy enemy = Spawn(biome.PickEnemy(FloorInBiome, rng), points[pick], playerPosition);
                 if (enemy.Mutations != null) enemy.Mutations.Apply(MutationBudget.Roll(rng, biome.mutations, budget));
                 points.RemoveAt(pick);
             }
 
             RoomChanged?.Invoke(this);
+        }
+
+        BossEnemy BossForFloor()
+        {
+            if (!FloorLayout.IsBossFloor(FloorNumber)) return null;
+            return FloorInBiome == 10 ? biome.boss : biome.miniBoss;
+        }
+
+        // Larvae, eggs, hatchlings and guards: anything an enemy brings into the fight joins it, so the room stays
+        // locked until they are dealt with too.
+        void OnMinion(Enemy source, Enemy prefab, Vector3 position, bool mutate)
+        {
+            if (!IsLocked || CurrentNode == null) return;
+            var rng = new System.Random(UnityEngine.Random.Range(0, int.MaxValue));
+            if (prefab == null) prefab = biome.PickEnemy(FloorInBiome, rng);
+            if (prefab == null) return;
+
+            // Keep it on the floor: the nearest walkable spot to where it was asked for.
+            if (UnityEngine.AI.NavMesh.SamplePosition(position, out var hit, 4f, UnityEngine.AI.NavMesh.AllAreas) && hit.position.y < 0.5f) position = hit.position;
+            else position = source.transform.position;
+
+            var player = PlayerController.Instance;
+            Enemy minion = Spawn(prefab, position, player != null ? player.transform.position : position);
+            if (mutate && minion.Mutations != null)
+            {
+                minion.Mutations.Apply(MutationBudget.Roll(rng, biome.mutations, MutationBudget.MaxPoints(depth, FloorInBiome)));
+            }
         }
 
         // Swarm Call: bring in the biome's swarm enemy on the open tiles nearest the caller. They join the fight,
@@ -289,7 +350,8 @@ namespace Shrunk
         {
             foreach (var enemy in _live)
             {
-                if (!enemy.Health.IsDead) return false;
+                // Something that vanished (a hatched egg, a grown larva) counts as gone.
+                if (enemy.gameObject.activeSelf && !enemy.Health.IsDead) return false;
             }
             return true;
         }
