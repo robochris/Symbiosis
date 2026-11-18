@@ -8,6 +8,8 @@ namespace Shrunk
     {
         public Image[] healthPips;
         public Text killsText;
+        [Tooltip("Optional; only shown in scenes with a FloorManager.")]
+        public Text floorText;
         [Tooltip("Radial fill over the dodge button; full when the dodge is ready.")]
         public Image dodgeFill;
         [Tooltip("Keyboard hint, shown only when touch controls are off.")]
@@ -15,6 +17,7 @@ namespace Shrunk
         public TouchControls touch;
 
         int _shownKills = -1;
+        int _shownFloor = -1;
 
         void Start()
         {
@@ -32,6 +35,13 @@ namespace Shrunk
                     if (healthPips[i] != null) healthPips[i].enabled = i < health;
                 }
                 if (dodgeFill != null) dodgeFill.fillAmount = player.DodgeReady01;
+            }
+
+            var floors = FloorManager.Instance;
+            if (floorText != null && floors != null && _shownFloor != floors.FloorNumber)
+            {
+                _shownFloor = floors.FloorNumber;
+                floorText.text = "Floor " + _shownFloor;
             }
 
             if (killsText != null && _shownKills != GameLoop.Kills)

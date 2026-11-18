@@ -92,6 +92,16 @@ namespace Shrunk
             _controller.Move(velocity * Time.deltaTime);
         }
 
+        /// <summary>Moves the player instantly, e.g. to the start of a new floor.</summary>
+        public void Teleport(Vector3 position)
+        {
+            _controller.enabled = false;
+            transform.position = position;
+            _controller.enabled = true;
+            _dodgeTimeLeft = 0f;
+            if (visual != null) visual.localRotation = Quaternion.identity;
+        }
+
         void SpinVisual(float progress)
         {
             if (visual == null) return;

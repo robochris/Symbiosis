@@ -57,7 +57,7 @@ namespace Shrunk
             switch (Current)
             {
                 case State.Approach:
-                    Face(toPlayer, turnSpeed);
+                    Face(SteerToward(player.transform.position) - transform.position, turnSpeed);
                     Move(transform.forward * moveSpeed);
                     if (distance <= attackRange) Enter(State.Windup, windupTime);
                     break;

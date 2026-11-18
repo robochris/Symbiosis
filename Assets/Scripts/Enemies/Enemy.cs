@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Shrunk
 {
@@ -34,6 +35,8 @@ namespace Shrunk
             Health.Damaged += OnDamaged;
             Health.Died += OnDied;
             Knockback = Vector3.zero;
+            _hasCorner = false;
+            _nextPathTime = 0f;
             if (visual != null) visual.localScale = Vector3.one;
         }
 
@@ -74,6 +77,30 @@ namespace Shrunk
             velocity += Knockback;
             velocity.y = -5f;
             Controller.Move(velocity * Time.deltaTime);
+        }
+
+        NavMeshPath _path;
+        Vector3 _corner;
+        bool _hasCorner;
+        float _nextPathTime;
+
+        /// <summary>
+        /// Where to head right now to reach the target: the next corner of a path around obstacles when the floor
+        /// has a navmesh, or the target itself when it doesn't (the open test arena).
+        /// </summary>
+        protected Vector3 SteerToward(Vector3 target)
+        {
+            bool reachedCorner = _hasCorner && (transform.position - _corner).sqrMagnitude < 0.36f;
+            if (Time.time >= _nextPathTime || reachedCorner)
+            {
+                _nextPathTime = Time.time + 0.25f;
+                if (_path == null) _path = new NavMeshPath();
+                _hasCorner = NavMesh.CalculatePath(transform.position, target, NavMesh.AllAreas, _path)
+                             && _path.status != NavMeshPathStatus.PathInvalid
+                             && _path.corners.Length > 1;
+                if (_hasCorner) _corner = _path.corners[1];
+            }
+            return _hasCorner ? _corner : target;
         }
 
         protected void Face(Vector3 direction, float degreesPerSecond)

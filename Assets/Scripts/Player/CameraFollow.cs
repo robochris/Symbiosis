@@ -31,6 +31,14 @@ namespace Shrunk
             Apply();
         }
 
+        /// <summary>Jumps straight to the target with no glide, e.g. after a teleport.</summary>
+        public void Snap()
+        {
+            if (target != null) _focus = target.position;
+            _velocity = Vector3.zero;
+            Apply();
+        }
+
         public void Shake(float amount)
         {
             _shake = Mathf.Max(_shake, amount);

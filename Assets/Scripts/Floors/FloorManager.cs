@@ -1,0 +1,238 @@
+using System;
+using System.Collections.Generic;
+using Unity.AI.Navigation;
+using UnityEngine;
+
+namespace Shrunk
+{
+    /// <summary>
+    /// Runs a floor: generates the flat layout, builds it from room prefabs, locks the doors when the player walks into
+    /// a room with enemies, opens them when the room is cleared, and moves on to the next floor at the exit.
+    /// </summary>
+    public class FloorManager : MonoBehaviour
+    {
+        public static FloorManager Instance { get; private set; }
+        /// <summary>A new floor has been built.</summary>
+        public static event Action<FloorManager> FloorBuilt;
+        /// <summary>The player walked into another room, or the current room's state changed.</summary>
+        public static event Action<FloorManager> RoomChanged;
+
+        public BiomeDefinition biome;
+        [Tooltip("Distance between room centres. Must match the room prefabs' footprint.")]
+        public float cellSize = 24f;
+        [Tooltip("0 = a different floor every time. Any other number repeats the same run of floors.")]
+        public int fixedSeed = 0;
+        [Tooltip("How far past the doorway the player must be before the doors lock.")]
+        public float lockMargin = 1.5f;
+        [Tooltip("Enemies never appear closer to the player than this.")]
+        public float minSpawnDistance = 6f;
+        public float exitRadius = 1.4f;
+
+        public int FloorNumber { get; private set; }
+        public FloorLayout Layout { get; private set; }
+        public RoomNode CurrentNode { get; private set; }
+        public Room CurrentRoom => CurrentNode != null ? _rooms[CurrentNode.cell] : null;
+        public bool IsLocked { get; private set; }
+        public bool ExitOpen { get; private set; }
+        public IReadOnlyList<Enemy> LiveEnemies => _live;
+        public int FloorsBuilt { get; private set; }
+
+        readonly Dictionary<Vector2Int, Room> _rooms = new Dictionary<Vector2Int, Room>();
+        readonly Dictionary<Enemy, Pool<Enemy>> _pools = new Dictionary<Enemy, Pool<Enemy>>();
+        readonly List<Enemy> _live = new List<Enemy>();
+        readonly List<Pool<Enemy>> _livePools = new List<Pool<Enemy>>();
+        Transform _roomsRoot;
+        Transform _enemiesRoot;
+        NavMeshSurface _surface;
+        bool _exitArmed;
+
+        void Awake()
+        {
+            Instance = this;
+
+            _roomsRoot = new GameObject("Rooms").transform;
+            _roomsRoot.SetParent(transform, false);
+            _enemiesRoot = new GameObject("Enemies").transform;
+            _enemiesRoot.SetParent(transform, false);
+
+            // The navmesh is baked from the rooms' colliders each time a floor is built, so enemies path around cover.
+            _surface = _roomsRoot.gameObject.AddComponent<NavMeshSurface>();
+            _surface.collectObjects = CollectObjects.Children;
+            _surface.useGeometry = UnityEngine.AI.NavMeshCollectGeometry.PhysicsColliders;
+        }
+
+        void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
+        }
+
+        void Start()
+        {
+            BuildFloor(1);
+        }
+
+        public Room RoomAt(Vector2Int cell) => _rooms.TryGetValue(cell, out var room) ? room : null;
+
+        public Vector3 CellCentre(Vector2Int cell) => new Vector3(cell.x * cellSize, 0f, cell.y * cellSize);
+
+        public Vector2Int CellOf(Vector3 position) =>
+            new Vector2Int(Mathf.RoundToInt(position.x / cellSize), Mathf.RoundToInt(position.z / cellSize));
+
+        public void BuildFloor(int number)
+        {
+            ClearFloor();
+
+            FloorNumber = number;
+            int seed = fixedSeed != 0 ? fixedSeed + number : UnityEngine.Random.Range(1, int.MaxValue);
+            Layout = FloorLayout.Generate(seed, FloorLayout.RoomCountForFloor(number));
+            var rng = new System.Random(seed);
+
+            foreach (var node in Layout.ordered)
+            {
+                Room prefab = biome.RoomFor(node.type, rng);
+                Room room = Instantiate(prefab, CellCentre(node.cell), Quaternion.identity, _roomsRoot);
+                room.name = $"{node.type} {node.cell.x},{node.cell.y} ({prefab.name})";
+                room.Configure(node.doors);
+                _rooms.Add(node.cell, room);
+
+                // Only fight rooms need clearing.
+                node.cleared = node.type != RoomType.Normal && node.type != RoomType.Exit;
+            }
+
+            Physics.SyncTransforms();
+            _surface.BuildNavMesh();
+
+            var player = PlayerController.Instance;
+            if (player != null)
+            {
+                player.Teleport(CellCentre(Layout.start.cell) + Vector3.up * 0.05f);
+                if (CameraFollow.Instance != null) CameraFollow.Instance.Snap();
+            }
+
+            FloorsBuilt++;
+            FloorBuilt?.Invoke(this);
+            Enter(Layout.start);
+        }
+
+        void ClearFloor()
+        {
+            for (int i = 0; i < _live.Count; i++) _livePools[i].Release(_live[i]);
+            _live.Clear();
+            _livePools.Clear();
+
+            // Destroy only happens at the end of the frame; switching the old rooms off keeps them out of the new navmesh.
+            foreach (var room in _rooms.Values)
+            {
+                room.gameObject.SetActive(false);
+                Destroy(room.gameObject);
+            }
+            _rooms.Clear();
+
+            CurrentNode = null;
+            IsLocked = false;
+            ExitOpen = false;
+            _exitArmed = false;
+        }
+
+        void Update()
+        {
+            var player = PlayerController.Instance;
+            if (Layout == null || player == null) return;
+
+            Vector3 position = player.transform.position;
+            if (Layout.rooms.TryGetValue(CellOf(position), out var node) && node != CurrentNode) Enter(node);
+            if (CurrentNode == null) return;
+
+            Room room = CurrentRoom;
+
+            if (!IsLocked && !CurrentNode.cleared && room.ContainsInside(position, lockMargin)) Lock(room, position);
+            if (IsLocked && AllDead()) Clear(room);
+
+            if (ExitOpen && CurrentNode.type == RoomType.Exit && room.exitHole != null)
+            {
+                Vector3 toExit = room.exitHole.transform.position - position;
+                toExit.y = 0f;
+                float distance = toExit.magnitude;
+
+                // If the hole opens under the player's feet, they must step off it first. Going down is always a choice.
+                if (distance > exitRadius + 0.5f) _exitArmed = true;
+                else if (_exitArmed && distance <= exitRadius) BuildFloor(FloorNumber + 1);
+            }
+        }
+
+        void Enter(RoomNode node)
+        {
+            CurrentNode = node;
+            node.visited = true;
+            RoomChanged?.Invoke(this);
+        }
+
+        void Lock(Room room, Vector3 playerPosition)
+        {
+            IsLocked = true;
+            room.SetLocked(true);
+
+            int count = biome.baseEnemiesPerRoom + (FloorNumber - 1) / Mathf.Max(1, biome.floorsPerExtraEnemy);
+            count += UnityEngine.Random.Range(0, 2);
+
+            // Use the spawn points farthest from the player first.
+            var points = new List<Transform>(room.enemySpawns);
+            points.Sort((a, b) => (b.position - playerPosition).sqrMagnitude.CompareTo((a.position - playerPosition).sqrMagnitude));
+
+            for (int i = 0; i < count && i < points.Count; i++)
+            {
+                Vector3 point = points[i].position;
+                if (i > 0 && (point - playerPosition).sqrMagnitude < minSpawnDistance * minSpawnDistance) break;
+                Spawn(biome.enemies[UnityEngine.Random.Range(0, biome.enemies.Length)], point, playerPosition);
+            }
+
+            RoomChanged?.Invoke(this);
+        }
+
+        void Spawn(Enemy prefab, Vector3 position, Vector3 lookAt)
+        {
+            if (!_pools.TryGetValue(prefab, out var pool))
+            {
+                pool = new Pool<Enemy>(prefab, _enemiesRoot);
+                _pools.Add(prefab, pool);
+            }
+
+            Enemy enemy = pool.Get();
+            Vector3 facing = lookAt - position;
+            facing.y = 0f;
+            enemy.transform.SetPositionAndRotation(position + Vector3.up * 0.05f,
+                facing.sqrMagnitude > 0.01f ? Quaternion.LookRotation(facing) : Quaternion.identity);
+            enemy.gameObject.SetActive(true);
+            _live.Add(enemy);
+            _livePools.Add(pool);
+        }
+
+        bool AllDead()
+        {
+            foreach (var enemy in _live)
+            {
+                if (!enemy.Health.IsDead) return false;
+            }
+            return true;
+        }
+
+        void Clear(Room room)
+        {
+            for (int i = 0; i < _live.Count; i++) _livePools[i].Release(_live[i]);
+            _live.Clear();
+            _livePools.Clear();
+
+            IsLocked = false;
+            CurrentNode.cleared = true;
+            room.SetLocked(false);
+
+            if (CurrentNode.type == RoomType.Exit)
+            {
+                ExitOpen = true;
+                if (room.exitHole != null) room.exitHole.SetActive(true);
+            }
+
+            RoomChanged?.Invoke(this);
+        }
+    }
+}

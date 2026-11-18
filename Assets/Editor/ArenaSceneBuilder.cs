@@ -12,8 +12,8 @@ namespace Shrunk.EditorTools
     public static class ArenaSceneBuilder
     {
         const string ScenePath = "Assets/Scenes/Arena.unity";
-        const string MaterialFolder = "Assets/Materials";
-        const string PrefabFolder = "Assets/Prefabs";
+        internal const string MaterialFolder = "Assets/Materials";
+        internal const string PrefabFolder = "Assets/Prefabs";
         const float ArenaHalfSize = 15f;
 
         [MenuItem("Shrunk/Rebuild Arena Scene")]
@@ -50,14 +50,14 @@ namespace Shrunk.EditorTools
             spawner.arenaHalfSize = ArenaHalfSize - 3f;
 
             EditorSceneManager.SaveScene(scene, ScenePath);
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
+            RunSceneBuilder.UpdateBuildScenes();
             AssetDatabase.SaveAssets();
             Debug.Log("[Shrunk] Arena scene rebuilt at " + ScenePath);
         }
 
         // ---------- world ----------
 
-        static void BuildLighting()
+        internal static void BuildLighting()
         {
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
@@ -71,7 +71,7 @@ namespace Shrunk.EditorTools
             RenderSettings.skybox = null;
         }
 
-        static void BuildRoom(Material soil, Material wall)
+        internal static void BuildRoom(Material soil, Material wall)
         {
             var room = new GameObject("Room").transform;
             float size = ArenaHalfSize * 2f;
@@ -86,7 +86,7 @@ namespace Shrunk.EditorTools
             Primitive(PrimitiveType.Cube, "Wall West", room, new Vector3(-edge, height * 0.5f, 0f), new Vector3(thickness, height, size), wall, true);
         }
 
-        static void BuildCamera(Transform target)
+        internal static void BuildCamera(Transform target)
         {
             var go = new GameObject("Main Camera") { tag = "MainCamera" };
             var cam = go.AddComponent<Camera>();
@@ -101,7 +101,7 @@ namespace Shrunk.EditorTools
 
         // ---------- player ----------
 
-        static GameObject BuildPlayer(Material body, Material eyes, Bullet bulletPrefab)
+        internal static GameObject BuildPlayer(Material body, Material eyes, Bullet bulletPrefab)
         {
             var root = new GameObject("Player (The Void)");
             root.transform.position = new Vector3(0f, 0.05f, 0f);
@@ -141,7 +141,7 @@ namespace Shrunk.EditorTools
 
         // ---------- prefabs ----------
 
-        static Bullet BuildBulletPrefab(Material glow)
+        internal static Bullet BuildBulletPrefab(Material glow)
         {
             var go = new GameObject("Bullet");
             Primitive(PrimitiveType.Sphere, "Visual", go.transform, Vector3.zero, new Vector3(0.22f, 0.22f, 0.5f), glow, false);
@@ -149,7 +149,7 @@ namespace Shrunk.EditorTools
             return SavePrefab(go, "Bullet").GetComponent<Bullet>();
         }
 
-        static Enemy BuildAntPrefab(Material body, Material dark)
+        internal static Enemy BuildAntPrefab(Material body, Material dark)
         {
             var root = new GameObject("Worker Ant");
 
@@ -184,7 +184,7 @@ namespace Shrunk.EditorTools
 
         // ---------- HUD ----------
 
-        static TouchControls BuildHud()
+        internal static TouchControls BuildHud()
         {
             var canvasGo = new GameObject("HUD", typeof(Canvas), typeof(CanvasScaler));
             var canvas = canvasGo.GetComponent<Canvas>();
@@ -240,7 +240,7 @@ namespace Shrunk.EditorTools
             return touch;
         }
 
-        static RectTransform UiImage(string name, Transform parent, Sprite sprite, Color color, Vector2 anchor, Vector2 position, float size)
+        internal static RectTransform UiImage(string name, Transform parent, Sprite sprite, Color color, Vector2 anchor, Vector2 position, float size)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Image));
             var rect = go.GetComponent<RectTransform>();
@@ -256,7 +256,7 @@ namespace Shrunk.EditorTools
             return rect;
         }
 
-        static Text UiText(string name, Transform parent, Font font, string content, int size, TextAnchor alignment, Vector2 anchor, Vector2 position, Vector2 box)
+        internal static Text UiText(string name, Transform parent, Font font, string content, int size, TextAnchor alignment, Vector2 anchor, Vector2 position, Vector2 box)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Text));
             var rect = go.GetComponent<RectTransform>();
@@ -279,7 +279,7 @@ namespace Shrunk.EditorTools
 
         // ---------- helpers ----------
 
-        static GameObject Primitive(PrimitiveType type, string name, Transform parent, Vector3 localPosition, Vector3 localScale, Material material, bool keepCollider)
+        internal static GameObject Primitive(PrimitiveType type, string name, Transform parent, Vector3 localPosition, Vector3 localScale, Material material, bool keepCollider)
         {
             var go = GameObject.CreatePrimitive(type);
             go.name = name;
@@ -291,14 +291,14 @@ namespace Shrunk.EditorTools
             return go;
         }
 
-        static GameObject SavePrefab(GameObject instance, string name)
+        internal static GameObject SavePrefab(GameObject instance, string name)
         {
             var prefab = PrefabUtility.SaveAsPrefabAsset(instance, PrefabFolder + "/" + name + ".prefab");
             Object.DestroyImmediate(instance);
             return prefab;
         }
 
-        static Material Lit(string name, Color color, float smoothness)
+        internal static Material Lit(string name, Color color, float smoothness)
         {
             var material = LoadOrCreate(name, "Universal Render Pipeline/Lit");
             material.SetColor("_BaseColor", color);
@@ -307,7 +307,7 @@ namespace Shrunk.EditorTools
             return material;
         }
 
-        static Material Unlit(string name, Color color)
+        internal static Material Unlit(string name, Color color)
         {
             var material = LoadOrCreate(name, "Universal Render Pipeline/Unlit");
             material.SetColor("_BaseColor", color);
@@ -316,7 +316,7 @@ namespace Shrunk.EditorTools
         }
 
         // Reuses the existing asset so hand-tuned references to it survive a rebuild.
-        static Material LoadOrCreate(string name, string shaderName)
+        internal static Material LoadOrCreate(string name, string shaderName)
         {
             string path = MaterialFolder + "/" + name + ".mat";
             var shader = Shader.Find(shaderName);
@@ -333,7 +333,7 @@ namespace Shrunk.EditorTools
             return material;
         }
 
-        static void EnsureFolder(string parent, string name)
+        internal static void EnsureFolder(string parent, string name)
         {
             if (!AssetDatabase.IsValidFolder(parent + "/" + name)) AssetDatabase.CreateFolder(parent, name);
         }
