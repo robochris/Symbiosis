@@ -123,7 +123,7 @@ namespace Shrunk.Tests
                 }
                 move = Vector3.Cross(Vector3.up, aim) * _strafe;
                 if (nearestDistance < 5f) move -= aim * 1.2f;
-                else if (nearestDistance > 10f) move += aim;
+                else if (nearestDistance > Mathf.Min(10f, _player.weapon.Reach * 0.8f)) move += aim;
             }
             else
             {
@@ -322,6 +322,21 @@ namespace Shrunk.Tests
             {
                 yield return MeasureFloor(biome, 3, 7003);
                 yield return MeasureFloor(biome, 8, 7008);
+            }
+        }
+
+        /// <summary>Not a test: the same floor and the same boss with each of the three weapons. Read the log.</summary>
+        [UnityTest, Explicit, Timeout(3600000)]
+        public IEnumerator Measure_weapons()
+        {
+            foreach (var info in Weapons.All)
+            {
+                _player.weapon.kind = info.kind;
+                Debug.Log($"[Shrunk] MEASURE WEAPON {info.name}");
+                Time.timeScale = 3f;
+                yield return MeasureFloor("ants", 6, 7106);
+                Time.timeScale = 1f;
+                yield return MeasureBoss(5, 500, "Brood Mother with the " + info.name);
             }
         }
 

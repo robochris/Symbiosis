@@ -95,6 +95,7 @@ namespace Shrunk.Tests
             Assert.That(cards.LastLine, Does.Contain("acid"));
             Assert.IsTrue(cards.CardShowing || cards.LastHeading.Length > 0);
 
+            Floors.twistOverride = FloorTwist.None;
             Floors.BuildFloor(3);
             yield return null;
             Assert.AreEqual("FLOOR 3", cards.LastHeading);
@@ -172,6 +173,10 @@ namespace Shrunk.Tests
             yield return WaitUntil(() => Floors.IsLocked && Floors.Boss != null, 2f, "the boss fight to start");
             Floors.Boss.Health.Kill();
             yield return WaitUntil(() => !Floors.IsLocked, 2f, "the boss room to open");
+            // Stand clear of where the portals appear: a pad only counts a step onto it from outside, and in some
+            // layouts the spot above is right beside the way home.
+            Player.Teleport(Floors.ArenaCentre + new Vector3(0f, 0.05f, -9f));
+            yield return null;
         }
 
         // ---------- the lab ----------
@@ -436,6 +441,34 @@ namespace Shrunk.Tests
             Assert.AreEqual(1, SaveSystem.Data.meta.extractions);
             Assert.AreEqual(1, SaveSystem.Data.meta.rareMaterials);
             Assert.IsFalse(SaveSystem.Data.run.active);
+        }
+
+        /// <summary>Not a test: beats the Queen and steps into the way home over and over, to catch the time it does not work.</summary>
+        [UnityTest, Explicit, Timeout(1800000)]
+        public IEnumerator Hunt_for_a_failed_extraction()
+        {
+            for (int round = 0; round < 12; round++)
+            {
+                SaveSystem.Wipe();
+                yield return Load("Run");
+                Floors.BuildFloor(10);
+                yield return null;
+                yield return KillTheBoss();
+                yield return new WaitForSeconds(1f);
+                Vector3 portal = Floors.ExtractPortal.transform.position;
+                var padField = typeof(FloorManager).GetField("_extractPad", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var armedField = typeof(StepPad).GetField("_armed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                Vector3 before = Player.transform.position - portal;
+                bool armedBefore = (bool)armedField.GetValue(padField.GetValue(Floors));
+                Debug.Log($"[Shrunk] HUNT round {round}: before stepping, player {before.magnitude:F1} away, armed {armedBefore}, enabled {Floors.enabled}, node {Floors.CurrentNode?.type}, portal active {Floors.ExtractPortal.activeInHierarchy}");
+                StepOnto(portal);
+                float t = 0f;
+                for (; t < 3f && SceneManager.GetActiveScene().name != "Lab"; t += Time.deltaTime) yield return null;
+                if (SceneManager.GetActiveScene().name == "Lab") continue;
+                Vector3 off = Player.transform.position - portal;
+                Assert.Fail($"round {round}: still in the run. Player is {off.magnitude:F2} from the portal ({off}), locked {Floors.IsLocked}, ended {RunDirector.Instance.Ended}, " +
+                            $"timeScale {Time.timeScale}, dead {Player.Health.IsDead}, health {Player.Health.Current}, seed {Floors.Layout.seed}, arena {Floors.Layout.hasArena}");
+            }
         }
 
         [UnityTest]

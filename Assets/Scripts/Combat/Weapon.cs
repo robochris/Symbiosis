@@ -26,9 +26,9 @@ namespace Shrunk
         {
             new WeaponInfo { kind = WeaponKind.Pipette, name = "Pipette", does = "Standard issue. Quick, straight, and reaches across a room.", needs = "" },
             new WeaponInfo { kind = WeaponKind.Sprinkler, name = "Sprinkler", does = "Three shots in a fan, slower, and they do not travel far. For getting close, which is discouraged.",
-                needs = "Issued once the Brood Mother has been dealt with.", pellets = 3, spread = 11f, intervalMultiplier = 1.9f, rangeMultiplier = 0.55f },
+                needs = "Issued once the Brood Mother has been dealt with.", pellets = 3, spread = 11f, intervalMultiplier = 2.1f, rangeMultiplier = 0.55f },
             new WeaponInfo { kind = WeaponKind.Syringe, name = "Syringe", does = "One slow, heavy shot: triple damage, goes through the first thing it hits, and reaches further.",
-                needs = "Issued once the Ant Queen has been dealt with.", intervalMultiplier = 2.4f, rangeMultiplier = 1.35f, speedMultiplier = 1.6f, damageMultiplier = 3, pierce = 1 },
+                needs = "Issued once the Ant Queen has been dealt with.", intervalMultiplier = 3f, rangeMultiplier = 1.35f, speedMultiplier = 1.6f, damageMultiplier = 3, pierce = 1 },
         };
 
         public static WeaponInfo Info(WeaponKind kind)

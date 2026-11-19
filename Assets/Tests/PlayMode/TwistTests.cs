@@ -80,6 +80,8 @@ namespace Shrunk.Tests
         [Test]
         public void Twists_only_turn_up_where_they_are_allowed()
         {
+            Assert.AreEqual(0f, FloorManager.TwistChanceForAll, "the tests are running with random twists on");
+            Assert.AreEqual(0f, FloorManager.DareChanceForAll, "the tests are running with random dares on");
             var biome = _floors.biome;
             for (int seed = 1; seed < 200; seed++)
             {

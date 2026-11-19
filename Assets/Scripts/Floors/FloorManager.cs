@@ -173,7 +173,7 @@ namespace Shrunk
 
             FloorNumber = number;
             int seed = seedOverride != 0 ? seedOverride : fixedSeed != 0 ? fixedSeed + number : UnityEngine.Random.Range(1, int.MaxValue);
-            Twist = twistOverride ?? FloorTwists.Roll(seed, number, biome, twistChance);
+            Twist = twistOverride ?? FloorTwists.Roll(seed, number, biome, TwistChanceForAll ?? twistChance);
             Loot.CoinBonus = Twist == FloorTwist.Crowded ? FloorTwists.CrowdedCoins : 0;
             Loot.SampleBonus = Twist == FloorTwist.PowerCut ? FloorTwists.PowerCutSamples : 0;
             ApplyLook();
@@ -259,6 +259,9 @@ namespace Shrunk
         public float twistChance = 0.3f;
         /// <summary>Tests and clips set this to get one particular twist (or none) on the next floor built.</summary>
         [System.NonSerialized] public FloorTwist? twistOverride;
+
+        /// <summary>Set by the tests, for every floor manager: the chance of a twist and of a dare where a test has not asked for one.</summary>
+        public static float? TwistChanceForAll, DareChanceForAll;
 
         /// <summary>The dare left in a cleared room on this floor, until it is rung.</summary>
         public DareBell Dare { get; private set; }
@@ -742,7 +745,7 @@ namespace Shrunk
                 DareWon?.Invoke(this);
             }
             else if (node.type == RoomType.Normal && !_dareOffered && FloorNumber >= 2 && !room.Shape.isArenaPart && assets != null
-                     && UnityEngine.Random.value < (dareChanceOverride >= 0f ? dareChanceOverride : dareChance))
+                     && UnityEngine.Random.value < (dareChanceOverride >= 0f ? dareChanceOverride : DareChanceForAll ?? dareChance))
             {
                 _dareOffered = true;
                 Dare = DareBell.Create(room, room.Centre, biome.eliteMaterial != null ? biome.eliteMaterial : assets.coin, assets.coin);
