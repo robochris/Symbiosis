@@ -42,6 +42,10 @@ namespace Shrunk
         Dare,
         /// <summary>Arriving on a floor with a twist.</summary>
         Twist,
+        /// <summary>A different weapon taken from the lab's cupboard.</summary>
+        Weapon,
+        /// <summary>Samples traded at the exchange.</summary>
+        Exchange,
         // From here down is chatter: said only now and then, and not at all on the Less setting.
         LowHealth,
         Item,
@@ -229,6 +233,18 @@ namespace Shrunk
                 "Something's different about this floor. I'd say be careful, but you've heard that one.",
                 "This floor has a twist. I didn't order it. Nobody down there takes orders.",
                 "Conditions have changed. The notice is on your screen. I read it. I didn't like it.",
+            },
+            [RadioMoment.Weapon] = new[]
+            {
+                "A different one. Good. I was running out of ways to describe the first one in the incident reports.",
+                "That one is on loan. From me. I'd like it back in the condition you'd like to be in.",
+                "Changed your mind. That's allowed. It's about the only thing in here that is.",
+            },
+            [RadioMoment.Exchange] = new[]
+            {
+                "You've sold my samples. To a hatch. I'd be angrier, but it's the most business we've done all year.",
+                "Those samples were for science. Now they're for whatever that is. Carry on.",
+                "A fair trade, says the hatch. The hatch would say that.",
             },
             [RadioMoment.LowHealth] = new[]
             {

@@ -46,7 +46,11 @@ namespace Shrunk
             SaveSystem.Save();
             var player = PlayerController.Instance;
             if (player != null && player.weapon != null) player.weapon.kind = (WeaponKind)next;
-            if (next != current) Sfx.Play(SfxId.Item);
+            if (next != current)
+            {
+                Sfx.Play(SfxId.Item);
+                if (Radio.Instance != null) Radio.Instance.Say(RadioMoment.Weapon);
+            }
             Show();
             return (WeaponKind)next;
         }

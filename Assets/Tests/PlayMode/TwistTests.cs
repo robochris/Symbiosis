@@ -332,6 +332,7 @@ namespace Shrunk.Tests
             yield return new WaitForSeconds(SampleExchange.HoldTime);
             Assert.IsTrue(exchange.Shut);
             Assert.AreEqual(carried - SampleExchange.Price, RunState.Samples);
+            Assert.AreEqual(RadioMoment.Exchange, Radio.Instance.LastMoment, "Finch let his samples go without a word");
             int itemsAfter = 0;
             foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Item) itemsAfter++;
             Assert.AreEqual(itemsBefore + 1, itemsAfter + _player.Items.Collected.Count, "nothing came out of the hatch");

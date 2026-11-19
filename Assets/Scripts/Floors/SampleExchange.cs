@@ -76,6 +76,7 @@ namespace Shrunk
             Shut = true;
             if (_hatch != null) _hatch.gameObject.SetActive(false);
             Sfx.Play(SfxId.Item);
+            if (Radio.Instance != null) Radio.Instance.Say(RadioMoment.Exchange);
             return true;
         }
 

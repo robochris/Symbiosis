@@ -108,6 +108,7 @@ namespace Shrunk.Tests
             // The Sprinkler is issued, the Syringe is not: the cupboard goes between the two it has and says what the third takes.
             Assert.AreEqual(WeaponKind.Pipette, Weapons.Chosen);
             Assert.AreEqual(WeaponKind.Sprinkler, rack.Next());
+            Assert.AreEqual(RadioMoment.Weapon, Radio.Instance.LastMoment, "Finch had nothing to say about the new weapon");
             Assert.AreEqual(WeaponKind.Pipette, rack.Next(), "a weapon was handed out before it was issued");
             Assert.That(WorldPrompt.For(rack.transform.position), Does.Contain("you carry the Pipette").And.Contain("Ant Queen"));
             Achievements.Unlock(AchievementId.Regicide);
