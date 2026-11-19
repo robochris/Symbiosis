@@ -275,8 +275,10 @@ namespace Shrunk
                     var picks = assets.items.RandomCommon(rng, 3);
                     Vector3[] spots = { new Vector3(-2f, 0f, -1.7f), new Vector3(0f, 0f, -2.3f), new Vector3(2f, 0f, -1.7f) };
                     for (int i = 0; i < picks.Count; i++) Pickup.Item(picks[i], room.Centre + spots[i], picks[i].price);
-                    // And something to eat, off to one side of the counter.
-                    Pickup.Health(room.Centre + new Vector3(3.6f, 0f, -0.6f), Pickup.CrumbPrice);
+                    // And something to eat, beside the counter. Both stay inside the square every room keeps clear round its middle.
+                    Pickup.Health(room.Centre + new Vector3(2.6f, 0f, 0.9f), Pickup.CrumbPrice);
+                    // On the other side, the bell: a few coins for three different things.
+                    ShopReroll.Create(room, room.Centre + new Vector3(-2.6f, 0f, 0.9f), spots, assets.coin, assets.note);
                 }
             }
         }

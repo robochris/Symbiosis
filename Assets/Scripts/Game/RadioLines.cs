@@ -82,6 +82,10 @@ namespace Shrunk
                 "Today's goal is the same as always: further than last time.",
                 "I had a look at your contract. It doesn't mention any of this, which works in my favour.",
                 "In you go. I'll be on the radio, and nowhere else you can reach.",
+                "Clock's running. So, I imagine, are you.",
+                "Do stretch first. I never did, and look where I am.",
+                "Bring back more than you take in. That's the whole of economics.",
+                "Mind the first step. It is the same height as you are.",
             },
             [RadioMoment.Resume] = new[]
             {
@@ -104,6 +108,10 @@ namespace Shrunk
                 "The lab put you back together. It's good at that. It has had practice.",
                 "Technically you didn't die. Technically is a word I lean on a great deal.",
                 "I had hoped you'd get further. I had planned for this, though.",
+                "Back so soon. I've left your tea where it was. It was never there.",
+                "The lab says you're fine. The lab says that about everybody.",
+                "Lessons learned, I hope. I've stopped keeping a list.",
+                "It happens to the best of us. It also happens to you.",
             },
             [RadioMoment.Extract] = new[]
             {
@@ -206,6 +214,9 @@ namespace Shrunk
                 "Your readings are doing something I'd describe as 'brief'.",
                 "Careful. I've only the one intern.",
                 "Deep breath. Small targets are hard to hit, and you are very small.",
+                "That is your last one. I'm not being dramatic. I counted.",
+                "If you see a crumb, eat it. I don't say that about most things down here.",
+                "Somewhere nearby there is a shop. I mention it for no reason.",
             },
             [RadioMoment.Item] = new[]
             {
@@ -217,6 +228,10 @@ namespace Shrunk
                 "You're becoming quite unusual. That's the job going well.",
                 "I wouldn't ask where that came from. I didn't.",
                 "A fine specimen. So is the thing you picked up.",
+                "That one's good. I say that about all of them, so do check.",
+                "Ah, I wondered where that had got to. Keep it. I've changed.",
+                "It suits you. Most things do, at that size.",
+                "Careful how you hold that. I'm not certain which end is the end.",
             },
             [RadioMoment.Floor] = new[]
             {
@@ -228,6 +243,12 @@ namespace Shrunk
                 "Still with me? Good. It gets lonely between interns.",
                 "If you find a notebook down here, it's mine, and it's private.",
                 "Lovely tunnels. Structurally they shouldn't work. I admire that.",
+                "You're making good time. I've no idea what time it is, mind.",
+                "I left a sandwich down here once. Do not look for the sandwich.",
+                "If something offers to sell you things, that's the beetle. It's honest. For a beetle.",
+                "The warning marks on the floor are real. I used to think they were decorative.",
+                "Chin up. Or whatever it is you have.",
+                "If one of them hangs back and hums, shoot that one first. Trust me.",
             },
             [RadioMoment.Deep] = new[]
             {
@@ -237,6 +258,10 @@ namespace Shrunk
                 "I'm not lost, you understand. I know exactly how far down I am.",
                 "Keep going. I need the way kept clear behind me.",
                 "If I stop answering, carry on as normal. It only means I've gone a little further.",
+                "Nobody comes down this far by accident. I'd like to know which of us is which.",
+                "I can hear you from here now. That's new. I'm not sure I like it.",
+                "You'd tell me if you found a door, wouldn't you. No. Nor would I.",
+                "It is very quiet where I am. I've started narrating. You may have noticed.",
             },
         };
 

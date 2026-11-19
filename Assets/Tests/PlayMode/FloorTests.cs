@@ -375,6 +375,47 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_shop_bell_restocks_the_shelf_for_a_rising_price()
+        {
+            var node = RoomOfType(RoomType.Shop);
+            Room room = _floors.RoomAt(node.cell);
+            var bell = room.GetComponentInChildren<ShopReroll>();
+            Assert.IsNotNull(bell, "the shop has no bell");
+
+            System.Func<List<ItemType>> shelf = () =>
+            {
+                var types = new List<ItemType>();
+                foreach (var pickup in Pickup.All)
+                {
+                    if (pickup != null && pickup.kind == PickupKind.Item && pickup.price > 0 && room.ContainsInside(pickup.transform.position, 0f)) types.Add(pickup.item.type);
+                }
+                types.Sort();
+                return types;
+            };
+            List<ItemType> first = shelf();
+            Assert.AreEqual(3, first.Count);
+
+            // No coins: nothing happens.
+            Assert.IsFalse(bell.TryReroll());
+            Assert.AreEqual(ShopReroll.FirstPrice, bell.price);
+
+            // Stepping onto the mat with coins: paid, a different three, and dearer next time.
+            RunState.AddCoins(30);
+            _player.Teleport(bell.transform.position + new Vector3(0f, 0.05f, -4f));
+            yield return null;
+            yield return null;
+            _player.Teleport(bell.transform.position + Vector3.up * 0.05f);
+            yield return WaitUntil(() => bell.Rerolls == 1, 1f, "the bell to be rung");
+            yield return null;
+            Assert.AreEqual(30 - ShopReroll.FirstPrice, RunState.Coins);
+            List<ItemType> second = shelf();
+            Assert.AreEqual(3, second.Count, "the shelf was not restocked with three");
+            CollectionAssert.AreNotEqual(first, second, "the same three things came back");
+            Assert.AreEqual(ShopReroll.FirstPrice + ShopReroll.PriceStep, bell.price);
+            Assert.That(WorldPrompt.For(bell.transform.position), Does.Contain(bell.price + " coins"));
+        }
+
+        [UnityTest]
         public IEnumerator Shop_sells_three_items_for_coins()
         {
             var node = RoomOfType(RoomType.Shop);
