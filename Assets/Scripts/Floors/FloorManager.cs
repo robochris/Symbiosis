@@ -159,7 +159,7 @@ namespace Shrunk
 
             FloorNumber = number;
             int seed = seedOverride != 0 ? seedOverride : fixedSeed != 0 ? fixedSeed + number : UnityEngine.Random.Range(1, int.MaxValue);
-            Layout = FloorLayout.Generate(seed, FloorLayout.RoomCountForFloor(number));
+            Layout = FloorLayout.Generate(seed, FloorLayout.RoomCountForFloor(number), FloorLayout.IsBossFloor(number));
 
             foreach (var node in Layout.ordered)
             {
@@ -263,6 +263,8 @@ namespace Shrunk
             _rooms.Clear();
 
             CurrentNode = null;
+            _fightNode = null;
+            _fightRoom = null;
             Boss = null;
             ExtractPortal = null;
             _portals.Clear();
@@ -282,7 +284,12 @@ namespace Shrunk
 
             Room room = CurrentRoom;
 
-            if (!IsLocked && !CurrentNode.cleared && room.ContainsInside(position, lockMargin)) Lock(room, position);
+            // A big arena is four squares that fight as one room: the exit room's.
+            bool inArena = Layout.InArena(CurrentNode.cell);
+            RoomNode fightNode = inArena ? Layout.exit : CurrentNode;
+            Room fightRoom = inArena ? _rooms[Layout.exit.cell] : room;
+            bool inside = inArena ? InsideArena(position, lockMargin) : room.ContainsInside(position, lockMargin);
+            if (!IsLocked && !fightNode.cleared && inside) Lock(fightNode, fightRoom, position);
             // When the boss falls, the fight is over: whatever it brought with it goes too.
             if (IsLocked && Boss != null && Boss.Health.IsDead)
             {
@@ -291,7 +298,7 @@ namespace Shrunk
                     if (enemy != Boss && enemy.gameObject.activeSelf && !enemy.Health.IsDead) enemy.Vanish();
                 }
             }
-            if (IsLocked && AllDead()) Clear(room);
+            if (IsLocked && AllDead()) Clear();
 
             // The portal room: after a biome boss the player chooses to go home or push on.
             if (ExtractPortal != null && _extractPad.SteppedOn(ExtractPortal.transform.position, position))
@@ -337,16 +344,53 @@ namespace Shrunk
             RoomChanged?.Invoke(this);
         }
 
-        void Lock(Room room, Vector3 playerPosition)
+        RoomNode _fightNode;
+        Room _fightRoom;
+
+        /// <summary>The middle of the room a boss fights in: the middle of all four squares for a big arena.</summary>
+        public Vector3 ArenaCentre
+        {
+            get
+            {
+                if (Layout == null) return Vector3.zero;
+                if (!Layout.hasArena) return _rooms[Layout.exit.cell].Centre;
+                return CellCentre(Layout.arenaOrigin) + new Vector3(cellSize * 0.5f, 0f, cellSize * 0.5f);
+            }
+        }
+
+        // Past the arena's own doorways and a little way in, measured on the whole two-by-two block.
+        bool InsideArena(Vector3 position, float margin)
+        {
+            Vector3 local = position - ArenaCentre;
+            float limit = cellSize - RoomShape.TileSize - margin;
+            return Mathf.Abs(local.x) <= limit && Mathf.Abs(local.z) <= limit;
+        }
+
+        // Every room that shuts for this fight: the one room, or all four squares of an arena.
+        void SetFightLocked(bool locked)
+        {
+            if (_fightNode != null && Layout.InArena(_fightNode.cell))
+            {
+                foreach (var pair in _rooms) if (Layout.InArena(pair.Key)) pair.Value.SetLocked(locked);
+            }
+            else if (_fightRoom != null)
+            {
+                _fightRoom.SetLocked(locked);
+            }
+        }
+
+        void Lock(RoomNode node, Room room, Vector3 playerPosition)
         {
             IsLocked = true;
-            room.SetLocked(true);
+            _fightNode = node;
+            _fightRoom = room;
+            SetFightLocked(true);
 
             // Boss floors: the exit room holds the boss, alone. It brings its own company.
-            BossEnemy bossPrefab = CurrentNode.type == RoomType.Exit ? BossForFloor() : null;
+            BossEnemy bossPrefab = node.type == RoomType.Exit ? BossForFloor() : null;
             if (bossPrefab != null)
             {
-                Vector3 centre = room.Centre;
+                Vector3 centre = ArenaCentre;
                 Vector3 away = centre - playerPosition;
                 away.y = 0f;
                 // Not on top of the player if they ran to the middle.
@@ -494,9 +538,9 @@ namespace Shrunk
             return enemy;
         }
 
-        void AddPortal(Room room, BiomeDefinition leadsTo, GameObject prop, Vector3 offset)
+        void AddPortal(Room room, Vector3 middle, BiomeDefinition leadsTo, GameObject prop, Vector3 offset)
         {
-            var gate = Instantiate(prop, room.Centre + offset, Quaternion.identity, room.transform);
+            var gate = Instantiate(prop, middle + offset, Quaternion.identity, room.transform);
             _portals.Add(new BiomePortal { gate = gate, leadsTo = leadsTo });
         }
 
@@ -510,25 +554,28 @@ namespace Shrunk
             return true;
         }
 
-        void Clear(Room room)
+        void Clear()
         {
+            Room room = _fightRoom;
+            RoomNode node = _fightNode;
             for (int i = 0; i < _live.Count; i++) _livePools[i].Release(_live[i]);
             _live.Clear();
             _livePools.Clear();
 
             IsLocked = false;
-            CurrentNode.cleared = true;
-            room.SetLocked(false);
+            node.cleared = true;
+            SetFightLocked(false);
+            Vector3 middle = node.type == RoomType.Exit && FloorLayout.IsBossFloor(FloorNumber) ? ArenaCentre : room.Centre;
 
-            if (CurrentNode.type == RoomType.Exit)
+            if (node.type == RoomType.Exit)
             {
                 ExitOpen = true;
                 if (FloorInBiome == 10 && biome.extractPortalProp != null && biome.deeperPortalProp != null)
                 {
                     // The biome boss is dead: two portals instead of a hole in the floor.
                     // The way home on the left, this biome again on the right, and the other biomes along the far side.
-                    ExtractPortal = Instantiate(biome.extractPortalProp, room.Centre + new Vector3(-4f, 0f, 0f), Quaternion.identity, room.transform);
-                    AddPortal(room, biome, biome.deeperPortalProp, new Vector3(4f, 0f, 0f));
+                    ExtractPortal = Instantiate(biome.extractPortalProp, middle + new Vector3(-4f, 0f, 0f), Quaternion.identity, room.transform);
+                    AddPortal(room, middle, biome, biome.deeperPortalProp, new Vector3(4f, 0f, 0f));
 
                     var others = AllBiomes();
                     others.Remove(biome);
@@ -542,7 +589,7 @@ namespace Shrunk
                     {
                         float x = (i - (offered - 1) * 0.5f) * 7f;
                         GameObject prop = others[i].portalProp != null ? others[i].portalProp : biome.deeperPortalProp;
-                        AddPortal(room, others[i], prop, new Vector3(x, 0f, 7f));
+                        AddPortal(room, middle, others[i], prop, new Vector3(x, 0f, 7f));
                     }
                 }
                 else if (room.ExitHole != null)

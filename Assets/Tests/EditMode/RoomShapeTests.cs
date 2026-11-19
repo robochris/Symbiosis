@@ -134,6 +134,88 @@ namespace Shrunk.Tests
         }
 
         [Test]
+        public void Boss_floors_get_a_big_arena_that_is_the_same_place_every_time()
+        {
+            int floors = 0, withArena = 0;
+            string picture = null;
+            for (int seed = 1; seed <= 600; seed++)
+            {
+                foreach (int floor in new[] { 5, 10 })
+                {
+                    floors++;
+                    var layout = FloorLayout.Generate(seed * 7919 + floor, FloorLayout.RoomCountForFloor(floor), true);
+                    Assert.IsEmpty(layout.Validate(), layout.ToAscii());
+
+                    // The rest of the floor is exactly what it would be without the arena.
+                    var plain = FloorLayout.Generate(seed * 7919 + floor, FloorLayout.RoomCountForFloor(floor));
+                    foreach (var node in plain.ordered)
+                    {
+                        // An ordinary room may be swallowed by the arena; nothing else changes.
+                        if (layout.rooms[node.cell].type == RoomType.Arena) Assert.AreEqual(RoomType.Normal, node.type);
+                        else Assert.AreEqual(node.type, layout.rooms[node.cell].type);
+                        if (node.type != RoomType.Normal && node.type != RoomType.Exit) Assert.AreEqual(node.doors, layout.rooms[node.cell].doors, "the arena gave a " + node.type + " room a new doorway");
+                    }
+                    if (!layout.hasArena) continue;
+                    withArena++;
+                    Assert.That(layout.rooms.Count, Is.InRange(plain.rooms.Count, plain.rooms.Count + 3));
+
+                    // Stitch the four quarters together and compare with the hand-laid plan.
+                    var kind = floor == 10 ? RoomShape.ArenaKind.ThroneHall : RoomShape.ArenaKind.Nursery;
+                    int variant = Mathf.Abs(layout.seed % 3), open = 0;
+                    var text = new System.Text.StringBuilder();
+                    for (int y = RoomShape.ArenaSize - 1; y >= 0; y--)
+                    {
+                        for (int x = 0; x < RoomShape.ArenaSize; x++)
+                        {
+                            var cell = layout.arenaOrigin + new Vector2Int(x / RoomShape.Size, y / RoomShape.Size);
+                            var shape = RoomShape.GenerateFor(layout, layout.rooms[cell], floor);
+                            bool isOpen = shape.open[x % RoomShape.Size, y % RoomShape.Size];
+                            if (isOpen) open++;
+                            text.Append(isOpen ? ". " : "# ");
+                            // Tunnels in from outside doorways may open more; nothing planned open is ever closed.
+                            if (RoomShape.ArenaOpen(kind, variant, x, y)) Assert.IsTrue(isOpen, $"arena tile {x},{y} should be open");
+                            else if (RoomShape.ArenaOpen(kind, -1, x, y)) Assert.IsFalse(isOpen, $"a pillar or column at {x},{y} was dug away");
+                        }
+                        text.AppendLine();
+                    }
+                    if (picture == null && floor == 10) picture = text.ToString();
+                    Assert.Greater(open, 400, "an arena should be far bigger than any fight room (225 tiles at most)");
+
+                    foreach (var node in layout.ordered)
+                    {
+                        if (!layout.InArena(node.cell)) continue;
+                        var shape = RoomShape.GenerateFor(layout, node, floor);
+                        Assert.IsTrue(shape.isArena && shape.isArenaPart);
+                        Assert.IsEmpty(shape.Validate(), shape.ToAscii());
+                    }
+                }
+            }
+            Debug.Log($"[Shrunk] {withArena} of {floors} boss floors have room for the big arena. A throne hall:\n{picture}");
+            Assert.Greater(withArena, floors * 0.9f, "the big arena should nearly always fit");
+
+            // The plan itself: the same every time, symmetric, and clear along the seams between the quarters.
+            foreach (RoomShape.ArenaKind kind in System.Enum.GetValues(typeof(RoomShape.ArenaKind)))
+            {
+                for (int variant = 0; variant < 3; variant++)
+                {
+                    int last = RoomShape.ArenaSize - 1;
+                    for (int x = 0; x <= last; x++)
+                    {
+                        for (int y = 0; y <= last; y++)
+                        {
+                            bool open = RoomShape.ArenaOpen(kind, variant, x, y);
+                            Assert.AreEqual(open, RoomShape.ArenaOpen(kind, variant, last - x, y), "not the same left and right");
+                            Assert.AreEqual(open, RoomShape.ArenaOpen(kind, variant, x, last - y), "not the same front and back");
+                        }
+                        // The two tiles either side of a seam always match, so no wall is ever missing there.
+                        Assert.AreEqual(RoomShape.ArenaOpen(kind, variant, RoomShape.Size - 1, x), RoomShape.ArenaOpen(kind, variant, RoomShape.Size, x));
+                        Assert.AreEqual(RoomShape.ArenaOpen(kind, variant, x, RoomShape.Size - 1), RoomShape.ArenaOpen(kind, variant, x, RoomShape.Size));
+                    }
+                }
+            }
+        }
+
+        [Test]
         public void One_through_room_in_four_is_a_tunnel_bend()
         {
             int bends = 0, through = 0, bendTiles = 0, plainTiles = 0;

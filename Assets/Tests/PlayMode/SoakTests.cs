@@ -225,18 +225,10 @@ namespace Shrunk.Tests
         {
             _floors.BuildFloor(floor, seed);
             yield return null;
-            Room arena = _floors.RoomAt(_floors.Layout.exit.cell);
-            Vector3 door = arena.Centre;
-            for (int side = 0; side < 4; side++)
-            {
-                if (arena.DoorObject(side) == null) continue;
-                Vector2Int d = FloorLayout.Directions[side];
-                door = arena.Centre + new Vector3(d.x, 0f, d.y) * (RoomShape.Size * 0.5f * RoomShape.TileSize - 6f);
-                break;
-            }
+            // Start a little way from the middle, where the boss will appear.
             _player.Health.ClearInvulnerability();
             _player.Health.SetMaxHealth(999, true);
-            _player.Teleport(OnNavMesh(door) + Vector3.up * 0.05f);
+            _player.Teleport(OnNavMesh(_floors.ArenaCentre + new Vector3(0f, 0f, -10f)) + Vector3.up * 0.05f);
 
             int hits = 0, pools = 0;
             System.Action<int, Vector3> count = (amount, direction) => { hits += amount; if (direction == Vector3.zero) pools += amount; };

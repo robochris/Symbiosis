@@ -5,7 +5,12 @@ using UnityEngine;
 
 namespace Shrunk
 {
-    public enum RoomType { Start, Normal, Exit, Treasure, Shop }
+    public enum RoomType
+    {
+        Start, Normal, Exit, Treasure, Shop,
+        /// <summary>One of the other three squares of a boss arena. The arena is the exit room and these three, as one big room.</summary>
+        Arena
+    }
 
     [Flags]
     public enum Doors { None = 0, North = 1, East = 2, South = 4, West = 8 }
@@ -54,6 +59,91 @@ namespace Shrunk
         public readonly List<RoomNode> ordered = new List<RoomNode>();
         public RoomNode start;
         public RoomNode exit;
+        /// <summary>Boss floors: the arena covers two squares by two, with this one at its south-west corner.</summary>
+        public bool hasArena;
+        public Vector2Int arenaOrigin;
+
+        /// <summary>True for the four squares of the boss arena.</summary>
+        public bool InArena(Vector2Int cell) =>
+            hasArena && cell.x >= arenaOrigin.x && cell.x <= arenaOrigin.x + 1 && cell.y >= arenaOrigin.y && cell.y <= arenaOrigin.y + 1;
+
+        // Grows the exit room into a 2 by 2 block, on whichever side has three free squares that touch nothing else.
+        // Nothing here uses the dice, so the rest of the floor is exactly what it would have been without it.
+        void TryAddArena()
+        {
+            Vector2Int e = exit.cell;
+            Vector2Int[] origins = { e, e + Vector2Int.left, e + Vector2Int.down, e + Vector2Int.left + Vector2Int.down };
+            foreach (var origin in origins)
+            {
+                var block = new List<Vector2Int> { origin, origin + Vector2Int.right, origin + Vector2Int.up, origin + Vector2Int.one };
+                bool fits = true;
+                foreach (var cell in block)
+                {
+                    if (cell == e) continue;
+                    if (rooms.TryGetValue(cell, out var there))
+                    {
+                        // An ordinary fight room already here is swallowed by the arena. Anything else stays what it is.
+                        if (there.type != RoomType.Normal) fits = false;
+                        continue;
+                    }
+                }
+                if (!fits) continue;
+
+                foreach (var cell in block)
+                {
+                    if (cell == e) continue;
+                    if (rooms.TryGetValue(cell, out var swallowed))
+                    {
+                        swallowed.type = RoomType.Arena;
+                        continue;
+                    }
+                    var part = new RoomNode { cell = cell, type = RoomType.Arena, distance = exit.distance };
+                    rooms.Add(cell, part);
+                    ordered.Add(part);
+                }
+                hasArena = true;
+                arenaOrigin = origin;
+
+                // Doorways again for the block and the ordinary rooms beside it: a fight room next to the arena becomes
+                // one more way in. The start, the treasure room and the shop keep exactly the doorways they had, so a new
+                // arena square beside one of them just has solid earth on that side.
+                var touched = new List<Vector2Int>(block);
+                foreach (var cell in block)
+                    foreach (var d in Directions)
+                        if (rooms.TryGetValue(cell + d, out var beside) && beside.type == RoomType.Normal && !touched.Contains(cell + d)) touched.Add(cell + d);
+                foreach (var cell in touched)
+                {
+                    RoomNode node = rooms[cell];
+                    Doors before = node.doors;
+                    node.doors = Doors.None;
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (!rooms.TryGetValue(cell + Directions[i], out var other)) continue;
+                        bool wasOpen = (before & (Doors)(1 << i)) != 0;
+                        if (wasOpen || Joined(node, other)) node.doors |= (Doors)(1 << i);
+                    }
+                }
+                return;
+            }
+        }
+
+        // Whether two neighbouring rooms that had no doorway between them get one now the arena is there.
+        bool Joined(RoomNode a, RoomNode b)
+        {
+            bool aIn = InArena(a.cell), bIn = InArena(b.cell);
+            if (aIn && bIn) return true;
+            if (!aIn && !bIn) return false;
+            RoomNode outside = aIn ? b : a;
+            return outside.type == RoomType.Normal;
+        }
+
+        // Next to each other with no doorway between: only ever a new arena square beside the start, treasure room or shop.
+        bool WalledOff(RoomNode a, RoomNode b)
+        {
+            if (!hasArena || InArena(a.cell) == InArena(b.cell)) return false;
+            RoomNode outside = InArena(a.cell) ? b : a;
+            return outside.type != RoomType.Normal;
+        }
 
         /// <summary>A biome is 10 floors. Floor 11 of a run is floor 1 of the next biome.</summary>
         public static int FloorInBiome(int floorNumber) => (Mathf.Max(1, floorNumber) - 1) % 10 + 1;
@@ -78,7 +168,8 @@ namespace Shrunk
         }
 
         /// <summary>The same seed and room count always give the same floor.</summary>
-        public static FloorLayout Generate(int seed, int targetRooms)
+        /// <param name="bossArena">Boss floors: the exit room becomes a 2 by 2 arena where there is space for one.</param>
+        public static FloorLayout Generate(int seed, int targetRooms, bool bossArena = false)
         {
             targetRooms = Mathf.Max(4, targetRooms);
             var rng = new System.Random(seed);
@@ -132,6 +223,7 @@ namespace Shrunk
             if (deadEnds.Count > 0) layout.rooms[deadEnds[0]].type = RoomType.Treasure;
             if (deadEnds.Count > 1) layout.rooms[deadEnds[1]].type = RoomType.Shop;
 
+            if (bossArena) layout.TryAddArena();
             return layout;
         }
 
@@ -237,8 +329,10 @@ namespace Shrunk
                 {
                     bool hasDoor = (node.doors & (Doors)(1 << i)) != 0;
                     bool hasNeighbour = rooms.TryGetValue(node.cell + Directions[i], out var other);
+                    bool otherHasDoor = hasNeighbour && (other.doors & (Doors)(1 << ((i + 2) % 4))) != 0;
+                    if (hasNeighbour && !hasDoor && !otherHasDoor && WalledOff(node, other)) continue;
                     if (hasDoor != hasNeighbour) problems.Add($"{node.cell}: door {(Doors)(1 << i)} does not match its neighbour");
-                    if (hasNeighbour && (other.doors & (Doors)(1 << ((i + 2) % 4))) == 0) problems.Add($"{node.cell}: neighbour {other.cell} has no door back");
+                    if (hasNeighbour && !otherHasDoor) problems.Add($"{node.cell}: neighbour {other.cell} has no door back");
                 }
 
                 if ((node.type == RoomType.Treasure || node.type == RoomType.Shop) && node.DoorCount != 1)
@@ -249,6 +343,8 @@ namespace Shrunk
             if (count[RoomType.Exit] != 1) problems.Add($"{count[RoomType.Exit]} exit rooms");
             if (count[RoomType.Treasure] != 1) problems.Add($"{count[RoomType.Treasure]} treasure rooms");
             if (count[RoomType.Shop] != 1) problems.Add($"{count[RoomType.Shop]} shop rooms");
+            if (count[RoomType.Arena] != (hasArena ? 3 : 0)) problems.Add($"{count[RoomType.Arena]} arena squares");
+            if (hasArena && (exit == null || !InArena(exit.cell))) problems.Add("the arena does not include the exit room");
             if (exit != null && exit.distance != maxDistance) problems.Add("exit is not the farthest room from the start");
             if (exit != null && exit == start) problems.Add("exit is the start room");
 
@@ -295,6 +391,7 @@ namespace Shrunk
                             case RoomType.Exit: symbol = 'E'; break;
                             case RoomType.Treasure: symbol = 'T'; break;
                             case RoomType.Shop: symbol = '$'; break;
+                            case RoomType.Arena: symbol = 'A'; break;
                             default: symbol = 'o'; break;
                         }
                     }

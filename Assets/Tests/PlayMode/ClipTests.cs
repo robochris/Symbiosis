@@ -235,21 +235,13 @@ namespace Shrunk.Tests
             yield return null;
             _player.Health.SetInvulnerable(600f);
 
-            Room arena = _floors.RoomAt(_floors.Layout.exit.cell);
-            // Start in the doorway of the arena rather than walking the whole floor.
-            Vector3 door = arena.Centre;
-            for (int side = 0; side < 4; side++)
-            {
-                if (arena.DoorObject(side) == null) continue;
-                Vector2Int d = FloorLayout.Directions[side];
-                door = arena.Centre + new Vector3(d.x, 0f, d.y) * (RoomShape.Size * 0.5f * RoomShape.TileSize + 2f);
-                break;
-            }
-            _player.Teleport(OnNavMesh(door) + Vector3.up * 0.05f);
+            // Start at the edge of the arena, looking in.
+            Vector3 middle = _floors.ArenaCentre;
+            _player.Teleport(OnNavMesh(middle + new Vector3(0f, 0f, -20f)) + Vector3.up * 0.05f);
             _follow.SetMode(CameraMode.Auto);
-            LookAt(arena.Centre, 100000f);
+            LookAt(middle, 100000f);
             yield return Stand(0.8f);
-            yield return Walk(OnNavMesh(arena.Centre), 12f, () => _floors.IsLocked);
+            yield return Walk(OnNavMesh(middle + new Vector3(0f, 0f, -9f)), 12f, () => false);
             yield return Fight(22f);
             if (_floors.Boss != null && !_floors.Boss.Health.IsDead) _floors.Boss.Health.Kill();
             yield return Stand(2.5f);

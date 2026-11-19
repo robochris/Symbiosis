@@ -88,7 +88,7 @@ namespace Shrunk.Tests
             Assert.Greater(_floors.LiveEnemies.Count, 0, "locked room has no enemies");
             foreach (var enemy in _floors.LiveEnemies)
             {
-                Assert.IsTrue(room.ContainsInside(enemy.transform.position, 0f), "enemy spawned outside its room\n" + Describe(node));
+                if (!_floors.Layout.InArena(node.cell)) Assert.IsTrue(room.ContainsInside(enemy.transform.position, 0f), "enemy spawned outside its room\n" + Describe(node));
                 Assert.IsTrue(NavMesh.SamplePosition(enemy.transform.position, out var hit, 1f, NavMesh.AllAreas) && hit.position.y < 0.5f,
                     "enemy spawned inside solid earth\n" + Describe(node));
             }
@@ -97,7 +97,7 @@ namespace Shrunk.Tests
             float inner = (RoomShape.Size * 0.5f - 1.5f) * RoomShape.TileSize;
             for (int side = 0; side < 4; side++)
             {
-                bool hasDoor = (node.doors & (Doors)(1 << side)) != 0;
+                bool hasDoor = (room.Doors & (Doors)(1 << side)) != 0; // the doorways that lead out of the room (for an arena quarter, not the open sides)
                 GameObject door = room.DoorObject(side);
                 Assert.AreEqual(hasDoor, door != null, $"door object on side {(Doors)(1 << side)}");
                 if (!hasDoor) continue;
@@ -142,7 +142,7 @@ namespace Shrunk.Tests
                 {
                     Room room = _floors.RoomAt(node.cell);
                     Assert.IsNotNull(room, $"floor {floor}: no room built at {node.cell}");
-                    Assert.AreEqual(node.doors, room.Doors);
+                    if (layout.InArena(node.cell)) Assert.AreEqual(room.Doors, node.doors & room.Doors, "an arena quarter with a doorway the layout never asked for"); else Assert.AreEqual(node.doors, room.Doors);
                     Assert.IsEmpty(room.Shape.Validate(), "room shape\n" + Describe(node));
 
                     // ...and can actually be walked to from the start.
@@ -398,16 +398,51 @@ namespace Shrunk.Tests
                 _floors.BuildFloor(floor);
                 yield return null;
                 var layout = _floors.Layout;
-                Assert.LessOrEqual(layout.rooms.Count, 7, "boss floors should be short");
+                Assert.LessOrEqual(layout.rooms.Count, 10, "boss floors should be short");
 
                 Room arena = _floors.RoomAt(layout.exit.cell);
                 Assert.IsTrue(arena.Shape.isArena, "the boss room should be a wide-open arena");
-                Assert.AreEqual((RoomShape.Size - 2) * (RoomShape.Size - 2), arena.Shape.interior.Count);
+                if (layout.hasArena)
+                {
+                    // Four squares, one room: walk from quarter to quarter with no wall in the way, and far more floor than any fight room.
+                    int tiles = 0;
+                    var path = new NavMeshPath();
+                    foreach (var node in layout.ordered)
+                    {
+                        if (!layout.InArena(node.cell)) continue;
+                        Room part = _floors.RoomAt(node.cell);
+                        tiles += part.Shape.interior.Count;
+                        Assert.IsTrue(NavMesh.CalculatePath(OnNavMesh(arena.Centre), OnNavMesh(part.Centre), NavMesh.AllAreas, path) && path.status == NavMeshPathStatus.PathComplete,
+                            "a quarter of the arena is walled off\n" + Describe(node));
+                        Assert.IsFalse(Physics.Linecast(arena.Centre + Vector3.up, part.Centre + Vector3.up), "a wall between two quarters of the arena");
+                    }
+                    Assert.Greater(tiles, 400, "the arena is no bigger than a fight room");
+                    Assert.Less((_floors.ArenaCentre - arena.Centre).magnitude, 8f);
+                }
+                else
+                {
+                    Assert.AreEqual((RoomShape.Size - 2) * (RoomShape.Size - 2), arena.Shape.interior.Count);
+                }
                 Assert.IsNull(_floors.Boss, "boss appeared before the player walked in");
 
                 _player.Teleport(arena.Centre + new Vector3(0f, 0.05f, -6f));
                 yield return WaitUntil(() => _floors.IsLocked, 2f, "the boss room to lock");
                 Assert.IsNotNull(_floors.Boss);
+                Assert.Less((_floors.Boss.transform.position - _floors.ArenaCentre).magnitude, 7f, "the boss should start in the middle of its arena");
+
+                // Shut means shut, on every quarter: the player can't walk out of any doorway.
+                foreach (var node in layout.ordered)
+                {
+                    if (node != layout.exit && !layout.InArena(node.cell)) continue;
+                    Room part = _floors.RoomAt(node.cell);
+                    Assert.IsTrue(part.Locked, "a quarter of the arena was left open");
+                    for (int side = 0; side < 4; side++)
+                    {
+                        bool leadsOut = (part.Shape.doors & (Doors)(1 << side)) != 0;
+                        Assert.AreEqual(leadsOut, part.DoorObject(side) != null, "a barrier where two quarters meet, or none on a real doorway");
+                        if (leadsOut) Assert.IsTrue(part.DoorObject(side).activeSelf);
+                    }
+                }
                 if (floor == 5) Assert.IsInstanceOf<BroodMother>(_floors.Boss);
                 else Assert.IsInstanceOf<AntQueen>(_floors.Boss);
                 Assert.AreEqual(1, _floors.LiveEnemies.Count, "the boss should start alone");

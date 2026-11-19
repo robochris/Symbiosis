@@ -25,6 +25,10 @@ namespace Shrunk
         public RoomType type;
         /// <summary>A boss room: the whole square, wide open.</summary>
         public bool isArena;
+        /// <summary>One quarter of a big boss arena: open along the two sides it shares with the other quarters.</summary>
+        public bool isArenaPart;
+        /// <summary>Which quarter: (0,0) south-west to (1,1) north-east.</summary>
+        public Vector2Int arenaQuadrant;
         public readonly bool[,] open = new bool[Size, Size];
         /// <summary>Middle of the main chamber. It and the eight tiles around it are always open and free of pillars.</summary>
         public Vector2Int centre;
@@ -93,10 +97,121 @@ namespace Shrunk
             int floor = FloorLayout.FloorInBiome(floorNumber);
             float size = floor <= 5 ? (float)rng.NextDouble() * 0.35f : 0.5f + (float)rng.NextDouble() * 0.5f;
 
-            // The exit room of a boss floor is the boss's arena: the whole square, wide open.
+            // A big arena: this square is one quarter of it. Each boss always fights in the same place.
+            if (layout.InArena(node.cell))
+            {
+                Vector2Int quadrant = node.cell - layout.arenaOrigin;
+                Doors outer = node.doors;
+                outer &= quadrant.x == 0 ? ~Doors.East : ~Doors.West;
+                outer &= quadrant.y == 0 ? ~Doors.North : ~Doors.South;
+                return ArenaPart(seed, outer, node.type, quadrant, floor == 10 ? ArenaKind.ThroneHall : ArenaKind.Nursery, Mathf.Abs(layout.seed % 3));
+            }
+
+            // Where there was no space for the big one, the exit room of a boss floor is still an arena: the whole square, wide open.
             bool arena = node.type == RoomType.Exit && FloorLayout.IsBossFloor(floorNumber);
             return Generate(seed, node.doors, node.type, size, arena);
         }
+
+        public enum ArenaKind
+        {
+            /// <summary>The mini boss: a round chamber 52 m across, pillars to circle round, pods along the walls.</summary>
+            Nursery,
+            /// <summary>The biome boss: a hall 44 m by 56 m with two rows of columns.</summary>
+            ThroneHall
+        }
+
+        /// <summary>Tiles along each side of a whole arena: two rooms' worth.</summary>
+        public const int ArenaSize = Size * 2;
+
+        /// <summary>
+        /// Whether a tile of the whole arena is open floor. x and y count from its south-west corner. An arena is laid
+        /// out by hand, not carved: the same boss always fights in the same place. The variant (0 to 2) only moves the
+        /// pillars or takes some columns away. Nothing solid ever sits on the seams between the four quarters.
+        /// </summary>
+        public static bool ArenaOpen(ArenaKind kind, int variant, int x, int y)
+        {
+            if (x < 1 || y < 1 || x > ArenaSize - 2 || y > ArenaSize - 2) return false;
+            float dx = Mathf.Abs(x - (ArenaSize - 1) * 0.5f), dy = Mathf.Abs(y - (ArenaSize - 1) * 0.5f);
+
+            if (kind == ArenaKind.Nursery)
+            {
+                if (dx * dx + dy * dy > 13.3f * 13.3f) return false;
+                switch (variant)
+                {
+                    case -1: return true; // the bare outline, with nothing standing in it
+                    case 0: return !(Between(dx, 5f, 7f) && Between(dy, 5f, 7f));          // four pillars close in
+                    case 1: return !(Between(dx, 7f, 9f) && Between(dy, 7f, 9f));          // four pillars far out
+                    default: return !((Between(dx, 3f, 5f) && Between(dy, 8f, 10f)) || (Between(dx, 8f, 10f) && Between(dy, 3f, 5f))); // a ring of eight
+                }
+            }
+
+            if (dx > 11f || dy > 14f) return false;
+            bool column = variant >= 0 && Between(dx, 6f, 8f) && ((variant != 2 && Between(dy, 4f, 6f)) || (variant != 1 && Between(dy, 10f, 12f)));
+            return !column;
+        }
+
+        /// <summary>The nursery's pods: eight tiles round the wall, the same in every variant.</summary>
+        public static bool ArenaPod(ArenaKind kind, int x, int y)
+        {
+            if (kind != ArenaKind.Nursery) return false;
+            float dx = Mathf.Abs(x - (ArenaSize - 1) * 0.5f), dy = Mathf.Abs(y - (ArenaSize - 1) * 0.5f);
+            return (dx == 11.5f && dy == 2.5f) || (dx == 2.5f && dy == 11.5f);
+        }
+
+        static bool Between(float value, float low, float high) => value >= low && value <= high;
+
+        /// <summary>One quarter of a big arena, as the room for one grid square.</summary>
+        /// <param name="doors">Only the doorways to rooms outside the arena.</param>
+        public static RoomShape ArenaPart(int seed, Doors doors, RoomType type, Vector2Int quadrant, ArenaKind kind, int variant)
+        {
+            var shape = new RoomShape { seed = seed, doors = doors, type = type, isArena = true, isArenaPart = true, arenaQuadrant = quadrant };
+            for (int x = 0; x < Size; x++)
+                for (int y = 0; y < Size; y++)
+                    shape.open[x, y] = ArenaOpen(kind, variant, quadrant.x * Size + x, quadrant.y * Size + y);
+
+            // Its own middle is tucked into the corner nearest the middle of the whole arena.
+            shape.centre = new Vector2Int(quadrant.x == 0 ? Size - 3 : 2, quadrant.y == 0 ? Size - 3 : 2);
+            for (int x = shape.centre.x - 1; x <= shape.centre.x + 1; x++)
+                for (int y = shape.centre.y - 1; y <= shape.centre.y + 1; y++)
+                    shape.open[x, y] = true;
+
+            for (int side = 0; side < 4; side++)
+            {
+                if (!shape.HasDoor(side)) continue;
+                shape.OpenDoorway(side);
+                shape.CarveTunnel(side, shape.centre.x, shape.centre.y);
+            }
+
+            // A tunnel in from a doorway may cut across the arena's floor, but it never eats a pillar or a column.
+            for (int x = 0; x < Size; x++)
+            {
+                for (int y = 0; y < Size; y++)
+                {
+                    int gx = quadrant.x * Size + x, gy = quadrant.y * Size + y;
+                    if (shape.open[x, y] && !ArenaOpen(kind, variant, gx, gy) && ArenaOpen(kind, -1, gx, gy)) shape.open[x, y] = false;
+                }
+            }
+            shape.CollectInterior();
+
+            for (int x = Min; x <= Max; x++)
+            {
+                for (int y = Min; y <= Max; y++)
+                {
+                    if (shape.open[x, y] && ArenaPod(kind, quadrant.x * Size + x, quadrant.y * Size + y)) shape.cover.Add(new Vector2Int(x, y));
+                }
+            }
+            if (shape.cover.Count > 0)
+            {
+                shape.free.RemoveAll(shape.cover.Contains);
+                shape.feature = RoomFeature.Nursery;
+            }
+            shape.PlaceGlows();
+            return shape;
+        }
+
+        // The side of this quarter that opens onto another quarter of the arena.
+        bool IsSeam(int x, int y) =>
+            isArenaPart && ((x == (arenaQuadrant.x == 0 ? Size - 1 : 0)) || (y == (arenaQuadrant.y == 0 ? Size - 1 : 0)));
 
         /// <param name="size01">0 = the smallest chamber, 1 = the largest.</param>
         /// <param name="arena">True for a boss room: every inside tile open, no cover.</param>
@@ -458,7 +573,7 @@ namespace Shrunk
                 for (int y = 0; y < Size; y++)
                 {
                     bool border = x == 0 || y == 0 || x == Size - 1 || y == Size - 1;
-                    if (border && open[x, y] && !doorTiles.Contains(new Vector2Int(x, y))) problems.Add($"hole in the outer wall at {x},{y}");
+                    if (border && open[x, y] && !doorTiles.Contains(new Vector2Int(x, y)) && !IsSeam(x, y)) problems.Add($"hole in the outer wall at {x},{y}");
                 }
             }
 

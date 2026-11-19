@@ -153,6 +153,7 @@ namespace Shrunk
             {
                 case RoomType.Start: return startColor;
                 case RoomType.Exit: return exitColor;
+                case RoomType.Arena: return exitColor;
                 case RoomType.Treasure: return treasureColor;
                 case RoomType.Shop: return shopColor;
                 default: return normalColor;
