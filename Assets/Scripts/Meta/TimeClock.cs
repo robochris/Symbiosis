@@ -46,6 +46,7 @@ namespace Shrunk
             SaveSystem.Save();
             Sfx.Play(SfxId.Item);
             Show();
+            if (On && Radio.Instance != null) Radio.Instance.Say(RadioMoment.Overtime);
             return On;
         }
 

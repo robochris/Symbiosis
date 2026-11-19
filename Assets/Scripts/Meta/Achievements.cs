@@ -7,7 +7,8 @@ namespace Shrunk
     {
         FirstSteps, MothersDay, Regicide, Untouchable, Omelette, HandsOff,
         Deeper, Hoarder, ShellShock, BubbleWrap, SweetTooth, FullPockets,
-        PaperTrail, PerformanceReview, SpringClean, Unplugged, Defrosted
+        PaperTrail, PerformanceReview, SpringClean, Unplugged, Defrosted,
+        LooseChange, FiledAway, TimeAndAHalf
     }
 
     /// <summary>One achievement: what to do, and what doing it gives.</summary>
@@ -56,9 +57,12 @@ namespace Shrunk
             new Achievement { id = AchievementId.SpringClean, name = "Spring Clean", how = "Switch off the Robot Vacuum.", reward = "the Lint style, and a portal into the fridge", style = "Lint", biome = "fridge" },
             new Achievement { id = AchievementId.Unplugged, name = "Unplugged", how = "Make the Robot Vacuum's recharge fail.", reward = "nothing but the look on its face, and it hasn't got one" },
             new Achievement { id = AchievementId.Defrosted, name = "Defrosted", how = "Switch off the Ice Maker.", reward = "the Frost style", style = "Frost" },
+            new Achievement { id = AchievementId.LooseChange, name = "Loose Change", how = "Put down 10 mimics.", reward = "the certainty that no coin can be trusted" },
+            new Achievement { id = AchievementId.FiledAway, name = "Filed Away", how = "Get every kind of item on file in the cabinet.", reward = "the Paper style", style = "Paper" },
+            new Achievement { id = AchievementId.TimeAndAHalf, name = "Time and a Half", how = "Extract from a run on overtime.", reward = "nothing extra. Read your contract" },
         };
 
-        public const int ShellsNeeded = 20, PodsNeeded = 50, ItemsNeeded = 6, SamplesNeeded = 300;
+        public const int ShellsNeeded = 20, PodsNeeded = 50, ItemsNeeded = 6, SamplesNeeded = 300, MimicsNeeded = 10;
 
         public static Achievement Get(AchievementId id)
         {

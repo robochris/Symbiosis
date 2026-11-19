@@ -308,6 +308,47 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Mimics_the_cabinet_and_overtime_each_have_an_achievement()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var library = GameAssets.Instance.items;
+            var items = PlayerController.Instance.Items;
+
+            // Ten mimics.
+            SaveSystem.Data.meta.mimicsKilled = Achievements.MimicsNeeded - 1;
+            Assert.IsFalse(Achievements.Has(AchievementId.LooseChange));
+            var floors = FloorManager.Instance;
+            Enemy mimicPrefab = null;
+            foreach (var entry in floors.biome.spawnTable) if (entry.prefab is MimicEnemy) mimicPrefab = entry.prefab;
+            Assert.IsNotNull(mimicPrefab, "the ants have no mimic");
+            var mimic = Object.Instantiate(mimicPrefab, new Vector3(3f, 0.05f, 3f), Quaternion.identity);
+            mimic.gameObject.SetActive(true);
+            yield return null;
+            mimic.Health.Kill();
+            yield return null;
+            Assert.IsTrue(Achievements.Has(AchievementId.LooseChange));
+
+            // Every item on file: the cabinet is full and says so with a style.
+            Assert.IsFalse(Achievements.StyleUnlocked("Paper"));
+            foreach (var item in library.items) FilingCabinet.File(item);
+            Pickup.Item(library.Get(ItemType.NeedleTip), PlayerController.Instance.transform.position, 0);
+            yield return new WaitForSeconds(0.3f);
+            Assert.IsTrue(Achievements.Has(AchievementId.FiledAway), "a full cabinet earned nothing");
+            Assert.IsTrue(Achievements.StyleUnlocked("Paper"));
+
+            // Extracting on overtime.
+            Assert.IsFalse(Achievements.Has(AchievementId.TimeAndAHalf));
+            SaveSystem.Data.meta.finchBeaten = 1;
+            SaveSystem.Data.meta.overtime = true;
+            RunDirector.Instance.Extract();
+            yield return null;
+            yield return null;
+            Assert.IsTrue(Achievements.Has(AchievementId.TimeAndAHalf));
+        }
+
+        [UnityTest]
         public IEnumerator Beaten_bosses_end_up_in_jars_on_the_shelf()
         {
             SaveSystem.Data.meta.runsStarted = 3;

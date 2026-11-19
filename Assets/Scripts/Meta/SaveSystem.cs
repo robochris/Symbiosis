@@ -28,6 +28,7 @@ namespace Shrunk
         public List<int> achievements = new List<int>();
         public int shellsShattered;
         public int podsPopped;
+        public int mimicsKilled;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>
         public int labSeen;
         /// <summary>Pages of Dr. Finch's notebook found, by id.</summary>

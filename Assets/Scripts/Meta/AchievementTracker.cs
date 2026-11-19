@@ -79,6 +79,13 @@ namespace Shrunk
 
         void OnKilled(Enemy enemy)
         {
+            if (enemy is MimicEnemy)
+            {
+                var meta = SaveSystem.Data.meta;
+                meta.mimicsKilled++;
+                if (meta.mimicsKilled >= Achievements.MimicsNeeded) Achievements.Unlock(AchievementId.LooseChange);
+            }
+
             if (enemy is FinchBoss)
             {
                 Achievements.Unlock(AchievementId.PerformanceReview);
@@ -112,6 +119,8 @@ namespace Shrunk
         {
             var player = PlayerController.Instance;
             if (player != null && player.Items != null && player.Items.Collected.Count >= Achievements.ItemsNeeded) Achievements.Unlock(AchievementId.Hoarder);
+            var library = GameAssets.Instance != null ? GameAssets.Instance.items : null;
+            if (library != null && library.items != null && FilingCabinet.Filed >= library.items.Length) Achievements.Unlock(AchievementId.FiledAway);
         }
 
         void OnShell()
@@ -136,6 +145,7 @@ namespace Shrunk
         void OnExtracted(int samples)
         {
             if (samples >= Achievements.SamplesNeeded) Achievements.Unlock(AchievementId.FullPockets);
+            if (TimeClock.On) Achievements.Unlock(AchievementId.TimeAndAHalf);
         }
     }
 }

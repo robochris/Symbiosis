@@ -36,6 +36,8 @@ namespace Shrunk
         After,
         /// <summary>The player has picked up what was left in Finch's flask.</summary>
         Dose,
+        /// <summary>Clocking in for overtime at the lab's time clock.</summary>
+        Overtime,
         // From here down is chatter: said only now and then, and not at all on the Less setting.
         LowHealth,
         Item,
@@ -205,6 +207,12 @@ namespace Shrunk
                 "That was mine. It was also the last of it. Do enjoy being shorter.",
                 "You drank it. Of course you did. Welcome to the size I was last month.",
                 "Smaller, are we? It doesn't suit you. It didn't suit me either.",
+            },
+            [RadioMoment.Overtime] = new[]
+            {
+                "You've clocked in. I didn't think that clock still worked. I didn't think you did, either.",
+                "Overtime. It's paid at time and a half. Half of nothing is still very reasonable.",
+                "Extra hours. I'd have approved them, if anybody had asked, and if I could reach the form.",
             },
             [RadioMoment.LowHealth] = new[]
             {

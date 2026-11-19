@@ -170,6 +170,7 @@ namespace Shrunk.Tests
             Assert.IsFalse(TimeClock.On);
             Assert.That(WorldPrompt.For(clock.transform.position), Does.Contain("ordinary hours"));
             Assert.IsTrue(clock.Toggle());
+            Assert.AreEqual(RadioMoment.Overtime, Radio.Instance.LastMoment, "Finch had nothing to say about overtime");
             Assert.That(WorldPrompt.For(clock.transform.position), Does.Contain("on overtime"));
             SaveSystem.Data.run = new RunSave();
             SceneManager.LoadScene("Run");
