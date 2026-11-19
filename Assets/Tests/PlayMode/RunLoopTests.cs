@@ -251,6 +251,50 @@ namespace Shrunk.Tests
             Assert.AreEqual(45, SaveSystem.Data.meta.samples);
         }
 
+        [UnityTest]
+        public IEnumerator The_mirror_changes_the_Voids_style_and_the_next_run_keeps_it()
+        {
+            yield return Load("Lab");
+            var mirror = Object.FindAnyObjectByType<StyleMirror>();
+            Assert.IsNotNull(mirror, "the lab has no mirror");
+            var style = Player.GetComponent<PlayerStyle>();
+            Assert.IsNotNull(style);
+            Assert.GreaterOrEqual(style.styles.Length, 4);
+            Assert.AreEqual(0, style.Current, "a new player starts as the Shadow");
+
+            Renderer torso = Player.visual.Find("Torso").GetComponent<Renderer>();
+            Renderer eye = Player.visual.Find("Eye L").GetComponent<Renderer>();
+            Assert.AreEqual(style.styles[0].body, torso.sharedMaterial);
+
+            Assert.That(WorldPrompt.For(mirror.transform.position + Vector3.right), Does.Contain("Shadow"));
+            StepOnto(mirror.transform.position);
+            yield return null;
+            yield return null;
+            Assert.AreEqual(1, style.Current, "stepping in front of the mirror did nothing");
+            Assert.AreEqual(style.styles[1].body, torso.sharedMaterial, "the body did not change");
+            Assert.AreEqual(style.styles[1].eyes, eye.sharedMaterial, "the eyes did not change");
+            Assert.AreEqual(style.styles[1].body, Player.visual.Find("Arm R/Limb").GetComponent<Renderer>().sharedMaterial, "the arms were left behind");
+            Assert.AreEqual(1, SaveSystem.Data.meta.style);
+
+            // Standing there does not keep flipping through them.
+            yield return new WaitForSeconds(0.3f);
+            Assert.AreEqual(1, style.Current);
+
+            // Into a run: same style, and an item worn on top keeps its own look.
+            yield return Load("Run");
+            var inRun = Player.GetComponent<PlayerStyle>();
+            Assert.AreEqual(1, inRun.Current, "the run forgot the style");
+            Assert.AreEqual(inRun.styles[1].body, Player.visual.Find("Torso").GetComponent<Renderer>().sharedMaterial);
+            var item = GameAssets.Instance.items.Get(ItemType.ChitinPlate);
+            Player.Items.Add(item);
+            inRun.Next();
+            Assert.AreEqual(2, inRun.Current);
+            foreach (var part in Player.Items.LookIn(ItemSlot.Body).GetComponentsInChildren<Renderer>())
+            {
+                Assert.AreNotEqual(inRun.styles[2].body, part.sharedMaterial, "a style swap repainted an item");
+            }
+        }
+
         // ---------- the portal room: extract or go deeper ----------
 
         [UnityTest]

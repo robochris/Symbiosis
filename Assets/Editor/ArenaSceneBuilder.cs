@@ -155,6 +155,7 @@ namespace Shrunk.EditorTools
             player.visual = visual;
             root.AddComponent<HitFlash>();
             root.AddComponent<PlayerItems>();
+            root.AddComponent<PlayerStyle>().styles = Styles(body, eyes);
             var voidBody = root.AddComponent<VoidBody>();
             voidBody.legLeft = legLeft;
             voidBody.legRight = legRight;
@@ -310,6 +311,27 @@ namespace Shrunk.EditorTools
         }
 
         // ---------- helpers ----------
+
+        /// <summary>The character styles: full swaps of what the Void is made of. The first is the one it is built in.</summary>
+        internal static VoidStyle[] Styles(Material shadowBody, Material shadowEyes)
+        {
+            var chrome = Lit("StyleChrome", new Color(0.82f, 0.84f, 0.88f), 0.92f);
+            chrome.SetFloat("_Metallic", 1f);
+            var ember = Lit("StyleEmber", new Color(0.3f, 0.05f, 0.02f), 0.5f);
+            var toy = Lit("StyleToy", new Color(0.12f, 0.4f, 0.95f), 0.85f);
+            var ghost = Lit("StyleGhost", new Color(0.9f, 0.93f, 0.97f), 0.15f);
+            var gold = Lit("StyleGold", new Color(1f, 0.78f, 0.25f), 0.9f);
+            gold.SetFloat("_Metallic", 1f);
+            return new[]
+            {
+                new VoidStyle { displayName = "Shadow", body = shadowBody, eyes = shadowEyes },
+                new VoidStyle { displayName = "Chrome", body = chrome, eyes = Unlit("StyleEyesWhite", new Color(0.95f, 1f, 1f)) },
+                new VoidStyle { displayName = "Ember", body = ember, eyes = Unlit("Fire", new Color(1f, 0.55f, 0.1f)) },
+                new VoidStyle { displayName = "Toy", body = toy, eyes = Unlit("StyleEyesYellow", new Color(1f, 0.92f, 0.3f)) },
+                new VoidStyle { displayName = "Ghost", body = ghost, eyes = Unlit("StyleEyesDark", new Color(0.05f, 0.05f, 0.1f)) },
+                new VoidStyle { displayName = "Gold", body = gold, eyes = Unlit("StyleEyesRed", new Color(1f, 0.2f, 0.2f)) },
+            };
+        }
 
         // A limb from one point to another: an empty at the first point (the joint it turns about), holding a capsule
         // that reaches to the second, with a ball on the end for a hand if asked for.

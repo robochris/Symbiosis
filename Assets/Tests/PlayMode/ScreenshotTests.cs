@@ -130,6 +130,35 @@ namespace Shrunk.Tests
             }
         }
 
+        // The Void in each character style, from the front.
+        [UnityTest, Explicit]
+        public IEnumerator Capture_styles()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            var follow = CameraFollow.Instance;
+            follow.enabled = false;
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+
+            var style = player.GetComponent<PlayerStyle>();
+            Vector3 at = player.transform.position;
+            Camera.main.transform.SetPositionAndRotation(at + player.transform.forward * 3.4f + player.transform.right * 1.2f + Vector3.up * 1.5f,
+                Quaternion.LookRotation(-player.transform.forward * 3.4f - player.transform.right * 1.2f - Vector3.up * 0.5f));
+            for (int i = 0; i < style.styles.Length; i++)
+            {
+                style.Apply(i);
+                yield return null;
+                Save(Path.Combine(folder, "style-" + i + "-" + style.styles[i].displayName + ".png"));
+            }
+            SaveSystem.Wipe();
+        }
+
         [UnityTest, Explicit]
         public IEnumerator Capture_enemy_lineup()
         {

@@ -270,5 +270,14 @@ namespace Shrunk.Tests
             Time.timeScale = 4f;
             for (int floor = 1; floor <= 10; floor++) yield return PlayFloor(floor, Random.Range(1, int.MaxValue));
         }
+
+        /// <summary>The same in the Birthday Cake.</summary>
+        [UnityTest, Explicit, Timeout(3600000)]
+        public IEnumerator A_bot_clears_a_whole_cake_biome_on_foot()
+        {
+            Assert.IsTrue(_floors.SetBiome("cake"));
+            Time.timeScale = 4f;
+            for (int floor = 1; floor <= 10; floor++) yield return PlayFloor(floor, Random.Range(1, int.MaxValue));
+        }
     }
 }

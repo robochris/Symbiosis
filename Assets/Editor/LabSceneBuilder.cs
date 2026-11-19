@@ -83,6 +83,16 @@ namespace Shrunk.EditorTools
             portal.transform.position = new Vector3(0f, 0f, -5.2f);
             portal.AddComponent<LabPortal>();
 
+            // ----- the mirror: character styles -----
+            var mirrorGlass = ArenaSceneBuilder.Lit("MirrorGlass", new Color(0.75f, 0.85f, 0.9f), 0.95f);
+            mirrorGlass.SetFloat("_Metallic", 1f);
+            var mirror = new GameObject("Mirror");
+            mirror.transform.position = new Vector3(-8.2f, 0f, -3f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Frame", mirror.transform, new Vector3(-2.55f, 2.1f, 0f), new Vector3(0.2f, 4.2f, 3f), benchMat, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Glass", mirror.transform, new Vector3(-2.42f, 2.1f, 0f), new Vector3(0.1f, 3.8f, 2.6f), mirrorGlass, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", mirror.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("StyleMat", new Color(0.9f, 0.9f, 0.95f)), false);
+            mirror.AddComponent<StyleMirror>();
+
             // ----- player, camera, HUD -----
             var player = ArenaSceneBuilder.BuildPlayer(voidBody, eyeGlow, bulletPrefab);
             // Start facing the portal, with the workbench behind: the first thing you see is the way into a run.
