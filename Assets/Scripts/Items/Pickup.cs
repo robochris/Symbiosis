@@ -150,6 +150,8 @@ namespace Shrunk
         public const float ItemChance = 0.02f;
         /// <summary>Samples from an unmutated enemy; each mutation point adds one more.</summary>
         public const int SamplesPerEnemy = 2;
+        public const int EliteSamples = 5;
+        public const float EliteItemChance = 0.3f;
 
         public static void Drop(Enemy enemy)
         {
@@ -162,10 +164,12 @@ namespace Shrunk
             for (int i = 0; i < coins; i++) Pickup.Coin(origin + Scatter(), 1);
 
             Pickup.Sample(origin + Scatter(), SamplesPerEnemy + points);
+            // An elite is worth hunting: a second lump of samples, and a real chance of an item.
+            if (enemy.IsElite) Pickup.Sample(origin + Scatter(), EliteSamples);
 
             var assets = GameAssets.Instance;
             // Bosses have their own item rewards.
-            if (!(enemy is BossEnemy) && assets != null && assets.items != null && UnityEngine.Random.value < ItemChance * (1 + points))
+            if (!(enemy is BossEnemy) && assets != null && assets.items != null && UnityEngine.Random.value < (enemy.IsElite ? EliteItemChance : ItemChance * (1 + points)))
             {
                 var picks = assets.items.RandomCommon(new System.Random(UnityEngine.Random.Range(0, int.MaxValue)), 1);
                 if (picks.Count > 0) Pickup.Item(picks[0], origin, 0);

@@ -227,6 +227,33 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Every_mutation_has_its_own_look_on_the_body()
+        {
+            var looks = new Dictionary<MutationType, string>
+            {
+                { MutationType.Fast, "Speed line" }, { MutationType.Armored, "Armour plate" }, { MutationType.Regenerates, "Regeneration pulse" },
+                { MutationType.AcidBlood, "Acid drip" }, { MutationType.SwarmCall, "Antenna glow" }, { MutationType.HardenedShell, "Shell plate" },
+            };
+            int i = 0;
+            foreach (var look in looks)
+            {
+                var ant = Spawn(i % 2 == 0 ? "WorkerAnt" : "WingedAnt", new Vector3(-8f + i * 3f, 0f, 8f), look.Key);
+                ant.frozen = true;
+                i++;
+                Transform found = null;
+                foreach (var part in ant.GetComponentsInChildren<Transform>()) if (part.name == look.Value) found = part;
+                Assert.IsNotNull(found, $"{look.Key} has no \"{look.Value}\" on the ant");
+                Assert.IsNull(found.GetComponent<Collider>() != null && found.GetComponent<Collider>().enabled ? found : null, "a look must not block shots");
+
+                // The moving ones really move.
+                if (look.Key == MutationType.Armored || look.Key == MutationType.HardenedShell) continue;
+                Vector3 position = found.localPosition, scale = found.localScale;
+                yield return new WaitForSeconds(0.2f);
+                Assert.IsTrue(found.localPosition != position || found.localScale != scale, $"the {look.Value} is not animated");
+            }
+        }
+
+        [UnityTest]
         public IEnumerator Mutated_ants_show_a_badge_for_each_mutation_and_lose_them_when_reused()
         {
             var ant = Spawn("WorkerAnt", new Vector3(0f, 0f, 12f), MutationType.Fast, MutationType.Armored, MutationType.AcidBlood);

@@ -6,7 +6,8 @@ namespace Shrunk
     /// <summary>
     /// Gives one enemy its mutations: changes its stats, reacts to damage and death, and shows the tells.
     /// Every mutation is read the same way: a coloured badge floating above the enemy and a body tint in that colour,
-    /// plus a shape or motion for the ones that need it (a face plate, flashing, pulsing, a trail).
+    /// plus its own look in that colour: speed lines, armour plates, a pulse on the ground, a swollen flashing body,
+    /// drips, glowing antennae, a face plate, a trail.
     /// </summary>
     [RequireComponent(typeof(Enemy), typeof(Health))]
     public class EnemyMutations : MonoBehaviour
@@ -15,11 +16,24 @@ namespace Shrunk
         public float badgeHeight = 2.3f;
         [Tooltip("How far in front of the body the Hardened Shell plate sits.")]
         public float shellOffset = 1.1f;
+        [Tooltip("How big the body is next to a worker ant (1). The looks are sized and placed by it.")]
+        public float bodySize = 1f;
 
         public IReadOnlyList<MutationDefinition> Active => _active;
 
         readonly List<MutationDefinition> _active = new List<MutationDefinition>();
         readonly List<GameObject> _tells = new List<GameObject>();
+        readonly List<MovingTell> _moving = new List<MovingTell>();
+
+        enum Motion { SpeedLine, Pulse, Drip, Glow }
+
+        struct MovingTell
+        {
+            public Transform transform;
+            public Motion motion;
+            public Vector3 position, scale;
+            public float phase;
+        }
         Enemy _enemy;
         Health _health;
         HitFlash _flash;
@@ -70,6 +84,7 @@ namespace Shrunk
         {
             foreach (var tell in _tells) if (tell != null) Destroy(tell);
             _tells.Clear();
+            _moving.Clear();
             _active.Clear();
             _summoned = false;
         }
@@ -93,10 +108,38 @@ namespace Shrunk
                 {
                     case MutationType.Fast:
                         _enemy.SpeedMultiplier = 1.5f;
+                        // Speed lines streaming out behind.
+                        Moving(Motion.SpeedLine, BodyTell(PrimitiveType.Cube, "Speed line", mutation, new Vector3(-0.32f, 0.5f, -1.5f), new Vector3(0.05f, 0.05f, 0.7f)), 0f);
+                        Moving(Motion.SpeedLine, BodyTell(PrimitiveType.Cube, "Speed line", mutation, new Vector3(0f, 0.85f, -1.6f), new Vector3(0.05f, 0.05f, 0.7f)), 0.33f);
+                        Moving(Motion.SpeedLine, BodyTell(PrimitiveType.Cube, "Speed line", mutation, new Vector3(0.32f, 0.45f, -1.5f), new Vector3(0.05f, 0.05f, 0.7f)), 0.66f);
                         break;
                     case MutationType.Armored:
                         _health.damageMultiplier = 0.5f;
                         scale *= 1.1f;
+                        // Plates over the back, the middle and the head.
+                        BodyTell(PrimitiveType.Cube, "Armour plate", mutation, new Vector3(0f, 0.95f, -0.65f), new Vector3(0.62f, 0.12f, 0.75f));
+                        BodyTell(PrimitiveType.Cube, "Armour plate", mutation, new Vector3(0f, 0.8f, 0f), new Vector3(0.44f, 0.1f, 0.46f));
+                        BodyTell(PrimitiveType.Cube, "Armour plate", mutation, new Vector3(0f, 0.9f, 0.5f), new Vector3(0.44f, 0.1f, 0.4f));
+                        break;
+                    case MutationType.Regenerates:
+                        // A ring on the ground that keeps spreading out from under it.
+                        var pulse = MakeTell(PrimitiveType.Cylinder, "Regeneration pulse", mutation.effectMaterial);
+                        pulse.transform.localPosition = new Vector3(0f, 0.03f, 0f);
+                        Moving(Motion.Pulse, pulse, 0f);
+                        break;
+                    case MutationType.AcidBlood:
+                        Moving(Motion.Drip, BodyTell(PrimitiveType.Sphere, "Acid drip", mutation, new Vector3(-0.2f, 0.4f, -0.7f), Vector3.one * 0.13f), 0f);
+                        Moving(Motion.Drip, BodyTell(PrimitiveType.Sphere, "Acid drip", mutation, new Vector3(0.15f, 0.4f, -0.2f), Vector3.one * 0.11f), 0.4f);
+                        Moving(Motion.Drip, BodyTell(PrimitiveType.Sphere, "Acid drip", mutation, new Vector3(0.05f, 0.45f, 0.45f), Vector3.one * 0.12f), 0.75f);
+                        break;
+                    case MutationType.SwarmCall:
+                        // Antennae with glowing tips.
+                        for (int side = -1; side <= 1; side += 2)
+                        {
+                            var stalk = BodyTell(PrimitiveType.Cube, "Antenna", mutation, new Vector3(0.14f * side, 1.02f, 0.72f), new Vector3(0.04f, 0.4f, 0.04f));
+                            stalk.transform.localRotation = Quaternion.Euler(35f, 0f, -18f * side);
+                            Moving(Motion.Glow, BodyTell(PrimitiveType.Sphere, "Antenna glow", mutation, new Vector3(0.2f * side, 1.2f, 0.85f), Vector3.one * 0.2f), side * 0.25f);
+                        }
                         break;
                     case MutationType.ExplodesOnDeath:
                         scale *= 1.2f;
@@ -146,6 +189,54 @@ namespace Shrunk
             plate.transform.localScale = new Vector3(1.3f, 1.1f, 0.15f);
         }
 
+        // A tell fixed to the body itself, placed and sized as if on a worker ant: it hovers, swells and shrinks with the body.
+        GameObject BodyTell(PrimitiveType shape, string name, MutationDefinition mutation, Vector3 position, Vector3 size)
+        {
+            var go = MakeTell(shape, name, mutation.effectMaterial);
+            if (_enemy.visual != null) go.transform.SetParent(_enemy.visual, false);
+            go.transform.localPosition = position * bodySize;
+            go.transform.localScale = size * bodySize;
+            return go;
+        }
+
+        void Moving(Motion motion, GameObject tell, float phase)
+        {
+            _moving.Add(new MovingTell
+            {
+                transform = tell.transform, motion = motion, phase = phase,
+                position = tell.transform.localPosition, scale = tell.transform.localScale
+            });
+        }
+
+        void Animate()
+        {
+            foreach (var tell in _moving)
+            {
+                if (tell.transform == null) continue;
+                float rate = tell.motion == Motion.SpeedLine ? 2.5f : tell.motion == Motion.Glow ? 1.5f : 0.9f;
+                float t = Mathf.Repeat(Time.time * rate + tell.phase, 1f);
+                switch (tell.motion)
+                {
+                    case Motion.SpeedLine:
+                        // Shoots backward and thins out, over and over.
+                        tell.transform.localPosition = tell.position + Vector3.back * (t * 0.6f * bodySize);
+                        tell.transform.localScale = new Vector3(tell.scale.x, tell.scale.y, tell.scale.z * (1.2f - t));
+                        break;
+                    case Motion.Pulse:
+                        float width = Mathf.Lerp(0.8f, 3.2f, t) * bodySize;
+                        tell.transform.localScale = new Vector3(width, Mathf.Lerp(0.02f, 0.002f, t), width);
+                        break;
+                    case Motion.Drip:
+                        // Hangs, falls to the floor, starts again.
+                        tell.transform.localPosition = new Vector3(tell.position.x, Mathf.Lerp(tell.position.y, 0.05f, t * t), tell.position.z);
+                        break;
+                    case Motion.Glow:
+                        tell.transform.localScale = tell.scale * (1f + 0.35f * Mathf.Sin(t * Mathf.PI * 2f));
+                        break;
+                }
+            }
+        }
+
         GameObject MakeTell(PrimitiveType shape, string name, Material material)
         {
             var go = GameObject.CreatePrimitive(shape);
@@ -177,6 +268,8 @@ namespace Shrunk
                 _nextTrail = Time.time + 0.4f;
                 PheromoneTrail.Drop(transform.position, _enemy, pheromone.effectMaterial);
             }
+
+            Animate();
 
             // Moving tells: about-to-explode flashes red, regenerating pulses.
             if (_flash == null) return;

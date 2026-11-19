@@ -47,6 +47,8 @@ namespace Shrunk
         /// <summary>After a biome boss: the way on to the next biome, one depth deeper. Null until then.</summary>
         public GameObject DeeperPortal { get; private set; }
         public IReadOnlyList<Enemy> LiveEnemies => _live;
+        /// <summary>For tests: 0 to 1 replaces the usual chance of an elite in a fight room. Negative = the usual chance.</summary>
+        [System.NonSerialized] public float eliteChanceOverride = -1f;
         public int FloorsBuilt { get; private set; }
 
         readonly Dictionary<Vector2Int, Room> _rooms = new Dictionary<Vector2Int, Room>();
@@ -300,11 +302,22 @@ namespace Shrunk
 
             var rng = new System.Random(UnityEngine.Random.Range(0, int.MaxValue));
             int budget = MutationBudget.MaxPoints(depth, FloorInBiome);
+            // Some rooms have an elite: the first ant in gets a full load of mutations, more health and a crown.
+            float eliteChance = eliteChanceOverride >= 0f ? eliteChanceOverride : MutationBudget.EliteChance(depth, FloorInBiome);
+            bool elite = rng.NextDouble() < eliteChance;
             for (int i = 0; i < count && points.Count > 0; i++)
             {
                 int pick = UnityEngine.Random.Range(0, points.Count);
                 Enemy enemy = Spawn(biome.PickEnemy(FloorInBiome, rng), points[pick], playerPosition);
-                if (enemy.Mutations != null) enemy.Mutations.Apply(MutationBudget.Roll(rng, biome.mutations, budget));
+                if (elite && i == 0)
+                {
+                    if (enemy.Mutations != null) enemy.Mutations.Apply(MutationBudget.RollFull(rng, biome.mutations, budget + 1));
+                    enemy.MakeElite(biome.eliteMaterial);
+                }
+                else if (enemy.Mutations != null)
+                {
+                    enemy.Mutations.Apply(MutationBudget.Roll(rng, biome.mutations, budget));
+                }
                 points.RemoveAt(pick);
             }
 

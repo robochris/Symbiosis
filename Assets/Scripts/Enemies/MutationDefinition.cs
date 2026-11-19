@@ -49,7 +49,30 @@ namespace Shrunk
             var chosen = new List<MutationDefinition>();
             if (pool == null || pool.Count == 0 || maxPoints <= 0) return chosen;
 
-            int points = rng.Next(0, maxPoints + 1);
+            Spend(rng, pool, rng.Next(0, maxPoints + 1), chosen);
+            return chosen;
+        }
+
+        /// <summary>Spends exactly this many points (or as near as the pool allows), with no dice on the total. For elites.</summary>
+        public static List<MutationDefinition> RollFull(System.Random rng, IList<MutationDefinition> pool, int points)
+        {
+            var chosen = new List<MutationDefinition>();
+            if (pool != null && pool.Count > 0) Spend(rng, pool, points, chosen);
+            return chosen;
+        }
+
+        /// <summary>
+        /// The chance that a fight room has an elite. None on the first half of the first biome; one room in four on
+        /// floors 6-9; and every biome deeper adds a fifth, up to nine rooms in ten.
+        /// </summary>
+        public static float EliteChance(int depth, int floor)
+        {
+            float chance = (floor >= 6 ? 0.25f : 0f) + 0.2f * (Mathf.Max(1, depth) - 1);
+            return Mathf.Clamp(chance, 0f, 0.9f);
+        }
+
+        static void Spend(System.Random rng, IList<MutationDefinition> pool, int points, List<MutationDefinition> chosen)
+        {
             var affordable = new List<MutationDefinition>();
             while (points > 0)
             {
@@ -64,7 +87,6 @@ namespace Shrunk
                 chosen.Add(pick);
                 points -= pick.cost;
             }
-            return chosen;
         }
     }
 }

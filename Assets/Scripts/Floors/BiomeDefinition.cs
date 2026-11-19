@@ -80,6 +80,9 @@ namespace Shrunk
             return count;
         }
 
+        [Tooltip("What an elite's crown is made of.")]
+        public Material eliteMaterial;
+
         [Header("Mutations")]
         [Tooltip("What enemies here can roll: the universal ones plus this biome's own.")]
         public MutationDefinition[] mutations;

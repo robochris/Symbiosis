@@ -288,7 +288,7 @@ namespace Shrunk.Tests
                     enemies++;
                     kinds.Add(enemy.GetType().Name);
                     Assert.IsNotNull(enemy.Mutations, enemy.name + " cannot carry mutations");
-                    Assert.LessOrEqual(enemy.Mutations.TotalCost, budget, enemy.name + " is over the mutation budget");
+                    Assert.LessOrEqual(enemy.Mutations.TotalCost, budget + (enemy.IsElite ? 1 : 0), enemy.name + " is over the mutation budget");
                     if (enemy.Mutations.Active.Count > 0) mutated++;
                     foreach (var mutation in enemy.Mutations.Active) mutationsSeen.Add(mutation.type);
                 }
@@ -518,6 +518,56 @@ namespace Shrunk.Tests
                 }
             }
             Assert.Greater(pebbles, 10, "three deep floors had almost no cover");
+        }
+
+        [UnityTest]
+        public IEnumerator An_elite_is_bigger_tougher_fully_mutated_and_worth_more()
+        {
+            Assert.AreEqual(0f, MutationBudget.EliteChance(1, 3), "no elites early in the first biome");
+            Assert.AreEqual(0.25f, MutationBudget.EliteChance(1, 7), 0.001f);
+            Assert.AreEqual(0.2f, MutationBudget.EliteChance(2, 1), 0.001f);
+            Assert.AreEqual(0.9f, MutationBudget.EliteChance(9, 9), 0.001f, "never certain");
+
+            _floors.eliteChanceOverride = 1f;
+            RoomNode target = null;
+            foreach (var node in _floors.Layout.ordered)
+            {
+                if (node.type == RoomType.Normal) { target = node; break; }
+            }
+            _player.Health.SetInvulnerable(600f);
+            _player.Teleport(StandingSpot(target) + Vector3.up * 0.05f);
+            yield return WaitUntil(() => _floors.IsLocked, 2f, "the room to lock");
+
+            Enemy elite = null;
+            int elites = 0;
+            foreach (var enemy in _floors.LiveEnemies)
+            {
+                if (!enemy.IsElite) continue;
+                elite = enemy;
+                elites++;
+            }
+            Assert.AreEqual(1, elites, "exactly one elite in the room");
+            Assert.IsNotNull(elite.transform.Find("Elite crown"), "an elite must be marked");
+            Assert.Greater(elite.Mutations.TotalCost, 0, "an elite always carries mutations");
+            Assert.AreEqual(Enemy.EliteSize, elite.BaseScale / (elite.Mutations.Has(MutationType.Armored) ? 1.1f : 1f) / (elite.Mutations.Has(MutationType.ExplodesOnDeath) ? 1.2f : 1f), 0.01f);
+
+            Enemy prefab = _floors.biome.EnemyNamed(elite.name.Replace("(Clone)", "").Trim());
+            Assert.IsNotNull(prefab, "could not find the elite's prefab: " + elite.name);
+            int plain = prefab.GetComponent<Health>().maxHealth;
+            Assert.AreEqual(Mathf.CeilToInt(plain * Enemy.EliteHealth), elite.Health.maxHealth);
+            Assert.AreEqual(elite.Health.maxHealth, elite.Health.Current);
+
+            // Dead, it leaves the extra samples; back in the pool, it is a plain ant again.
+            int samplesBefore = 0;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Sample) samplesBefore += pickup.amount;
+            int cost = elite.Mutations.TotalCost;
+            elite.Health.Kill();
+            yield return new WaitForSeconds(0.4f);
+            int samples = 0;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Sample) samples += pickup.amount;
+            Assert.AreEqual(Loot.SamplesPerEnemy + cost + Loot.EliteSamples, samples - samplesBefore);
+            Assert.IsFalse(elite.IsElite);
+            Assert.AreEqual(plain, elite.Health.maxHealth, "the pooled ant kept its elite health");
         }
 
         // Rebuilds the floor with every fight room of one kind, and returns the first of them.

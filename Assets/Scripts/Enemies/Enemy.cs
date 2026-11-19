@@ -41,6 +41,8 @@ namespace Shrunk
         public float BaseScale { get; set; } = 1f;
         /// <summary>False while it can't be shot at all (a burrowed boss). Aim assist and companions skip it.</summary>
         public bool Targetable { get; protected set; } = true;
+        /// <summary>The pick of the room: bigger, much tougher, carrying a full load of mutations, and worth more.</summary>
+        public bool IsElite { get; private set; }
         public bool IsBuffed => Time.time < _buffUntil;
         public bool IsBurning => Time.time < _burnUntil;
         /// <summary>Confused enemies attack the nearest other enemy instead of the player.</summary>
@@ -64,6 +66,45 @@ namespace Shrunk
         float _confusedUntil;
         GameObject _fireTell;
         GameObject _confusedTell;
+        GameObject _crown;
+        int _plainMaxHealth;
+
+        public const float EliteHealth = 2.5f;
+        public const float EliteSize = 1.3f;
+
+        /// <summary>Turns this enemy into the room's elite. Call after its mutations are applied. It wears a crown so it can be picked out.</summary>
+        public void MakeElite(Material crownMaterial)
+        {
+            if (IsElite) return;
+            IsElite = true;
+            _plainMaxHealth = Health.maxHealth;
+            Health.SetMaxHealth(Mathf.CeilToInt(Health.maxHealth * EliteHealth), true);
+            BaseScale *= EliteSize;
+            SetVisualScale(1f);
+
+            float height = Mutations != null ? Mutations.badgeHeight + 0.55f : 2.8f;
+            _crown = new GameObject("Elite crown");
+            _crown.transform.SetParent(transform, false);
+            _crown.transform.localPosition = new Vector3(0f, height, 0f);
+            CrownPart(PrimitiveType.Cylinder, Vector3.zero, new Vector3(0.7f, 0.07f, 0.7f), crownMaterial);
+            for (int i = 0; i < 5; i++)
+            {
+                Vector3 at = Quaternion.Euler(0f, i * 72f, 0f) * new Vector3(0.3f, 0.17f, 0f);
+                CrownPart(PrimitiveType.Cube, at, new Vector3(0.12f, 0.24f, 0.12f), crownMaterial);
+            }
+        }
+
+        void CrownPart(PrimitiveType shape, Vector3 position, Vector3 scale, Material material)
+        {
+            var part = GameObject.CreatePrimitive(shape);
+            var collider = part.GetComponent<Collider>();
+            collider.enabled = false;
+            Destroy(collider);
+            part.transform.SetParent(_crown.transform, false);
+            part.transform.localPosition = position;
+            part.transform.localScale = scale;
+            if (material != null) part.GetComponent<Renderer>().sharedMaterial = material;
+        }
 
         protected virtual void Awake()
         {
@@ -93,6 +134,13 @@ namespace Shrunk
 
         protected virtual void OnDisable()
         {
+            // Back to a plain ant before it goes into the pool.
+            if (IsElite)
+            {
+                IsElite = false;
+                Health.maxHealth = _plainMaxHealth;
+                if (_crown != null) Destroy(_crown);
+            }
             Active.Remove(this);
             Health.Damaged -= OnDamaged;
             Health.Died -= OnDied;
@@ -116,6 +164,7 @@ namespace Shrunk
                 Health.TakeDamage(1, Vector3.zero);
                 if (Health.IsDead) return;
             }
+            if (_crown != null) _crown.transform.Rotate(0f, 90f * Time.deltaTime, 0f);
             ShowTell(ref _fireTell, IsBurning, 0f);
             ShowTell(ref _confusedTell, IsConfused, 0.5f);
 
