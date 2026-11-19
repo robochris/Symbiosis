@@ -29,7 +29,7 @@ namespace Shrunk.EditorTools
             var spark = ArenaSceneBuilder.Unlit("StaticSpark", new Color(1f, 0.95f, 0.4f));
             var pellet = ArenaSceneBuilder.Unlit("Pellet", new Color(0.55f, 0.95f, 0.4f));
             var carpet = ArenaSceneBuilder.Lit("Carpet", new Color(0.3f, 0.2f, 0.32f), 0.02f);
-            var underside = ArenaSceneBuilder.Lit("SofaUnderside", new Color(0.12f, 0.1f, 0.1f), 0.05f);
+            var underside = ArenaSceneBuilder.Lit("SofaUnderside", new Color(0.23f, 0.18f, 0.18f), 0.05f);
             var wood = ArenaSceneBuilder.Lit("SofaWood", new Color(0.32f, 0.2f, 0.12f), 0.3f);
             var brick = ArenaSceneBuilder.Lit("ToyBrick", new Color(0.85f, 0.15f, 0.12f), 0.7f);
             var telegraph = ArenaSceneBuilder.Unlit("Telegraph", new Color(1f, 0.25f, 0.2f));

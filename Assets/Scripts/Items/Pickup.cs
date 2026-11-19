@@ -4,11 +4,12 @@ using UnityEngine;
 
 namespace Shrunk
 {
-    public enum PickupKind { Coin, Sample, Item }
+    public enum PickupKind { Coin, Sample, Item, Health }
 
     /// <summary>
     /// Something lying on the floor to collect. Coins and samples fly to the player when they get close.
-    /// Items are taken by walking onto them; in the shop that also costs coins.
+    /// Items are taken by walking onto them; in the shop that also costs coins. A crumb gives a point of health
+    /// back, and is left where it is by anybody who is not hurt.
     /// </summary>
     public class Pickup : MonoBehaviour
     {
@@ -44,6 +45,30 @@ namespace Shrunk
             pickup.item = item;
             pickup.price = price;
             return pickup;
+        }
+
+        /// <summary>A crumb: one point of health for whoever needs it. In the shop it costs coins.</summary>
+        public static Pickup Health(Vector3 position, int price = 0)
+        {
+            var pickup = Create(PickupKind.Health, PrimitiveType.Sphere, "Crumb (health)", position + Vector3.up * 0.5f, new Vector3(0.5f, 0.38f, 0.45f),
+                GameAssets.Instance != null ? GameAssets.Instance.health : null, 1);
+            pickup.price = price;
+            return pickup;
+        }
+
+        public const int CrumbPrice = 8;
+        /// <summary>A health point was picked up (free or bought).</summary>
+        public static event Action HealthCollected;
+
+        string CrumbPrompt(Vector3 playerPosition)
+        {
+            Vector3 to = playerPosition - transform.position;
+            to.y = 0f;
+            if (to.magnitude > 2.6f) return null;
+            var player = PlayerController.Instance;
+            bool hurt = player != null && player.Health.Current < player.Health.maxHealth;
+            if (!hurt) return "A crumb. You are not hungry enough.";
+            return price > 0 ? $"A crumb: one health back. {price} coins (you have {RunState.Coins})." : "A crumb: one health back.";
         }
 
         static Pickup Create(PickupKind kind, PrimitiveType shape, string name, Vector3 position, Vector3 scale, Material material, int amount)
@@ -89,8 +114,19 @@ namespace Shrunk
             return best;
         }
 
-        void OnEnable() => All.Add(this);
-        void OnDisable() => All.Remove(this);
+        void OnEnable()
+        {
+            All.Add(this);
+            WorldPrompt.Add(Prompt);
+        }
+
+        void OnDisable()
+        {
+            All.Remove(this);
+            WorldPrompt.Remove(Prompt);
+        }
+
+        string Prompt(Vector3 playerPosition) => kind == PickupKind.Health ? CrumbPrompt(playerPosition) : null;
 
         void Update()
         {
@@ -105,6 +141,19 @@ namespace Shrunk
             Vector3 to = player.transform.position - transform.position;
             to.y = 0f;
             float distance = to.magnitude;
+
+            if (kind == PickupKind.Health)
+            {
+                // Only for the hurt: anybody else walks over it and it stays for later.
+                if (distance > 0.9f || player.Health.Current >= player.Health.maxHealth) return;
+                if (price > 0 && !RunState.TrySpendCoins(price)) return;
+                player.Health.Heal(amount);
+                HealthCollected?.Invoke();
+                Sfx.Play(SfxId.Item);
+                Fx.Burst(transform.position, new Color(1f, 0.5f, 0.55f), 10, 4f, 0.16f, 0.4f);
+                Destroy(gameObject);
+                return;
+            }
 
             if (kind == PickupKind.Item)
             {
@@ -152,6 +201,10 @@ namespace Shrunk
         public const int SamplesPerEnemy = 2;
         public const int EliteSamples = 5;
         public const float EliteItemChance = 0.3f;
+        /// <summary>Chance an enemy leaves a crumb when the player is hurt. Never when they are not.</summary>
+        public const float CrumbChance = 0.05f;
+        /// <summary>Tests set this to make the roll certain (1) or impossible (0).</summary>
+        public static float? CrumbChanceOverride;
 
         public static void Drop(Enemy enemy)
         {
@@ -164,6 +217,14 @@ namespace Shrunk
             for (int i = 0; i < coins; i++) Pickup.Coin(origin + Scatter(), 1);
 
             Pickup.Sample(origin + Scatter(), SamplesPerEnemy + points);
+
+            // Something to eat: always from a boss, now and then from anything else if the player is hurt.
+            var eater = PlayerController.Instance;
+            bool hurt = eater != null && eater.Health.Current < eater.Health.maxHealth;
+            if (enemy is BossEnemy || (hurt && UnityEngine.Random.value < (CrumbChanceOverride ?? (enemy.IsElite ? CrumbChance * 4f : CrumbChance))))
+            {
+                Pickup.Health(origin + Scatter());
+            }
             // An elite is worth hunting: a second lump of samples, and a real chance of an item.
             if (enemy.IsElite) Pickup.Sample(origin + Scatter(), EliteSamples);
 

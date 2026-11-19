@@ -275,6 +275,8 @@ namespace Shrunk
                     var picks = assets.items.RandomCommon(rng, 3);
                     Vector3[] spots = { new Vector3(-2f, 0f, -1.7f), new Vector3(0f, 0f, -2.3f), new Vector3(2f, 0f, -1.7f) };
                     for (int i = 0; i < picks.Count; i++) Pickup.Item(picks[i], room.Centre + spots[i], picks[i].price);
+                    // And something to eat, off to one side of the counter.
+                    Pickup.Health(room.Centre + new Vector3(3.6f, 0f, -0.6f), Pickup.CrumbPrice);
                 }
             }
         }

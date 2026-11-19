@@ -50,6 +50,44 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Enemies_only_leave_food_for_a_player_who_is_hurt()
+        {
+            Loot.CrumbChanceOverride = 1f;
+            try
+            {
+                Enemy first = Spawn("WorkerAnt", new Vector3(0f, 0f, 14f));
+                first.frozen = true;
+                yield return null;
+                first.Health.Kill();
+                yield return null;
+                int crumbs = 0;
+                foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Health) crumbs++;
+                Assert.AreEqual(0, crumbs, "food for somebody who did not need it");
+
+                _player.Health.TakeDamage(1, Vector3.forward);
+                Enemy second = Spawn("WorkerAnt", new Vector3(0f, 0f, 14f));
+                second.frozen = true;
+                yield return null;
+                second.Health.Kill();
+                yield return null;
+                Pickup crumb = null;
+                foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Health) crumb = pickup;
+                Assert.IsNotNull(crumb, "nothing to eat for a hurt player");
+
+                // Walking onto it puts the health back.
+                int hurt = _player.Health.Current;
+                Vector3 spot = crumb.transform.position;
+                spot.y = 0.05f;
+                _player.Teleport(spot);
+                yield return WaitUntil(() => _player.Health.Current == hurt + 1, 1f, "the crumb to be eaten");
+            }
+            finally
+            {
+                Loot.CrumbChanceOverride = null;
+            }
+        }
+
+        [UnityTest]
         public IEnumerator Lobber_throws_at_where_the_player_is_going_and_keeps_its_distance()
         {
             var lobber = (LobberEnemy)Spawn("BombardierAnt", new Vector3(0f, 0f, 11f));

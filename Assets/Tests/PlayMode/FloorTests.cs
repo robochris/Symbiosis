@@ -342,6 +342,39 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_shop_sells_a_crumb_that_only_the_hurt_can_buy()
+        {
+            var node = RoomOfType(RoomType.Shop);
+            Room room = _floors.RoomAt(node.cell);
+            Pickup crumb = null;
+            foreach (var pickup in Pickup.All)
+            {
+                if (pickup.kind == PickupKind.Health && room.ContainsInside(pickup.transform.position, 0f)) crumb = pickup;
+            }
+            Assert.IsNotNull(crumb, "the shop has nothing to eat");
+            Assert.AreEqual(Pickup.CrumbPrice, crumb.price);
+            Vector3 spot = crumb.transform.position;
+            spot.y = 0.05f;
+
+            // Unhurt, with coins: it stays on the shelf and the coins stay in the pocket.
+            RunState.AddCoins(20);
+            _player.Teleport(spot);
+            yield return new WaitForSeconds(0.3f);
+            Assert.IsNotNull(crumb, "sold to somebody who was not hurt");
+            Assert.AreEqual(20, RunState.Coins);
+            Assert.That(WorldPrompt.For(spot), Does.Contain("not hungry"));
+
+            // Hurt: bought, eaten, paid for.
+            _player.Health.ClearInvulnerability();
+            _player.Health.TakeDamage(1, Vector3.forward);
+            int hurt = _player.Health.Current;
+            yield return WaitUntil(() => _player.Health.Current == hurt + 1, 1f, "the crumb to be eaten");
+            Assert.AreEqual(20 - Pickup.CrumbPrice, RunState.Coins);
+            yield return null;
+            Assert.IsTrue(crumb == null, "the crumb is still on the shelf");
+        }
+
+        [UnityTest]
         public IEnumerator Shop_sells_three_items_for_coins()
         {
             var node = RoomOfType(RoomType.Shop);

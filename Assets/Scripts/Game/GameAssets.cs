@@ -19,6 +19,8 @@ namespace Shrunk
         public Material coin;
         public Material sample;
         public Material note;
+        [Tooltip("What a crumb of health is made of.")]
+        public Material health;
 
         void Awake()
         {
