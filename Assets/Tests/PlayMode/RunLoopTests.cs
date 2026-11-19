@@ -36,7 +36,7 @@ namespace Shrunk.Tests
             Assert.IsNull(Object.FindAnyObjectByType<TrophyBoard>(), "the record board is there before there is anything to record");
             Assert.IsNull(Object.FindAnyObjectByType<StyleMirror>(), "the mirror is there before there is a second style");
             Assert.IsNotNull(Object.FindAnyObjectByType<LabPortal>());
-            Assert.AreEqual(6, Object.FindObjectsByType<UpgradePad>(FindObjectsSortMode.None).Length);
+            Assert.AreEqual(System.Enum.GetValues(typeof(UpgradeType)).Length, Object.FindObjectsByType<UpgradePad>(FindObjectsSortMode.None).Length);
 
             // One run and one style later, both are there, and the lab says so once.
             SaveSystem.Data.meta.runsStarted = 1;
@@ -177,10 +177,19 @@ namespace Shrunk.Tests
         // ---------- the lab ----------
 
         [UnityTest]
-        public IEnumerator Lab_has_six_upgrade_pads_and_a_portal_that_starts_a_run()
+        public IEnumerator Lab_has_a_pad_for_every_upgrade_and_a_portal_that_starts_a_run()
         {
             yield return Load("Lab");
-            Assert.AreEqual(6, Object.FindObjectsByType<UpgradePad>(FindObjectsSortMode.None).Length);
+            var pads = Object.FindObjectsByType<UpgradePad>(FindObjectsSortMode.None);
+            Assert.AreEqual(System.Enum.GetValues(typeof(UpgradeType)).Length, pads.Length);
+            // Far enough apart that standing on one never reads or buys its neighbour.
+            foreach (var a in pads)
+            {
+                foreach (var b in pads)
+                {
+                    if (a != b) Assert.Greater((a.transform.position - b.transform.position).magnitude, 2.05f, a.name + " and " + b.name + " are too close");
+                }
+            }
             var portal = Object.FindAnyObjectByType<LabPortal>();
             Assert.IsNotNull(portal);
             Assert.That(WorldPrompt.For(portal.transform.position + Vector3.forward * 2f), Does.Contain("start a run"));
@@ -253,6 +262,8 @@ namespace Shrunk.Tests
                 { UpgradeType.OverchargeCoil, new[] { 200, 500 } },
                 { UpgradeType.FieldKit, new[] { 350 } },
                 { UpgradeType.LuckyFind, new[] { 600 } },
+                { UpgradeType.PocketMoney, new[] { 120, 360 } },
+                { UpgradeType.RegularCustomer, new[] { 300 } },
             };
             int total = 0;
             foreach (var pair in expected)
@@ -260,7 +271,7 @@ namespace Shrunk.Tests
                 CollectionAssert.AreEqual(pair.Value, Pad(pair.Key).upgrade.costs, pair.Key.ToString());
                 foreach (int cost in pair.Value) total += cost;
             }
-            Assert.AreEqual(3250, total, "everything together should cost about what the doc says");
+            Assert.AreEqual(4030, total, "the doc's six come to 3250; the two added since bring it to 4030");
         }
 
         // ---------- upgrades in a run ----------

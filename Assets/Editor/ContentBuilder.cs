@@ -642,6 +642,8 @@ namespace Shrunk.EditorTools
                 Upgrade(UpgradeType.OverchargeCoil, "Overcharge Coil", "The hero power meter fills 20% faster per level.", 200, 500),
                 Upgrade(UpgradeType.FieldKit, "Field Kit", "Start every run with one random common item.", 350),
                 Upgrade(UpgradeType.LuckyFind, "Lucky Find", "Treasure rooms offer a choice of 2 items.", 600),
+                Upgrade(UpgradeType.PocketMoney, "Pocket Money", "Start every run with 15 coins per level.", 120, 360),
+                Upgrade(UpgradeType.RegularCustomer, "Regular Customer", "The shop's bell is free the first time on every floor.", 300),
             };
         }
 

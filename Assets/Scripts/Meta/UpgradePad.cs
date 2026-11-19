@@ -42,7 +42,7 @@ namespace Shrunk
 
         string Prompt(Vector3 playerPosition)
         {
-            if (upgrade == null || pad.Distance(transform.position, playerPosition) > 2.2f) return null;
+            if (upgrade == null || pad.Distance(transform.position, playerPosition) > 2f) return null;
 
             int level = Upgrades.Level(upgrade.type);
             string text = $"{upgrade.displayName} ({level}/{upgrade.MaxLevel}): {upgrade.description}";

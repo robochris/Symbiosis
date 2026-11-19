@@ -194,6 +194,40 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Pocket_Money_and_Regular_Customer_do_what_they_say()
+        {
+            Upgrades.SetLevel(UpgradeType.PocketMoney, 2);
+            Upgrades.SetLevel(UpgradeType.RegularCustomer, 1);
+            SaveSystem.Save();
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            Assert.AreEqual(2 * Upgrades.CoinsPerPocketLevel, RunState.Coins, "no pocket money at the start of the run");
+
+            ShopReroll bell = null;
+            var floors = FloorManager.Instance;
+            for (int floor = 1; floor <= 4 && bell == null; floor++)
+            {
+                if (floor > 1) floors.BuildFloor(floor);
+                yield return null;
+                bell = Object.FindAnyObjectByType<ShopReroll>();
+            }
+            Assert.IsNotNull(bell, "no shop in four floors");
+            Assert.AreEqual(0, bell.price, "the first ring should be free");
+            Assert.That(WorldPrompt.For(bell.transform.position), Does.Contain("on the house"));
+            int coins = RunState.Coins;
+            Assert.IsTrue(bell.TryReroll());
+            Assert.AreEqual(coins, RunState.Coins);
+            Assert.AreEqual(ShopReroll.FirstPrice, bell.price, "only the first ring is free");
+
+            // A run picked up again does not pay out a second time.
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            Assert.AreEqual(coins, RunState.Coins, "a resumed run was given pocket money again");
+        }
+
+        [UnityTest]
         public IEnumerator Beaten_bosses_end_up_in_jars_on_the_shelf()
         {
             SaveSystem.Data.meta.runsStarted = 3;

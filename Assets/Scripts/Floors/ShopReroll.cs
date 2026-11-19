@@ -31,6 +31,8 @@ namespace Shrunk
             var reroll = go.AddComponent<ShopReroll>();
             reroll.room = room;
             reroll.spots = spots;
+            // Regular Customer: the first ring on a floor is on the house.
+            if (Upgrades.FreeBell) reroll.price = 0;
             return reroll;
         }
 
@@ -89,7 +91,7 @@ namespace Shrunk
             }
 
             Rerolls++;
-            price += PriceStep;
+            price = price <= 0 ? FirstPrice : price + PriceStep;
             Sfx.Play(SfxId.Item);
             return true;
         }
@@ -97,7 +99,9 @@ namespace Shrunk
         string Prompt(Vector3 playerPosition)
         {
             if (pad.Distance(transform.position, playerPosition) > 2.4f) return null;
-            return $"The bell: {price} coins for three different things on the shelf (you have {RunState.Coins}). Step on the mat to ring it.";
+            return price <= 0
+                ? "The bell: three different things on the shelf, and this time it is on the house. Step on the mat to ring it."
+                : $"The bell: {price} coins for three different things on the shelf (you have {RunState.Coins}). Step on the mat to ring it.";
         }
     }
 }

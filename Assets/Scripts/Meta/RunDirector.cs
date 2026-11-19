@@ -128,6 +128,7 @@ namespace Shrunk
         void Begin()
         {
             SaveSystem.Data.meta.runsStarted++;
+            if (Upgrades.StartCoins > 0) RunState.AddCoins(Upgrades.StartCoins);
 
             var assets = GameAssets.Instance;
             if (Upgrades.StartsWithItem && assets != null && assets.items != null && _player.Items != null)

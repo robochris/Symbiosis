@@ -66,5 +66,12 @@ namespace Shrunk
 
         /// <summary>Lucky Find: treasure rooms offer a choice of 2 items.</summary>
         public static int TreasureChoices => Level(UpgradeType.LuckyFind) > 0 ? 2 : 1;
+
+        public const int CoinsPerPocketLevel = 15;
+        /// <summary>Pocket Money: coins in hand at the start of every run, 15 per level.</summary>
+        public static int StartCoins => CoinsPerPocketLevel * Level(UpgradeType.PocketMoney);
+
+        /// <summary>Regular Customer: the shop's bell costs nothing the first time it is rung on a floor.</summary>
+        public static bool FreeBell => Level(UpgradeType.RegularCustomer) > 0;
     }
 }

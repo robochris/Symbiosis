@@ -9,7 +9,9 @@ namespace Shrunk
         SamplePouch,
         OverchargeCoil,
         FieldKit,
-        LuckyFind
+        LuckyFind,
+        PocketMoney,
+        RegularCustomer
     }
 
     /// <summary>A lab upgrade as data: what it does and what each level costs in samples.</summary>

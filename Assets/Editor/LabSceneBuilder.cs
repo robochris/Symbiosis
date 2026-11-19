@@ -56,7 +56,8 @@ namespace Shrunk.EditorTools
             {
                 var upgrade = upgrades[i];
                 var glow = ArenaSceneBuilder.Unlit("Upgrade" + upgrade.type, colours[i % colours.Length]);
-                float x = -8f + i * 3.2f;
+                // Spread along the bench however many there are.
+                float x = -8f + i * (16f / Mathf.Max(1, upgrades.Length - 1));
 
                 var station = new GameObject(upgrade.displayName + " Pad");
                 station.transform.SetParent(bench, false);
