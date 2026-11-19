@@ -140,7 +140,7 @@ namespace Shrunk.EditorTools
 
             // ----- bosses -----
             // The Leftovers (floor 5): a tub with a lid. The lid is the whole fight.
-            var leftovers = Creature<Leftovers>("Leftovers", 1.5f, 2.6f, 110, 2.6f, 3.6f, out var leftoversModel);
+            var leftovers = Creature<Leftovers>("Leftovers", 1.5f, 2.6f, 100, 2.6f, 3.6f, out var leftoversModel);
             Decor(PrimitiveType.Cube, "Tub", leftoversModel, new Vector3(0f, 0.8f, 0f), new Vector3(2.8f, 1.6f, 2.2f), tub);
             Decor(PrimitiveType.Sphere, "Contents", leftoversModel, new Vector3(0f, 1.55f, 0f), new Vector3(2.3f, 0.9f, 1.8f), contents);
             Decor(PrimitiveType.Sphere, "Growth A", leftoversModel, new Vector3(0.6f, 1.95f, 0.2f), Vector3.one * 0.55f, mould);

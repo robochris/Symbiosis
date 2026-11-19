@@ -6,27 +6,27 @@ namespace Shrunk
     /// <summary>
     /// The Fridge's mini boss: a tub of something that has been in there since March. With the lid on, nothing gets
     /// in: every shot bounces off, and it slides after the player and shoves. Every few seconds the lid rattles and
-    /// comes up, and for a moment it can be hurt, while it lets out a ring of mould and a couple of things that used
-    /// to be fruit. The whole fight is waiting for the lid. Below half health it stays open for less time and lets
-    /// out more.
+    /// comes up with a ring of mould, and for a moment it can be hurt. When the lid goes back on, a couple of things
+    /// that used to be fruit are left outside it, so the time between openings is spent on them. The whole fight is
+    /// waiting for the lid. Below half health it stays open for less time and its ring is thicker.
     /// </summary>
     public class Leftovers : BossEnemy
     {
         public enum State { Shut, Rattle, Open }
 
         [Header("Lid on")]
-        public float slideSpeed = 2.6f;
+        public float slideSpeed = 2.1f;
         public float turnSpeed = 170f;
         [Tooltip("Seconds it keeps the lid on between openings.")]
         public float shutTime = 4.2f;
         [Tooltip("Shoves the player when it slides into them.")]
-        public float shoveReach = 2.5f;
-        public float shoveCooldown = 1.3f;
+        public float shoveReach = 2.3f;
+        public float shoveCooldown = 2.2f;
 
         [Header("Lid off")]
         [Tooltip("Seconds the lid rattles before it comes up: the warning.")]
         public float rattleTime = 0.8f;
-        public float openTime = 3.4f;
+        public float openTime = 3.8f;
         public Transform lid;
 
         [Header("What comes out")]
@@ -41,7 +41,7 @@ namespace Shrunk
 
         [Header("Below half health")]
         [Range(0f, 1f)] public float worseAt = 0.5f;
-        public float worseOpenTime = 2.5f;
+        public float worseOpenTime = 3f;
         public int worseSprayShots = 12;
 
         public State Current { get; private set; }
@@ -144,6 +144,7 @@ namespace Shrunk
                         SetLid(false);
                         Current = State.Shut;
                         _timer = shutTime;
+                        Release();
                     }
                     break;
             }
@@ -157,13 +158,18 @@ namespace Shrunk
             SetLid(true);
             Fx.Burst(transform.position + Vector3.up * 1.6f, new Color(0.5f, 0.75f, 0.3f), 24, 6f, 0.25f, 0.6f);
             Spray(Phase >= 2 ? worseSprayShots : sprayShots);
+        }
 
+        // What got out while the lid was up. They are left outside when it shuts, so the opening itself is a clear
+        // shot at the tub and the wait for the next one is not idle.
+        void Release()
+        {
             int company = 0;
             foreach (var enemy in Active) if (enemy != this && !enemy.Health.IsDead) company++;
             for (int i = 0; sporePrefab != null && i < sporesPerOpening && company + i < maxCompany; i++)
             {
                 float side = i % 2 == 0 ? -1f : 1f;
-                RequestMinion(sporePrefab, transform.position + transform.right * (side * 3f) + transform.forward * 1.5f, Phase >= 2);
+                RequestMinion(sporePrefab, transform.position + transform.right * (side * 3f) - transform.forward * 1.5f, false);
                 Released++;
             }
         }

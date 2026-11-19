@@ -170,13 +170,14 @@ namespace Shrunk.Tests
             yield return WaitUntil(() => tub.Current == Leftovers.State.Rattle, 12f, "the lid to rattle");
             yield return WaitUntil(() => tub.IsOpen, 4f, "the lid to come up");
             Assert.AreEqual(1, tub.Openings);
-            Assert.Greater(tub.Released, 0, "nothing came out");
-            Assert.Greater(_floors.LiveEnemies.Count, 1);
+            Assert.AreEqual(0, tub.Released, "the lid coming up should be a clear shot at the tub");
             tub.Health.TakeDamage(5, Vector3.forward);
             Assert.AreEqual(full - 5, tub.Health.Current, "not hurt with the lid up");
 
-            // And it goes back on.
+            // And it goes back on, leaving something outside.
             yield return WaitUntil(() => !tub.IsOpen, 8f, "the lid to go back on");
+            Assert.Greater(tub.Released, 0, "nothing was left outside");
+            Assert.Greater(_floors.LiveEnemies.Count, 1);
             tub.Health.TakeDamage(5, Vector3.forward);
             Assert.AreEqual(full - 5, tub.Health.Current);
 
