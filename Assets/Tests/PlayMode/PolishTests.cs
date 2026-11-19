@@ -52,6 +52,46 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_way_in_to_a_boss_is_marked_and_warns()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            Assert.AreEqual(0, BossGate.All.Count, "an ordinary floor has a boss gate");
+
+            floors.BuildFloor(10, 4242);
+            yield return null;
+            Assert.Greater(BossGate.All.Count, 0, "no arch on the way in to the boss");
+            foreach (var gate in BossGate.All)
+            {
+                // Each one stands in a doorway of the boss's room: just outside one of its squares.
+                Vector2Int cell = floors.CellOf(gate.transform.parent.position);
+                Assert.IsTrue(cell == floors.Layout.exit.cell || floors.Layout.InArena(cell), "an arch on a room that is not the boss's");
+                Assert.IsNull(gate.GetComponentInChildren<Collider>(), "the arch can be walked into");
+            }
+
+            // Standing at one, before the fight: a warning. Not during the fight, and not after.
+            Vector3 at = BossGate.All[0].transform.position;
+            Assert.IsNotEmpty(WorldPrompt.For(at) ?? "", "no warning at the arch");
+            Assert.IsNull(WorldPrompt.For(at + new Vector3(40f, 0f, 40f)));
+            player.Teleport(floors.ArenaCentre + Vector3.up * 0.05f);
+            yield return WaitUntil(() => floors.Boss != null, 5f, "the boss");
+            Assert.IsNull(WorldPrompt.For(at), "still warning with the boss in plain view");
+            floors.Boss.Health.Kill();
+            yield return WaitUntil(() => floors.ExtractPortal != null, 8f, "the portals");
+            foreach (var gate in BossGate.All) Assert.IsNull(WorldPrompt.For(gate.transform.position), "still warning with the boss dead");
+
+            floors.BuildFloor(11);
+            yield return null;
+            yield return null;
+            Assert.AreEqual(0, BossGate.All.Count, "the arches outlived their floor");
+        }
+
+        [UnityTest]
         public IEnumerator Beaten_bosses_end_up_in_jars_on_the_shelf()
         {
             SaveSystem.Data.meta.runsStarted = 3;

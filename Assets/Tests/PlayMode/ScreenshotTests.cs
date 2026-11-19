@@ -391,6 +391,41 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_gate()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            GameSettings.Radio = 0;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            floors.BuildFloor(10, 4242);
+            yield return null;
+            BossGate gate = BossGate.All[0];
+            // The rooms on the way are already cleared, so no fight shuts a door across the view.
+            foreach (var node in floors.Layout.ordered) if (node != floors.Layout.exit) node.cleared = true;
+            // Stand in the room before it, looking at the arch.
+            Vector3 outward = (gate.transform.position - gate.transform.parent.position);
+            outward.y = 0f;
+            outward = Mathf.Abs(outward.x) > Mathf.Abs(outward.z) ? new Vector3(Mathf.Sign(outward.x), 0f, 0f) : new Vector3(0f, 0f, Mathf.Sign(outward.z));
+            player.Teleport(gate.transform.position + outward * 7f + Vector3.up * 0.05f);
+            player.transform.rotation = Quaternion.LookRotation(-outward);
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSecondsRealtime(3.5f);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            yield return Screen(Path.Combine(folder, "gate.png"));
+            GameSettings.Reset();
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_shelf()
         {
             SaveSystem.Profile = "tests";

@@ -187,6 +187,20 @@ namespace Shrunk
                 if (biome.isBottom && node.type == RoomType.Normal) node.cleared = true;
             }
 
+            // Every way into a boss's room gets an arch, so it is walked into on purpose.
+            if (FloorLayout.IsBossFloor(number))
+            {
+                foreach (var node in Layout.ordered)
+                {
+                    if (node != Layout.exit && !Layout.InArena(node.cell)) continue;
+                    Room room = _rooms[node.cell];
+                    for (int side = 0; side < 4; side++)
+                    {
+                        if ((room.Doors & (Doors)(1 << side)) != 0) BossGate.Create(room, side, biome, seed);
+                    }
+                }
+            }
+
             Physics.SyncTransforms();
             _surface.BuildNavMesh();
             PlaceItems(seed);
