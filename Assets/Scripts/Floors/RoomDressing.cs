@@ -197,6 +197,8 @@ namespace Shrunk
         public static readonly List<LarvaPod> All = new List<LarvaPod>();
         /// <summary>Counts for the tests: pods shot open, and pods that hatched by themselves.</summary>
         public static int Popped, Hatched;
+        /// <summary>A pod has just been shot open.</summary>
+        public static event System.Action PodPopped;
 
         public Room room;
         public LarvaEnemy hatchling;
@@ -247,6 +249,7 @@ namespace Shrunk
         void Pop()
         {
             Popped++;
+            PodPopped?.Invoke();
             Sfx.Play(SfxId.EnemyDie, 0.6f);
             Fx.Burst(transform.position, Fx.ColourOf(this), 10, 4f, 0.2f);
             Vector3 at = transform.position;

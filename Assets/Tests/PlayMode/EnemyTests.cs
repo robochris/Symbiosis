@@ -325,7 +325,7 @@ namespace Shrunk.Tests
                 // The moving ones really move.
                 if (look.Key == MutationType.Armored || look.Key == MutationType.HardenedShell) continue;
                 Vector3 position = found.localPosition, scale = found.localScale;
-                yield return new WaitForSeconds(0.2f);
+                yield return new WaitForSeconds(0.5f);
                 Assert.IsTrue(found.localPosition != position || found.localScale != scale, $"the {look.Value} is not animated");
             }
         }

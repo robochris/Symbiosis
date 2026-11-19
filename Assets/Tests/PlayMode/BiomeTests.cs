@@ -32,6 +32,7 @@ namespace Shrunk.Tests
         {
             SaveSystem.Wipe();
             Time.timeScale = 1f;
+            Achievements.EverythingUnlocked = false;
         }
 
         BiomeDefinition Cake
@@ -242,9 +243,98 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Achievements_unlock_the_cake_items_and_styles()
+        {
+            var library = GameAssets.Instance.items;
+            var style = _player.GetComponent<PlayerStyle>();
+            int announced = 0;
+            System.Action<Achievement> count = achievement => announced++;
+            Achievements.Unlocked += count;
+
+            // A new player: one style, eight of the twelve items, no cake.
+            Assert.AreEqual(0, Achievements.Count);
+            Assert.AreEqual(1, style.UnlockedCount);
+            Assert.IsFalse(Achievements.BiomeUnlocked("cake"));
+            var rng = new System.Random(3);
+            var seen = new HashSet<ItemType>();
+            for (int i = 0; i < 300; i++) foreach (var item in library.RandomCommon(rng, 3)) seen.Add(item.type);
+            Assert.AreEqual(7, seen.Count, "a new player should find 7 common items (11, less the 4 behind achievements)");
+            Assert.IsFalse(seen.Contains(ItemType.LarvaBuddy));
+            style.Next();
+            Assert.AreEqual(0, style.Current, "a locked style was put on");
+
+            // Clear floor 1 without a scratch: two at once, and it says so.
+            foreach (var node in _floors.Layout.ordered)
+            {
+                if (node.type != RoomType.Normal && node.type != RoomType.Exit) continue;
+                _player.Teleport(_floors.RoomAt(node.cell).Centre + new Vector3(RoomShape.TileSize, 0.05f, 0f));
+                yield return WaitUntil(() => _floors.IsLocked, 2f, "a room to lock");
+                foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.Kill();
+                yield return WaitUntil(() => !_floors.IsLocked, 2f, "the room to open");
+            }
+            Assert.IsTrue(_floors.ExitOpen);
+            yield return null;
+            Assert.IsTrue(Achievements.Has(AchievementId.FirstSteps), "clearing floor 1 earned nothing");
+            Assert.IsTrue(Achievements.Has(AchievementId.Untouchable));
+            Assert.AreEqual(2, announced, "each achievement should be announced once");
+            Achievements.Unlocked -= count;
+            Assert.AreEqual(3, style.UnlockedCount, "Toy and Ghost should be unlocked now");
+            style.Next();
+            Assert.AreEqual("Toy", style.CurrentStyle.displayName);
+
+            // The Brood Mother puts Larva Buddy into the pool.
+            _floors.BuildFloor(5);
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+            yield return KillTheBoss();
+            Assert.IsTrue(Achievements.Has(AchievementId.MothersDay));
+            Assert.IsTrue(Achievements.ItemUnlocked(ItemType.LarvaBuddy));
+
+            // The Queen, with every egg left alone: Regicide and Hands Off, and the cake's portal is there at once.
+            _floors.BuildFloor(10);
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+            _player.Teleport(_floors.ArenaCentre + new Vector3(0f, 0.05f, -9f));
+            yield return WaitUntil(() => _floors.Boss != null, 2f, "the boss");
+            yield return new WaitForSeconds(0.3f);
+            _floors.Boss.Health.Kill();
+            yield return WaitUntil(() => !_floors.IsLocked, 2f, "the arena to open");
+            Assert.IsTrue(Achievements.Has(AchievementId.Regicide));
+            Assert.IsTrue(Achievements.Has(AchievementId.HandsOff));
+            Assert.IsFalse(Achievements.Has(AchievementId.Omelette));
+            Assert.AreEqual(2, _floors.Portals.Count, "the cake portal should appear the moment it is unlocked");
+
+            // Counted ones: shells and pods add up across runs.
+            for (int i = 0; i < Achievements.PodsNeeded; i++) SaveSystem.Data.meta.podsPopped = i;
+            Assert.IsFalse(Achievements.Has(AchievementId.BubbleWrap));
+            Assert.IsFalse(Achievements.Unlock(AchievementId.Regicide), "an achievement was earned twice");
+
+            // It is all in the save file.
+            int earned = Achievements.Count;
+            SaveSystem.Save();
+            SaveSystem.Load();
+            Assert.AreEqual(earned, Achievements.Count);
+        }
+
+        [UnityTest]
+        public IEnumerator Without_Regicide_the_portal_room_does_not_offer_the_cake()
+        {
+            SaveSystem.Data.meta.achievements.Add((int)AchievementId.Regicide); // so killing her here earns nothing new
+            SaveSystem.Data.meta.achievements.Clear();
+            _floors.SetBiome("cake");
+            _floors.BuildFloor(10);
+            yield return null;
+            yield return KillTheBoss();
+            // From the cake, the way back to the ants is always there: the ants need no unlocking.
+            Assert.AreEqual(2, _floors.Portals.Count);
+            Assert.IsTrue(Achievements.Has(AchievementId.SweetTooth));
+        }
+
+        [UnityTest]
         public IEnumerator Enemies_mostly_drop_their_own_kind_of_item()
         {
             var library = GameAssets.Instance.items;
+            Achievements.EverythingUnlocked = true; // with every item in the pool
             foreach (var biome in _floors.AllBiomes())
             {
                 foreach (var entry in biome.spawnTable)

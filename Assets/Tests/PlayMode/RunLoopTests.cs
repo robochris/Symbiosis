@@ -25,6 +25,32 @@ namespace Shrunk.Tests
             Time.timeScale = 1f;
             ScreenCards.ShowInTests = false;
             ScreenCards.TitleSeen = false;
+            Achievements.EverythingUnlocked = false;
+        }
+
+        [UnityTest]
+        public IEnumerator The_lab_fills_in_as_the_player_gets_further()
+        {
+            // A brand-new save: the portal and the workbench, and nothing else yet.
+            yield return Load("Lab");
+            Assert.IsNull(Object.FindAnyObjectByType<TrophyBoard>(), "the record board is there before there is anything to record");
+            Assert.IsNull(Object.FindAnyObjectByType<StyleMirror>(), "the mirror is there before there is a second style");
+            Assert.IsNotNull(Object.FindAnyObjectByType<LabPortal>());
+            Assert.AreEqual(6, Object.FindObjectsByType<UpgradePad>(FindObjectsSortMode.None).Length);
+
+            // One run and one style later, both are there, and the lab says so once.
+            SaveSystem.Data.meta.runsStarted = 1;
+            Achievements.Unlock(AchievementId.FirstSteps);
+            yield return Load("Lab");
+            Assert.IsNotNull(Object.FindAnyObjectByType<TrophyBoard>());
+            Assert.IsNotNull(Object.FindAnyObjectByType<StyleMirror>());
+            var hud = Object.FindAnyObjectByType<Hud>();
+            yield return WaitUntil(() => (hud.LastToast ?? "").Contains("New in the lab"), 8f, "the lab to say what is new");
+            Assert.That(hud.LastToast, Does.Contain("record board").And.Contain("mirror"));
+
+            yield return Load("Lab");
+            yield return new WaitForSeconds(0.3f);
+            Assert.That(Object.FindAnyObjectByType<Hud>().LastToast ?? "", Does.Not.Contain("New in the lab"), "it announced the same things twice");
         }
 
         [UnityTest]
@@ -328,6 +354,7 @@ namespace Shrunk.Tests
         [UnityTest]
         public IEnumerator The_mirror_changes_the_Voids_style_and_the_next_run_keeps_it()
         {
+            Achievements.EverythingUnlocked = true; // this is about the mirror; what unlocks a style is tested with the achievements
             yield return Load("Lab");
             var mirror = Object.FindAnyObjectByType<StyleMirror>();
             Assert.IsNotNull(mirror, "the lab has no mirror");

@@ -45,7 +45,8 @@ namespace Shrunk
 
         void Start()
         {
-            Apply(SaveSystem.Data.meta.style);
+            int saved = SaveSystem.Data.meta.style;
+            Apply(Unlocked(saved) ? saved : 0);
         }
 
         /// <summary>Wears a style. Out-of-range numbers wrap round.</summary>
@@ -58,10 +59,28 @@ namespace Shrunk
             foreach (var renderer in _eyes) if (renderer != null && style.eyes != null) renderer.sharedMaterial = style.eyes;
         }
 
-        /// <summary>Steps to the next style and remembers it.</summary>
+        public bool Unlocked(int index) => styles != null && index >= 0 && index < styles.Length && Achievements.StyleUnlocked(styles[index].displayName);
+
+        public int UnlockedCount
+        {
+            get
+            {
+                int count = 0;
+                for (int i = 0; styles != null && i < styles.Length; i++) if (Unlocked(i)) count++;
+                return count;
+            }
+        }
+
+        /// <summary>Steps to the next style the player has unlocked, and remembers it.</summary>
         public void Next()
         {
-            Apply(Current + 1);
+            int next = Current;
+            for (int i = 0; i < styles.Length; i++)
+            {
+                next = (next + 1) % styles.Length;
+                if (Unlocked(next)) break;
+            }
+            Apply(next);
             SaveSystem.Data.meta.style = Current;
             SaveSystem.Save();
         }

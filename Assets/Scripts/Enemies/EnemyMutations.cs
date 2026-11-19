@@ -27,6 +27,8 @@ namespace Shrunk
 
         public IReadOnlyList<MutationDefinition> Active => _active;
         public const float SugarRushSpeed = 1.8f;
+        /// <summary>A hardened shell has just been shot to bits.</summary>
+        public static event System.Action ShellShattered;
         /// <summary>True once a Sugar Rush ant has dropped to half health and sped up.</summary>
         public bool IsRushing => _rushing;
 
@@ -84,6 +86,7 @@ namespace Shrunk
             }
 
             _health.ShouldBlock = null;
+            ShellShattered?.Invoke();
             if (_shellPlate != null) _shellPlate.SetActive(false);
             Fx.Burst(face, colour, 18, 6f, 0.2f, 0.5f);
         }

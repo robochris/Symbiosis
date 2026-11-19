@@ -185,7 +185,7 @@ namespace Shrunk
             if (enemy.favouredDrops != null && enemy.favouredDrops.Length > 0 && rng.NextDouble() < FavouredShare)
             {
                 var favoured = library.Get(enemy.favouredDrops[rng.Next(enemy.favouredDrops.Length)]);
-                if (favoured != null) return favoured;
+                if (favoured != null && Achievements.ItemUnlocked(favoured.type)) return favoured;
             }
             var picks = library.RandomCommon(rng, 1);
             return picks.Count > 0 ? picks[0] : null;

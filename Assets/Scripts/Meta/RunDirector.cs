@@ -13,6 +13,8 @@ namespace Shrunk
         public static RunDirector Instance { get; private set; }
         /// <summary>What happened on the last run, for the lab to show when the player arrives.</summary>
         public static string LastRunMessage;
+        /// <summary>The player has cashed out, carrying this many samples (before the multiplier).</summary>
+        public static event System.Action<int> Extracted;
 
         public string labScene = "Lab";
         public float deathDelay = 1.6f;
@@ -143,6 +145,7 @@ namespace Shrunk
             float multiplier = RewardMultiplier(depth);
             int banked = Mathf.RoundToInt(RunState.Samples * multiplier);
 
+            Extracted?.Invoke(RunState.Samples);
             var meta = SaveSystem.Data.meta;
             meta.samples += banked;
             meta.rareMaterials += depth;

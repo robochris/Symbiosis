@@ -26,7 +26,18 @@ namespace Shrunk
             var player = PlayerController.Instance;
             var style = player != null ? player.GetComponent<PlayerStyle>() : null;
             if (style == null || style.CurrentStyle == null) return null;
-            return $"The mirror: you are wearing {style.CurrentStyle.displayName} ({style.Current + 1} of {style.styles.Length}). Step off and on again to try the next style.";
+            int have = style.UnlockedCount, all = style.styles.Length;
+            string text = $"The mirror: you are wearing {style.CurrentStyle.displayName}. {have} of {all} styles unlocked.";
+            if (have > 1) text += " Step off and on again to try the next one.";
+            // Say how to get the next locked one.
+            for (int i = 0; i < all; i++)
+            {
+                if (style.Unlocked(i)) continue;
+                var needs = Achievements.ForStyle(style.styles[i].displayName);
+                if (needs != null) text += $" {style.styles[i].displayName}: {needs.how}";
+                break;
+            }
+            return text;
         }
     }
 }

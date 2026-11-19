@@ -83,6 +83,7 @@ namespace Shrunk
 
         /// <summary>The last message shown, for tests.</summary>
         public string LastToast => _toast;
+        public bool ToastShowing => Time.time < _toastUntil;
 
         // Walking into a special kind of fight room for the first time: say what it is and what to do about it.
         void OnRoomChanged(FloorManager floors)

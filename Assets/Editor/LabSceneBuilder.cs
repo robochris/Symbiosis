@@ -124,6 +124,12 @@ namespace Shrunk.EditorTools
             ContentBuilder.AddGameAssets(game);
             game.AddComponent<LabDirector>();
             game.GetComponent<ScreenCards>().title = true;
+            // The lab starts with the portal and the workbench, and fills in as there is a reason for each thing.
+            game.AddComponent<LabGrowth>().stations = new[]
+            {
+                new LabGrowth.Station { name = "the record board", thing = board, needs = LabGrowth.Needs.ARunStarted },
+                new LabGrowth.Station { name = "the mirror", thing = mirror, needs = LabGrowth.Needs.AStyleUnlocked },
+            };
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             RunSceneBuilder.UpdateBuildScenes();

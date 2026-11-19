@@ -579,6 +579,7 @@ namespace Shrunk
 
                     var others = AllBiomes();
                     others.Remove(biome);
+                    others.RemoveAll(other => !Achievements.BiomeUnlocked(other.id));
                     for (int i = others.Count - 1; i > 0; i--)
                     {
                         int j = UnityEngine.Random.Range(0, i + 1);

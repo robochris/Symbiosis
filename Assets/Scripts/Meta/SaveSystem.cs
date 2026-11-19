@@ -18,6 +18,12 @@ namespace Shrunk
         public int deaths;
         public int deepestFloor;
         public int bossesBeaten;
+        /// <summary>Achievements earned, as AchievementId numbers.</summary>
+        public List<int> achievements = new List<int>();
+        public int shellsShattered;
+        public int podsPopped;
+        /// <summary>Which lab stations the player has been told about, one bit each.</summary>
+        public int labSeen;
         /// <summary>Which character style the Void is wearing.</summary>
         public int style;
     }

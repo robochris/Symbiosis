@@ -15,11 +15,11 @@ namespace Shrunk
             return null;
         }
 
-        /// <summary>Random non-rare items, no repeats.</summary>
+        /// <summary>Random non-rare items the player has unlocked, no repeats.</summary>
         public List<ItemDefinition> RandomCommon(System.Random rng, int count)
         {
             var pool = new List<ItemDefinition>();
-            foreach (var item in items) if (item != null && !item.rare) pool.Add(item);
+            foreach (var item in items) if (item != null && !item.rare && Achievements.ItemUnlocked(item.type)) pool.Add(item);
 
             var picked = new List<ItemDefinition>();
             while (picked.Count < count && pool.Count > 0)

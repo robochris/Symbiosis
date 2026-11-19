@@ -35,8 +35,16 @@ namespace Shrunk
 
             MetaSave meta = SaveSystem.Data.meta;
             if (meta.runsStarted == 0) return "The record board: nothing on it yet. Your runs will be marked up here.";
-            return $"The record board: {meta.runsStarted} runs  ·  deepest floor {meta.deepestFloor}  ·  {meta.bossesBeaten} bosses beaten  ·  " +
-                   $"{meta.extractions} extractions  ·  {meta.deaths} deaths";
+            string text = $"The record board: {meta.runsStarted} runs  ·  deepest floor {meta.deepestFloor}  ·  {meta.bossesBeaten} bosses beaten  ·  " +
+                          $"{meta.extractions} extractions  ·  {meta.deaths} deaths  ·  {Achievements.Count} of {Achievements.All.Length} achievements";
+            // One thing to aim for next.
+            foreach (var achievement in Achievements.All)
+            {
+                if (Achievements.Has(achievement.id)) continue;
+                text += $"\nNext: {achievement.name}. {achievement.how}";
+                break;
+            }
+            return text;
         }
     }
 }
