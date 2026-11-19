@@ -45,6 +45,8 @@ namespace Shrunk
         void OnPlayerDamaged(int amount, Vector3 direction)
         {
             if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(hitShake);
+            var player = PlayerController.Instance;
+            if (player != null) Fx.Burst(player.transform.position + Vector3.up * 1f, new Color(1f, 0.3f, 0.3f), 10, 4f, 0.16f);
             Sfx.Play(SfxId.PlayerHurt);
         }
 

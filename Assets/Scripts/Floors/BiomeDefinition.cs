@@ -80,6 +80,12 @@ namespace Shrunk
             return count;
         }
 
+        [Tooltip("Glowing mushrooms: the caps (unlit, and the colour of their light) and the stems. Empty = no lamps.")]
+        public Material glowMaterial;
+        public Material glowStemMaterial;
+        public float glowLightRange = 11f;
+        public float glowLightIntensity = 4f;
+
         [Tooltip("What an elite's crown is made of.")]
         public Material eliteMaterial;
 

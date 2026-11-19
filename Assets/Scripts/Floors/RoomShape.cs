@@ -38,6 +38,8 @@ namespace Shrunk
         public RoomFeature feature;
         /// <summary>Dew rooms only: the marked tiles droplets fall on. Still free floor.</summary>
         public readonly List<Vector2Int> spots = new List<Vector2Int>();
+        /// <summary>Tiles against a wall where a clump of glowing mushrooms grows: the room's lamps. Still free floor.</summary>
+        public readonly List<Vector2Int> glows = new List<Vector2Int>();
         /// <summary>For tests and trying things out: every fight room gets this feature.</summary>
         public static RoomFeature? ForceFeature;
 
@@ -103,6 +105,7 @@ namespace Shrunk
                     if (shape.HasDoor(side)) shape.OpenDoorway(side);
                 }
                 shape.CollectInterior();
+                shape.PlaceGlows();
                 return shape;
             }
 
@@ -194,6 +197,8 @@ namespace Shrunk
                 shape.free.RemoveAll(shape.cover.Contains);
             }
 
+            shape.PlaceGlows();
+
             // 6. What kind of room it is. Its own dice, so adding a feature never changes the shape of any room.
             if (fight && type == RoomType.Normal)
             {
@@ -247,6 +252,35 @@ namespace Shrunk
                 if (Mathf.Abs(tile.x - other.x) <= 2 && Mathf.Abs(tile.y - other.y) <= 2) return false;
             }
             return true;
+        }
+
+        // Up to three lamps, spread out, each on a tile with a wall beside it. Their own dice again.
+        void PlaceGlows()
+        {
+            var dice = new System.Random(seed ^ 0x1b873593);
+            var edge = new List<Vector2Int>();
+            foreach (var tile in free)
+            {
+                if (WallSide(tile) >= 0 && (isArena || CanBePillar(tile))) edge.Add(tile);
+            }
+            for (int i = 0; i < 40 && glows.Count < 3 && edge.Count > 0; i++)
+            {
+                var tile = edge[dice.Next(edge.Count)];
+                bool crowded = false;
+                foreach (var other in glows) crowded |= Mathf.Abs(tile.x - other.x) + Mathf.Abs(tile.y - other.y) < 6;
+                if (!crowded) glows.Add(tile);
+            }
+        }
+
+        /// <summary>The side of a tile that has solid earth against it (0 North, 1 East, 2 South, 3 West), or -1 if none.</summary>
+        public int WallSide(Vector2Int tile)
+        {
+            for (int side = 0; side < 4; side++)
+            {
+                Vector2Int next = tile + FloorLayout.Directions[side];
+                if (next.x >= 0 && next.y >= 0 && next.x < Size && next.y < Size && !open[next.x, next.y]) return side;
+            }
+            return -1;
         }
 
         Vector2Int RandomOpen(System.Random rng)
@@ -400,6 +434,12 @@ namespace Shrunk
 
             if (!IsConnected()) problems.Add("part of the room cannot be reached");
 
+            foreach (var tile in glows)
+            {
+                if (!free.Contains(tile)) problems.Add($"glow at {tile.x},{tile.y} is not on free floor");
+                if (WallSide(tile) < 0) problems.Add($"glow at {tile.x},{tile.y} has no wall to grow against");
+            }
+            if (glows.Count == 0) problems.Add("a room with no lamps");
             foreach (var tile in spots)
             {
                 if (!free.Contains(tile)) problems.Add($"dew spot at {tile.x},{tile.y} is not on free floor");

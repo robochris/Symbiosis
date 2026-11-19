@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 1839408971159879212}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.3007058, w: 0.95371693}
-  m_LocalPosition: {x: -0.5, y: 0.3, z: -0.25}
+  m_LocalPosition: {x: -0.5, y: 0.3, z: 0.25}
   m_LocalScale: {x: 0.7, y: 0.07, z: 0.07}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -113,7 +113,7 @@ Transform:
   m_GameObject: {fileID: 2180347172327025149}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.3007058, w: 0.95371693}
-  m_LocalPosition: {x: -0.5, y: 0.3, z: 0.25}
+  m_LocalPosition: {x: -0.5, y: 0.3, z: -0.25}
   m_LocalScale: {x: 0.7, y: 0.07, z: 0.07}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -457,7 +457,7 @@ Transform:
   m_GameObject: {fileID: 4666017253885439383}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: -0.3007058, w: 0.95371693}
-  m_LocalPosition: {x: 0.5, y: 0.3, z: -0.25}
+  m_LocalPosition: {x: 0.5, y: 0.3, z: 0.25}
   m_LocalScale: {x: 0.7, y: 0.07, z: 0.07}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -528,6 +528,7 @@ GameObject:
   - component: {fileID: 1243706982099655197}
   - component: {fileID: 5989494025050205753}
   - component: {fileID: 464411166869319775}
+  - component: {fileID: 5042604798765850605}
   - component: {fileID: 4821815647478507850}
   - component: {fileID: 4738702853191547852}
   m_Layer: 0
@@ -619,6 +620,30 @@ MonoBehaviour:
   hitReach: 1.9
   damage: 1
   recoverTime: 1.1
+--- !u!114 &5042604798765850605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4727364097188176526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 783f5199f7f57fb47bde0a43fc079918, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  legs:
+  - {fileID: 4906178439140823165}
+  - {fileID: 706440528630485487}
+  - {fileID: 4913950141647700795}
+  - {fileID: 8776597523528456739}
+  - {fileID: 7053253705116248729}
+  - {fileID: 2482886684658374206}
+  wings: []
+  legSwing: 24
+  stride: 4.827586
+  wingRate: 14
+  wingSwing: 22
 --- !u!114 &4821815647478507850
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -761,7 +786,7 @@ Transform:
   m_GameObject: {fileID: 6226104110709488423}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: -0.3007058, w: 0.95371693}
-  m_LocalPosition: {x: 0.5, y: 0.3, z: 0.25}
+  m_LocalPosition: {x: 0.5, y: 0.3, z: -0.25}
   m_LocalScale: {x: 0.7, y: 0.07, z: 0.07}
   m_ConstrainProportionsScale: 0
   m_Children: []

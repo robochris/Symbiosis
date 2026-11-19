@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 545060184138013198}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.3007058, w: 0.95371693}
-  m_LocalPosition: {x: -0.5, y: 0.3, z: 0.25}
+  m_LocalPosition: {x: -0.5, y: 0.3, z: -0.25}
   m_LocalScale: {x: 0.7, y: 0.07, z: 0.07}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -242,7 +242,7 @@ Transform:
   m_GameObject: {fileID: 1964021910049932983}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.3007058, w: 0.95371693}
-  m_LocalPosition: {x: -0.5, y: 0.3, z: -0.25}
+  m_LocalPosition: {x: -0.5, y: 0.3, z: 0.25}
   m_LocalScale: {x: 0.7, y: 0.07, z: 0.07}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -414,7 +414,7 @@ Transform:
   m_GameObject: {fileID: 4956856441830930688}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: -0.3007058, w: 0.95371693}
-  m_LocalPosition: {x: 0.5, y: 0.3, z: 0.25}
+  m_LocalPosition: {x: 0.5, y: 0.3, z: -0.25}
   m_LocalScale: {x: 0.7, y: 0.07, z: 0.07}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1048,7 +1048,7 @@ Transform:
   m_GameObject: {fileID: 8740276597515741008}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: -0.3007058, w: 0.95371693}
-  m_LocalPosition: {x: 0.5, y: 0.3, z: -0.25}
+  m_LocalPosition: {x: 0.5, y: 0.3, z: 0.25}
   m_LocalScale: {x: 0.7, y: 0.07, z: 0.07}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1119,6 +1119,7 @@ GameObject:
   - component: {fileID: 2836266712518818114}
   - component: {fileID: 8005963765488121105}
   - component: {fileID: 5946341809865457061}
+  - component: {fileID: 3247106458885810344}
   - component: {fileID: 4799342564354194461}
   - component: {fileID: 2339222955782782748}
   m_Layer: 0
@@ -1227,6 +1228,30 @@ MonoBehaviour:
   ringLarvae: 5
   ringRadius: 4
   weakPointMultiplier: 2
+--- !u!114 &3247106458885810344
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8857326796931514911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 783f5199f7f57fb47bde0a43fc079918, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  legs:
+  - {fileID: 7915980680693351971}
+  - {fileID: 4502299447105765082}
+  - {fileID: 7264149074620933241}
+  - {fileID: 2916182473848305922}
+  - {fileID: 3117928361207733699}
+  - {fileID: 2077836761529915192}
+  wings: []
+  legSwing: 24
+  stride: 2.3333333
+  wingRate: 14
+  wingSwing: 22
 --- !u!114 &4799342564354194461
 MonoBehaviour:
   m_ObjectHideFlags: 0

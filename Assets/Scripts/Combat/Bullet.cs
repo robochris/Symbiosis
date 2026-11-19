@@ -92,6 +92,7 @@ namespace Shrunk
 
             if (hitSomething)
             {
+                Fx.Burst(nearestPoint, Colour, nearestHealth != null ? 5 : 3, 3f, 0.12f, 0.3f);
                 bool keepFlying = nearestHealth != null && HitCharacter(nearestHealth, nearestPoint);
                 if (nearestHealth == null && _shot.acid > 0) LeavePuddle(nearestPoint);
                 if (!keepFlying)
@@ -135,6 +136,9 @@ namespace Shrunk
             _alreadyHit.Add(health);
             return true;
         }
+
+        Color? _colour;
+        Color Colour => _colour ?? (_colour = Fx.ColourOf(this)).Value;
 
         void LeavePuddle(Vector3 point)
         {

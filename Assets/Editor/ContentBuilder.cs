@@ -57,8 +57,11 @@ namespace Shrunk.EditorTools
             var spitterPrefab = SaveEnemy(spitter);
 
             var winged = Ant<FlyerEnemy>("WingedAnt", 0.8f, 3, wingedBody, antDark, true, out var wingedModel);
-            Decor(PrimitiveType.Cube, "Wing L", wingedModel, new Vector3(-0.7f, 0.95f, -0.15f), new Vector3(1.2f, 0.04f, 0.55f), wing).transform.localRotation = Quaternion.Euler(0f, 0f, -18f);
-            Decor(PrimitiveType.Cube, "Wing R", wingedModel, new Vector3(0.7f, 0.95f, -0.15f), new Vector3(1.2f, 0.04f, 0.55f), wing).transform.localRotation = Quaternion.Euler(0f, 0f, 18f);
+            var wingLeft = Decor(PrimitiveType.Cube, "Wing L", wingedModel, new Vector3(-0.7f, 0.95f, -0.15f), new Vector3(1.2f, 0.04f, 0.55f), wing).transform;
+            wingLeft.localRotation = Quaternion.Euler(0f, 0f, -18f);
+            var wingRight = Decor(PrimitiveType.Cube, "Wing R", wingedModel, new Vector3(0.7f, 0.95f, -0.15f), new Vector3(1.2f, 0.04f, 0.55f), wing).transform;
+            wingRight.localRotation = Quaternion.Euler(0f, 0f, 18f);
+            winged.GetComponent<AntMotion>().wings = new[] { wingLeft, wingRight };
             var wingedController = winged.GetComponent<CharacterController>();
             wingedController.height = 2f;
             wingedController.center = new Vector3(0f, 1f, 0f);
@@ -171,6 +174,8 @@ namespace Shrunk.EditorTools
             biome.podHatchling = larvaPrefab;
             biome.dewMaterial = ArenaSceneBuilder.Lit("Dew", new Color(0.45f, 0.75f, 0.95f), 0.9f);
             biome.eliteMaterial = ArenaSceneBuilder.Unlit("Gold", new Color(1f, 0.82f, 0.2f));
+            biome.glowMaterial = ArenaSceneBuilder.Unlit("GlowCap", new Color(0.35f, 1f, 0.85f));
+            biome.glowStemMaterial = ArenaSceneBuilder.Lit("GlowStem", new Color(0.8f, 0.85f, 0.75f), 0.2f);
             biome.tilesPerExtraEnemy = 60;
             biome.maxExtraEnemiesForSize = 4;
             biome.wallHeight = 6f;
@@ -207,6 +212,7 @@ namespace Shrunk.EditorTools
         public static void AddGameAssets(GameObject game)
         {
             var assets = game.AddComponent<GameAssets>();
+            game.AddComponent<Fx>().material = ArenaSceneBuilder.LoadOrCreate("Particle", "Universal Render Pipeline/Particles/Unlit");
             assets.items = BuildItems(out var larva);
             assets.larvaPrefab = larva;
             assets.playerAcid = ArenaSceneBuilder.Unlit("PlayerAcid", new Color(0.35f, 0.95f, 0.75f));
@@ -382,16 +388,23 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Sphere, "Head", model, new Vector3(0f, 0.65f, 0.5f), new Vector3(0.6f, 0.5f, 0.55f), body);
             Decor(PrimitiveType.Cube, "Mandible L", model, new Vector3(-0.14f, 0.55f, 0.85f), new Vector3(0.08f, 0.08f, 0.3f), dark).transform.localRotation = Quaternion.Euler(0f, 20f, 0f);
             Decor(PrimitiveType.Cube, "Mandible R", model, new Vector3(0.14f, 0.55f, 0.85f), new Vector3(0.08f, 0.08f, 0.3f), dark).transform.localRotation = Quaternion.Euler(0f, -20f, 0f);
+            var legs = new Transform[6];
             for (int i = 0; i < 3; i++)
             {
-                float z = -0.25f + i * 0.25f;
+                float z = 0.25f - i * 0.25f; // front to back
                 float droop = flying ? 60f : 35f; // legs hang down in flight
-                Decor(PrimitiveType.Cube, "Leg L" + i, model, new Vector3(-0.5f, 0.3f, z), new Vector3(0.7f, 0.07f, 0.07f), dark).transform.localRotation = Quaternion.Euler(0f, 0f, droop);
-                Decor(PrimitiveType.Cube, "Leg R" + i, model, new Vector3(0.5f, 0.3f, z), new Vector3(0.7f, 0.07f, 0.07f), dark).transform.localRotation = Quaternion.Euler(0f, 0f, -droop);
+                legs[i] = Decor(PrimitiveType.Cube, "Leg L" + i, model, new Vector3(-0.5f, 0.3f, z), new Vector3(0.7f, 0.07f, 0.07f), dark).transform;
+                legs[i].localRotation = Quaternion.Euler(0f, 0f, droop);
+                legs[3 + i] = Decor(PrimitiveType.Cube, "Leg R" + i, model, new Vector3(0.5f, 0.3f, z), new Vector3(0.7f, 0.07f, 0.07f), dark).transform;
+                legs[3 + i].localRotation = Quaternion.Euler(0f, 0f, -droop);
             }
 
             var enemy = root.AddComponent<T>();
             enemy.visual = visual;
+            var motion = root.AddComponent<AntMotion>();
+            motion.legs = legs;
+            motion.stride = 7f / size; // big ants take long, slow steps
+            if (flying) motion.legSwing = 6f;
             root.AddComponent<HitFlash>();
             var mutations = root.AddComponent<EnemyMutations>();
             mutations.badgeHeight = 1.3f * size + 0.9f;

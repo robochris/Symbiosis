@@ -94,6 +94,7 @@ namespace Shrunk
             if (drawn == Drawn) return;
             Drawn = drawn;
             foreach (var renderer in GetComponentsInChildren<Renderer>(true)) renderer.enabled = drawn;
+            foreach (var light in GetComponentsInChildren<Light>(true)) light.enabled = drawn;
         }
 
         public void SetLocked(bool locked)

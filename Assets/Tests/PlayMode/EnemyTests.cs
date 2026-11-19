@@ -227,6 +227,42 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Ants_scuttle_when_they_move_flap_when_they_fly_and_burst_when_they_die()
+        {
+            var worker = Spawn("WorkerAnt", new Vector3(0f, 0f, 12f));
+            var winged = Spawn("WingedAnt", new Vector3(6f, 0f, 12f));
+            winged.frozen = true;
+            var legs = worker.GetComponent<AntMotion>();
+            Assert.IsNotNull(legs, "the worker has no leg animation");
+            Assert.AreEqual(6, legs.legs.Length);
+
+            // The worker runs at the player: its legs go, and opposite legs go opposite ways.
+            Quaternion front = legs.legs[0].localRotation, middle = legs.legs[1].localRotation;
+            float most = 0f;
+            for (float t = 0f; t < 0.6f; t += Time.deltaTime)
+            {
+                most = Mathf.Max(most, Quaternion.Angle(front, legs.legs[0].localRotation));
+                yield return null;
+            }
+            Assert.Greater(legs.Stride01, 0.8f, "a running ant's legs are not moving");
+            Assert.Greater(most, 8f);
+
+            // The frozen flyer stays put, legs still, wings beating.
+            var wings = winged.GetComponent<AntMotion>();
+            Assert.AreEqual(2, wings.wings.Length);
+            Assert.AreEqual(0f, wings.Stride01, 0.05f);
+            Quaternion wing = wings.wings[0].localRotation;
+            yield return null;
+            yield return null;
+            Assert.AreNotEqual(wing, wings.wings[0].localRotation, "the wings are not beating");
+
+            Assert.IsNotNull(Fx.Instance, "no particle effects in the scene");
+            int bursts = Fx.Bursts;
+            worker.Health.Kill();
+            Assert.Greater(Fx.Bursts, bursts, "nothing flew when the ant died");
+        }
+
+        [UnityTest]
         public IEnumerator Every_mutation_has_its_own_look_on_the_body()
         {
             var looks = new Dictionary<MutationType, string>

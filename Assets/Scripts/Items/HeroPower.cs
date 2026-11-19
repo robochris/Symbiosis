@@ -107,6 +107,7 @@ namespace Shrunk
                 LastSurgeHits++;
             }
             if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.45f);
+            Fx.Burst(transform.position + Vector3.up * 0.9f, surgeMaterial != null ? surgeMaterial.GetColor("_BaseColor") : Color.cyan, 36, 9f, 0.2f, 0.5f);
 
             if (_ring == null)
             {

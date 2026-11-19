@@ -521,6 +521,27 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Every_room_is_lit_by_a_few_glowing_mushrooms_and_no_more()
+        {
+            _floors.BuildFloor(8, 606);
+            yield return null;
+            foreach (var node in _floors.Layout.ordered)
+            {
+                Room room = _floors.RoomAt(node.cell);
+                var lights = room.GetComponentsInChildren<Light>(true);
+                Assert.AreEqual(room.Shape.glows.Count, lights.Length);
+                Assert.That(lights.Length, Is.InRange(1, 3), "the renderer lights at most four lamps per room\n" + Describe(node));
+                foreach (var light in lights)
+                {
+                    Assert.AreEqual(room.Drawn, light.enabled, "a lamp is burning in a room that is not drawn");
+                    Vector3 local = light.transform.position - room.transform.position;
+                    Assert.IsFalse(Physics.CheckSphere(light.transform.position, 0.2f, ~0), "a lamp is inside a wall\n" + Describe(node));
+                    Assert.Less(Mathf.Max(Mathf.Abs(local.x), Mathf.Abs(local.z)), RoomShape.Size * RoomShape.TileSize * 0.5f);
+                }
+            }
+        }
+
+        [UnityTest]
         public IEnumerator Only_rooms_near_the_player_are_drawn()
         {
             _floors.BuildFloor(9, 2024);

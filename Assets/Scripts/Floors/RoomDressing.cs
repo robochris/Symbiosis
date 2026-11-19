@@ -120,6 +120,39 @@ namespace Shrunk
                 }
             }
 
+            if (biome.glowMaterial != null)
+            {
+                Color glow = biome.glowMaterial.HasProperty("_BaseColor") ? biome.glowMaterial.GetColor("_BaseColor") : Color.white;
+                Material stem = biome.glowStemMaterial != null ? biome.glowStemMaterial : biome.glowMaterial;
+                foreach (var tile in shape.glows)
+                {
+                    // Tucked against the wall, out of the way of feet.
+                    Vector2Int side = FloorLayout.Directions[Mathf.Max(0, shape.WallSide(tile))];
+                    Vector3 at = RoomShape.TileLocal(tile) + new Vector3(side.x, 0f, side.y) * (RoomShape.TileSize * 0.5f - 0.3f);
+                    Vector3 along = new Vector3(side.y, 0f, side.x);
+
+                    int caps = rng.Next(3, 6);
+                    for (int i = 0; i < caps; i++)
+                    {
+                        float height = Range(0.35f, 1.1f), width = Range(0.3f, 0.6f);
+                        Vector3 foot = at + along * Range(-0.7f, 0.7f) - new Vector3(side.x, 0f, side.y) * Range(0f, 0.25f);
+                        Piece(PrimitiveType.Cylinder, "Glow Stem", room, foot + Vector3.up * height * 0.5f, new Vector3(width * 0.25f, height * 0.5f, width * 0.25f), stem, false);
+                        Piece(PrimitiveType.Sphere, "Glow Cap", room, foot + Vector3.up * height, new Vector3(width, width * 0.55f, width), biome.glowMaterial, false)
+                            .GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    }
+
+                    var lamp = new GameObject("Glow Light");
+                    lamp.transform.SetParent(room.transform, false);
+                    lamp.transform.localPosition = at - new Vector3(side.x, 0f, side.y) * 0.6f + Vector3.up * 1.4f;
+                    var light = lamp.AddComponent<Light>();
+                    light.type = LightType.Point;
+                    light.color = glow;
+                    light.range = biome.glowLightRange;
+                    light.intensity = biome.glowLightIntensity;
+                    light.shadows = LightShadows.None;
+                }
+            }
+
             if (shape.feature == RoomFeature.DewRoom && biome.dewMaterial != null)
             {
                 foreach (var tile in shape.spots)
@@ -211,6 +244,7 @@ namespace Shrunk
         {
             Popped++;
             Sfx.Play(SfxId.EnemyDie, 0.6f);
+            Fx.Burst(transform.position, Fx.ColourOf(this), 10, 4f, 0.2f);
             Vector3 at = transform.position;
             at.y = 0f;
             if (Random.value < coinChance) Pickup.Coin(at, Random.Range(1, 3));
@@ -299,6 +333,7 @@ namespace Shrunk
         void Land()
         {
             Landed++;
+            Fx.Burst(transform.position + Vector3.up * 0.1f, _material != null ? _material.GetColor("_BaseColor") : Color.cyan, 8, 3.5f, 0.14f, 0.4f);
             var player = PlayerController.Instance;
             if (player == null || player.Health.IsDead || player.IsHovering) return;
             Vector3 to = player.transform.position - transform.position;

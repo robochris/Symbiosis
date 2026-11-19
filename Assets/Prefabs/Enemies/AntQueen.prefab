@@ -317,7 +317,7 @@ Transform:
   m_GameObject: {fileID: 3326681427791347272}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: -0.3007058, w: 0.95371693}
-  m_LocalPosition: {x: 0.5, y: 0.3, z: 0.25}
+  m_LocalPosition: {x: 0.5, y: 0.3, z: -0.25}
   m_LocalScale: {x: 0.7, y: 0.07, z: 0.07}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -489,7 +489,7 @@ Transform:
   m_GameObject: {fileID: 4222182191909815300}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.3007058, w: 0.95371693}
-  m_LocalPosition: {x: -0.5, y: 0.3, z: -0.25}
+  m_LocalPosition: {x: -0.5, y: 0.3, z: 0.25}
   m_LocalScale: {x: 0.7, y: 0.07, z: 0.07}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1139,7 +1139,7 @@ Transform:
   m_GameObject: {fileID: 6875615968595721116}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.3007058, w: 0.95371693}
-  m_LocalPosition: {x: -0.5, y: 0.3, z: 0.25}
+  m_LocalPosition: {x: -0.5, y: 0.3, z: -0.25}
   m_LocalScale: {x: 0.7, y: 0.07, z: 0.07}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1397,7 +1397,7 @@ Transform:
   m_GameObject: {fileID: 8574594201285379559}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: -0.3007058, w: 0.95371693}
-  m_LocalPosition: {x: 0.5, y: 0.3, z: -0.25}
+  m_LocalPosition: {x: 0.5, y: 0.3, z: 0.25}
   m_LocalScale: {x: 0.7, y: 0.07, z: 0.07}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1499,6 +1499,7 @@ GameObject:
   - component: {fileID: 8601855546630091163}
   - component: {fileID: 2331136462186539822}
   - component: {fileID: 7471875721540537061}
+  - component: {fileID: 8528023262103595122}
   - component: {fileID: 7070489658895381524}
   - component: {fileID: 6210074949121452865}
   m_Layer: 0
@@ -1612,6 +1613,30 @@ MonoBehaviour:
   screamTime: 1
   enragedSpeed: 1.4
   jellyChance: 0.35
+--- !u!114 &8528023262103595122
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8670149992893308804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 783f5199f7f57fb47bde0a43fc079918, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  legs:
+  - {fileID: 3005904728340284959}
+  - {fileID: 7308507077139370592}
+  - {fileID: 6526619013626799266}
+  - {fileID: 5644047912916019876}
+  - {fileID: 7778953098503023424}
+  - {fileID: 4034399168874585515}
+  wings: []
+  legSwing: 24
+  stride: 2.0588236
+  wingRate: 14
+  wingSwing: 22
 --- !u!114 &7070489658895381524
 MonoBehaviour:
   m_ObjectHideFlags: 0
