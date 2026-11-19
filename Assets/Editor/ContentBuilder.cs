@@ -227,6 +227,7 @@ namespace Shrunk.EditorTools
             game.AddComponent<Fx>().material = ArenaSceneBuilder.LoadOrCreate("Particle", "Universal Render Pipeline/Particles/Unlit");
             assets.items = BuildItems(out var larva);
             assets.larvaPrefab = larva;
+            assets.note = ArenaSceneBuilder.Unlit("FinchNote", new Color(1f, 0.96f, 0.8f));
             assets.playerAcid = ArenaSceneBuilder.Unlit("PlayerAcid", new Color(0.35f, 0.95f, 0.75f));
             assets.fire = ArenaSceneBuilder.Unlit("Fire", new Color(1f, 0.55f, 0.1f));
             assets.confused = ArenaSceneBuilder.Unlit("Confused", new Color(1f, 0.45f, 0.75f));

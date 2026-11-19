@@ -18,6 +18,7 @@ namespace Shrunk
         [Header("Pickup materials")]
         public Material coin;
         public Material sample;
+        public Material note;
 
         void Awake()
         {

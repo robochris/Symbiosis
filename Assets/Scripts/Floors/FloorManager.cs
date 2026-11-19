@@ -123,6 +123,7 @@ namespace Shrunk
             WorldPrompt.Add(PortalPrompt);
             Enemy.SummonRequested += OnSummon;
             Enemy.MinionRequested += OnMinion;
+            FinchNotes.Found += OnNoteFound;
         }
 
         void OnDisable()
@@ -130,6 +131,7 @@ namespace Shrunk
             WorldPrompt.Remove(PortalPrompt);
             Enemy.SummonRequested -= OnSummon;
             Enemy.MinionRequested -= OnMinion;
+            FinchNotes.Found -= OnNoteFound;
         }
 
         void OnDestroy()
@@ -175,6 +177,7 @@ namespace Shrunk
             Physics.SyncTransforms();
             _surface.BuildNavMesh();
             PlaceItems(seed);
+            PlaceNote(seed);
 
             var player = PlayerController.Instance;
             if (player != null)
@@ -243,6 +246,48 @@ namespace Shrunk
                     for (int i = 0; i < picks.Count; i++) Pickup.Item(picks[i], room.Centre + spots[i], picks[i].price);
                 }
             }
+        }
+
+        /// <summary>The page of Dr. Finch's notebook hidden on this floor, if there is one and it has not been taken.</summary>
+        public NotePickup Note { get; private set; }
+        [Tooltip("Chance that a floor in the middle of a biome hides a page. Floor 9 always does, if the biome has one left.")]
+        public float noteChance = 0.25f;
+        // The biome visit a page was last found in: one page a visit, so the trail takes a few trips.
+        string _noteVisit;
+
+        // One page at most, tucked into the far corner of a fight room away from the way in.
+        void PlaceNote(int seed)
+        {
+            Note = null;
+            if (biome == null || FloorLayout.IsBossFloor(FloorNumber) || FloorInBiome < 2) return;
+            FinchNote next = FinchNotes.NextFor(biome.id);
+            if (next == null || _noteVisit == biome.id + depth) return;
+            var rng = new System.Random(seed ^ 0x51ED270B);
+            if (FloorInBiome != 9 && rng.NextDouble() >= noteChance) return;
+
+            var rooms = new List<Room>();
+            foreach (var node in Layout.ordered)
+            {
+                if (node.type != RoomType.Normal) continue;
+                Room room = _rooms[node.cell];
+                if (!room.Shape.isArenaPart && room.Shape.free.Count > 0) rooms.Add(room);
+            }
+            if (rooms.Count == 0) return;
+
+            Room chosen = rooms[rng.Next(rooms.Count)];
+            Vector2Int best = chosen.Shape.free[0];
+            float farthest = -1f;
+            foreach (var tile in chosen.Shape.free)
+            {
+                float away = (tile - chosen.Shape.centre).sqrMagnitude;
+                if (away > farthest) { farthest = away; best = tile; }
+            }
+            Note = NotePickup.Create(next, chosen.TileWorld(best), chosen.transform);
+        }
+
+        void OnNoteFound(FinchNote note)
+        {
+            if (biome != null) _noteVisit = biome.id + depth;
         }
 
         void ClearFloor()

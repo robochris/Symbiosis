@@ -16,7 +16,9 @@ namespace Shrunk
             /// <summary>The mirror: once there is a second style to change into.</summary>
             AStyleUnlocked,
             /// <summary>Once any boss has been beaten.</summary>
-            ABossBeaten
+            ABossBeaten,
+            /// <summary>The evidence board: once a page of the notebook has been found.</summary>
+            ANoteFound
         }
 
         [Serializable]
@@ -36,6 +38,7 @@ namespace Shrunk
             {
                 case Needs.ARunStarted: return meta.runsStarted > 0;
                 case Needs.ABossBeaten: return meta.bossesBeaten > 0;
+                case Needs.ANoteFound: return meta.notes.Count > 0;
                 default:
                     if (Achievements.EverythingUnlocked) return true;
                     foreach (var achievement in Achievements.All)

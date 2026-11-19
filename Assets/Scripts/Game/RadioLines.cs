@@ -19,6 +19,8 @@ namespace Shrunk
         Biome,
         Boss,
         BossDown,
+        /// <summary>A page of the notebook has been picked up.</summary>
+        Note,
         // From here down is chatter: said only now and then, and not at all on the Less setting.
         LowHealth,
         Item,
@@ -122,6 +124,15 @@ namespace Shrunk
                 "Dead, then. I'll let the others know. They won't take it well.",
                 "Good. That one had been in my way for some time. In yours, I mean.",
                 "You've cleared the way. Thank you. That's more useful to me than you know.",
+            },
+            [RadioMoment.Note] = new[]
+            {
+                "Ah. You found a page. That's mine, and I'd rather you didn't read it. You're reading it.",
+                "Where did you get that? Don't answer. Put it on the board if you must.",
+                "My handwriting was better then. So was my judgement.",
+                "That page is out of context. The context is worse.",
+                "You're collecting those. I see. I had hoped you were less thorough.",
+                "Reading other people's notes is rude. Pinning them to a board is a hobby.",
             },
             [RadioMoment.LowHealth] = new[]
             {

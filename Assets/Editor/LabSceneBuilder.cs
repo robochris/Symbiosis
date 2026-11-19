@@ -107,6 +107,23 @@ namespace Shrunk.EditorTools
             }
             board.AddComponent<TrophyBoard>().pegs = pegs;
 
+            // ----- the evidence board: pages of Finch's notebook -----
+            var evidence = new GameObject("Evidence Board");
+            evidence.transform.position = new Vector3(8.2f, 0f, 2.2f);
+            var cork = ArenaSceneBuilder.Lit("Cork", new Color(0.55f, 0.38f, 0.22f), 0.1f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Board", evidence.transform, new Vector3(2.55f, 2.2f, 0f), new Vector3(0.2f, 2.4f, 3.2f), cork, false);
+            var paper = ArenaSceneBuilder.Unlit("FinchNote", new Color(1f, 0.96f, 0.8f));
+            var pinned = new GameObject[FinchNotes.All.Length];
+            for (int i = 0; i < pinned.Length; i++)
+            {
+                pinned[i] = ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Page " + (i + 1), evidence.transform,
+                    new Vector3(2.42f, 2.75f - (i / 3) * 1.05f, -0.95f + (i % 3) * 0.95f), new Vector3(0.04f, 0.8f, 0.6f), paper, false);
+                // Pinned by someone in a hurry.
+                pinned[i].transform.localRotation = Quaternion.Euler((i * 37 % 13) - 6f, 0f, 0f);
+                pinned[i].SetActive(false);
+            }
+            evidence.AddComponent<EvidenceBoard>().pages = pinned;
+
             // ----- player, camera, HUD -----
             var player = ArenaSceneBuilder.BuildPlayer(voidBody, eyeGlow, bulletPrefab);
             // Start facing the portal, with the workbench behind: the first thing you see is the way into a run.
@@ -129,6 +146,7 @@ namespace Shrunk.EditorTools
             {
                 new LabGrowth.Station { name = "the record board", thing = board, needs = LabGrowth.Needs.ARunStarted },
                 new LabGrowth.Station { name = "the mirror", thing = mirror, needs = LabGrowth.Needs.AStyleUnlocked },
+                new LabGrowth.Station { name = "the evidence board", thing = evidence, needs = LabGrowth.Needs.ANoteFound },
             };
 
             EditorSceneManager.SaveScene(scene, ScenePath);

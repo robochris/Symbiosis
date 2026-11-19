@@ -60,6 +60,7 @@ namespace Shrunk
             Enemy.Killed += OnKilled;
             Pickup.ItemCollected += OnItem;
             RunDirector.Extracted += OnExtracted;
+            FinchNotes.Found += OnNote;
         }
 
         void OnDisable()
@@ -69,6 +70,7 @@ namespace Shrunk
             Enemy.Killed -= OnKilled;
             Pickup.ItemCollected -= OnItem;
             RunDirector.Extracted -= OnExtracted;
+            FinchNotes.Found -= OnNote;
             if (_watched != null)
             {
                 _watched.Health.Damaged -= OnHit;
@@ -271,6 +273,8 @@ namespace Shrunk
             Health health = _watched.Health;
             if (health.Current == 1 && health.maxHealth > 1) Say(RadioMoment.LowHealth);
         }
+
+        void OnNote(FinchNote note) => Say(RadioMoment.Note, null, 1.5f);
 
         void OnDied() => _carried = RadioMoment.Death;
 
