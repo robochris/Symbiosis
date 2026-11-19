@@ -28,6 +28,11 @@ namespace Shrunk
         public ItemType type;
         public string displayName = "Item";
         [TextArea] public string description;
+        [Tooltip("One dry line shown after the description. For the laugh, not the rules.")]
+        public string flavour;
+
+        /// <summary>What it does, then its joke.</summary>
+        public string Blurb => string.IsNullOrEmpty(flavour) ? description : description + "  " + flavour;
         public ItemSlot slot;
         [Tooltip("Rare items never appear in treasure rooms or the shop; they come from bosses.")]
         public bool rare;

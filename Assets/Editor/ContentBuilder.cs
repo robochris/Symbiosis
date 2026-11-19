@@ -363,6 +363,7 @@ namespace Shrunk.EditorTools
             item.type = type;
             item.displayName = name;
             item.description = description;
+            item.flavour = Flavour(type);
             item.slot = slot;
             item.rare = rare;
             item.price = price;
@@ -370,6 +371,27 @@ namespace Shrunk.EditorTools
             item.visual = look != null ? ArenaSceneBuilder.SavePrefab(look, "Items/" + look.name) : null;
             EditorUtility.SetDirty(item);
             return item;
+        }
+
+        // One dry line per item. Same voice throughout: deadpan, never random.
+        static string Flavour(ItemType type)
+        {
+            switch (type)
+            {
+                case ItemType.NeedleTip: return "It was a splinter. Now it's a career.";
+                case ItemType.SplitterMandible: return "Previously owned. The owner objected.";
+                case ItemType.AcidGland: return "Do not lick. This is your only warning and it is late.";
+                case ItemType.FireflyLantern: return "The firefly is fine. Probably.";
+                case ItemType.CompoundEye: return "You can now see everything. You will wish you couldn't.";
+                case ItemType.ExtraLegs: return "Four more reasons to leave quickly.";
+                case ItemType.WingBuds: return "Not flying. Falling with ambition.";
+                case ItemType.ChitinPlate: return "Somebody's back. Yours now.";
+                case ItemType.SugarCube: return "A week of food, if you were still a normal size.";
+                case ItemType.PheromoneCloud: return "You smell like an argument.";
+                case ItemType.LarvaBuddy: return "It thinks you're its mother. Don't correct it.";
+                case ItemType.QueensJelly: return "Tastes like being in charge.";
+                default: return "";
+            }
         }
 
         // ---------- ants ----------

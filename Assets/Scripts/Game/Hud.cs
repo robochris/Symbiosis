@@ -97,7 +97,7 @@ namespace Shrunk
 
         void OnItemCollected(ItemDefinition item)
         {
-            Toast($"Got {item.displayName}: {item.description}", 3.5f);
+            Toast($"Got {item.displayName}: {item.Blurb}", 4.5f);
         }
 
         /// <summary>Shows a message in the middle of the screen for a few seconds.</summary>
@@ -250,7 +250,7 @@ namespace Shrunk
                 return;
             }
 
-            string text = $"{near.item.displayName}: {near.item.description}";
+            string text = $"{near.item.displayName}: {near.item.Blurb}";
             if (near.price > 0)
             {
                 text += RunState.Coins >= near.price ? $"   ·   {near.price} coins (walk onto it to buy)" : $"   ·   {near.price} coins (you have {RunState.Coins})";

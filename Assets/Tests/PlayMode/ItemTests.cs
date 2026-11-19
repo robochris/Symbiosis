@@ -461,6 +461,19 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Every_item_has_its_one_line()
+        {
+            var lines = new HashSet<string>();
+            foreach (var item in GameAssets.Instance.items.items)
+            {
+                Assert.IsFalse(string.IsNullOrEmpty(item.flavour), item.displayName + " has no line");
+                Assert.IsTrue(lines.Add(item.flavour), "two items share a line");
+                Assert.That(item.Blurb, Does.StartWith(item.description).And.EndWith(item.flavour));
+            }
+            yield break;
+        }
+
+        [UnityTest]
         public IEnumerator Overcharge_starts_with_a_surge_and_makes_the_player_faster()
         {
             var power = _player.Power;
