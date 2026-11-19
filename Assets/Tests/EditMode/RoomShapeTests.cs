@@ -108,6 +108,48 @@ namespace Shrunk.Tests
             Assert.Greater(withCover, fightRooms * 0.85f);
         }
 
+        [TearDown]
+        public void NoForcedFeature() => RoomShape.ForceFeature = null;
+
+        [Test]
+        public void Fight_rooms_come_in_every_kind_and_quiet_rooms_are_plain()
+        {
+            var seen = new System.Collections.Generic.Dictionary<RoomFeature, int>();
+            for (int seed = 1; seed <= 600; seed++)
+            {
+                var fight = RoomShape.Generate(seed * 131, (Doors)(1 + seed % 15), RoomType.Normal, (seed % 11) / 10f);
+                seen.TryGetValue(fight.feature, out int count);
+                seen[fight.feature] = count + 1;
+                Assert.AreEqual(fight.feature == RoomFeature.DewRoom, fight.spots.Count > 0, "only dew rooms have dew spots");
+
+                Assert.AreEqual(RoomFeature.Open, RoomShape.Generate(seed * 131, Doors.South, RoomType.Shop, 0f).feature);
+                Assert.AreEqual(RoomFeature.Open, RoomShape.Generate(seed * 131, Doors.South, RoomType.Exit, 0.5f).feature, "the exit room stays plain");
+            }
+            foreach (RoomFeature feature in System.Enum.GetValues(typeof(RoomFeature)))
+            {
+                seen.TryGetValue(feature, out int count);
+                Debug.Log($"[Shrunk] {RoomDressing.NameOf(feature)}: {count} of 600 fight rooms");
+                Assert.Greater(count, 30, $"{feature} almost never comes up");
+            }
+        }
+
+        [Test]
+        public void A_feature_never_changes_the_shape_of_a_room()
+        {
+            for (int seed = 1; seed <= 60; seed++)
+            {
+                RoomShape.ForceFeature = null;
+                string plain = RoomShape.Generate(seed, Doors.North | Doors.East, RoomType.Normal, 0.6f).ToAscii().Replace('~', '.');
+                foreach (RoomFeature feature in System.Enum.GetValues(typeof(RoomFeature)))
+                {
+                    RoomShape.ForceFeature = feature;
+                    var forced = RoomShape.Generate(seed, Doors.North | Doors.East, RoomType.Normal, 0.6f);
+                    Assert.AreEqual(plain, forced.ToAscii().Replace('~', '.'));
+                    Assert.IsEmpty(forced.Validate());
+                }
+            }
+        }
+
         [Test]
         public void Bigger_rooms_hold_more_enemies()
         {

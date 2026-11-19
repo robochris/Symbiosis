@@ -58,7 +58,7 @@ namespace Shrunk
                 room._doors[side] = door;
             }
 
-            if (biome.coverMaterial != null) BuildCover(room, biome);
+            if (biome.coverMaterial != null) RoomDressing.Build(room, biome);
 
             GameObject prop = biome.PropFor(shape.type);
             if (prop != null)
@@ -72,41 +72,6 @@ namespace Shrunk
             }
 
             return room;
-        }
-
-        // A half-buried pebble on each cover tile: about chest high, solid, and in the way of shots and ants alike.
-        // A couple of bits of grit beside each one are only for looks.
-        static void BuildCover(Room room, BiomeDefinition biome)
-        {
-            var rng = new System.Random(room.Shape.seed ^ 0x5bd1e995);
-            float Range(float a, float b) => a + (float)rng.NextDouble() * (b - a);
-
-            foreach (var tile in room.Shape.cover)
-            {
-                Vector3 at = RoomShape.TileLocal(tile) + new Vector3(Range(-0.15f, 0.15f), 0f, Range(-0.15f, 0.15f));
-                float width = Range(1.5f, 1.9f);
-
-                var pebble = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                pebble.name = "Pebble";
-                pebble.transform.SetParent(room.transform, false);
-                // Sunk a little, so it reads as lying in the soil and shows 1.1 to 1.5 m above it.
-                pebble.transform.localPosition = at + Vector3.up * width * Range(0.2f, 0.3f);
-                pebble.transform.localScale = Vector3.one * width;
-                pebble.GetComponent<Renderer>().sharedMaterial = biome.coverMaterial;
-
-                int grit = rng.Next(1, 4);
-                for (int i = 0; i < grit; i++)
-                {
-                    float angle = Range(0f, Mathf.PI * 2f), reach = width * 0.5f + Range(0.15f, 0.5f), size = Range(0.25f, 0.55f);
-                    var bit = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                    bit.name = "Grit";
-                    DestroyImmediate(bit.GetComponent<Collider>()); // straight away: the navmesh is baked this same frame
-                    bit.transform.SetParent(room.transform, false);
-                    bit.transform.localPosition = at + new Vector3(Mathf.Cos(angle) * reach, size * 0.2f, Mathf.Sin(angle) * reach);
-                    bit.transform.localScale = new Vector3(size, size * 0.7f, size);
-                    bit.GetComponent<Renderer>().sharedMaterial = biome.coverMaterial;
-                }
-            }
         }
 
         void OnDestroy()

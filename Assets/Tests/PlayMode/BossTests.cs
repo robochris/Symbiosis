@@ -369,6 +369,23 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Brood_Mother_scuttles_after_a_player_who_keeps_away()
+        {
+            var mother = SpawnBoss<BroodMother>(_biome.miniBoss, new Vector3(0f, 0f, 9f));
+            Assert.AreEqual(mother.crawlSpeed, mother.SpeedAt(3f), 0.001f, "up close she should crawl");
+            Assert.AreEqual(mother.scuttleSpeed, mother.SpeedAt(20f), 0.001f, "far off she should scuttle");
+            Assert.Greater(mother.SpeedAt(10f), mother.crawlSpeed);
+
+            _player.Health.SetInvulnerable(600f);
+            _player.Teleport(new Vector3(0f, 0.05f, -9f));
+            yield return new WaitForSeconds(0.2f);
+            float before = (mother.transform.position - _player.transform.position).magnitude;
+            yield return new WaitForSeconds(1.5f);
+            float closed = before - (mother.transform.position - _player.transform.position).magnitude;
+            Assert.Greater(closed, mother.crawlSpeed * 1.5f * 1.4f, "she closed no faster than a crawl");
+        }
+
+        [UnityTest]
         public IEnumerator Brood_Mother_can_be_beaten_by_circling_and_shooting()
         {
             Time.timeScale = 5f;

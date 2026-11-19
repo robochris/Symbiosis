@@ -76,6 +76,59 @@ namespace Shrunk.Tests
             }
         }
 
+        // One picture of each kind of fight room, from the wide view, looking at its cover.
+        [UnityTest, Explicit]
+        public IEnumerator Capture_room_features()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+
+            var player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            var follow = CameraFollow.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+
+            foreach (RoomFeature feature in System.Enum.GetValues(typeof(RoomFeature)))
+            {
+                RoomShape.ForceFeature = feature;
+                floors.BuildFloor(7, 9001);
+                RoomShape.ForceFeature = null;
+                yield return null;
+                player.Health.SetInvulnerable(600f);
+
+                Room room = null;
+                foreach (var node in floors.Layout.ordered)
+                {
+                    Room candidate = floors.RoomAt(node.cell);
+                    if (node.type != RoomType.Normal || candidate.Shape.feature != feature) continue;
+                    if (room == null || candidate.Shape.cover.Count + candidate.Shape.spots.Count > room.Shape.cover.Count + room.Shape.spots.Count) room = candidate;
+                }
+                Assert.IsNotNull(room, "no " + feature);
+
+                // Look at whatever makes the room what it is: the nearest dew spot, or the nearest cover.
+                var tiles = feature == RoomFeature.DewRoom ? room.Shape.spots : room.Shape.cover;
+                Vector3 look = room.TileWorld(tiles[0]);
+                foreach (var tile in tiles)
+                {
+                    if ((room.TileWorld(tile) - room.Centre).sqrMagnitude < (look - room.Centre).sqrMagnitude) look = room.TileWorld(tile);
+                }
+                Vector3 to = look - room.Centre;
+                player.Teleport(room.Centre - to.normalized * 2f + Vector3.up * 0.05f);
+                player.transform.rotation = Quaternion.LookRotation(to);
+                foreach (var drip in room.GetComponentsInChildren<DewDrip>()) drip.interval = 1.6f;
+                follow.SetMode(CameraMode.Wide);
+                yield return new WaitForSeconds(1.3f);
+                follow.SetMode(CameraMode.Wide);
+                yield return null;
+                Save(Path.Combine(folder, "feature-" + feature + ".png"));
+            }
+        }
+
         [UnityTest, Explicit]
         public IEnumerator Capture_enemy_lineup()
         {

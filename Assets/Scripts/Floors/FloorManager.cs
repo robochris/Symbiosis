@@ -337,16 +337,22 @@ namespace Shrunk
 
         // Larvae, eggs, hatchlings and guards: anything an enemy brings into the fight joins it, so the room stays
         // locked until they are dealt with too.
-        void OnMinion(Enemy source, Enemy prefab, Vector3 position, bool mutate)
+        void OnMinion(Enemy source, Enemy prefab, Vector3 position, bool mutate) => AddToFight(prefab, position, mutate, source.transform.position);
+
+        /// <summary>
+        /// Brings one more enemy into the fight going on in the current room; the doors stay shut until it is dead too.
+        /// A null prefab means a random ant from the biome. Returns null if there is no fight to join.
+        /// </summary>
+        public Enemy AddToFight(Enemy prefab, Vector3 position, bool mutate, Vector3? fallback = null)
         {
-            if (!IsLocked || CurrentNode == null) return;
+            if (!IsLocked || CurrentNode == null) return null;
             var rng = new System.Random(UnityEngine.Random.Range(0, int.MaxValue));
             if (prefab == null) prefab = biome.PickEnemy(FloorInBiome, rng);
-            if (prefab == null) return;
+            if (prefab == null) return null;
 
             // Keep it on the floor: the nearest walkable spot to where it was asked for.
             if (UnityEngine.AI.NavMesh.SamplePosition(position, out var hit, 4f, UnityEngine.AI.NavMesh.AllAreas) && hit.position.y < 0.5f) position = hit.position;
-            else position = source.transform.position;
+            else if (fallback.HasValue) position = fallback.Value;
 
             var player = PlayerController.Instance;
             Enemy minion = Spawn(prefab, position, player != null ? player.transform.position : position);
@@ -354,6 +360,7 @@ namespace Shrunk
             {
                 minion.Mutations.Apply(MutationBudget.Roll(rng, biome.mutations, MutationBudget.MaxPoints(depth, FloorInBiome)));
             }
+            return minion;
         }
 
         // Swarm Call: bring in the biome's swarm enemy on the open tiles nearest the caller. They join the fight,

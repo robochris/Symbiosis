@@ -14,6 +14,11 @@ namespace Shrunk
 
         [Header("Crawl")]
         public float crawlSpeed = 2.2f;
+        [Tooltip("She scuttles when the player is far off, so a big arena can't be used to keep away from her for ever.")]
+        public float scuttleSpeed = 5f;
+        [Tooltip("Crawl speed up to the first distance, scuttle speed from the second, blended in between.")]
+        public float scuttleFrom = 7f;
+        public float scuttleFull = 14f;
         [Tooltip("Degrees per second. Slow on purpose, so the player can get round behind her.")]
         public float turnSpeed = 65f;
 
@@ -117,7 +122,7 @@ namespace Shrunk
 
             // Crawl after the player.
             Face(SteerToward(targetPosition) - transform.position, turnSpeed * SpeedScale);
-            Move(transform.forward * (crawlSpeed * SpeedScale));
+            Move(transform.forward * (SpeedAt(distance) * SpeedScale));
 
             if (Phase == 2 && Time.time >= _nextBurrow)
             {
@@ -149,6 +154,9 @@ namespace Shrunk
                 _timer = biteWindup;
             }
         }
+
+        /// <summary>How fast she moves with the player this far away.</summary>
+        public float SpeedAt(float distance) => Mathf.Lerp(crawlSpeed, scuttleSpeed, Mathf.InverseLerp(scuttleFrom, scuttleFull, distance));
 
         void Lay(Vector3 position)
         {

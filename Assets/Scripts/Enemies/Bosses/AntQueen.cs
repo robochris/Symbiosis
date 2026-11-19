@@ -18,6 +18,8 @@ namespace Shrunk
         public int eggCount = 5;
         [Tooltip("Seconds between an egg hatching by itself.")]
         public float hatchInterval = 15f;
+        [Tooltip("How far from her the egg clusters sit, when no wall is nearer.")]
+        public float eggRing = 11f;
 
         [Header("Soldiers")]
         public Enemy soldierPrefab;
@@ -41,7 +43,8 @@ namespace Shrunk
         public float restTime = 1.4f;
         public float chargeWindup = 0.9f;
         public float chargeSpeed = 15f;
-        public float chargeTime = 1.3f;
+        [Tooltip("Seconds a charge lasts if she hits nothing: 1.7 s at 15 m/s crosses most of a 30 m arena.")]
+        public float chargeTime = 1.7f;
         public float hitReach = 3.6f;
         public int chargeDamage = 1;
         [Tooltip("Metres between acid pools left along the charge.")]
@@ -221,8 +224,8 @@ namespace Shrunk
                 for (int i = 0; i < eggCount; i++)
                 {
                     Vector3 direction = Quaternion.Euler(0f, 360f * i / eggCount + 30f, 0f) * Vector3.forward;
-                    float reach = 9f;
-                    if (Physics.Raycast(origin, direction, out var hit, 14f, ~0, QueryTriggerInteraction.Ignore) && hit.collider.GetComponentInParent<Health>() == null)
+                    float reach = eggRing;
+                    if (Physics.Raycast(origin, direction, out var hit, eggRing + 2f, ~0, QueryTriggerInteraction.Ignore) && hit.collider.GetComponentInParent<Health>() == null)
                     {
                         reach = Mathf.Max(3f, hit.distance - 1.6f);
                     }

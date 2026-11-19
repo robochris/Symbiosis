@@ -32,6 +32,19 @@ namespace Shrunk
         [Tooltip("The pebbles that lie about fight rooms as cover. Empty = no cover.")]
         public Material coverMaterial;
 
+        [Header("Room features (an empty material switches that feature's look off)")]
+        [Tooltip("Food store: giant crumbs, and one sugar cube.")]
+        public Material crumbMaterial;
+        public Material sugarMaterial;
+        [Tooltip("Root hall: roots from floor to ceiling.")]
+        public Material rootMaterial;
+        [Tooltip("Nursery: larva pods.")]
+        public Material podMaterial;
+        [Tooltip("What a live pod hatches into.")]
+        public LarvaEnemy podHatchling;
+        [Tooltip("Dew room: the wet patches and the droplets.")]
+        public Material dewMaterial;
+
         [Header("Special room props (placed in the middle of the room)")]
         public GameObject startProp;
         [Tooltip("The way down. Hidden until the exit room is cleared.")]

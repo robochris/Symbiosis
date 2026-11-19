@@ -164,6 +164,12 @@ namespace Shrunk.EditorTools
             biome.ceilingMaterial = ArenaSceneBuilder.Lit("Ceiling", new Color(0.3f, 0.2f, 0.13f), 0.05f);
             biome.ceiling = true;
             biome.coverMaterial = ArenaSceneBuilder.Lit("Pebble", new Color(0.5f, 0.47f, 0.42f), 0.25f);
+            biome.crumbMaterial = ArenaSceneBuilder.Lit("Crumb", new Color(0.82f, 0.62f, 0.34f), 0.1f);
+            biome.sugarMaterial = ArenaSceneBuilder.Lit("Sugar", new Color(0.95f, 0.95f, 0.92f), 0.6f);
+            biome.rootMaterial = ArenaSceneBuilder.Lit("RootColumn", new Color(0.42f, 0.3f, 0.2f), 0.15f);
+            biome.podMaterial = ArenaSceneBuilder.Lit("LarvaPod", new Color(0.9f, 0.85f, 0.6f), 0.5f);
+            biome.podHatchling = larvaPrefab;
+            biome.dewMaterial = ArenaSceneBuilder.Lit("Dew", new Color(0.45f, 0.75f, 0.95f), 0.9f);
             biome.tilesPerExtraEnemy = 60;
             biome.maxExtraEnemiesForSize = 4;
             biome.wallHeight = 6f;

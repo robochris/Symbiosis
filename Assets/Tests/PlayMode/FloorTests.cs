@@ -498,9 +498,11 @@ namespace Shrunk.Tests
                     {
                         pebbles++;
                         Vector3 at = room.TileWorld(tile);
-                        Assert.IsTrue(Physics.Raycast(at + Vector3.up * 5f, Vector3.down, out var top, 6f) && top.point.y > 0.8f,
-                            "no solid pebble on its tile\n" + Describe(node));
-                        Assert.Less(top.point.y, 1.8f, "pebble is too tall to be low cover");
+                        Assert.IsTrue(Physics.CheckSphere(at + Vector3.up * 0.6f, 0.3f), "nothing solid on a cover tile\n" + Describe(node));
+                        if (room.Shape.feature != RoomFeature.RootHall)
+                        {
+                            Assert.IsFalse(Physics.CheckSphere(at + Vector3.up * 2.6f, 0.3f), "cover is too tall to be low cover\n" + Describe(node));
+                        }
                         Assert.IsFalse(NavMesh.SamplePosition(at, out var on, 0.3f, NavMesh.AllAreas) && on.position.y < 0.5f,
                             "ants can walk through a pebble\n" + Describe(node));
                     }
@@ -516,6 +518,127 @@ namespace Shrunk.Tests
                 }
             }
             Assert.Greater(pebbles, 10, "three deep floors had almost no cover");
+        }
+
+        // Rebuilds the floor with every fight room of one kind, and returns the first of them.
+        IEnumerator FloorOf(RoomFeature feature, System.Action<RoomNode> found)
+        {
+            RoomShape.ForceFeature = feature;
+            _floors.BuildFloor(7, 9001);
+            RoomShape.ForceFeature = null;
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+            foreach (var node in _floors.Layout.ordered)
+            {
+                if (node.type == RoomType.Normal && _floors.RoomAt(node.cell).Shape.feature == feature) { found(node); yield break; }
+            }
+            Assert.Fail("no " + feature + " on the floor");
+        }
+
+        [UnityTest]
+        public IEnumerator Nursery_pods_pop_for_loot_and_live_ones_hatch_into_the_fight()
+        {
+            RoomNode nursery = null;
+            yield return FloorOf(RoomFeature.Nursery, node => nursery = node);
+            Room room = _floors.RoomAt(nursery.cell);
+            var pods = room.GetComponentsInChildren<LarvaPod>();
+            Assert.AreEqual(room.Shape.cover.Count, pods.Length, "one pod per cover tile");
+
+            // Shot open: gone, and counted. With the dice loaded, it leaves a coin.
+            int popped = LarvaPod.Popped, pickups = Pickup.All.Count;
+            pods[0].coinChance = 1f;
+            var health = pods[0].GetComponent<Health>();
+            Assert.AreEqual(Team.Enemy, health.team, "the player's shots must be able to hit a pod");
+            health.TakeDamage(1, Vector3.forward);
+            Assert.IsFalse(health.IsDead, "a pod should take two shots");
+            health.TakeDamage(1, Vector3.forward);
+            yield return null;
+            Assert.AreEqual(popped + 1, LarvaPod.Popped);
+            Assert.Greater(Pickup.All.Count, pickups, "a popped pod left nothing");
+            Assert.IsTrue(pods[0] == null, "the popped pod is still there");
+
+            if (pods.Length < 2) yield break;
+
+            // A live one does nothing until there is a fight, then hatches a larva that joins it.
+            LarvaPod live = pods[1];
+            live.hatches = true;
+            live.hatchAfter = 0.6f;
+            for (int i = 2; i < pods.Length; i++) pods[i].hatches = false;
+            int hatched = LarvaPod.Hatched;
+            yield return new WaitForSeconds(1f);
+            Assert.AreEqual(hatched, LarvaPod.Hatched, "a pod hatched with no fight going on");
+
+            _player.Teleport(StandingSpot(nursery) + Vector3.up * 0.05f);
+            yield return WaitUntil(() => _floors.IsLocked, 2f, "the nursery to lock");
+            int before = _floors.LiveEnemies.Count;
+            yield return WaitUntil(() => LarvaPod.Hatched > hatched, 3f, "the live pod to hatch");
+            Assert.AreEqual(before + 1, _floors.LiveEnemies.Count, "the hatchling did not join the fight");
+            Assert.IsInstanceOf<LarvaEnemy>(_floors.LiveEnemies[_floors.LiveEnemies.Count - 1]);
+
+            foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.Kill();
+            yield return WaitUntil(() => !_floors.IsLocked, 2f, "the nursery to open");
+        }
+
+        [UnityTest]
+        public IEnumerator Dew_drops_slow_the_player_under_them_and_only_them()
+        {
+            RoomNode dewRoom = null;
+            yield return FloorOf(RoomFeature.DewRoom, node => dewRoom = node);
+            Room room = _floors.RoomAt(dewRoom.cell);
+            var drips = room.GetComponentsInChildren<DewDrip>();
+            Assert.AreEqual(room.Shape.spots.Count, drips.Length);
+            Assert.Greater(drips.Length, 0);
+
+            // Not in the room: nothing falls.
+            yield return new WaitForSeconds(1f);
+            foreach (var drip in drips) Assert.AreEqual(0, drip.Landed, "dew fell with nobody in the room");
+
+            // Standing clear of every spot: drops land, the player stays dry.
+            foreach (var drip in drips) drip.interval = 1.2f;
+            _player.Teleport(room.Centre + Vector3.up * 0.05f);
+            yield return WaitUntil(() => drips[0].Landed >= 1, 4f, "a drop to land");
+            Assert.IsFalse(_player.IsSlowed, "soaked while standing clear of the wet patches");
+
+            // Under one: soaked, and walking covers about half the ground.
+            _player.Teleport(drips[0].transform.position + Vector3.up * 0.05f);
+            int landed = drips[0].Landed;
+            yield return WaitUntil(() => drips[0].Landed > landed, 4f, "the next drop to land");
+            Assert.IsTrue(_player.IsSlowed, "a drop landed on the player and did nothing");
+
+            foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.Kill();
+            foreach (var drip in drips) drip.enabled = false;
+            _player.Teleport(room.Centre + Vector3.up * 0.05f);
+            _player.Slow(0.5f, 5f);
+            Vector3 from = _player.transform.position;
+            _player.Input.overrideFrame = new InputFrame { move = Vector3.forward };
+            yield return new WaitForSeconds(0.5f);
+            float slow = (_player.transform.position - from).magnitude;
+            _player.Slow(1f, 0f);
+            yield return null;
+            Assert.IsFalse(_player.IsSlowed);
+            _player.Teleport(room.Centre + Vector3.up * 0.05f);
+            from = _player.transform.position;
+            yield return new WaitForSeconds(0.5f);
+            float normal = (_player.transform.position - from).magnitude;
+            _player.Input.overrideFrame = new InputFrame();
+            Assert.Less(slow, normal * 0.7f, $"soaked {slow:F2} m against {normal:F2} m dry");
+        }
+
+        [UnityTest]
+        public IEnumerator Food_stores_and_root_halls_are_built_from_their_own_pieces()
+        {
+            RoomNode found = null;
+            yield return FloorOf(RoomFeature.FoodStore, node => found = node);
+            Transform store = _floors.RoomAt(found.cell).transform;
+            Assert.IsNotNull(store.Find("Sugar Cube"), "a food store with no sugar cube");
+            Assert.IsNull(store.Find("Pebble"), "pebbles in a food store");
+
+            yield return FloorOf(RoomFeature.RootHall, node => found = node);
+            Room hall = _floors.RoomAt(found.cell);
+            Assert.IsNotNull(hall.transform.Find("Root"));
+            // A root blocks sight all the way up, which pebbles don't.
+            Vector3 at = hall.TileWorld(hall.Shape.cover[0]);
+            Assert.IsTrue(Physics.CheckSphere(at + Vector3.up * 4f, 0.2f), "the root does not reach up to the ceiling");
         }
     }
 }

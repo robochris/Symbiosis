@@ -35,6 +35,8 @@ namespace Shrunk
         /// <summary>Mid-dodge with Wing Buds: off the ground, so ground hazards can't touch the player.</summary>
         public bool IsHovering => IsDodging && _hovering;
         public int DodgeCharges => _charges;
+        /// <summary>Soaked by a dew drop (or anything else that slows): walking is slower until it wears off. Dodging is not.</summary>
+        public bool IsSlowed => Time.time < _slowUntil;
         /// <summary>1 when a dodge is available, otherwise how far the next one has recharged.</summary>
         public float DodgeReady01 => _charges > 0 ? 1f : Mathf.Clamp01(1f - (_rechargeAt - Time.time) / Mathf.Max(0.01f, _lastCooldown));
 
@@ -47,6 +49,31 @@ namespace Shrunk
         float _lastCooldown = 1f;
         int _charges = 1;
         bool _hovering;
+        float _slowUntil;
+        float _slowTo = 1f;
+        GameObject _soaked;
+
+        /// <summary>Slows walking to this share of normal speed for a while. A second one restarts the clock.</summary>
+        /// <param name="look">If given, a puddle of this material shows round the player's feet while it lasts.</param>
+        public void Slow(float speedShare, float seconds, Material look = null)
+        {
+            _slowTo = Mathf.Clamp(speedShare, 0.1f, 1f);
+            _slowUntil = Time.time + seconds;
+            if (look == null) return;
+
+            if (_soaked == null)
+            {
+                _soaked = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                _soaked.name = "Soaked";
+                Destroy(_soaked.GetComponent<Collider>());
+                _soaked.GetComponent<Collider>().enabled = false;
+                _soaked.transform.SetParent(transform, false);
+                _soaked.transform.localPosition = new Vector3(0f, 0.03f, 0f);
+                _soaked.transform.localScale = new Vector3(1.5f, 0.015f, 1.5f);
+            }
+            _soaked.GetComponent<Renderer>().sharedMaterial = look;
+            _soaked.SetActive(true);
+        }
 
         void Awake()
         {
@@ -66,6 +93,7 @@ namespace Shrunk
 
         void Update()
         {
+            if (_soaked != null && _soaked.activeSelf && !IsSlowed) _soaked.SetActive(false);
             if (Health.IsDead) return;
 
             InputFrame input = Input.Read();
@@ -84,7 +112,7 @@ namespace Shrunk
             }
             else
             {
-                velocity = input.move * (moveSpeed * stats.moveSpeedMultiplier);
+                velocity = input.move * (moveSpeed * stats.moveSpeedMultiplier * (IsSlowed ? _slowTo : 1f));
 
                 if (input.dodge && _charges > 0)
                 {

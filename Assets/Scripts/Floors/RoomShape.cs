@@ -34,6 +34,12 @@ namespace Shrunk
         public readonly List<Vector2Int> cover = new List<Vector2Int>();
         /// <summary>Open tiles with nothing on them: where enemies can appear.</summary>
         public readonly List<Vector2Int> free = new List<Vector2Int>();
+        /// <summary>What kind of fight room this is: what its cover is made of, and anything extra in it.</summary>
+        public RoomFeature feature;
+        /// <summary>Dew rooms only: the marked tiles droplets fall on. Still free floor.</summary>
+        public readonly List<Vector2Int> spots = new List<Vector2Int>();
+        /// <summary>For tests and trying things out: every fight room gets this feature.</summary>
+        public static RoomFeature? ForceFeature;
 
         /// <summary>One of the border tiles that form the doorway on a side (0 North, 1 East, 2 South, 3 West). index runs 0 to DoorWidth - 1.</summary>
         public static Vector2Int DoorTile(int side, int index)
@@ -187,7 +193,41 @@ namespace Shrunk
                 }
                 shape.free.RemoveAll(shape.cover.Contains);
             }
+
+            // 6. What kind of room it is. Its own dice, so adding a feature never changes the shape of any room.
+            if (fight && type == RoomType.Normal)
+            {
+                var dice = new System.Random(seed ^ 0x3c6ef372);
+                int roll = dice.Next(100);
+                shape.feature = ForceFeature ?? (roll < 40 ? RoomFeature.Open : roll < 60 ? RoomFeature.FoodStore
+                    : roll < 75 ? RoomFeature.RootHall : roll < 90 ? RoomFeature.Nursery : RoomFeature.DewRoom);
+
+                if (shape.feature == RoomFeature.DewRoom)
+                {
+                    for (int i = 0; i < 14 && shape.spots.Count < 5; i++)
+                    {
+                        var tile = shape.free[dice.Next(shape.free.Count)];
+                        if (shape.CanHoldSpot(tile)) shape.spots.Add(tile);
+                    }
+                    if (shape.spots.Count == 0) shape.feature = RoomFeature.Open;
+                }
+                else if (shape.cover.Count == 0)
+                {
+                    // Nothing to make the feature out of.
+                    shape.feature = RoomFeature.Open;
+                }
+            }
             return shape;
+        }
+
+        bool CanHoldSpot(Vector2Int tile)
+        {
+            if (!CanBePillar(tile)) return false;
+            foreach (var other in spots)
+            {
+                if (Mathf.Abs(tile.x - other.x) <= 2 && Mathf.Abs(tile.y - other.y) <= 2) return false;
+            }
+            return true;
         }
 
         bool CanHoldCover(Vector2Int tile)
@@ -360,6 +400,14 @@ namespace Shrunk
 
             if (!IsConnected()) problems.Add("part of the room cannot be reached");
 
+            foreach (var tile in spots)
+            {
+                if (!free.Contains(tile)) problems.Add($"dew spot at {tile.x},{tile.y} is not on free floor");
+            }
+            if (feature == RoomFeature.DewRoom && spots.Count == 0) problems.Add("dew room with nowhere for the dew to fall");
+            if ((feature == RoomFeature.FoodStore || feature == RoomFeature.RootHall || feature == RoomFeature.Nursery) && cover.Count == 0)
+                problems.Add($"{feature} with no cover tiles to build it from");
+
             foreach (var tile in cover)
             {
                 if (Mathf.Abs(tile.x - centre.x) <= 2 && Mathf.Abs(tile.y - centre.y) <= 2) problems.Add($"cover at {tile.x},{tile.y} is in the middle");
@@ -375,7 +423,7 @@ namespace Shrunk
             return problems;
         }
 
-        /// <summary>Text picture: # earth, . floor, o pebble, C centre, D doorway.</summary>
+        /// <summary>Text picture: # earth, . floor, o cover, ~ dew spot, C centre, D doorway.</summary>
         public string ToAscii()
         {
             var text = new StringBuilder();
@@ -384,7 +432,7 @@ namespace Shrunk
                 for (int x = 0; x < Size; x++)
                 {
                     bool border = x == 0 || y == 0 || x == Size - 1 || y == Size - 1;
-                    char symbol = !open[x, y] ? '#' : border ? 'D' : (x == centre.x && y == centre.y) ? 'C' : cover.Contains(new Vector2Int(x, y)) ? 'o' : '.';
+                    char symbol = !open[x, y] ? '#' : border ? 'D' : (x == centre.x && y == centre.y) ? 'C' : cover.Contains(new Vector2Int(x, y)) ? 'o' : spots.Contains(new Vector2Int(x, y)) ? '~' : '.';
                     text.Append(symbol).Append(' ');
                 }
                 text.AppendLine();

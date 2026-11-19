@@ -67,7 +67,16 @@ namespace Shrunk
         {
             if (aimDirection.sqrMagnitude < 0.001f) return false;
             Vector3 origin = muzzle != null ? muzzle.position : transform.position;
-            return FindTarget(origin, aimDirection.normalized, aimAssistAngle + Stats.aimAssistBonusAngle, out _) != null;
+            if (FindTarget(origin, aimDirection.normalized, aimAssistAngle + Stats.aimAssistBonusAngle, out _) != null) return true;
+
+            // Larva pods count too, but only when aimed at squarely: shots are never bent toward them.
+            foreach (var pod in LarvaPod.All)
+            {
+                Vector3 to = pod.transform.position - origin;
+                to.y = 0f;
+                if (to.magnitude <= range && Vector3.Angle(aimDirection, to) < 7f) return true;
+            }
+            return false;
         }
 
         Vector3 ApplyAimAssist(Vector3 origin, Vector3 direction, float coneAngle)
