@@ -185,6 +185,11 @@ namespace Shrunk
             _dodgeLength = _hovering ? dodgeDuration * 2f : dodgeDuration;
             _dodgeTimeLeft = _dodgeLength;
             Health.SetInvulnerable(_hovering ? _dodgeLength : dodgeInvulnerability);
+            // Birthday Candle: where the dodge started is on fire now.
+            if (stats.fireDodge > 0 && GameAssets.Instance != null)
+            {
+                GroundHazard.SpawnFriendlyPuddle(transform.position, stats.fireDodge + 1, true, GameAssets.Instance.fire);
+            }
             Sfx.Play(SfxId.Dodge, 0.7f);
         }
 

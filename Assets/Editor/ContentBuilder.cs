@@ -341,6 +341,46 @@ namespace Shrunk.EditorTools
             }
             items.Add(Item(ItemType.QueensJelly, "Queen's Jelly", "Every stat up a little.", ItemSlot.Aura, true, 0, new Color(1f, 0.82f, 0.2f), look));
 
+            // Static Sock: a striped sock worn as a scarf, crackling.
+            look = new GameObject("StaticSock");
+            var sockMat = ArenaSceneBuilder.Lit("ItemSock", new Color(0.3f, 0.45f, 0.85f), 0.1f);
+            var sparkMat = ArenaSceneBuilder.Unlit("StaticSpark", new Color(1f, 0.95f, 0.4f));
+            Decor(PrimitiveType.Cylinder, "Sock", look.transform, new Vector3(0f, 0.5f, 0f), new Vector3(0.6f, 0.07f, 0.6f), sockMat);
+            Decor(PrimitiveType.Cube, "Toe", look.transform, new Vector3(-0.2f, 0.3f, -0.34f), new Vector3(0.18f, 0.4f, 0.1f), sockMat).transform.localRotation = Quaternion.Euler(-15f, 0f, 10f);
+            Decor(PrimitiveType.Sphere, "Spark A", look.transform, new Vector3(0.32f, 0.62f, 0.1f), Vector3.one * 0.08f, sparkMat);
+            Decor(PrimitiveType.Sphere, "Spark B", look.transform, new Vector3(-0.3f, 0.6f, 0.2f), Vector3.one * 0.06f, sparkMat);
+            items.Add(Item(ItemType.StaticSock, "Static Sock", "Every 5th shot is charged: double damage, and it goes through.", ItemSlot.Head, false, 25, new Color(0.3f, 0.45f, 0.85f), look));
+
+            // Birthday Candle: a lit candle on the head.
+            look = new GameObject("BirthdayCandle");
+            Decor(PrimitiveType.Cylinder, "Candle", look.transform, new Vector3(0f, 1.05f, 0f), new Vector3(0.1f, 0.16f, 0.1f), ArenaSceneBuilder.Lit("CandleWax", new Color(0.55f, 0.8f, 0.95f), 0.5f));
+            Decor(PrimitiveType.Sphere, "Flame", look.transform, new Vector3(0f, 1.28f, 0f), new Vector3(0.1f, 0.16f, 0.1f), ArenaSceneBuilder.Unlit("Fire", new Color(1f, 0.55f, 0.1f)));
+            items.Add(Item(ItemType.BirthdayCandle, "Birthday Candle", "Dodging leaves a patch of fire where you were.", ItemSlot.Head, false, 25, new Color(1f, 0.7f, 0.3f), look));
+
+            // Lost Marble: a glass marble carried in the off hand.
+            look = new GameObject("LostMarble");
+            var marbleMat = ArenaSceneBuilder.Lit("MarbleBlue", new Color(0.15f, 0.45f, 0.9f), 0.97f);
+            Decor(PrimitiveType.Sphere, "Marble", look.transform, new Vector3(-0.5f, -0.05f, 0.25f), Vector3.one * 0.3f, marbleMat);
+            items.Add(Item(ItemType.LostMarble, "Lost Marble", "Shots hit twice as hard, and come a third slower.", ItemSlot.Hands, false, 25, new Color(0.15f, 0.45f, 0.9f), look));
+
+            // Sprinkles: scattered over the shoulders.
+            look = new GameObject("Sprinkles");
+            Color[] sprinkleColours = { new Color(1f, 0.35f, 0.75f), new Color(0.3f, 0.8f, 1f), new Color(1f, 0.9f, 0.3f), new Color(0.5f, 1f, 0.5f) };
+            for (int i = 0; i < 8; i++)
+            {
+                var at = new Vector3(Mathf.Sin(i * 2.4f) * 0.34f, 0.45f + 0.05f * (i % 3), Mathf.Cos(i * 2.4f) * 0.3f);
+                var bit = Decor(PrimitiveType.Capsule, "Sprinkle " + i, look.transform, at, new Vector3(0.05f, 0.07f, 0.05f), ArenaSceneBuilder.Unlit("Sprinkle" + (i % 4), sprinkleColours[i % 4]));
+                bit.transform.localRotation = Quaternion.Euler(i * 47f, i * 83f, 90f);
+            }
+            items.Add(Item(ItemType.Sprinkles, "Sprinkles", "Fire faster.", ItemSlot.Body, false, 20, new Color(1f, 0.35f, 0.75f), look));
+
+            // Finch's Dose: what was left in the flask. Rare: only Finch has any.
+            look = new GameObject("FinchsDose");
+            var doseMat = ArenaSceneBuilder.Unlit("FinchDose", new Color(0.45f, 1f, 0.6f));
+            Decor(PrimitiveType.Sphere, "Flask", look.transform, new Vector3(0.3f, -0.35f, 0.3f), Vector3.one * 0.2f, doseMat);
+            Decor(PrimitiveType.Cylinder, "Neck", look.transform, new Vector3(0.3f, -0.22f, 0.3f), new Vector3(0.07f, 0.06f, 0.07f), silver);
+            items.Add(Item(ItemType.FinchsDose, "Finch's Dose", "Smaller again: less of you to hit, quicker on your feet, dodge back sooner.", ItemSlot.Aura, true, 0, new Color(0.45f, 1f, 0.6f), look));
+
             const string libraryPath = "Assets/Data/Items/ItemLibrary.asset";
             var library = AssetDatabase.LoadAssetAtPath<ItemLibrary>(libraryPath);
             if (library == null)
@@ -392,6 +432,11 @@ namespace Shrunk.EditorTools
                 case ItemType.PheromoneCloud: return "You smell like an argument.";
                 case ItemType.LarvaBuddy: return "It thinks you're its mother. Don't correct it.";
                 case ItemType.QueensJelly: return "Tastes like being in charge.";
+                case ItemType.StaticSock: return "The other one is still missing. It always will be.";
+                case ItemType.BirthdayCandle: return "Someone made a wish on this. You're using it as arson.";
+                case ItemType.LostMarble: return "You have, technically, found your marbles.";
+                case ItemType.Sprinkles: return "Hundreds and thousands. You took eight.";
+                case ItemType.FinchsDose: return "Not approved for interns. Nothing was."; 
                 default: return "";
             }
         }

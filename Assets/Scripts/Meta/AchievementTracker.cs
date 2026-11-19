@@ -84,6 +84,11 @@ namespace Shrunk
             {
                 Achievements.Unlock(AchievementId.PerformanceReview);
             }
+            else if (enemy is RobotVacuum vacuum)
+            {
+                Achievements.Unlock(AchievementId.SpringClean);
+                if (vacuum.DockFailed) Achievements.Unlock(AchievementId.Unplugged);
+            }
             else if (enemy is TrickCandle)
             {
                 Achievements.Unlock(AchievementId.SweetTooth);

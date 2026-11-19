@@ -207,6 +207,9 @@ namespace Shrunk.Tests
             vacuum.Health.Kill();
             yield return WaitUntil(() => _floors.ExtractPortal != null, 8f, "the portals");
             Assert.IsFalse(Achievements.Has(AchievementId.Regicide), "the vacuum was mistaken for the Ant Queen");
+            Assert.IsTrue(Achievements.Has(AchievementId.SpringClean));
+            Assert.IsTrue(Achievements.Has(AchievementId.Unplugged));
+            Assert.IsTrue(Achievements.StyleUnlocked("Lint"));
         }
     }
 }

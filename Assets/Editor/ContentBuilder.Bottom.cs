@@ -53,7 +53,6 @@ namespace Shrunk.EditorTools
             finch.telegraphMaterial = telegraph;
             finch.sampleReward = 60;
             finch.knockbackOnHit = 1.5f;
-            finch.dropsLoot = false;
             var friends = new System.Collections.Generic.List<Enemy>();
             foreach (string name in new[] { "WorkerAnt", "SpitterAnt" })
             {

@@ -15,7 +15,12 @@ namespace Shrunk
         SugarCube,
         PheromoneCloud,
         LarvaBuddy,
-        QueensJelly
+        QueensJelly,
+        StaticSock,
+        BirthdayCandle,
+        LostMarble,
+        Sprinkles,
+        FinchsDose
     }
 
     /// <summary>Where an item shows on the character. Two items in one slot: the newer one shows.</summary>

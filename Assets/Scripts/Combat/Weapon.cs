@@ -21,6 +21,8 @@ namespace Shrunk
         public float aimAssistStrength = 1f;
 
         public int ShotsFired { get; private set; }
+        public int ChargedShots { get; private set; }
+        int _shotsSinceCharge;
 
         Pool<Bullet> _pool;
         PlayerItems _items;
@@ -45,10 +47,19 @@ namespace Shrunk
             PlayerStats stats = Stats;
             _nextShot = Time.time + fireInterval * stats.fireIntervalMultiplier;
 
+            // Static Sock: every so many shots, one is charged.
+            _shotsSinceCharge++;
+            bool charged = stats.chargedEvery > 0 && _shotsSinceCharge >= stats.chargedEvery;
+            if (charged)
+            {
+                _shotsSinceCharge = 0;
+                ChargedShots++;
+            }
+
             var shot = new Shot
             {
-                damage = damage * stats.damageMultiplier,
-                pierce = stats.pierce,
+                damage = (damage + stats.damageBonus) * stats.damageMultiplier * (charged ? 2 : 1),
+                pierce = stats.pierce + (charged ? 2 : 0),
                 split = stats.split,
                 acid = stats.acid,
                 burn = stats.burn,

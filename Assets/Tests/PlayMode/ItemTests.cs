@@ -405,10 +405,72 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_marble_hits_harder_and_slower_and_sprinkles_fire_faster()
+        {
+            Enemy dummy = Dummy(new Vector3(0f, 0f, 6f), "SoldierAnt");
+            yield return null;
+            yield return FireOnce();
+            Assert.AreEqual(1, Lost(dummy));
+
+            Give(ItemType.LostMarble);
+            Assert.Greater(_items.Stats.fireIntervalMultiplier, 1.3f);
+            _player.Input.overrideFrame = new InputFrame { aim = Vector3.forward, fire = true };
+            yield return null;
+            _player.Input.overrideFrame = new InputFrame();
+            Assert.AreEqual(2, _player.weapon.ShotsFired);
+            yield return new WaitForSeconds(0.9f);
+            Assert.AreEqual(3, Lost(dummy), "a marble shot should do 2");
+
+            Give(ItemType.Sprinkles, 2);
+            Assert.Less(_items.Stats.fireIntervalMultiplier, 1f, "two lots of sprinkles should more than make up for one marble");
+        }
+
+        [UnityTest]
+        public IEnumerator The_sock_charges_every_fifth_shot()
+        {
+            Give(ItemType.StaticSock);
+            Assert.AreEqual(5, _items.Stats.chargedEvery);
+            Enemy dummy = Dummy(new Vector3(0f, 0f, 6f), "SoldierAnt");
+            dummy.Health.SetMaxHealth(50, true);
+            yield return null;
+
+            _player.Input.overrideFrame = new InputFrame { aim = Vector3.forward, fire = true };
+            for (float t = 0f; t < 4f && _player.weapon.ShotsFired < 5; t += Time.deltaTime) yield return null;
+            _player.Input.overrideFrame = new InputFrame();
+            Assert.AreEqual(5, _player.weapon.ShotsFired);
+            Assert.AreEqual(1, _player.weapon.ChargedShots);
+            yield return new WaitForSeconds(0.6f);
+            Assert.AreEqual(6, Lost(dummy), "four plain shots and one doubled");
+
+            Give(ItemType.StaticSock, 2);
+            Assert.AreEqual(3, _items.Stats.chargedEvery);
+        }
+
+        [UnityTest]
+        public IEnumerator The_candle_leaves_fire_behind_a_dodge_and_the_dose_shrinks_the_Void()
+        {
+            Give(ItemType.BirthdayCandle);
+            _player.Input.overrideFrame = new InputFrame { move = Vector3.forward, dodge = true };
+            yield return null;
+            _player.Input.overrideFrame = new InputFrame();
+            bool fire = false;
+            foreach (var hazard in GroundHazard.All) fire |= hazard.burning && hazard.hurts == Team.Enemy;
+            Assert.IsTrue(fire, "no fire where the dodge started");
+
+            float speed = _items.Stats.moveSpeedMultiplier;
+            Give(ItemType.FinchsDose);
+            Assert.AreEqual(PlayerItems.DoseSize, _player.transform.localScale.x, 0.001f);
+            Assert.Greater(_items.Stats.moveSpeedMultiplier, speed);
+            Assert.IsTrue(GameAssets.Instance.items.Get(ItemType.FinchsDose).rare, "the dose should only come from Finch");
+            Give(ItemType.FinchsDose, 5);
+            Assert.GreaterOrEqual(_player.transform.localScale.x, 0.55f, "the Void shrank away to nothing");
+        }
+
+        [UnityTest]
         public IEnumerator Every_item_has_a_name_a_description_and_a_look()
         {
             var library = GameAssets.Instance.items;
-            Assert.AreEqual(12, library.items.Length);
+            Assert.AreEqual(17, library.items.Length);
             foreach (var item in library.items)
             {
                 Assert.IsNotEmpty(item.displayName);
@@ -418,7 +480,7 @@ namespace Shrunk.Tests
                 _items.Add(item); // must not throw
             }
             yield return null;
-            Assert.AreEqual(12, _items.Collected.Count);
+            Assert.AreEqual(17, _items.Collected.Count);
         }
 
         // ---------- hero power ----------

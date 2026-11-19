@@ -20,6 +20,12 @@ namespace Shrunk
         public int burn;
         public float critChance;
         public float aimAssistBonusAngle;
+        /// <summary>Added to every shot's damage before anything multiplies it.</summary>
+        public int damageBonus;
+        /// <summary>Above 0: every this-many-th shot is charged (double damage, pierces two more).</summary>
+        public int chargedEvery;
+        /// <summary>Above 0: a dodge leaves a burning patch behind, bigger with more.</summary>
+        public int fireDodge;
 
         public static PlayerStats Default => new PlayerStats
         {
@@ -38,6 +44,9 @@ namespace Shrunk
         [Range(0f, 1f)] public float pheromoneChance = 0.25f;
         public float pheromoneRadius = 6f;
         public float pheromoneInterval = 2f;
+
+        /// <summary>How much of its size the Void keeps with each of Finch's doses.</summary>
+        public const float DoseSize = 0.82f;
 
         public event Action Changed;
         /// <summary>Hits the Chitin Plate can still block in this room.</summary>
@@ -92,16 +101,23 @@ namespace Shrunk
             get
             {
                 int legs = Count(ItemType.ExtraLegs), wings = Count(ItemType.WingBuds), jelly = Count(ItemType.QueensJelly);
+                int marble = Count(ItemType.LostMarble), sprinkles = Count(ItemType.Sprinkles), sock = Count(ItemType.StaticSock);
+                int dose = Count(ItemType.FinchsDose);
                 bool overcharged = _power != null && _power.IsActive;
 
                 return new PlayerStats
                 {
-                    moveSpeedMultiplier = 1f + 0.15f * legs + 0.08f * jelly,
-                    dodgeCooldownMultiplier = Mathf.Pow(0.75f, legs) * Mathf.Pow(0.9f, jelly),
+                    moveSpeedMultiplier = 1f + 0.15f * legs + 0.08f * jelly + 0.12f * dose,
+                    dodgeCooldownMultiplier = Mathf.Pow(0.75f, legs) * Mathf.Pow(0.9f, jelly) * Mathf.Pow(0.85f, dose),
                     dodgeCharges = 1 + (legs > 0 && wings > 0 ? 1 : 0),
                     hoverDodge = wings > 0,
                     damageMultiplier = overcharged ? 2 : 1,
-                    fireIntervalMultiplier = Mathf.Pow(0.9f, jelly) * (overcharged ? 0.67f : 1f),
+                    // A marble is heavy: harder hits, further apart. Sprinkles are the opposite.
+                    fireIntervalMultiplier = Mathf.Pow(0.9f, jelly) * Mathf.Pow(1.35f, marble) * Mathf.Pow(0.85f, sprinkles) * (overcharged ? 0.67f : 1f),
+                    damageBonus = marble,
+                    // The sock: every fifth shot, then every fourth, never more often than every second.
+                    chargedEvery = sock > 0 ? Mathf.Max(2, 6 - sock) : 0,
+                    fireDodge = Count(ItemType.BirthdayCandle),
                     pierce = 2 * Count(ItemType.NeedleTip) + (overcharged ? 99 : 0),
                     split = Count(ItemType.SplitterMandible),
                     acid = Count(ItemType.AcidGland),
@@ -129,6 +145,10 @@ namespace Shrunk
                     break;
                 case ItemType.ChitinPlate:
                     ShieldCharges = Count(ItemType.ChitinPlate);
+                    break;
+                case ItemType.FinchsDose:
+                    // Smaller again: all of the Void, so less of it to hit. It stops at a little over half size.
+                    transform.localScale = Vector3.one * Mathf.Max(0.55f, Mathf.Pow(DoseSize, Count(ItemType.FinchsDose)));
                     break;
                 case ItemType.LarvaBuddy:
                     if (Buddy == null && GameAssets.Instance != null && GameAssets.Instance.larvaPrefab != null)

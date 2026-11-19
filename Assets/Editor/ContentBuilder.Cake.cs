@@ -50,7 +50,7 @@ namespace Shrunk.EditorTools
             // Gummy bear: the Chaser. Weak, and there are a lot of them.
             var gummy = Creature<ChaserEnemy>("GummyBear", 0.5f, 1.6f, 5, 1f, 2.4f, out var gummyModel);
             GummyParts(gummyModel, gummyRed, gummyPale, dark);
-            gummy.favouredDrops = new[] { ItemType.SugarCube, ItemType.ExtraLegs };
+            gummy.favouredDrops = new[] { ItemType.Sprinkles, ItemType.SugarCube };
             var gummyPrefab = SaveEnemy(gummy);
 
             // Jawbreaker: the Charger. A hard ball with a face that rolls you flat.
@@ -81,7 +81,7 @@ namespace Shrunk.EditorTools
             cupcakeMuzzle.localPosition = new Vector3(0f, 0.8f, 0.9f);
             cupcake.muzzle = cupcakeMuzzle;
             cupcake.projectilePrefab = sprinklePrefab;
-            cupcake.favouredDrops = new[] { ItemType.SplitterMandible, ItemType.NeedleTip };
+            cupcake.favouredDrops = new[] { ItemType.BirthdayCandle, ItemType.SplitterMandible };
             var cupcakePrefab = SaveEnemy(cupcake);
 
             // Sugar fly: the Flyer. A wrapped sweet with wings.

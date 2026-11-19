@@ -138,6 +138,9 @@ namespace Shrunk.Tests
             Assert.IsTrue(Achievements.Has(AchievementId.PerformanceReview));
             Assert.IsTrue(Achievements.StyleUnlocked("Lab Coat"));
             Assert.IsNull(floors.DeeperPortal, "there is something under the bottom");
+            bool dose = false;
+            foreach (var pickup in Object.FindObjectsByType<Pickup>(FindObjectsSortMode.None)) dose |= pickup.kind == PickupKind.Item && pickup.item.type == ItemType.FinchsDose;
+            Assert.IsTrue(dose, "Finch left nothing in the flask");
             Assert.AreEqual("BACK UP", floors.ExtractPortal.GetComponentInChildren<PortalTag>().Shown);
             Assert.AreEqual(RadioMoment.FinchDown, Radio.Instance.LastMoment);
             Time.timeScale = 1f;

@@ -50,7 +50,7 @@ namespace Shrunk.EditorTools
             // Dust bunny: the Chaser. Soft, weak, and there is always another.
             var bunny = Creature<ChaserEnemy>("DustBunny", 0.5f, 1.3f, 5, 1f, 2.3f, out var bunnyModel);
             BunnyParts(bunnyModel, dust, dustDark, dark);
-            bunny.favouredDrops = new[] { ItemType.ExtraLegs, ItemType.PheromoneCloud };
+            bunny.favouredDrops = new[] { ItemType.StaticSock, ItemType.ExtraLegs };
             var bunnyPrefab = SaveEnemy(bunny);
 
             // Marble: the Charger. Somebody lost it in 1994 and it has been angry since.
@@ -61,7 +61,7 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Sphere, "Eye L", marbleModel, new Vector3(-0.28f, 1f, 0.7f), Vector3.one * 0.2f, dark);
             Decor(PrimitiveType.Sphere, "Eye R", marbleModel, new Vector3(0.28f, 1f, 0.7f), Vector3.one * 0.2f, dark);
             marble.knockbackOnHit = 2f;
-            marble.favouredDrops = new[] { ItemType.ChitinPlate };
+            marble.favouredDrops = new[] { ItemType.LostMarble, ItemType.ChitinPlate };
             marble.telegraphMaterial = telegraph;
             var marblePrefab = SaveEnemy(marble);
 

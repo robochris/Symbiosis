@@ -7,7 +7,7 @@ namespace Shrunk
     {
         FirstSteps, MothersDay, Regicide, Untouchable, Omelette, HandsOff,
         Deeper, Hoarder, ShellShock, BubbleWrap, SweetTooth, FullPockets,
-        PaperTrail, PerformanceReview
+        PaperTrail, PerformanceReview, SpringClean, Unplugged
     }
 
     /// <summary>One achievement: what to do, and what doing it gives.</summary>
@@ -53,6 +53,8 @@ namespace Shrunk
             new Achievement { id = AchievementId.FullPockets, name = "Full Pockets", how = "Extract with 300 samples or more.", reward = "bragging rights, and a peg on the board" },
             new Achievement { id = AchievementId.PaperTrail, name = "Paper Trail", how = "Find every page of the notebook.", reward = "a door the radio would rather you had not" },
             new Achievement { id = AchievementId.PerformanceReview, name = "Performance Review", how = "Reach the bottom, and win the argument.", reward = "the Lab Coat style", style = "Lab Coat" },
+            new Achievement { id = AchievementId.SpringClean, name = "Spring Clean", how = "Switch off the Robot Vacuum.", reward = "the Lint style", style = "Lint" },
+            new Achievement { id = AchievementId.Unplugged, name = "Unplugged", how = "Make the Robot Vacuum's recharge fail.", reward = "nothing but the look on its face, and it hasn't got one" },
         };
 
         public const int ShellsNeeded = 20, PodsNeeded = 50, ItemsNeeded = 6, SamplesNeeded = 300;

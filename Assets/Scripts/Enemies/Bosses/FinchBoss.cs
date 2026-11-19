@@ -295,6 +295,16 @@ namespace Shrunk
             FlasksThrown++;
         }
 
+        // What is left in the flask.
+        public override void DropRewards()
+        {
+            base.DropRewards();
+            var assets = GameAssets.Instance;
+            if (assets == null || assets.items == null) return;
+            var dose = assets.items.Get(ItemType.FinchsDose);
+            if (dose != null) Pickup.Item(dose, transform.position + Vector3.forward * 2f, 0);
+        }
+
         void Fire(Vector3 toTarget)
         {
             if (projectilePrefab == null || toTarget.sqrMagnitude < 0.01f) return;
