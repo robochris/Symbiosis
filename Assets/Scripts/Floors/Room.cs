@@ -85,6 +85,17 @@ namespace Shrunk
         /// <summary>The barrier on a side, or null where there is no doorway.</summary>
         public GameObject DoorObject(int side) => _doors[side];
 
+        /// <summary>False while the room's pictures are switched off because the player is too far away to see it.</summary>
+        public bool Drawn { get; private set; } = true;
+
+        /// <summary>Switches every picture in the room on or off. Nothing else changes: it is still solid, and things in it still run.</summary>
+        public void SetDrawn(bool drawn)
+        {
+            if (drawn == Drawn) return;
+            Drawn = drawn;
+            foreach (var renderer in GetComponentsInChildren<Renderer>(true)) renderer.enabled = drawn;
+        }
+
         public void SetLocked(bool locked)
         {
             if (locked != Locked) Sfx.Play(locked ? SfxId.DoorLock : SfxId.DoorOpen);

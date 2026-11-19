@@ -22,6 +22,55 @@ namespace Shrunk.Tests
             _player.Input.overrideFrame = new InputFrame();
         }
 
+        [UnityTest]
+        public IEnumerator The_Void_swings_its_legs_when_walking_and_its_arm_kicks_when_shooting()
+        {
+            var body = _player.GetComponent<VoidBody>();
+            Assert.IsNotNull(body, "the player has no body animation");
+            Assert.IsNotNull(body.legLeft);
+            Assert.IsNotNull(body.armRight);
+            _player.Health.SetInvulnerable(600f);
+
+            yield return new WaitForSeconds(0.4f);
+            Assert.AreEqual(0f, body.Stride01, 0.05f, "legs moving while standing still");
+            Quaternion standing = body.legLeft.localRotation;
+
+            _player.Input.overrideFrame = new InputFrame { move = Vector3.right };
+            float most = 0f;
+            for (float t = 0f; t < 0.8f; t += Time.deltaTime)
+            {
+                most = Mathf.Max(most, Quaternion.Angle(standing, body.legLeft.localRotation));
+                yield return null;
+            }
+            Assert.Greater(body.Stride01, 0.8f, "not striding at full speed");
+            Assert.Greater(most, 20f, "the legs barely moved");
+            Assert.Greater(Quaternion.Angle(body.legLeft.localRotation, body.legRight.localRotation), 0.5f, "both legs swing the same way");
+
+            _player.Input.overrideFrame = new InputFrame();
+            yield return new WaitForSeconds(0.5f);
+            Assert.AreEqual(0f, body.Stride01, 0.05f, "legs still going after stopping");
+            Assert.Less(Quaternion.Angle(standing, body.legLeft.localRotation), 1f, "legs did not come back to rest");
+
+            Assert.AreEqual(0f, body.Kick, 0.01f);
+            _player.Input.overrideFrame = new InputFrame { aim = Vector3.forward, fire = true };
+            float kick = 0f;
+            for (float t = 0f; t < 0.4f; t += Time.deltaTime)
+            {
+                kick = Mathf.Max(kick, body.Kick);
+                yield return null;
+            }
+            _player.Input.overrideFrame = new InputFrame();
+            Assert.Greater(kick, 0.5f, "the arm did not kick on a shot");
+
+            // Every part of the body is inside the space the collider covers, so items made for it still fit.
+            foreach (var part in _player.visual.GetComponentsInChildren<Renderer>())
+            {
+                Vector3 local = _player.transform.InverseTransformPoint(part.bounds.center);
+                Assert.Less(Mathf.Abs(local.x), 0.6f, part.name + " sticks out sideways");
+                Assert.That(local.y, Is.InRange(-0.05f, 1.9f), part.name + " is outside the body's height");
+            }
+        }
+
         static Enemy FirstEnemy()
         {
             foreach (var enemy in Enemy.Active)

@@ -251,10 +251,20 @@ namespace Shrunk
             }
         }
 
+        [Tooltip("Rooms further than this many squares from the player are not drawn. Two covers the longest view through two doorways in a line.")]
+        public int drawDistance = 2;
+
         void Enter(RoomNode node)
         {
             CurrentNode = node;
             node.visited = true;
+
+            // Every room is a closed box, so far ones can't be seen: only the ones near the player are drawn.
+            foreach (var pair in _rooms)
+            {
+                Vector2Int away = pair.Key - node.cell;
+                pair.Value.SetDrawn(Mathf.Abs(away.x) + Mathf.Abs(away.y) <= drawDistance);
+            }
             RoomChanged?.Invoke(this);
         }
 

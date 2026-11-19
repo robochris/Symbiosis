@@ -521,6 +521,35 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Only_rooms_near_the_player_are_drawn()
+        {
+            _floors.BuildFloor(9, 2024);
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+            int hidden = 0;
+            foreach (var node in _floors.Layout.ordered)
+            {
+                Room room = _floors.RoomAt(node.cell);
+                Vector2Int away = node.cell - _floors.CurrentNode.cell;
+                bool near = Mathf.Abs(away.x) + Mathf.Abs(away.y) <= _floors.drawDistance;
+                Assert.AreEqual(near, room.Drawn, $"room {node.cell}, player in {_floors.CurrentNode.cell}");
+                Assert.AreEqual(near, room.GetComponent<MeshRenderer>().enabled);
+                Assert.IsTrue(room.GetComponent<MeshCollider>().enabled, "a room that is not drawn must still be solid");
+                if (!near) hidden++;
+            }
+            Assert.Greater(hidden, 0, "a 15-room floor should have rooms too far to see");
+
+            // Walk into the farthest room: it and its neighbours come on, the start goes off.
+            Room far = _floors.RoomAt(_floors.Layout.exit.cell);
+            Assert.IsFalse(far.Drawn);
+            _player.Teleport(far.Centre + Vector3.up * 0.05f);
+            yield return null;
+            yield return null;
+            Assert.IsTrue(far.Drawn);
+            Assert.IsFalse(_floors.RoomAt(_floors.Layout.start.cell).Drawn);
+        }
+
+        [UnityTest]
         public IEnumerator An_elite_is_bigger_tougher_fully_mutated_and_worth_more()
         {
             Assert.AreEqual(0f, MutationBudget.EliteChance(1, 3), "no elites early in the first biome");

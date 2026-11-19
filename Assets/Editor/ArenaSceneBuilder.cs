@@ -126,9 +126,20 @@ namespace Shrunk.EditorTools
             var visual = new GameObject("Visual").transform;
             visual.SetParent(root.transform, false);
             visual.localPosition = new Vector3(0f, 0.9f, 0f);
-            Primitive(PrimitiveType.Capsule, "Body", visual, Vector3.zero, new Vector3(0.8f, 0.9f, 0.8f), body, false);
-            Primitive(PrimitiveType.Sphere, "Eye L", visual, new Vector3(-0.15f, 0.45f, 0.34f), Vector3.one * 0.13f, eyes, false);
-            Primitive(PrimitiveType.Sphere, "Eye R", visual, new Vector3(0.15f, 0.45f, 0.34f), Vector3.one * 0.13f, eyes, false);
+            // The Void: a dark figure with glowing eyes. It fills the same space the old capsule did (1.8 m tall,
+            // 0.4 m round), so every item look still sits where it was made to. The middle of "Visual" is the waist.
+            Primitive(PrimitiveType.Sphere, "Head", visual, new Vector3(0f, 0.52f, 0.02f), Vector3.one * 0.64f, body, false);
+            Primitive(PrimitiveType.Capsule, "Torso", visual, new Vector3(0f, -0.08f, 0f), new Vector3(0.6f, 0.42f, 0.46f), body, false);
+            Primitive(PrimitiveType.Sphere, "Eye L", visual, new Vector3(-0.15f, 0.5f, 0.3f), Vector3.one * 0.13f, eyes, false);
+            Primitive(PrimitiveType.Sphere, "Eye R", visual, new Vector3(0.15f, 0.5f, 0.3f), Vector3.one * 0.13f, eyes, false);
+
+            // Legs hang from the hips and swing about them.
+            Transform legLeft = Limb("Leg L", visual, new Vector3(-0.16f, -0.44f, 0f), new Vector3(-0.16f, -0.9f, 0f), 0.22f, body, false);
+            Transform legRight = Limb("Leg R", visual, new Vector3(0.16f, -0.44f, 0f), new Vector3(0.16f, -0.9f, 0f), 0.22f, body, false);
+            // Arms are held out in front, ready to shoot: the right hand is where the shots come from and where a
+            // hand item's spike sits; the left is lower, where a gland hangs.
+            Transform armLeft = Limb("Arm L", visual, new Vector3(-0.36f, 0.2f, 0f), new Vector3(-0.44f, -0.05f, 0.26f), 0.17f, body, true);
+            Transform armRight = Limb("Arm R", visual, new Vector3(0.36f, 0.2f, 0f), new Vector3(0.44f, 0.02f, 0.4f), 0.17f, body, true);
 
             var muzzle = new GameObject("Muzzle").transform;
             muzzle.SetParent(root.transform, false);
@@ -144,6 +155,11 @@ namespace Shrunk.EditorTools
             player.visual = visual;
             root.AddComponent<HitFlash>();
             root.AddComponent<PlayerItems>();
+            var voidBody = root.AddComponent<VoidBody>();
+            voidBody.legLeft = legLeft;
+            voidBody.legRight = legRight;
+            voidBody.armLeft = armLeft;
+            voidBody.armRight = armRight;
             var power = root.AddComponent<HeroPower>();
             power.eyes = new[] { visual.Find("Eye L"), visual.Find("Eye R") };
             power.surgeMaterial = eyes;
@@ -290,6 +306,22 @@ namespace Shrunk.EditorTools
         }
 
         // ---------- helpers ----------
+
+        // A limb from one point to another: an empty at the first point (the joint it turns about), holding a capsule
+        // that reaches to the second, with a ball on the end for a hand if asked for.
+        static Transform Limb(string name, Transform parent, Vector3 from, Vector3 to, float thickness, Material material, bool hand)
+        {
+            var joint = new GameObject(name).transform;
+            joint.SetParent(parent, false);
+            joint.localPosition = from;
+            Vector3 along = to - from;
+            float length = along.magnitude;
+            joint.localRotation = Quaternion.FromToRotation(Vector3.down, along.normalized);
+
+            Primitive(PrimitiveType.Capsule, "Limb", joint, new Vector3(0f, -length * 0.5f, 0f), new Vector3(thickness, length * 0.5f, thickness), material, false);
+            if (hand) Primitive(PrimitiveType.Sphere, "Hand", joint, new Vector3(0f, -length, 0f), Vector3.one * (thickness * 1.25f), material, false);
+            return joint;
+        }
 
         internal static GameObject Primitive(PrimitiveType type, string name, Transform parent, Vector3 localPosition, Vector3 localScale, Material material, bool keepCollider)
         {
