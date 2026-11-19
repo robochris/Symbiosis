@@ -99,6 +99,38 @@ namespace Shrunk.EditorTools
             fly.favouredDrops = new[] { ItemType.WingBuds };
             var flyPrefab = SaveEnemy(fly);
 
+            // ----- two more, from floor 5 on -----
+            // Soda bottle: the Lobber. Shaken, and it knows it.
+            var glassBrown = ArenaSceneBuilder.Lit("SodaGlass", new Color(0.3f, 0.16f, 0.08f), 0.95f);
+            var fizz = ArenaSceneBuilder.Unlit("SodaFizz", new Color(0.85f, 0.6f, 0.35f));
+            var soda = Creature<LobberEnemy>("SodaBottle", 0.45f, 1.9f, 6, 1f, 2.6f, out var sodaModel);
+            Decor(PrimitiveType.Cylinder, "Bottle", sodaModel, new Vector3(0f, 0.65f, 0f), new Vector3(0.75f, 0.65f, 0.75f), glassBrown);
+            Decor(PrimitiveType.Cylinder, "Label", sodaModel, new Vector3(0f, 0.7f, 0f), new Vector3(0.78f, 0.22f, 0.78f), gummyRed);
+            Decor(PrimitiveType.Sphere, "Shoulder", sodaModel, new Vector3(0f, 1.3f, 0f), new Vector3(0.75f, 0.5f, 0.75f), glassBrown);
+            Decor(PrimitiveType.Cylinder, "Neck", sodaModel, new Vector3(0f, 1.62f, 0f), new Vector3(0.28f, 0.2f, 0.28f), glassBrown);
+            Decor(PrimitiveType.Cylinder, "Cap", sodaModel, new Vector3(0f, 1.85f, 0f), new Vector3(0.34f, 0.05f, 0.34f), yellow);
+            Decor(PrimitiveType.Sphere, "Eye L", sodaModel, new Vector3(-0.16f, 1.05f, 0.36f), Vector3.one * 0.12f, white);
+            Decor(PrimitiveType.Sphere, "Eye R", sodaModel, new Vector3(0.16f, 1.05f, 0.36f), Vector3.one * 0.12f, white);
+            soda.blastMaterial = telegraph;
+            soda.lobMaterial = fizz;
+            soda.favouredDrops = new[] { ItemType.AcidGland, ItemType.Sprinkles };
+            var sodaPrefab = SaveEnemy(soda);
+
+            // Party horn: the Support. Every time it toots, everything near it gets quicker.
+            var horn = Creature<SupportEnemy>("PartyHorn", 0.45f, 1.4f, 4, 0.9f, 2.2f, out var hornModel);
+            var hornTube = Decor(PrimitiveType.Cylinder, "Tube", hornModel, new Vector3(0f, 0.6f, 0f), new Vector3(0.4f, 0.55f, 0.4f), blue);
+            hornTube.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            for (int i = 0; i < 3; i++)
+            {
+                Decor(PrimitiveType.Cylinder, "Stripe " + i, hornModel, new Vector3(0f, 0.6f, -0.35f + i * 0.35f), new Vector3(0.42f, 0.05f, 0.42f), yellow).transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            }
+            Decor(PrimitiveType.Sphere, "Bell", hornModel, new Vector3(0f, 0.6f, 0.65f), new Vector3(0.75f, 0.75f, 0.3f), gummyRed);
+            Decor(PrimitiveType.Sphere, "Eye L", hornModel, new Vector3(-0.14f, 0.92f, 0.2f), Vector3.one * 0.13f, dark);
+            Decor(PrimitiveType.Sphere, "Eye R", hornModel, new Vector3(0.14f, 0.92f, 0.2f), Vector3.one * 0.13f, dark);
+            horn.pulseColor = new Color(1f, 0.85f, 0.25f);
+            horn.favouredDrops = new[] { ItemType.ExtraLegs, ItemType.Sprinkles };
+            var hornPrefab = SaveEnemy(horn);
+
             // ----- bosses and what they bring -----
             // Gumdrop: a small dome that grows into a gummy bear if it is left alone. (The Brood Mother's larva.)
             var gumdrop = Creature<LarvaEnemy>("Gumdrop", 0.4f, 0.8f, 2, 0.6f, 1.4f, out var gumdropModel);
@@ -209,6 +241,8 @@ namespace Shrunk.EditorTools
                 new EnemySpawnEntry { prefab = cupcakePrefab, weight = 2, minFloor = 2 },
                 new EnemySpawnEntry { prefab = breakerPrefab, weight = 2, minFloor = 3 },
                 new EnemySpawnEntry { prefab = flyPrefab, weight = 2, minFloor = 4 },
+                new EnemySpawnEntry { prefab = sodaPrefab, weight = 2, minFloor = 5 },
+                new EnemySpawnEntry { prefab = hornPrefab, weight = 1, minFloor = 6 },
             };
             biome.mutations = new[]
             {

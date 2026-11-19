@@ -49,6 +49,58 @@ namespace Shrunk.Tests
             return _spawner.SpawnAt(prefab, position, list);
         }
 
+        [UnityTest]
+        public IEnumerator Lobber_throws_at_where_the_player_is_going_and_keeps_its_distance()
+        {
+            var lobber = (LobberEnemy)Spawn("BombardierAnt", new Vector3(0f, 0f, 11f));
+            _player.Health.SetInvulnerable(600f);
+
+            // Standing still: it lands on the player, after a warning disc.
+            yield return WaitUntil(() => lobber.Lobs == 1, 4f, "the first throw");
+            Assert.Less((lobber.LastTarget - _player.transform.position).magnitude, 1f, "a throw at a still player should land on them");
+            bool disc = false;
+            foreach (var hazard in GroundHazard.All) disc |= hazard.isBlast && (hazard.transform.position - lobber.LastTarget).magnitude < 0.5f;
+            Assert.IsTrue(disc, "a throw with no warning disc");
+            Assert.IsNotNull(Object.FindAnyObjectByType<LobVisual>(), "nothing is seen in the air");
+
+            // Running sideways: it lands ahead of them. (Set off late, so the run is not ended by the arena wall first.)
+            yield return new WaitForSeconds(lobber.lobInterval - 1.2f);
+            _player.Input.overrideFrame = new InputFrame { move = Vector3.right };
+            yield return WaitUntil(() => lobber.Lobs == 2, 6f, "the second throw");
+            Assert.Greater(lobber.LastTarget.x - _player.transform.position.x, 1.5f, "it did not aim ahead of a running player");
+            _player.Input.overrideFrame = new InputFrame();
+
+            // Walk up to it and it backs off.
+            _player.Teleport(lobber.transform.position + new Vector3(0f, 0.05f, -3f));
+            yield return new WaitForSeconds(1.5f);
+            Assert.Greater(DistanceToPlayer(lobber), 4.5f, "it stood its ground with the player in its face");
+        }
+
+        [UnityTest]
+        public IEnumerator Support_speeds_up_its_neighbours_and_only_bites_when_alone()
+        {
+            var herald = (SupportEnemy)Spawn("HeraldAnt", new Vector3(0f, 0f, 12f));
+            Enemy first = Spawn("WorkerAnt", new Vector3(-2f, 0f, 13f));
+            Enemy second = Spawn("WorkerAnt", new Vector3(2f, 0f, 13f));
+            Enemy far = Spawn("WorkerAnt", new Vector3(0f, 0f, -30f));
+            first.frozen = second.frozen = far.frozen = true;
+            int health = _player.Health.Current;
+
+            yield return WaitUntil(() => herald.Pulses > 0, 5f, "a pulse");
+            Assert.AreEqual(2, herald.LastReached, "the pulse should reach the two beside it and not the one across the arena");
+            Assert.IsTrue(first.IsBuffed && second.IsBuffed);
+            Assert.IsFalse(far.IsBuffed);
+            Assert.IsFalse(herald.Alone);
+            Assert.AreEqual(health, _player.Health.Current, "a support with company should hurt nobody");
+
+            // The last one standing comes for the player.
+            first.Health.Kill();
+            second.Health.Kill();
+            far.Health.Kill();
+            yield return WaitUntil(() => herald.Alone, 2f, "it to notice it is alone");
+            yield return WaitUntil(() => _player.Health.Current < health, 10f, "a panicked support to bite");
+        }
+
         float DistanceToPlayer(Enemy enemy)
         {
             Vector3 to = enemy.transform.position - _player.transform.position;

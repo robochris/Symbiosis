@@ -43,9 +43,17 @@ namespace Shrunk.Tests
             SaveSystem.Wipe();
         }
 
-        string Where(RoomNode node) =>
-            $"floor {_floors.FloorNumber} (seed {_floors.Layout.seed}), {node.type} room {node.cell}, {RoomDressing.NameOf(_floors.RoomAt(node.cell).Shape.feature)}\n" +
-            $"{_floors.Layout.ToAscii()}\n{_floors.RoomAt(node.cell).Shape.ToAscii()}";
+        string Where(RoomNode node)
+        {
+            Room room = node != null ? _floors.RoomAt(node.cell) : null;
+            string where = $"floor {_floors.FloorNumber} (seed {_floors.Layout.seed}), biome {_floors.biome.id}, locked {_floors.IsLocked}, exit open {_floors.ExitOpen}, " +
+                           $"player at {_player.transform.position} in {(_floors.CurrentNode != null ? _floors.CurrentNode.type + " " + _floors.CurrentNode.cell : "no room")}\n";
+            if (node == null) return where + "(no room given)\n" + _floors.Layout.ToAscii();
+            bool current = _floors.Layout.rooms.TryGetValue(node.cell, out var now) && now == node;
+            where += $"{node.type} room {node.cell}, still part of this floor: {current}\n";
+            if (room == null) return where + "(that room is not built)\n" + _floors.Layout.ToAscii();
+            return where + $"{RoomDressing.NameOf(room.Shape.feature)}\n{_floors.Layout.ToAscii()}\n{room.Shape.ToAscii()}";
+        }
 
         // Who is still standing, and why the bot might not be able to finish them.
         string Survivors()
@@ -160,6 +168,7 @@ namespace Shrunk.Tests
                 Vector3 left = destination - position;
                 left.y = 0f;
                 if (node.cleared && (left.magnitude < 0.8f || node == _floors.Layout.exit)) break; // never walk on over the way down
+                if (_floors.ExitOpen && _floors.Layout.InArena(node.cell)) break; // the boss fell on the way here: stop where we are
 
                 // Standing on the spot in a room that should have locked: step further in.
                 Vector3 next = left.magnitude < 0.8f ? room.Centre : NextStep(destination);
@@ -195,7 +204,11 @@ namespace Shrunk.Tests
             foreach (var node in order)
             {
                 if (node == _floors.Layout.start) continue;
+                // The boss can be met and beaten from any square of its arena. Once the way down is open the floor is
+                // done: walking on across the arena would mean walking over the hole, which (rightly) leaves the floor.
+                if (_floors.ExitOpen && (node == exit || _floors.Layout.InArena(node.cell))) continue;
                 yield return GoTo(node);
+                if (_floors.ExitOpen && (node == exit || _floors.Layout.InArena(node.cell))) continue;
                 Assert.IsTrue(node.visited, "walked to a room without entering it\n" + Where(node));
                 Assert.IsTrue(node.cleared, "left a room uncleared\n" + Where(node));
             }

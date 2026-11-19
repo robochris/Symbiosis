@@ -73,6 +73,24 @@ namespace Shrunk.EditorTools
             winged.favouredDrops = new[] { ItemType.WingBuds, ItemType.FireflyLantern };
             var wingedPrefab = SaveEnemy(winged);
 
+            // ----- two more, from floor 5 on: one that throws and one that helps -----
+            // Bombardier ant: the Lobber. Throws acid over everything, at where you are going.
+            var bombardierBody = ArenaSceneBuilder.Lit("BombardierBody", new Color(0.75f, 0.4f, 0.08f), 0.4f);
+            var bombardier = Ant<LobberEnemy>("BombardierAnt", 1.15f, 6, bombardierBody, antDark, false, out var bombardierModel);
+            Decor(PrimitiveType.Sphere, "Gland", bombardierModel, new Vector3(0f, 0.95f, -0.8f), Vector3.one * 0.55f, acid);
+            bombardier.blastMaterial = ArenaSceneBuilder.Unlit("Telegraph", new Color(1f, 0.25f, 0.2f));
+            bombardier.lobMaterial = acid;
+            bombardier.favouredDrops = new[] { ItemType.AcidGland, ItemType.FireflyLantern };
+            var bombardierPrefab = SaveEnemy(bombardier);
+
+            // Herald ant: the Support. Small, pink, and makes every ant near it quicker.
+            var heraldBody = ArenaSceneBuilder.Lit("HeraldBody", new Color(0.8f, 0.35f, 0.55f), 0.4f);
+            var herald = Ant<SupportEnemy>("HeraldAnt", 0.85f, 4, heraldBody, antDark, false, out var heraldModel);
+            Decor(PrimitiveType.Sphere, "Scent", heraldModel, new Vector3(0f, 1.05f, -0.6f), Vector3.one * 0.45f, ArenaSceneBuilder.Unlit("Confused", new Color(1f, 0.45f, 0.75f)));
+            herald.pulseColor = new Color(1f, 0.45f, 0.75f);
+            herald.favouredDrops = new[] { ItemType.PheromoneCloud, ItemType.ExtraLegs };
+            var heraldPrefab = SaveEnemy(herald);
+
             // ----- bosses and what they bring -----
             var pale = ArenaSceneBuilder.Lit("LarvaPod", new Color(0.9f, 0.85f, 0.6f), 0.5f);
             var telegraph = ArenaSceneBuilder.Unlit("Telegraph", new Color(1f, 0.25f, 0.2f));
@@ -197,6 +215,8 @@ namespace Shrunk.EditorTools
                 new EnemySpawnEntry { prefab = spitterPrefab, weight = 2, minFloor = 2 },
                 new EnemySpawnEntry { prefab = soldierPrefab, weight = 2, minFloor = 3 },
                 new EnemySpawnEntry { prefab = wingedPrefab, weight = 2, minFloor = 4 },
+                new EnemySpawnEntry { prefab = bombardierPrefab, weight = 2, minFloor = 5 },
+                new EnemySpawnEntry { prefab = heraldPrefab, weight = 1, minFloor = 6 },
             };
             biome.mutations = new[]
             {

@@ -103,7 +103,7 @@ namespace Shrunk.Tests
                 break;
             }
             Assert.Greater(_floors.LiveEnemies.Count, 0);
-            var names = new HashSet<string> { "DustBunny", "Marble", "ToySoldier", "Moth" };
+            var names = new HashSet<string> { "DustBunny", "Marble", "ToySoldier", "Moth", "Popcorn", "RemoteControl" };
             foreach (var enemy in _floors.LiveEnemies) Assert.IsTrue(names.Contains(enemy.name.Replace("(Clone)", "")), enemy.name + " does not live under the sofa");
         }
 
@@ -132,7 +132,7 @@ namespace Shrunk.Tests
                     Assert.IsNotNull(entry.prefab.GetComponent<EnemyMutations>(), entry.prefab.name + " cannot carry mutations");
                     kinds.Add(entry.prefab.GetType());
                 }
-                Assert.AreEqual(4, kinds.Count, biome.displayName + " should have a chaser, a charger, a shooter and a flyer");
+                Assert.AreEqual(6, kinds.Count, biome.displayName + " should have a chaser, a charger, a shooter, a flyer, a lobber and a support");
             }
             Assert.GreaterOrEqual(ids.Count, 2);
             yield break;

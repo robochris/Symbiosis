@@ -99,6 +99,38 @@ namespace Shrunk.EditorTools
             moth.favouredDrops = new[] { ItemType.WingBuds, ItemType.FireflyLantern };
             var mothPrefab = SaveEnemy(moth);
 
+            // ----- two more, from floor 5 on -----
+            // Popcorn: the Lobber. One piece that got away, and has been throwing kernels since.
+            var kernel = ArenaSceneBuilder.Unlit("PopcornKernel", new Color(1f, 0.85f, 0.35f));
+            var popcorn = Creature<LobberEnemy>("Popcorn", 0.5f, 1.4f, 6, 1f, 2.3f, out var popcornModel);
+            Vector3[] puffs = { new Vector3(0f, 0.55f, 0f), new Vector3(0.3f, 0.8f, 0.1f), new Vector3(-0.28f, 0.82f, -0.05f), new Vector3(0.05f, 1.05f, -0.1f), new Vector3(-0.1f, 0.7f, 0.3f) };
+            for (int i = 0; i < puffs.Length; i++)
+            {
+                Decor(PrimitiveType.Sphere, "Puff " + i, popcornModel, puffs[i], Vector3.one * (0.62f - 0.05f * i), white);
+            }
+            Decor(PrimitiveType.Sphere, "Kernel", popcornModel, new Vector3(0f, 0.3f, -0.2f), new Vector3(0.4f, 0.3f, 0.4f), kernel);
+            Decor(PrimitiveType.Sphere, "Eye L", popcornModel, new Vector3(-0.15f, 0.75f, 0.5f), Vector3.one * 0.1f, dark);
+            Decor(PrimitiveType.Sphere, "Eye R", popcornModel, new Vector3(0.12f, 0.72f, 0.52f), Vector3.one * 0.1f, dark);
+            popcorn.blastMaterial = telegraph;
+            popcorn.lobMaterial = kernel;
+            popcorn.favouredDrops = new[] { ItemType.BirthdayCandle, ItemType.FireflyLantern };
+            var popcornPrefab = SaveEnemy(popcorn);
+
+            // Remote control: the Support. It turns everything up.
+            var remote = Creature<SupportEnemy>("RemoteControl", 0.5f, 1.6f, 4, 1f, 2.5f, out var remoteModel);
+            Decor(PrimitiveType.Cube, "Case", remoteModel, new Vector3(0f, 0.8f, 0f), new Vector3(0.55f, 1.5f, 0.2f), plastic);
+            Material[] buttons = { redEye, spark, pellet, glassBlue };
+            for (int i = 0; i < 8; i++)
+            {
+                Decor(PrimitiveType.Sphere, "Button " + i, remoteModel, new Vector3(-0.13f + (i % 2) * 0.26f, 0.35f + (i / 2) * 0.24f, 0.11f), new Vector3(0.13f, 0.13f, 0.06f), buttons[i % buttons.Length]);
+            }
+            Decor(PrimitiveType.Sphere, "Light", remoteModel, new Vector3(0f, 1.6f, 0f), Vector3.one * 0.16f, redEye);
+            Decor(PrimitiveType.Sphere, "Eye L", remoteModel, new Vector3(-0.13f, 1.3f, 0.11f), Vector3.one * 0.12f, white);
+            Decor(PrimitiveType.Sphere, "Eye R", remoteModel, new Vector3(0.13f, 1.3f, 0.11f), Vector3.one * 0.12f, white);
+            remote.pulseColor = new Color(1f, 0.25f, 0.2f);
+            remote.favouredDrops = new[] { ItemType.StaticSock, ItemType.CompoundEye };
+            var remotePrefab = SaveEnemy(remote);
+
             // ----- bosses and what they bring -----
             // Fluff: a clump that grows into a dust bunny if it is left alone. (The Brood Mother's larva.)
             var fluff = Creature<LarvaEnemy>("Fluff", 0.4f, 0.8f, 2, 0.6f, 1.4f, out var fluffModel);
@@ -223,6 +255,8 @@ namespace Shrunk.EditorTools
                 new EnemySpawnEntry { prefab = soldierPrefab, weight = 2, minFloor = 2 },
                 new EnemySpawnEntry { prefab = marblePrefab, weight = 2, minFloor = 3 },
                 new EnemySpawnEntry { prefab = mothPrefab, weight = 2, minFloor = 4 },
+                new EnemySpawnEntry { prefab = popcornPrefab, weight = 2, minFloor = 5 },
+                new EnemySpawnEntry { prefab = remotePrefab, weight = 1, minFloor = 6 },
             };
             var sticky = AssetDatabase.LoadAssetAtPath<MutationDefinition>("Assets/Data/Mutations/" + MutationType.Sticky + ".asset");
             var mutations = new System.Collections.Generic.List<MutationDefinition>
