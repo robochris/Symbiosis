@@ -405,6 +405,43 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Only_hits_bigger_than_one_show_a_number()
+        {
+            var numbers = DamageNumbers.Instance;
+            Assert.IsNotNull(numbers, "the scene has no damage numbers");
+            Enemy dummy = Dummy(new Vector3(0f, 0f, 6f), "SoldierAnt");
+            dummy.Health.SetMaxHealth(60, true);
+            yield return null;
+
+            // An ordinary shot: nothing.
+            yield return FireOnce();
+            Assert.AreEqual(0, numbers.Shown, "a number for an ordinary hit");
+
+            // A marble shot does 2: a number, and it is on screen.
+            Give(ItemType.LostMarble);
+            _player.Input.overrideFrame = new InputFrame { aim = Vector3.forward, fire = true };
+            yield return null;
+            _player.Input.overrideFrame = new InputFrame();
+            yield return new WaitForSeconds(0.5f);
+            Assert.AreEqual(1, numbers.Shown);
+            Assert.AreEqual(2, numbers.LastAmount);
+            var shown = numbers.GetComponentInChildren<TextMesh>();
+            Assert.IsNotNull(shown);
+            Assert.AreEqual("2", shown.text);
+
+            // It goes away again, and the setting turns them off.
+            yield return new WaitForSeconds(numbers.lifetime + 0.2f);
+            Assert.IsNull(numbers.GetComponentInChildren<TextMesh>(), "the number never went away");
+            GameSettings.DamageNumbers = false;
+            dummy.Health.TakeDamage(9, Vector3.forward);
+            Assert.AreEqual(1, numbers.Shown, "a number with the setting off");
+            GameSettings.Reset();
+            dummy.Health.TakeDamage(9, Vector3.forward);
+            Assert.AreEqual(2, numbers.Shown);
+            Assert.AreEqual(9, numbers.LastAmount);
+        }
+
+        [UnityTest]
         public IEnumerator A_rubber_band_brings_a_missed_shot_back_off_the_wall()
         {
             // The target stands behind the player; the shot is fired the other way, at the wall.

@@ -16,6 +16,8 @@ namespace Shrunk
         /// <summary>Every enemy currently in play. Used by aim assist and the spawner.</summary>
         public static readonly List<Enemy> Active = new List<Enemy>();
         public static event Action<Enemy> Killed;
+        /// <summary>An enemy has lost health: (which one, how much).</summary>
+        public static event Action<Enemy, int> Hurt;
         /// <summary>An enemy is calling for help: spawn this many of the biome's swarm enemy next to it.</summary>
         public static event Action<Enemy, int> SummonRequested;
         /// <summary>
@@ -311,6 +313,7 @@ namespace Shrunk
             direction.y = 0f;
             Knockback = direction.normalized * knockbackOnHit;
             Sfx.Play(SfxId.Hit, 0.7f);
+            if (amount > 0) Hurt?.Invoke(this, amount);
         }
 
         void OnDied()

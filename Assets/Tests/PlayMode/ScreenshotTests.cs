@@ -495,6 +495,29 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_pause()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            GameSettings.Radio = 0;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            PlayerController.Instance.Input.overrideFrame = new InputFrame();
+            yield return new WaitForSecondsRealtime(3.5f);
+            PauseMenu.Instance.Open();
+            yield return null;
+            yield return null;
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            yield return Screen(Path.Combine(folder, "pause.png"));
+            PauseMenu.Instance.Close();
+            GameSettings.Reset();
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_shelf()
         {
             SaveSystem.Profile = "tests";

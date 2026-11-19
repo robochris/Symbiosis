@@ -81,6 +81,13 @@ namespace Shrunk
 
         public const int RelaxedHealth = 2;
 
+        /// <summary>Numbers floating off enemies for hits bigger than the ordinary one.</summary>
+        public static bool DamageNumbers
+        {
+            get => PlayerPrefs.GetInt(Prefix + "damageNumbers", 1) == 1;
+            set => SetInt("damageNumbers", value ? 1 : 0);
+        }
+
         static void Set(string key, float value)
         {
             PlayerPrefs.SetFloat(Prefix + key, value);
@@ -96,7 +103,7 @@ namespace Shrunk
         /// <summary>Back to the defaults.</summary>
         public static void Reset()
         {
-            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "volume", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed" })
+            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "volume", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed", "damageNumbers" })
             {
                 PlayerPrefs.DeleteKey(Prefix + key);
             }

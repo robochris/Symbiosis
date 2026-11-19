@@ -244,6 +244,7 @@ namespace Shrunk.EditorTools
             game.AddComponent<ScreenCards>();
             game.AddComponent<AchievementTracker>();
             game.AddComponent<Radio>();
+            game.AddComponent<DamageNumbers>();
             game.AddComponent<Fx>().material = ArenaSceneBuilder.LoadOrCreate("Particle", "Universal Render Pipeline/Particles/Unlit");
             assets.items = BuildItems(out var larva);
             assets.larvaPrefab = larva;
