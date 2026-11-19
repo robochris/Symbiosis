@@ -10,6 +10,8 @@ namespace Shrunk
         public Vector3 move;
         /// <summary>World-space aim direction on the ground, or zero when not aiming.</summary>
         public Vector3 aim;
+        /// <summary>How far away the thing being aimed at is, when known (the point under the crosshair). 0 = not known.</summary>
+        public float aimDistance;
         public bool fire;
         public bool dodge;
         /// <summary>Set off the hero power.</summary>
@@ -140,6 +142,7 @@ namespace Shrunk
             Vector3 toAim = follow.AimPoint(aimPointRange) - transform.position;
             toAim.y = 0f;
             frame.aim = toAim.sqrMagnitude > 1f ? toAim.normalized : yaw * Vector3.forward;
+            frame.aimDistance = toAim.magnitude;
 
             if (usingTouch) frame.fire = _weapon != null && _weapon.HasTarget(frame.aim);
             return frame;

@@ -37,7 +37,8 @@ namespace Shrunk
         PlayerStats Stats => _items != null ? _items.Stats : PlayerStats.Default;
 
         /// <summary>Call once a frame. Aim direction is flat (no Y) and normalized.</summary>
-        public void Tick(bool triggerHeld, Vector3 aimDirection)
+        /// <param name="aimDistance">How far off the aimed-at point is, if known. The shot leaves the hand, off to one side, and is angled to pass through that point.</param>
+        public void Tick(bool triggerHeld, Vector3 aimDirection, float aimDistance = 0f)
         {
             if (!triggerHeld || Time.time < _nextShot || aimDirection.sqrMagnitude < 0.001f) return;
 
@@ -56,7 +57,7 @@ namespace Shrunk
             };
 
             Vector3 origin = muzzle != null ? muzzle.position : transform.position;
-            Vector3 direction = ApplyAimAssist(origin, aimDirection.normalized, aimAssistAngle + stats.aimAssistBonusAngle);
+            Vector3 direction = ApplyAimAssist(origin, Converge(origin, aimDirection.normalized, aimDistance), aimAssistAngle + stats.aimAssistBonusAngle);
             _pool.Get().Launch(origin, direction, bulletSpeed, shot, range, Team.Player, _pool);
             ShotsFired++;
             Sfx.Play(SfxId.Shoot, 0.6f);
@@ -77,6 +78,19 @@ namespace Shrunk
                 if (to.magnitude <= range && Vector3.Angle(aimDirection, to) < 7f) return true;
             }
             return false;
+        }
+
+        [Tooltip("With nothing known under the crosshair, shots from the hand cross the body's aim line this far out.")]
+        public float convergeDistance = 14f;
+
+        // The hand is off to one side of the body. A shot fired straight would always land that far to the side of
+        // what is aimed at, so it is turned in a little to pass through the aimed-at point.
+        Vector3 Converge(Vector3 origin, Vector3 aimDirection, float aimDistance)
+        {
+            Vector3 target = transform.position + aimDirection * (aimDistance > 2f ? aimDistance : convergeDistance);
+            Vector3 to = target - origin;
+            to.y = 0f;
+            return to.sqrMagnitude > 0.01f ? to.normalized : aimDirection;
         }
 
         Vector3 ApplyAimAssist(Vector3 origin, Vector3 direction, float coneAngle)

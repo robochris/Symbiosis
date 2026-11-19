@@ -135,7 +135,7 @@ namespace Shrunk
                         transform.rotation = Quaternion.RotateTowards(transform.rotation, target, turnSpeed * Time.deltaTime);
                     }
 
-                    if (weapon != null) weapon.Tick(input.fire, input.aim);
+                    if (weapon != null) weapon.Tick(input.fire, input.aim, input.aimDistance);
                 }
             }
 

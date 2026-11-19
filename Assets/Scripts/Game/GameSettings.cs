@@ -10,11 +10,18 @@ namespace Shrunk
 
         public static event Action Changed;
 
+        /// <summary>
+        /// A new player's aim assist: Low with a mouse or pad, where the crosshair does the aiming and full assist feels
+        /// like the game locking on for you; Medium on a touch screen, where a thumb can't aim that finely.
+        /// </summary>
+        public static float DefaultAimAssist => UnityEngine.Device.Application.isMobilePlatform ? 0.7f : 0.35f;
+
         /// <summary>0 = off, 1 = shots go straight at the target.</summary>
         public static float AimAssist
         {
-            get => PlayerPrefs.GetFloat(Prefix + "aimAssist", 1f);
-            set => Set("aimAssist", Mathf.Clamp01(value));
+            // "aimHelp", not the older "aimAssist": everyone starts on the new default once.
+            get => PlayerPrefs.GetFloat(Prefix + "aimHelp", DefaultAimAssist);
+            set => Set("aimHelp", Mathf.Clamp01(value));
         }
 
         /// <summary>Multiplier on how fast the view turns.</summary>
@@ -66,7 +73,7 @@ namespace Shrunk
         /// <summary>Back to the defaults.</summary>
         public static void Reset()
         {
-            foreach (string key in new[] { "aimAssist", "lookSpeed", "volume", "leftHanded", "lockVertical", "camera", "cameraView" })
+            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "volume", "leftHanded", "lockVertical", "camera", "cameraView" })
             {
                 PlayerPrefs.DeleteKey(Prefix + key);
             }

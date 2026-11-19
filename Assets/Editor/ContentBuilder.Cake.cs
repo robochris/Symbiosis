@@ -50,6 +50,7 @@ namespace Shrunk.EditorTools
             // Gummy bear: the Chaser. Weak, and there are a lot of them.
             var gummy = Creature<ChaserEnemy>("GummyBear", 0.5f, 1.6f, 5, 1f, 2.4f, out var gummyModel);
             GummyParts(gummyModel, gummyRed, gummyPale, dark);
+            gummy.favouredDrops = new[] { ItemType.SugarCube, ItemType.ExtraLegs };
             var gummyPrefab = SaveEnemy(gummy);
 
             // Jawbreaker: the Charger. A hard ball with a face that rolls you flat.
@@ -63,6 +64,7 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Sphere, "Eye L", breakerModel, new Vector3(-0.3f, 1.05f, 0.75f), Vector3.one * 0.22f, dark);
             Decor(PrimitiveType.Sphere, "Eye R", breakerModel, new Vector3(0.3f, 1.05f, 0.75f), Vector3.one * 0.22f, dark);
             breaker.knockbackOnHit = 2f;
+            breaker.favouredDrops = new[] { ItemType.ChitinPlate };
             breaker.telegraphMaterial = telegraph;
             var breakerPrefab = SaveEnemy(breaker);
 
@@ -79,6 +81,7 @@ namespace Shrunk.EditorTools
             cupcakeMuzzle.localPosition = new Vector3(0f, 0.8f, 0.9f);
             cupcake.muzzle = cupcakeMuzzle;
             cupcake.projectilePrefab = sprinklePrefab;
+            cupcake.favouredDrops = new[] { ItemType.SplitterMandible, ItemType.NeedleTip };
             var cupcakePrefab = SaveEnemy(cupcake);
 
             // Sugar fly: the Flyer. A wrapped sweet with wings.
@@ -94,6 +97,7 @@ namespace Shrunk.EditorTools
             flyMotion.legs = new Transform[0];
             flyMotion.wings = new[] { flyWingLeft, flyWingRight };
             fly.GetComponent<CharacterController>().center = new Vector3(0f, 1f, 0f);
+            fly.favouredDrops = new[] { ItemType.WingBuds };
             var flyPrefab = SaveEnemy(fly);
 
             // ----- bosses and what they bring -----
@@ -133,7 +137,7 @@ namespace Shrunk.EditorTools
             var motherPrefab = (BossEnemy)SaveEnemy(mother);
 
             // The Trick Candle (floor 10): spits hot wax, calls jawbreakers, and charges leaving wax behind.
-            var candle = Creature<AntQueen>("TrickCandle", 1.85f, 4f, 300, 3.4f, 6.2f, out var candleModel);
+            var candle = Creature<TrickCandle>("TrickCandle", 1.85f, 4f, 300, 3.4f, 6.2f, out var candleModel);
             Decor(PrimitiveType.Cylinder, "Plate", candleModel, new Vector3(0f, 0.12f, 0f), new Vector3(4f, 0.12f, 4f), white);
             Decor(PrimitiveType.Cylinder, "Candle", candleModel, new Vector3(0f, 2.2f, 0f), new Vector3(2.4f, 2f, 2.4f), wax);
             for (int i = 0; i < 4; i++)
@@ -141,7 +145,7 @@ namespace Shrunk.EditorTools
                 Decor(PrimitiveType.Cylinder, "Stripe " + i, candleModel, new Vector3(0f, 0.9f + i * 0.9f, 0f), new Vector3(2.44f, 0.12f, 2.44f), white);
             }
             Decor(PrimitiveType.Cylinder, "Wick", candleModel, new Vector3(0f, 4.4f, 0f), new Vector3(0.12f, 0.25f, 0.12f), dark);
-            Decor(PrimitiveType.Sphere, "Flame", candleModel, new Vector3(0f, 5f, 0f), new Vector3(0.8f, 1.2f, 0.8f), flame);
+            candle.flame = Decor(PrimitiveType.Sphere, "Flame", candleModel, new Vector3(0f, 5f, 0f), new Vector3(0.8f, 1.2f, 0.8f), flame).transform;
             Decor(PrimitiveType.Sphere, "Eye L", candleModel, new Vector3(-0.45f, 3f, 1.12f), Vector3.one * 0.36f, dark);
             Decor(PrimitiveType.Sphere, "Eye R", candleModel, new Vector3(0.45f, 3f, 1.12f), Vector3.one * 0.36f, dark);
             Decor(PrimitiveType.Cube, "Mouth", candleModel, new Vector3(0f, 2.4f, 1.18f), new Vector3(0.8f, 0.14f, 0.1f), dark);

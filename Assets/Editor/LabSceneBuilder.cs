@@ -93,6 +93,20 @@ namespace Shrunk.EditorTools
             ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", mirror.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("StyleMat", new Color(0.9f, 0.9f, 0.95f)), false);
             mirror.AddComponent<StyleMirror>();
 
+            // ----- the record board: how the runs have gone -----
+            var board = new GameObject("Record Board");
+            board.transform.position = new Vector3(8.2f, 0f, -3f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Board", board.transform, new Vector3(2.55f, 2.2f, 0f), new Vector3(0.2f, 2.6f, 4f), benchMat, false);
+            var pegGold = ArenaSceneBuilder.Unlit("Gold", new Color(1f, 0.82f, 0.2f));
+            var pegs = new GameObject[12];
+            for (int i = 0; i < pegs.Length; i++)
+            {
+                pegs[i] = ArenaSceneBuilder.Primitive(PrimitiveType.Sphere, "Peg " + (i + 1), board.transform,
+                    new Vector3(2.4f, 2.8f - (i / 6) * 0.9f, -1.5f + (i % 6) * 0.6f), Vector3.one * 0.32f, pegGold, false);
+                pegs[i].SetActive(false);
+            }
+            board.AddComponent<TrophyBoard>().pegs = pegs;
+
             // ----- player, camera, HUD -----
             var player = ArenaSceneBuilder.BuildPlayer(voidBody, eyeGlow, bulletPrefab);
             // Start facing the portal, with the workbench behind: the first thing you see is the way into a run.

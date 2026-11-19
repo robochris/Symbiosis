@@ -42,10 +42,12 @@ namespace Shrunk.EditorTools
 
             // ----- the four ants, one per base behaviour -----
             var worker = Ant<ChaserEnemy>("WorkerAnt", 1f, 5, antBody, antDark, false, out _);
+            worker.favouredDrops = new[] { ItemType.ExtraLegs, ItemType.PheromoneCloud };
             var workerPrefab = SaveEnemy(worker);
 
             var soldier = Ant<ChargerEnemy>("SoldierAnt", 1.45f, 10, soldierBody, antDark, false, out _);
             soldier.knockbackOnHit = 2f;
+            soldier.favouredDrops = new[] { ItemType.ChitinPlate, ItemType.NeedleTip };
             soldier.telegraphMaterial = ArenaSceneBuilder.Unlit("Telegraph", new Color(1f, 0.25f, 0.2f));
             var soldierPrefab = SaveEnemy(soldier);
 
@@ -55,6 +57,7 @@ namespace Shrunk.EditorTools
             muzzle.localPosition = new Vector3(0f, 0.7f, 1f);
             spitter.muzzle = muzzle;
             spitter.projectilePrefab = spitPrefab;
+            spitter.favouredDrops = new[] { ItemType.AcidGland, ItemType.CompoundEye };
             var spitterPrefab = SaveEnemy(spitter);
 
             var winged = Ant<FlyerEnemy>("WingedAnt", 0.8f, 3, wingedBody, antDark, true, out var wingedModel);
@@ -67,6 +70,7 @@ namespace Shrunk.EditorTools
             wingedController.height = 2f;
             wingedController.center = new Vector3(0f, 1f, 0f);
             winged.GetComponent<EnemyMutations>().badgeHeight = 2.9f;
+            winged.favouredDrops = new[] { ItemType.WingBuds, ItemType.FireflyLantern };
             var wingedPrefab = SaveEnemy(winged);
 
             // ----- bosses and what they bring -----

@@ -201,6 +201,72 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_Trick_Candle_goes_out_once_then_relights_with_health_back()
+        {
+            _floors.SetBiome("cake");
+            _floors.BuildFloor(10);
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+            _player.Teleport(_floors.RoomAt(_floors.Layout.exit.cell).Centre + new Vector3(0f, 0.05f, -9f));
+            yield return WaitUntil(() => _floors.Boss != null, 2f, "the boss");
+            var candle = _floors.Boss as TrickCandle;
+            Assert.IsNotNull(candle, "the cake's boss is not the Trick Candle");
+            Assert.IsNotNull(candle.flame);
+            yield return new WaitForSeconds(0.3f);
+            Assert.IsFalse(candle.IsOut);
+
+            int max = candle.Health.maxHealth;
+            candle.Health.TakeDamage(max - Mathf.RoundToInt(max * 0.3f), Vector3.forward);
+            yield return null;
+            yield return null;
+            Assert.IsTrue(candle.IsOut, "it did not go out at low health");
+            Assert.IsFalse(candle.flame.gameObject.activeSelf, "the flame is still burning");
+            Vector3 stood = candle.transform.position;
+
+            yield return new WaitForSeconds(candle.outTime + 0.3f);
+            Assert.IsFalse(candle.IsOut);
+            Assert.IsTrue(candle.flame.gameObject.activeSelf, "it did not relight");
+            Assert.AreEqual(candle.relightsTo, candle.Health01, 0.02f, "relighting should bring its health back");
+            Assert.Less((candle.transform.position - stood).magnitude, 0.5f, "it moved while it was out");
+
+            // Only the once.
+            candle.Health.TakeDamage(candle.Health.Current - Mathf.RoundToInt(max * 0.2f), Vector3.forward);
+            yield return null;
+            yield return null;
+            Assert.IsFalse(candle.IsOut, "it used its trick twice");
+
+            int beaten = SaveSystem.Data.meta.bossesBeaten;
+            candle.Health.Kill();
+            yield return WaitUntil(() => !_floors.IsLocked, 2f, "the arena to open");
+            Assert.AreEqual(beaten + 1, SaveSystem.Data.meta.bossesBeaten, "the record board was not told");
+        }
+
+        [UnityTest]
+        public IEnumerator Enemies_mostly_drop_their_own_kind_of_item()
+        {
+            var library = GameAssets.Instance.items;
+            foreach (var biome in _floors.AllBiomes())
+            {
+                foreach (var entry in biome.spawnTable)
+                {
+                    Enemy enemy = entry.prefab;
+                    Assert.IsTrue(enemy.favouredDrops != null && enemy.favouredDrops.Length > 0, enemy.name + " favours no item");
+                    var favoured = new HashSet<ItemType>(enemy.favouredDrops);
+                    var rng = new System.Random(7);
+                    int own = 0;
+                    for (int i = 0; i < 400; i++)
+                    {
+                        ItemDefinition item = Loot.PickFor(enemy, library, rng);
+                        Assert.IsNotNull(item);
+                        if (favoured.Contains(item.type)) own++;
+                    }
+                    Assert.That(own, Is.InRange(240, 330), $"{enemy.name}: {own} of 400 drops were its own kind");
+                }
+            }
+            yield break;
+        }
+
+        [UnityTest]
         public IEnumerator Sticky_ants_leave_a_patch_that_slows_and_sugar_rush_ants_speed_up_when_hurt()
         {
             _floors.SetBiome("cake");

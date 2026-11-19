@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: 246202402951143558}
   - component: {fileID: 1129657872784776414}
   - component: {fileID: 8596751216274964944}
-  - component: {fileID: 7024756802026650186}
+  - component: {fileID: 1390400220094780776}
   - component: {fileID: 2578044842150461238}
   - component: {fileID: 8144001841795315206}
   m_Layer: 0
@@ -164,7 +164,7 @@ MonoBehaviour:
   team: 1
   maxHealth: 300
   hitInvulnerability: 0
---- !u!114 &7024756802026650186
+--- !u!114 &1390400220094780776
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -173,7 +173,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 445706764848716026}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 83bc080581363f8418818f011f3d88ae, type: 3}
+  m_Script: {fileID: 11500000, guid: 98399f26245e333429d63acb9b97d142, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   visual: {fileID: 3929012091657077118}
@@ -181,6 +181,7 @@ MonoBehaviour:
   knockbackDecay: 14
   frozen: 0
   dropsLoot: 1
+  favouredDrops: 
   displayName: The Trick Candle
   telegraphMaterial: {fileID: 2100000, guid: 4120780dd9ff2244ca1acb01ea1c585d, type: 2}
   sampleReward: 30
@@ -211,6 +212,11 @@ MonoBehaviour:
   screamTime: 1
   enragedSpeed: 1.4
   jellyChance: 0.35
+  goesOutAt: 0.35
+  outTime: 2.4
+  relightsTo: 0.6
+  relightRadius: 6.5
+  flame: {fileID: 5497175204753699210}
 --- !u!114 &2578044842150461238
 MonoBehaviour:
   m_ObjectHideFlags: 0

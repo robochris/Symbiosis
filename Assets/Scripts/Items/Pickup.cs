@@ -171,9 +171,24 @@ namespace Shrunk
             // Bosses have their own item rewards.
             if (!(enemy is BossEnemy) && assets != null && assets.items != null && UnityEngine.Random.value < (enemy.IsElite ? EliteItemChance : ItemChance * (1 + points)))
             {
-                var picks = assets.items.RandomCommon(new System.Random(UnityEngine.Random.Range(0, int.MaxValue)), 1);
-                if (picks.Count > 0) Pickup.Item(picks[0], origin, 0);
+                ItemDefinition item = PickFor(enemy, assets.items, new System.Random(UnityEngine.Random.Range(0, int.MaxValue)));
+                if (item != null) Pickup.Item(item, origin, 0);
             }
+        }
+
+        /// <summary>How often a dropped item is one of the enemy's favoured ones rather than anything at all.</summary>
+        public const float FavouredShare = 0.65f;
+
+        /// <summary>Which item this enemy would drop: usually one of its own, otherwise any common one.</summary>
+        public static ItemDefinition PickFor(Enemy enemy, ItemLibrary library, System.Random rng)
+        {
+            if (enemy.favouredDrops != null && enemy.favouredDrops.Length > 0 && rng.NextDouble() < FavouredShare)
+            {
+                var favoured = library.Get(enemy.favouredDrops[rng.Next(enemy.favouredDrops.Length)]);
+                if (favoured != null) return favoured;
+            }
+            var picks = library.RandomCommon(rng, 1);
+            return picks.Count > 0 ? picks[0] : null;
         }
 
         static Vector3 Scatter()

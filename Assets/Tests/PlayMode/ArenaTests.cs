@@ -138,6 +138,7 @@ namespace Shrunk.Tests
         [UnityTest]
         public IEnumerator Aim_assist_bends_a_near_miss_onto_the_ant()
         {
+            _player.weapon.aimAssistStrength = 1f; // this is about full assist, whatever a new player starts on
             var ant = FirstEnemy();
             Assert.IsNotNull(ant);
             int before = ant.Health.Current;

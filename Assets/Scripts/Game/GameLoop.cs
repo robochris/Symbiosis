@@ -39,6 +39,7 @@ namespace Shrunk
         void OnEnemyKilled(Enemy enemy)
         {
             RunState.AddKill();
+            if (enemy is BossEnemy) SaveSystem.Data.meta.bossesBeaten++;
             Loot.Drop(enemy);
         }
 

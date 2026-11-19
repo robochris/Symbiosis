@@ -98,13 +98,16 @@ namespace Shrunk.Tests
             Assert.AreEqual(CameraMode.Auto, follow.mode, "the camera row should come back round to Auto");
             GameSettings.Camera = CameraMode.TopDown;
 
+            Assert.AreEqual(0.35f, Player.weapon.aimAssistStrength, 0.001f, "a new player on a PC starts on Low: no lock-on feel");
+            Assert.That(Row("Aim assist"), Does.Contain("Low"));
+            UseRow("Aim assist");
+            Assert.AreEqual(0.7f, Player.weapon.aimAssistStrength, 0.001f);
+            UseRow("Aim assist");
             Assert.AreEqual(1f, Player.weapon.aimAssistStrength);
             Assert.That(Row("Aim assist"), Does.Contain("Full"));
             UseRow("Aim assist");
             Assert.AreEqual(0f, Player.weapon.aimAssistStrength, "Full should wrap round to Off");
             Assert.That(Row("Aim assist"), Does.Contain("Off"));
-            UseRow("Aim assist");
-            Assert.AreEqual(0.35f, Player.weapon.aimAssistStrength, 0.001f);
 
             Assert.IsTrue(follow.lockVertical);
             UseRow("Looking up and down");

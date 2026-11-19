@@ -32,6 +32,8 @@ namespace Shrunk
         public bool frozen;
         [Tooltip("Off for things that would be farmed otherwise: larvae and eggs.")]
         public bool dropsLoot = true;
+        [Tooltip("When this enemy drops an item, it is usually one of these: hunting a kind of enemy is a way to fish for a kind of item.")]
+        public ItemType[] favouredDrops;
 
         public Health Health { get; private set; }
         public EnemyMutations Mutations { get; private set; }

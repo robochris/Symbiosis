@@ -139,11 +139,12 @@ namespace Shrunk.EditorTools
             // Arms are held out in front, ready to shoot: the right hand is where the shots come from and where a
             // hand item's spike sits; the left is lower, where a gland hangs.
             Transform armLeft = Limb("Arm L", visual, new Vector3(-0.36f, 0.2f, 0f), new Vector3(-0.44f, -0.05f, 0.26f), 0.17f, body, true);
-            Transform armRight = Limb("Arm R", visual, new Vector3(0.36f, 0.2f, 0f), new Vector3(0.44f, 0.02f, 0.4f), 0.17f, body, true);
+            Transform armRight = Limb("Arm R", visual, new Vector3(0.36f, 0.2f, 0f), new Vector3(0.44f, -0.1f, 0.42f), 0.17f, body, true);
 
             var muzzle = new GameObject("Muzzle").transform;
             muzzle.SetParent(root.transform, false);
-            muzzle.localPosition = new Vector3(0f, 0.7f, 0.6f);
+            // At the right hand: shots leave from where the arm points.
+            muzzle.localPosition = new Vector3(0.44f, 0.78f, 0.62f);
 
             var weapon = root.AddComponent<Weapon>();
             weapon.bulletPrefab = bulletPrefab;

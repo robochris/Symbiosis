@@ -17,6 +17,7 @@ namespace Shrunk
         public int extractions;
         public int deaths;
         public int deepestFloor;
+        public int bossesBeaten;
         /// <summary>Which character style the Void is wearing.</summary>
         public int style;
     }

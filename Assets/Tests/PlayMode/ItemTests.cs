@@ -192,9 +192,10 @@ namespace Shrunk.Tests
         [UnityTest]
         public IEnumerator Compound_Eye_widens_aim_assist_and_adds_crits()
         {
-            // 27 degrees off target: outside the normal 20 degree cone, inside the widened 30.
+            _player.weapon.aimAssistStrength = 1f; // this is about full assist, whatever a new player starts on
+            // 24 degrees off target (a little more as seen from the hand): outside the normal 20 degree cone, inside the widened 30.
             var target = Dummy(new Vector3(0f, 0f, 8f), "SoldierAnt");
-            Vector3 offTarget = Quaternion.Euler(0f, 27f, 0f) * Vector3.forward;
+            Vector3 offTarget = Quaternion.Euler(0f, 24f, 0f) * Vector3.forward;
 
             _player.Input.overrideFrame = new InputFrame { aim = offTarget, fire = true };
             yield return null;
