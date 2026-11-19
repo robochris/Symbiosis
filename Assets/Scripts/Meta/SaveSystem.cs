@@ -24,6 +24,8 @@ namespace Shrunk
         public int podsPopped;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>
         public int labSeen;
+        /// <summary>Radio lines already heard, so none repeats until the rest of its pool has been said.</summary>
+        public List<int> radioHeard = new List<int>();
         /// <summary>Which character style the Void is wearing.</summary>
         public int style;
     }

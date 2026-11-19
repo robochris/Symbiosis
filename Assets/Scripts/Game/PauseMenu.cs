@@ -80,6 +80,7 @@ namespace Shrunk
             Add("Look speed", () => Level((GameSettings.LookSpeed - 0.6f) / 0.9f, "Slow", "Normal", "Fast"), () => GameSettings.LookSpeed = Next(GameSettings.LookSpeed, 0.6f, 1f, 1.5f));
             Add("Looking up and down", () => GameSettings.LockVertical ? "Locked" : "Free", () => GameSettings.LockVertical = !GameSettings.LockVertical);
             Add("Touch controls", () => GameSettings.LeftHanded ? "Left-handed" : "Right-handed", () => GameSettings.LeftHanded = !GameSettings.LeftHanded);
+            Add("Radio chatter", () => new[] { "Off", "Less", "Normal" }[GameSettings.Radio], () => GameSettings.Radio = (GameSettings.Radio + 1) % 3);
             Add("Sound", () => Level(GameSettings.Volume, "Off", "Quiet", "Full"), () => GameSettings.Volume = Next(GameSettings.Volume, 0f, 0.5f, 1f));
 
             // In a run: leave without losing it. In the lab: close the game.

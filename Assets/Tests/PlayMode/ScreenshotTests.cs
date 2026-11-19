@@ -208,6 +208,8 @@ namespace Shrunk.Tests
             for (float t = 0f; t < 3f && floors.ExtractPortal == null; t += Time.deltaTime) yield return null;
             yield return new WaitForSeconds(0.6f);
             yield return Screen(Path.Combine(folder, "card-summary.png"));
+            yield return new WaitForSecondsRealtime(1.6f);
+            yield return Screen(Path.Combine(folder, "card-radio.png"));
 
             ScreenCards.ShowInTests = false;
             SaveSystem.Wipe();

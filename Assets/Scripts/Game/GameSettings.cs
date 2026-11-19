@@ -58,6 +58,13 @@ namespace Shrunk
             set => SetInt("cameraView", (int)value);
         }
 
+        /// <summary>How much Dr. Finch says on the radio: 0 nothing, 1 only the big moments, 2 everything.</summary>
+        public static int Radio
+        {
+            get => Mathf.Clamp(PlayerPrefs.GetInt(Prefix + "radio", 2), 0, 2);
+            set => SetInt("radio", Mathf.Clamp(value, 0, 2));
+        }
+
         static void Set(string key, float value)
         {
             PlayerPrefs.SetFloat(Prefix + key, value);
@@ -73,7 +80,7 @@ namespace Shrunk
         /// <summary>Back to the defaults.</summary>
         public static void Reset()
         {
-            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "volume", "leftHanded", "lockVertical", "camera", "cameraView" })
+            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "volume", "leftHanded", "lockVertical", "camera", "cameraView", "radio" })
             {
                 PlayerPrefs.DeleteKey(Prefix + key);
             }
