@@ -181,8 +181,8 @@ namespace Shrunk.EditorTools
 
             // ----- the filing cabinet: every kind of item ever found, in the corner by the record board -----
             var cabinet = new GameObject("Filing Cabinet");
-            cabinet.transform.position = new Vector3(9.4f, 0f, -6.6f);
-            cabinet.transform.rotation = Quaternion.Euler(0f, -45f, 0f);
+            // Against the south wall in the corner, far enough from the record board that standing at one never reads the other.
+            cabinet.transform.position = new Vector3(9.3f, 0f, -7.1f);
             var cabinetMat = ArenaSceneBuilder.Lit("FilingCabinet", new Color(0.4f, 0.47f, 0.42f), 0.6f);
             var cabinetBody = ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Body", cabinet.transform, Vector3.zero, new Vector3(1.1f, 2.4f, 0.9f), cabinetMat, false);
             cabinetBody.transform.localPosition = new Vector3(0f, 1.2f, -0.35f);

@@ -260,7 +260,7 @@ namespace Shrunk.Tests
             yield return null;
             cabinet = Object.FindAnyObjectByType<FilingCabinet>(FindObjectsInactive.Include);
             Assert.IsTrue(cabinet.gameObject.activeInHierarchy);
-            Vector3 at = cabinet.transform.position + new Vector3(-1.2f, 0.05f, 1.2f);
+            Vector3 at = cabinet.transform.position + new Vector3(0f, 0.05f, 1.5f);
             Assert.That(WorldPrompt.For(at), Does.Contain("2 of " + library.items.Length + " items on file").And.Contain("Lunchbox"));
             Assert.IsNull(WorldPrompt.For(new Vector3(0f, 0f, 1f)));
             Assert.That(WorldPrompt.For(at), Does.Contain("Needle Tip").And.Contain("pierce"));

@@ -10,7 +10,7 @@ namespace Shrunk
     {
         [Tooltip("One per boss beaten; they switch on in order.")]
         public GameObject[] pegs;
-        public float readDistance = 3.2f;
+        public float readDistance = 2.6f;
 
         void OnEnable()
         {

@@ -12,7 +12,7 @@ namespace Shrunk
     {
         [Tooltip("The drawers, bottom to top; more of them stand open as more is on file.")]
         public Transform[] drawers;
-        public float readDistance = 2.8f;
+        public float readDistance = 2f;
 
         int _reading = -1;
         bool _near;
