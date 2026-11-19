@@ -12,7 +12,7 @@ namespace Shrunk
         public string runScene = "Run";
         public StepPad pad = new StepPad { radius = 1.3f };
 
-        void OnEnable() => WorldPrompt.Add(Prompt);
+        void OnEnable() => WorldPrompt.Add(Prompt, transform);
         void OnDisable() => WorldPrompt.Remove(Prompt);
 
         void Update()

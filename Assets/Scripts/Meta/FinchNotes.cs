@@ -101,7 +101,7 @@ namespace Shrunk
             return pickup;
         }
 
-        void OnEnable() => WorldPrompt.Add(Prompt);
+        void OnEnable() => WorldPrompt.Add(Prompt, transform);
         void OnDisable() => WorldPrompt.Remove(Prompt);
 
         string Prompt(Vector3 playerPosition)

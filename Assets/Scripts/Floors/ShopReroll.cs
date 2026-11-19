@@ -49,7 +49,7 @@ namespace Shrunk
             if (material != null) part.GetComponent<Renderer>().sharedMaterial = material;
         }
 
-        void OnEnable() => WorldPrompt.Add(Prompt);
+        void OnEnable() => WorldPrompt.Add(Prompt, transform);
         void OnDisable() => WorldPrompt.Remove(Prompt);
 
         void Update()

@@ -267,6 +267,47 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Every_lab_station_reads_as_itself_when_stood_at()
+        {
+            // The whole lab at once: everything unlocked, an item on file, and Finch beaten.
+            Playtest.UnlockEverything();
+            SaveSystem.Data.meta.finchBeaten = 1;
+            SaveSystem.Data.meta.endingSeen = true;
+            SaveSystem.Data.meta.itemsFound.Add((int)ItemType.NeedleTip);
+            SaveSystem.Save();
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+
+            var stations = new List<KeyValuePair<Component, string>>();
+            foreach (var pad in Object.FindObjectsByType<UpgradePad>(FindObjectsSortMode.None)) stations.Add(new KeyValuePair<Component, string>(pad, pad.upgrade.displayName));
+            stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<LabPortal>(), "Portal"));
+            stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<StyleMirror>(), "The mirror"));
+            stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<TrophyBoard>(), "The record board"));
+            stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<EvidenceBoard>(), "The evidence board"));
+            stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<SpecimenShelf>(), "The specimen shelf"));
+            stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<PowerRack>(), "The power rack"));
+            stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<FilingCabinet>(), "The filing cabinet"));
+            stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<HiddenDoor>(), "door"));
+            stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<TimeClock>(), "The time clock"));
+            Assert.AreEqual(System.Enum.GetValues(typeof(UpgradeType)).Length + 9, stations.Count);
+
+            foreach (var station in stations)
+            {
+                Assert.IsNotNull(station.Key, "the lab is missing: " + station.Value);
+                // Stood exactly at it, and a step to each side: it is always this one that speaks.
+                foreach (var offset in new[] { Vector3.zero, new Vector3(0.6f, 0f, 0f), new Vector3(-0.6f, 0f, 0f), new Vector3(0f, 0f, 0.6f), new Vector3(0f, 0f, -0.6f) })
+                {
+                    string said = WorldPrompt.For(station.Key.transform.position + offset) ?? "";
+                    Assert.That(said, Does.Contain(station.Value), $"standing at {station.Key.name} (offset {offset}) read something else");
+                }
+            }
+
+            // And the middle of the room says nothing at all.
+            Assert.IsNull(WorldPrompt.For(new Vector3(0f, 0f, 1f)));
+        }
+
+        [UnityTest]
         public IEnumerator Beaten_bosses_end_up_in_jars_on_the_shelf()
         {
             SaveSystem.Data.meta.runsStarted = 3;

@@ -89,8 +89,9 @@ namespace Shrunk.Tests
             foreach (var enemy in _floors.LiveEnemies)
             {
                 if (!_floors.Layout.InArena(node.cell)) Assert.IsTrue(room.ContainsInside(enemy.transform.position, 0f), "enemy spawned outside its room\n" + Describe(node));
-                Assert.IsTrue(NavMesh.SamplePosition(enemy.transform.position, out var hit, 1f, NavMesh.AllAreas) && hit.position.y < 0.5f,
-                    "enemy spawned inside solid earth\n" + Describe(node));
+                bool onFloor = NavMesh.SamplePosition(enemy.transform.position, out var hit, 1f, NavMesh.AllAreas);
+                Assert.IsTrue(onFloor && hit.position.y < 0.5f,
+                    $"enemy spawned inside solid earth: {enemy.name} at {enemy.transform.position}, nearest floor {(onFloor ? hit.position.ToString() : "none within a metre")}\n" + Describe(node));
             }
 
             // Locked means locked: every doorway has its barrier up, and it is solid.
@@ -116,6 +117,34 @@ namespace Shrunk.Tests
             for (int side = 0; side < 4; side++)
             {
                 if (room.DoorObject(side) != null) Assert.IsFalse(room.DoorObject(side).activeSelf, "door still shut after clearing");
+            }
+        }
+
+        /// <summary>Not a test: hunts for the rare floor where something is put down off the floor. Read the failure, if any.</summary>
+        [UnityTest, Explicit, Timeout(1800000)]
+        public IEnumerator Hunt_for_bad_spawns()
+        {
+            for (int round = 0; round < 120; round++)
+            {
+                int floor = 6 + round % 4;
+                _floors.BuildFloor(floor);
+                yield return null;
+                _player.Health.SetInvulnerable(600f);
+                foreach (var node in _floors.Layout.ordered)
+                {
+                    if (node.type != RoomType.Normal) continue;
+                    _player.Teleport(StandingSpot(node) + Vector3.up * 0.05f);
+                    for (float t = 0f; t < 2f && !_floors.IsLocked; t += Time.deltaTime) yield return null;
+                    if (!_floors.IsLocked) continue;
+                    foreach (var enemy in _floors.LiveEnemies)
+                    {
+                        bool onFloor = NavMesh.SamplePosition(enemy.transform.position, out var hit, 1f, NavMesh.AllAreas);
+                        Assert.IsTrue(onFloor && hit.position.y < 0.5f,
+                            $"round {round}: {enemy.name} at {enemy.transform.position}, nearest floor {(onFloor ? hit.position.ToString() : "none within a metre")}, seed {_floors.Layout.seed}\n" + Describe(node));
+                    }
+                    foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.Kill();
+                    for (float t = 0f; t < 2f && _floors.IsLocked; t += Time.deltaTime) yield return null;
+                }
             }
         }
 

@@ -6,23 +6,55 @@ namespace Shrunk
 {
     /// <summary>
     /// Text shown at the bottom of the screen when the player is near something they can use.
-    /// Anything in the world can offer a line; the nearest one that has something to say wins.
+    /// Anything in the world can offer a line; when more than one has something to say, the nearest wins, so two
+    /// things standing close together each read as themselves.
     /// </summary>
     public static class WorldPrompt
     {
-        static readonly List<Func<Vector3, string>> Sources = new List<Func<Vector3, string>>();
+        struct Source
+        {
+            public Func<Vector3, string> ask;
+            public Transform at;
+        }
 
-        public static void Add(Func<Vector3, string> source) => Sources.Add(source);
-        public static void Remove(Func<Vector3, string> source) => Sources.Remove(source);
+        static readonly List<Source> Sources = new List<Source>();
+
+        /// <param name="at">Where the thing is, for choosing the nearest. Leave it out for something with no one place.</param>
+        public static void Add(Func<Vector3, string> source, Transform at = null) => Sources.Add(new Source { ask = source, at = at });
+
+        public static void Remove(Func<Vector3, string> source)
+        {
+            for (int i = Sources.Count - 1; i >= 0; i--)
+            {
+                if (Sources[i].ask == source) Sources.RemoveAt(i);
+            }
+        }
 
         public static string For(Vector3 playerPosition)
         {
-            foreach (var source in Sources)
+            string best = null;
+            float bestDistance = float.MaxValue;
+            // Every source is asked, not only until one answers: some of them keep count of the player walking up.
+            for (int i = 0; i < Sources.Count; i++)
             {
-                string text = source(playerPosition);
-                if (!string.IsNullOrEmpty(text)) return text;
+                Source source = Sources[i];
+                string text = source.ask(playerPosition);
+                if (string.IsNullOrEmpty(text)) continue;
+
+                float distance = 0f;
+                if (source.at != null)
+                {
+                    Vector3 to = source.at.position - playerPosition;
+                    to.y = 0f;
+                    distance = to.sqrMagnitude;
+                }
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = text;
+                }
             }
-            return null;
+            return best;
         }
     }
 

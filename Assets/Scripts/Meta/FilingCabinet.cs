@@ -32,7 +32,7 @@ namespace Shrunk
 
         void OnEnable()
         {
-            WorldPrompt.Add(Prompt);
+            WorldPrompt.Add(Prompt, transform);
             Show();
         }
 

@@ -72,7 +72,7 @@ namespace Shrunk
         void OnEnable()
         {
             All.Add(this);
-            WorldPrompt.Add(Prompt);
+            WorldPrompt.Add(Prompt, transform);
         }
 
         void OnDisable()
