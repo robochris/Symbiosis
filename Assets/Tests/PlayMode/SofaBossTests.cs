@@ -105,6 +105,51 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_Jelly_Mother_flops_lobs_and_tears_into_pieces()
+        {
+            Assert.IsTrue(_floors.SetBiome("cake"));
+            yield return MeetBoss(5, new Vector3(0f, 0f, -12f));
+            var mother = (JellyMother)_floors.Boss;
+
+            // Gumdrops come over first.
+            yield return WaitUntil(() => mother.Lobbed > 0, 10f, "gumdrops");
+            Assert.Greater(_floors.LiveEnemies.Count, 1);
+
+            // Close in: she flops, with a disc round her as the warning, then lies there.
+            yield return WaitUntil(() => mother.Current == JellyMother.State.FlopWindup, 20f, "the belly flop");
+            bool warned = false;
+            foreach (var hazard in GroundHazard.All) warned |= hazard.isBlast;
+            Assert.IsTrue(warned, "a flop with no warning");
+            yield return WaitUntil(() => mother.Current == JellyMother.State.Wobble, 5f, "her to land");
+            Assert.GreaterOrEqual(mother.Flops, 1);
+
+            // The jelly takes double.
+            int before = mother.Health.Current;
+            mother.Health.TakeDamage(3, mother.transform.forward);
+            Assert.AreEqual(before - 6, mother.Health.Current, "the jelly did not take double damage");
+
+            // Two thirds: a piece tears off as two bears, and she is smaller and quicker.
+            int bears = 0;
+            foreach (var enemy in _floors.LiveEnemies) if (enemy is ChaserEnemy && enemy.gameObject.activeSelf) bears++;
+            mother.Health.TakeDamage(mother.Health.Current - Mathf.FloorToInt(mother.Health.maxHealth * 0.6f), -mother.transform.forward);
+            yield return WaitUntil(() => mother.Splits == 1, 8f, "the first split");
+            Assert.AreEqual(2, mother.Phase);
+            Assert.Less(mother.BaseScale, 0.9f);
+            Assert.Greater(mother.SpeedMultiplier, 1.1f);
+            int after = 0;
+            foreach (var enemy in _floors.LiveEnemies) if (enemy is ChaserEnemy && enemy.gameObject.activeSelf) after++;
+            Assert.GreaterOrEqual(after, bears + 2, "nothing tore off");
+
+            mother.Health.TakeDamage(mother.Health.Current - Mathf.FloorToInt(mother.Health.maxHealth * 0.3f), -mother.transform.forward);
+            yield return WaitUntil(() => mother.Splits == 2, 8f, "the second split");
+            Assert.Less(mother.BaseScale, 0.75f);
+
+            mother.Health.Kill();
+            yield return WaitUntil(() => !_floors.IsLocked, 6f, "the arena to open");
+            Assert.IsFalse(Achievements.Has(AchievementId.MothersDay), "the Jelly Mother was mistaken for the Brood Mother");
+        }
+
+        [UnityTest]
         public IEnumerator The_Robot_Vacuum_sprays_sucks_and_has_to_empty_its_bin()
         {
             yield return MeetBoss(10, new Vector3(0f, 0f, -9f));

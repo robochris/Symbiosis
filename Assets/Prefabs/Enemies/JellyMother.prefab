@@ -129,7 +129,7 @@ GameObject:
   - component: {fileID: 4105075325560535547}
   - component: {fileID: 8942170553408507359}
   - component: {fileID: 7285940458790006535}
-  - component: {fileID: 2285003074015785388}
+  - component: {fileID: 3347034146759416671}
   - component: {fileID: 8834988874297679057}
   - component: {fileID: 8628587333140055740}
   m_Layer: 0
@@ -193,9 +193,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   team: 1
-  maxHealth: 140
+  maxHealth: 160
   hitInvulnerability: 0
---- !u!114 &2285003074015785388
+--- !u!114 &3347034146759416671
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -204,7 +204,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 190938919453097340}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70e60feb2f517044ba57fee48a6a99ab, type: 3}
+  m_Script: {fileID: 11500000, guid: f661d5cb2c259bc44a73fbb866bee3bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   visual: {fileID: 1240437323550262736}
@@ -217,28 +217,32 @@ MonoBehaviour:
   subtitle: 97% sugar. 3% spite.
   telegraphMaterial: {fileID: 2100000, guid: 4120780dd9ff2244ca1acb01ea1c585d, type: 2}
   sampleReward: 12
-  crawlSpeed: 2.2
-  scuttleSpeed: 5
-  scuttleFrom: 7
-  scuttleFull: 14
-  turnSpeed: 65
-  biteRange: 3.4
-  biteWindup: 0.6
-  biteInterval: 2.2
-  biteDamage: 1
-  larvaPrefab: {fileID: 5468892710605567079, guid: f0552539707c70940aa39401b56b0e89, type: 3}
-  layInterval: 8
-  larvaePerLay: 3
-  tailRange: 5.5
-  tailOffset: 3.6
-  tailRadius: 2.8
-  tailFuse: 0.8
-  tailCooldown: 3
-  burrowInterval: 9
-  burrowWarning: 1.2
-  burrowRadius: 3
-  ringLarvae: 5
-  ringRadius: 4
+  walkSpeed: 2.6
+  farSpeed: 5
+  hurryFrom: 8
+  hurryFull: 15
+  turnSpeed: 110
+  flopRange: 4.6
+  flopWindup: 0.85
+  flopRadius: 4.8
+  wobbleTime: 1.5
+  flopCooldown: 1.2
+  gumdropPrefab: {fileID: 5468892710605567079, guid: f0552539707c70940aa39401b56b0e89, type: 3}
+  lobInterval: 7
+  lobCount: 3
+  maxGumdrops: 6
+  splitInto: {fileID: 6661044304210419554, guid: ea7b210746102644a84f359e6b06b9b0, type: 3}
+  bearsPerSplit: 2
+  splitTime: 1
+  splitAt:
+  - 0.66
+  - 0.33
+  sizeAfter:
+  - 0.84
+  - 0.7
+  speedAfter:
+  - 1.25
+  - 1.55
   weakPointMultiplier: 2
 --- !u!114 &8834988874297679057
 MonoBehaviour:

@@ -27,7 +27,49 @@ namespace Shrunk.Tests
             Radio.ChanceOverride = null;
             Fade.EnabledOverride = null;
             GameLoop.SlowMotionOverride = null;
+            ScreenCards.ShowInTests = false;
+            ScreenCards.TitleSeen = false;
             Time.timeScale = 1f;
+        }
+
+        [UnityTest]
+        public IEnumerator The_title_has_a_play_button_and_a_careful_erase_button()
+        {
+            SaveSystem.Data.meta.runsStarted = 6;
+            SaveSystem.Data.meta.samples = 40;
+            SaveSystem.Data.run.active = true;
+            SaveSystem.Data.run.floorNumber = 4;
+            SaveSystem.Save();
+            ScreenCards.ShowInTests = true;
+            ScreenCards.TitleSeen = false;
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var cards = ScreenCards.Instance;
+            Assert.IsTrue(cards.TitleShowing);
+            Assert.That(cards.PlayLabel, Does.Contain("CONTINUE").And.Contain("floor 4"));
+
+            // One press only asks; it forgets it was asked after a few seconds.
+            cards.PressErase();
+            Assert.IsTrue(cards.EraseArmed);
+            Assert.That(cards.EraseLabel, Does.Contain("really"));
+            Assert.AreEqual(40, SaveSystem.Data.meta.samples, "one press erased the save");
+            yield return new WaitForSecondsRealtime(4.3f);
+            Assert.IsFalse(cards.EraseArmed);
+            Assert.AreEqual("erase save", cards.EraseLabel);
+
+            // Two presses mean it: everything goes, and the game opens again as new.
+            cards.PressErase();
+            cards.PressErase();
+            yield return null;
+            yield return null;
+            cards = ScreenCards.Instance;
+            Assert.AreEqual(0, SaveSystem.Data.meta.runsStarted);
+            Assert.IsFalse(SaveSystem.Data.run.active);
+            Assert.IsTrue(cards.TitleShowing, "the title did not come back after erasing");
+            Assert.AreEqual("START", cards.PlayLabel);
+            cards.DismissTitle();
+            Assert.IsFalse(ScreenCards.Blocking);
         }
 
         static IEnumerator WaitUntil(System.Func<bool> condition, float timeout, string what)

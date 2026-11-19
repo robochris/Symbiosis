@@ -169,6 +169,7 @@ namespace Shrunk.Tests
             GameSettings.Reset();
             ScreenCards.ShowInTests = true;
             ScreenCards.TitleSeen = false;
+            SaveSystem.Data.meta.runsStarted = 3;
             string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
             Directory.CreateDirectory(folder);
 

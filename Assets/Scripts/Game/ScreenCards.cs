@@ -136,7 +136,13 @@ namespace Shrunk
             _titleText = Label("Name", _titleGroup.transform, 190, new Vector2(0f, 80f), FontStyle.Bold);
             var tag = Label("Tagline", _titleGroup.transform, 44, new Vector2(0f, -52f), FontStyle.Italic);
             tag.text = tagline;
-            _titleHint = Label("Hint", _titleGroup.transform, 40, new Vector2(0f, -150f), FontStyle.Normal);
+            _titleHint = Label("Hint", _titleGroup.transform, 28, new Vector2(0f, -205f), FontStyle.Normal);
+            _titleHint.color = new Color(1f, 1f, 1f, 0.7f);
+
+            // Two buttons: the big one plays, the small one in the corner throws the save away (asked twice).
+            _playButton = Button("Play", _titleGroup.transform, new Vector2(0.5f, 0.5f), new Vector2(0f, -135f), new Vector2(560f, 92f), new Color(0.45f, 0.95f, 1f, 0.95f), 46, out _playLabel);
+            _playLabel.color = new Color(0.02f, 0.05f, 0.08f);
+            _eraseButton = Button("Erase", _titleGroup.transform, new Vector2(1f, 0f), new Vector2(-190f, 48f), new Vector2(340f, 56f), new Color(1f, 1f, 1f, 0.12f), 26, out _eraseLabel);
             _titleGroup.alpha = 0f;
             _titleGroup.blocksRaycasts = false;
         }
@@ -152,6 +158,22 @@ namespace Shrunk
             var image = go.GetComponent<Image>();
             image.color = colour;
             image.raycastTarget = false;
+            return rect;
+        }
+
+        RectTransform Button(string name, Transform parent, Vector2 anchor, Vector2 position, Vector2 size, Color colour, int textSize, out Text label)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            var rect = (RectTransform)go.transform;
+            rect.SetParent(parent, false);
+            rect.anchorMin = rect.anchorMax = anchor;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+            var image = go.GetComponent<Image>();
+            image.color = colour;
+            image.raycastTarget = false;
+            label = Label("Label", rect, textSize, Vector2.zero, FontStyle.Bold);
             return rect;
         }
 
@@ -178,13 +200,29 @@ namespace Shrunk
 
         // ---------- the title ----------
 
+        RectTransform _playButton, _eraseButton;
+        Text _playLabel, _eraseLabel;
+        float _eraseArmedUntil;
+
+        /// <summary>What the title's buttons say, for tests.</summary>
+        public string PlayLabel => _playLabel.text;
+        public string EraseLabel => _eraseLabel.text;
+        /// <summary>True for a few seconds after the erase button is first pressed: a second press means it.</summary>
+        public bool EraseArmed => Time.unscaledTime < _eraseArmedUntil;
+
         public void ShowTitle()
         {
             TitleShowing = true;
             _titleText.text = gameName;
-            bool saved = SaveSystem.Data.run.active;
+            RunSave run = SaveSystem.Data.run;
+            MetaSave meta = SaveSystem.Data.meta;
             bool touch = UnityEngine.Device.Application.isMobilePlatform;
-            _titleHint.text = (touch ? "Tap" : "Press any key") + (saved ? " to carry on. Your run is waiting in the portal." : " to start.");
+            _playLabel.text = run.active ? $"CONTINUE  ·  floor {run.floorNumber}" : meta.runsStarted > 0 ? "PLAY" : "START";
+            _titleHint.text = touch ? "" : "or press any key";
+            _eraseArmedUntil = 0f;
+            _eraseLabel.text = "erase save";
+            // Nothing to erase on a first visit.
+            _eraseButton.gameObject.SetActive(meta.runsStarted > 0 || run.active);
             _titleGroup.alpha = 1f;
             ShowHud(false);
             var follow = CameraFollow.Instance;
@@ -205,6 +243,26 @@ namespace Shrunk
                 follow.enabled = true;
                 follow.Snap();
             }
+        }
+
+        /// <summary>
+        /// The small button in the corner: the first press asks, a second within a few seconds throws away all
+        /// progress and opens the game again from nothing.
+        /// </summary>
+        public void PressErase()
+        {
+            if (!TitleShowing) return;
+            if (!EraseArmed)
+            {
+                _eraseArmedUntil = Time.unscaledTime + 4f;
+                _eraseLabel.text = "really? press again";
+                return;
+            }
+            SaveSystem.Wipe();
+            Radio.Forget();
+            RunDirector.LastRunMessage = null;
+            TitleSeen = false;
+            UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
         }
 
         // The game's own HUD is put away while the title is up.
@@ -231,11 +289,22 @@ namespace Shrunk
                     view.transform.SetPositionAndRotation(from, Quaternion.LookRotation(middle - Vector3.up * 1.1f - from));
                 }
 
-                bool pressed = (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame)
-                               || (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-                               || (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
-                               || (Gamepad.current != null && (Gamepad.current.buttonSouth.wasPressedThisFrame || Gamepad.current.startButton.wasPressedThisFrame));
-                if (pressed) DismissTitle();
+                if (_eraseArmedUntil > 0f && !EraseArmed)
+                {
+                    _eraseArmedUntil = 0f;
+                    _eraseLabel.text = "erase save";
+                }
+
+                // A key or a pad button plays. A click or a tap has to land on a button, so the small one in the
+                // corner can be reached without starting the game.
+                bool key = (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame)
+                           || (Gamepad.current != null && (Gamepad.current.buttonSouth.wasPressedThisFrame || Gamepad.current.startButton.wasPressedThisFrame));
+                Vector2? press = null;
+                if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) press = Mouse.current.position.ReadValue();
+                if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame) press = Touchscreen.current.primaryTouch.position.ReadValue();
+
+                if (press.HasValue && _eraseButton.gameObject.activeSelf && RectTransformUtility.RectangleContainsScreenPoint(_eraseButton, press.Value, null)) PressErase();
+                else if (key || (press.HasValue && RectTransformUtility.RectangleContainsScreenPoint(_playButton, press.Value, null))) DismissTitle();
             }
 
             if (SummaryShowing && Time.unscaledTime >= _summaryUntil) _summary.gameObject.SetActive(false);

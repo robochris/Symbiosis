@@ -6,8 +6,8 @@ namespace Shrunk.EditorTools
     /// <summary>
     /// The second biome, as a test of how different a biome can be made from the same parts: the Birthday Cake.
     /// Open to the sky, sponge floors and frosting walls, and candy for enemies. Every enemy reuses one of the four
-    /// base behaviours with a new body; the two bosses reuse the Brood Mother's and the Ant Queen's fights under new
-    /// skins until they get fights of their own.
+    /// base behaviours with a new body. The Jelly Mother has a fight of her own; the Trick Candle fights like the
+    /// Ant Queen with one trick added (it goes out, and relights).
     /// </summary>
     public static partial class ContentBuilder
     {
@@ -124,14 +124,16 @@ namespace Shrunk.EditorTools
             Object.DestroyImmediate(sparkler.GetComponent<EnemyMutations>());
             var sparklerPrefab = (EggEnemy)SaveEnemy(sparkler);
 
-            // Jelly Mother (floor 5): a giant gummy bear with a wobbling jelly on her back, the weak point.
-            var mother = Creature<BroodMother>("JellyMother", 1.65f, 3.6f, 140, 3f, 4.8f, out var motherModel);
+            // Jelly Mother (floor 5): her own fight. Belly-flops, lobs gumdrops, and tears into smaller, quicker pieces.
+            // The wobbling jelly on her back is the weak point.
+            var mother = Creature<JellyMother>("JellyMother", 1.65f, 3.6f, 160, 3f, 4.8f, out var motherModel);
             motherModel.localScale = Vector3.one * 2.6f;
             GummyParts(motherModel, gummyGreen, gummyPale, dark);
             Decor(PrimitiveType.Sphere, "Jelly", motherModel, new Vector3(0f, 0.75f, -0.45f), new Vector3(0.7f, 0.7f, 0.6f), gummyPale);
             mother.displayName = "Jelly Mother";
             mother.subtitle = "97% sugar. 3% spite.";
-            mother.larvaPrefab = gumdropPrefab;
+            mother.gumdropPrefab = gumdropPrefab;
+            mother.splitInto = gummyPrefab;
             mother.telegraphMaterial = telegraph;
             mother.sampleReward = 12;
             mother.knockbackOnHit = 0f;
