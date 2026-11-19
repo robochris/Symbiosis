@@ -64,6 +64,56 @@ namespace Shrunk.Tests
 
         bool PlayerHurt => _player.Health.Current < _player.Health.maxHealth;
 
+        // ---------- arrows for what the camera cannot see ----------
+
+        [UnityTest]
+        public IEnumerator Unseen_enemies_nearby_get_an_arrow_and_seen_ones_do_not()
+        {
+            GameSettings.Reset();
+            var arrows = EnemyArrows.Instance;
+            Assert.IsNotNull(arrows, "the arena has no enemy arrows");
+            _player.Health.SetInvulnerable(600f);
+            _player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            CameraFollow.Instance.Snap();
+            var view = Camera.main;
+            Vector3 ahead = view.transform.forward, right = view.transform.right;
+            ahead.y = right.y = 0f;
+            Vector3 from = _player.transform.position;
+
+            // In front and in view: nothing.
+            var seen = Spawn("WorkerAnt", from + ahead.normalized * 7f);
+            seen.frozen = true;
+            yield return null;
+            yield return null;
+            Assert.AreEqual(0, arrows.Showing, "an enemy in plain view got an arrow");
+
+            // Close behind: an arrow, pointing down the screen.
+            var behind = Spawn("WorkerAnt", from - ahead.normalized * 6f);
+            behind.frozen = true;
+            yield return null;
+            yield return null;
+            Assert.AreEqual(1, arrows.Showing);
+            Assert.IsTrue(arrows.Matters(behind, _player));
+
+            // Far behind: too far to matter, until there is a Compound Eye to see it with.
+            var far = Spawn("WorkerAnt", from - ahead.normalized * 16f + right.normalized * 3f);
+            far.frozen = true;
+            yield return null;
+            yield return null;
+            Assert.AreEqual(1, arrows.Showing, "a far-off enemy got an arrow");
+            Assert.IsFalse(arrows.Matters(far, _player));
+            _player.Items.Add(GameAssets.Instance.items.Get(ItemType.CompoundEye));
+            yield return null;
+            Assert.AreEqual(2, arrows.Showing, "the Compound Eye should show the far one too");
+
+            // The setting turns them all off.
+            GameSettings.EnemyArrows = false;
+            yield return null;
+            Assert.AreEqual(0, arrows.Showing);
+            GameSettings.Reset();
+        }
+
         // ---------- behaviours ----------
 
         [UnityTest]

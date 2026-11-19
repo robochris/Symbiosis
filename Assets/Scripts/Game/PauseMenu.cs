@@ -80,6 +80,7 @@ namespace Shrunk
             Add("Look speed", () => Level((GameSettings.LookSpeed - 0.6f) / 0.9f, "Slow", "Normal", "Fast"), () => GameSettings.LookSpeed = Next(GameSettings.LookSpeed, 0.6f, 1f, 1.5f));
             Add("Looking up and down", () => GameSettings.LockVertical ? "Locked" : "Free", () => GameSettings.LockVertical = !GameSettings.LockVertical);
             Add("Touch controls", () => GameSettings.LeftHanded ? "Left-handed" : "Right-handed", () => GameSettings.LeftHanded = !GameSettings.LeftHanded);
+            Add("Enemy arrows", () => GameSettings.EnemyArrows ? "On" : "Off", () => GameSettings.EnemyArrows = !GameSettings.EnemyArrows);
             Add("Radio chatter", () => new[] { "Off", "Less", "Normal" }[GameSettings.Radio], () => GameSettings.Radio = (GameSettings.Radio + 1) % 3);
             Add("Sound", () => Level(GameSettings.Volume, "Off", "Quiet", "Full"), () => GameSettings.Volume = Next(GameSettings.Volume, 0f, 0.5f, 1f));
 
@@ -100,10 +101,10 @@ namespace Shrunk
                 row.rect = (RectTransform)go.transform;
                 row.rect.SetParent(panel, false);
                 row.rect.anchorMin = row.rect.anchorMax = row.rect.pivot = new Vector2(0.5f, 0.5f);
-                row.rect.anchoredPosition = new Vector2(0f, 290f - i * 92f);
-                row.rect.sizeDelta = new Vector2(900f, 80f);
+                row.rect.anchoredPosition = new Vector2(0f, 320f - i * 82f);
+                row.rect.sizeDelta = new Vector2(900f, 72f);
                 row.background = go.GetComponent<Image>();
-                row.text = MakeText(row.rect, "", 40, Vector2.zero, new Vector2(860f, 70f));
+                row.text = MakeText(row.rect, "", 38, Vector2.zero, new Vector2(860f, 64f));
             }
 
             // Pause button, top of the screen just right of the camera label.

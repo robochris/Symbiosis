@@ -65,6 +65,13 @@ namespace Shrunk
             set => SetInt("radio", Mathf.Clamp(value, 0, 2));
         }
 
+        /// <summary>Arrows at the screen edge for nearby enemies the camera cannot see.</summary>
+        public static bool EnemyArrows
+        {
+            get => PlayerPrefs.GetInt(Prefix + "enemyArrows", 1) == 1;
+            set => SetInt("enemyArrows", value ? 1 : 0);
+        }
+
         static void Set(string key, float value)
         {
             PlayerPrefs.SetFloat(Prefix + key, value);
@@ -80,7 +87,7 @@ namespace Shrunk
         /// <summary>Back to the defaults.</summary>
         public static void Reset()
         {
-            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "volume", "leftHanded", "lockVertical", "camera", "cameraView", "radio" })
+            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "volume", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows" })
             {
                 PlayerPrefs.DeleteKey(Prefix + key);
             }

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using UnityEngine;
@@ -216,6 +217,32 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_arrows()
+        {
+            GameSettings.Reset();
+            SceneManager.LoadScene("Arena");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var spawner = Object.FindAnyObjectByType<EnemySpawner>();
+            spawner.maxAlive = 0;
+            foreach (var enemy in new List<Enemy>(Enemy.Active)) Object.Destroy(enemy.gameObject);
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            yield return null;
+            foreach (var at in new[] { new Vector3(-7f, 0f, -3f), new Vector3(6f, 0f, -5f), new Vector3(0.5f, 0f, -7f), new Vector3(2f, 0f, 7f) })
+            {
+                spawner.SpawnAt(spawner.biome.EnemyNamed("WorkerAnt"), at, null).frozen = true;
+            }
+            yield return new WaitForSeconds(0.4f);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            yield return Screen(Path.Combine(folder, "arrows.png"));
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_enemy_lineup()
         {
             SceneManager.LoadScene("Arena");
@@ -430,6 +457,7 @@ namespace Shrunk.Tests
                 canvas.planeDistance = 0.5f;
             }
             yield return null;
+            yield return null; // a second frame, so anything placed from the canvas size has the new size
             Canvas.ForceUpdateCanvases();
             cam.Render();
 

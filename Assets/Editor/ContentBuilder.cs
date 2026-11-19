@@ -280,7 +280,7 @@ namespace Shrunk.EditorTools
                 int n = i % 3;
                 Decor(PrimitiveType.Sphere, "Eye " + i, look.transform, new Vector3(side * (0.26f + 0.06f * n), 0.5f + 0.1f * (n - 1), 0.3f - 0.05f * n), Vector3.one * 0.09f, eyeMat);
             }
-            items.Add(Item(ItemType.CompoundEye, "Compound Eye", "Stronger aim assist, +15% critical hits.", ItemSlot.Eyes, false, 20, new Color(0.45f, 0.95f, 1f), look));
+            items.Add(Item(ItemType.CompoundEye, "Compound Eye", "Stronger aim assist, +15% critical hits. Arrows for every unseen enemy.", ItemSlot.Eyes, false, 20, new Color(0.45f, 0.95f, 1f), look));
 
             // Extra Legs: four little legs on the back.
             look = new GameObject("ExtraLegs");
