@@ -24,6 +24,17 @@ namespace Shrunk
         public BiomeDefinition[] otherBiomes;
         [Tooltip("How many portals to other biomes are offered, on top of the one back into this biome.")]
         public int otherPortals = 2;
+        [Tooltip("Where the lab's hidden door leads: one floor, and Dr. Finch. Never offered by a portal.")]
+        public BiomeDefinition bottomBiome;
+
+        /// <summary>Builds the bottom: the one floor behind the lab's hidden door.</summary>
+        public void BuildBottom()
+        {
+            if (bottomBiome == null) return;
+            biome = bottomBiome;
+            depth = 1;
+            BuildFloor(10);
+        }
 
         /// <summary>One way onward in the portal room: a gate, and the biome it leads to.</summary>
         public class BiomePortal
@@ -172,6 +183,8 @@ namespace Shrunk
 
                 // Only fight rooms need clearing.
                 node.cleared = node.type != RoomType.Normal && node.type != RoomType.Exit;
+                // At the bottom nothing is waiting in the rooms on the way. Only at the end.
+                if (biome.isBottom && node.type == RoomType.Normal) node.cleared = true;
             }
 
             Physics.SyncTransforms();
@@ -496,6 +509,7 @@ namespace Shrunk
         {
             if (ExtractPortal != null && _extractPad.Distance(ExtractPortal.transform.position, playerPosition) < 3.5f)
             {
+                if (biome != null && biome.isBottom) return "The way back up. Step in to go home.";
                 float multiplier = RunDirector.RewardMultiplier(depth);
                 int worth = Mathf.RoundToInt(RunState.Samples * multiplier);
                 return multiplier > 1f
@@ -615,7 +629,12 @@ namespace Shrunk
             if (node.type == RoomType.Exit)
             {
                 ExitOpen = true;
-                if (FloorInBiome == 10 && biome.extractPortalProp != null && biome.deeperPortalProp != null)
+                if (biome.isBottom && biome.extractPortalProp != null)
+                {
+                    // There is nothing under the bottom: the only way on is back up.
+                    ExtractPortal = Instantiate(biome.extractPortalProp, middle, Quaternion.identity, room.transform);
+                }
+                else if (FloorInBiome == 10 && biome.extractPortalProp != null && biome.deeperPortalProp != null)
                 {
                     // The biome boss is dead: two portals instead of a hole in the floor.
                     // The way home on the left, this biome again on the right, and the other biomes along the far side.

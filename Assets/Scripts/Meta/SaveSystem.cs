@@ -18,6 +18,8 @@ namespace Shrunk
         public int deaths;
         public int deepestFloor;
         public int bossesBeaten;
+        /// <summary>Times Dr. Finch has been beaten at the bottom.</summary>
+        public int finchBeaten;
         /// <summary>Achievements earned, as AchievementId numbers.</summary>
         public List<int> achievements = new List<int>();
         public int shellsShattered;

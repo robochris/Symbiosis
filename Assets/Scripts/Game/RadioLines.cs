@@ -21,6 +21,19 @@ namespace Shrunk
         BossDown,
         /// <summary>A page of the notebook has been picked up.</summary>
         Note,
+        /// <summary>In the lab with the whole notebook found: the door has turned up.</summary>
+        Door,
+        /// <summary>Arriving at the bottom.</summary>
+        Bottom,
+        /// <summary>The fight with Finch starts.</summary>
+        FinchFight,
+        /// <summary>Finch takes another dose mid-fight.</summary>
+        FinchDose,
+        FinchDown,
+        /// <summary>Back in the lab having beaten Finch.</summary>
+        FinchHome,
+        /// <summary>Opening the game in the lab any time after Finch has been beaten.</summary>
+        After,
         // From here down is chatter: said only now and then, and not at all on the Less setting.
         LowHealth,
         Item,
@@ -133,6 +146,49 @@ namespace Shrunk
                 "That page is out of context. The context is worse.",
                 "You're collecting those. I see. I had hoped you were less thorough.",
                 "Reading other people's notes is rude. Pinning them to a board is a hobby.",
+            },
+            [RadioMoment.Door] = new[]
+            {
+                "There is no door. If there were one, it would be locked. It isn't locked. There is no door.",
+                "I see you've found the door there isn't. Do leave it alone.",
+                "That door goes nowhere you're paid to go.",
+                "You read all six pages. I had hoped you would skim.",
+            },
+            [RadioMoment.Bottom] = new[]
+            {
+                "Ah. You came down. I did ask you not to, in my own way, by never mentioning it.",
+                "Welcome to the bottom. I built it to look like the lab. One gets homesick.",
+                "There you are. Good. No, not good. I meant the other one.",
+            },
+            [RadioMoment.FinchFight] = new[]
+            {
+                "Here I am. Smaller than you expected, I imagine. Everyone is, down here.",
+                "I needed somebody to keep the way open. I did not need them to use it.",
+                "Nothing personal. You've been an excellent intern. That is rather the problem.",
+            },
+            [RadioMoment.FinchDose] = new[]
+            {
+                "One moment. Another dose. You'll find me harder to hit; that's only optics.",
+                "Smaller again. I've brought friends. We have an understanding.",
+                "Do stop. There is very little of me left to shoot at.",
+                "Another dose. I had been saving that one for a celebration.",
+            },
+            [RadioMoment.FinchDown] = new[]
+            {
+                "You haven't won. I'm still talking. I am only very difficult to see.",
+                "Ow. Well. That was the last dose, and not on purpose.",
+            },
+            [RadioMoment.FinchHome] = new[]
+            {
+                "I'm fine, since you didn't ask. Smaller than a full stop, but fine.",
+                "You're home. So am I, in a sense. I think I'm somewhere on your boot.",
+            },
+            [RadioMoment.After] = new[]
+            {
+                "Good morning. I'm still down here. Don't look for me; you'd need a better microscope.",
+                "The portal's open. So is the door. I've stopped pretending about the door.",
+                "I've had time to think. I'm told that is what the bottom is for.",
+                "You're still my intern, technically. I checked. Nobody else did.",
             },
             [RadioMoment.LowHealth] = new[]
             {

@@ -16,7 +16,15 @@ namespace Shrunk
         /// <summary>The player has cashed out, carrying this many samples (before the multiplier).</summary>
         public static event System.Action<int> Extracted;
 
+        /// <summary>Set by the lab's hidden door: the next run is not a run but the trip to the bottom.</summary>
+        public static bool Descent;
+
         public string labScene = "Lab";
+        [Tooltip("Items handed over at the top of the way down, so the last fight is not fought bare.")]
+        public int descentItems = 3;
+
+        /// <summary>True on the trip to the bottom. Nothing about it is saved as a run, and a saved run is left alone.</summary>
+        public bool IsDescent { get; private set; }
         public float deathDelay = 1.6f;
 
         public bool Ended { get; private set; }
@@ -41,12 +49,21 @@ namespace Shrunk
         {
             FloorManager.FloorBuilt += OnFloorBuilt;
             FloorManager.ExtractChosen += Extract;
+            Enemy.Killed += OnKilled;
         }
 
         void OnDisable()
         {
             FloorManager.FloorBuilt -= OnFloorBuilt;
             FloorManager.ExtractChosen -= Extract;
+            Enemy.Killed -= OnKilled;
+        }
+
+        void OnKilled(Enemy enemy)
+        {
+            if (!(enemy is FinchBoss)) return;
+            SaveSystem.Data.meta.finchBeaten++;
+            SaveSystem.Save();
         }
 
         void Start()
@@ -57,9 +74,25 @@ namespace Shrunk
 
             ApplyUpgrades();
 
+            IsDescent = Descent && _floors.bottomBiome != null;
+            Descent = false;
+
             RunSave run = SaveSystem.Data.run;
-            if (run.active) Resume(run);
+            if (IsDescent) BeginDescent();
+            else if (run.active) Resume(run);
             else Begin();
+        }
+
+        // Straight to the bottom, with a few things from the lab's shelves.
+        void BeginDescent()
+        {
+            var assets = GameAssets.Instance;
+            if (descentItems > 0 && assets != null && assets.items != null && _player.Items != null)
+            {
+                var picks = assets.items.RandomCommon(new System.Random(Random.Range(0, int.MaxValue)), descentItems);
+                foreach (var pick in picks) _player.Items.Add(pick);
+            }
+            _floors.BuildBottom();
         }
 
         void ApplyUpgrades()
@@ -111,7 +144,7 @@ namespace Shrunk
         // "The run saves at the start of every floor."
         void OnFloorBuilt(FloorManager floors)
         {
-            if (Ended || _player == null) return;
+            if (Ended || _player == null || IsDescent) return;
 
             RunSave run = SaveSystem.Data.run;
             run.active = true;
@@ -140,6 +173,16 @@ namespace Shrunk
         {
             if (Ended) return;
             Ended = true;
+
+            if (IsDescent)
+            {
+                // Back up from the bottom: what was picked up comes home, and any saved run is where it was left.
+                SaveSystem.Data.meta.samples += RunState.Samples;
+                SaveSystem.Save();
+                LastRunMessage = $"You came back up from the bottom with {RunState.Samples} samples. Dr. Finch is, on paper, still employed.";
+                SceneManager.LoadScene(labScene);
+                return;
+            }
 
             int depth = _floors != null ? _floors.depth : 1;
             float multiplier = RewardMultiplier(depth);
@@ -172,10 +215,12 @@ namespace Shrunk
             var meta = SaveSystem.Data.meta;
             meta.samples += kept;
             meta.deaths++;
-            SaveSystem.Data.run = new RunSave();
+            if (!IsDescent) SaveSystem.Data.run = new RunSave();
             SaveSystem.Save();
 
-            LastRunMessage = $"You fell on floor {floor}. {Mathf.RoundToInt(share * 100f)}% of your samples made it home: {kept}.";
+            LastRunMessage = IsDescent
+                ? "You fell at the bottom. The door is still there, whatever the radio says."
+                : $"You fell on floor {floor}. {Mathf.RoundToInt(share * 100f)}% of your samples made it home: {kept}.";
             StartCoroutine(GoHome());
         }
 

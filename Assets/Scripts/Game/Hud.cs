@@ -150,7 +150,7 @@ namespace Shrunk
             if (floorText != null && floors != null && _shownFloor != floors.FloorNumber)
             {
                 _shownFloor = floors.FloorNumber;
-                floorText.text = "Floor " + _shownFloor;
+                floorText.text = floors.biome != null && floors.biome.isBottom ? "The bottom" : "Floor " + _shownFloor;
             }
 
             if (killsText != null && _shownKills != RunState.Kills)

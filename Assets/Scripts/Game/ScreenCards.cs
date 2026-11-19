@@ -357,10 +357,10 @@ namespace Shrunk
             int samples = RunState.Samples - _samplesAtStart;
             string verdict = _hits == 0 ? "Not a scratch. Suspicious." : _hits <= 5 ? "Barely touched." : _hits <= 15 ? "A few new dents." : "Mostly dents now.";
 
-            LastSummary = $"{floors.biome.displayName.ToUpperInvariant()} CLEARED\n" +
+            LastSummary = (floors.biome.isBottom ? "DR. FINCH, MISPLACED\n" : $"{floors.biome.displayName.ToUpperInvariant()} CLEARED\n") +
                           $"Time {seconds / 60}:{seconds % 60:00}   ·   Kills {kills}   ·   Hits taken {_hits}\n" +
                           $"Samples +{samples}   ·   Items +{Mathf.Max(0, items)}\n" +
-                          verdict + "  Go home, or go deeper.";
+                          verdict + (floors.biome.isBottom ? "  There is no deeper. Go home." : "  Go home, or go deeper.");
             _summaryText.text = LastSummary;
             _summary.gameObject.SetActive(true);
             _summaryUntil = Time.unscaledTime + 12f;

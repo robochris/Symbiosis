@@ -36,6 +36,7 @@ namespace Shrunk
         PlayerController _watched;
         BossEnemy _announced;
         bool _firstFloor = true;
+        bool _finchDown;
         Coroutine _waiting;
 
         /// <summary>Forgets anything left over from a scene that ended. For tests.</summary>
@@ -50,6 +51,8 @@ namespace Shrunk
 
         void OnDestroy()
         {
+            // Leaving the bottom with Finch beaten: that, not the samples, is what gets remarked on at home.
+            if (_finchDown && _carried != RadioMoment.Death) _carried = RadioMoment.FinchHome;
             if (Instance == this) Instance = null;
         }
 
@@ -61,6 +64,7 @@ namespace Shrunk
             Pickup.ItemCollected += OnItem;
             RunDirector.Extracted += OnExtracted;
             FinchNotes.Found += OnNote;
+            FinchBoss.Dosed += OnDose;
         }
 
         void OnDisable()
@@ -71,6 +75,7 @@ namespace Shrunk
             Pickup.ItemCollected -= OnItem;
             RunDirector.Extracted -= OnExtracted;
             FinchNotes.Found -= OnNote;
+            FinchBoss.Dosed -= OnDose;
             if (_watched != null)
             {
                 _watched.Health.Damaged -= OnHit;
@@ -84,6 +89,8 @@ namespace Shrunk
             if (FloorManager.Instance != null) return;
             if (_carried.HasValue) Say(_carried.Value, null, 1.2f);
             else if (SaveSystem.Data.meta.runsStarted == 0) Say(RadioMoment.Hello, null, 0.8f);
+            else if (SaveSystem.Data.meta.finchBeaten > 0) Say(RadioMoment.After, null, 0.8f);
+            else if (LabGrowth.Met(LabGrowth.Needs.AllNotesFound)) Say(RadioMoment.Door, null, 0.8f);
             else if (!SaveSystem.Data.run.active) Say(RadioMoment.Lab, null, 0.8f);
             _carried = null;
         }
@@ -232,7 +239,11 @@ namespace Shrunk
             bool first = _firstFloor;
             _firstFloor = false;
 
-            if (first)
+            if (floors.biome != null && floors.biome.isBottom)
+            {
+                Say(RadioMoment.Bottom, null, 3.2f);
+            }
+            else if (first)
             {
                 // The scene has just opened: a new run, or a saved one picked up. After the arrival card.
                 bool fresh = floors.FloorNumber == 1 && floors.depth == 1;
@@ -257,13 +268,21 @@ namespace Shrunk
             if (floors.Boss == null || floors.Boss == _announced || floors.Boss.Health.IsDead) return;
             _announced = floors.Boss;
             // After its title card.
-            Say(RadioMoment.Boss, floors.Boss.displayName, 2.6f);
+            if (floors.Boss is FinchBoss) Say(RadioMoment.FinchFight, null, 2.6f);
+            else Say(RadioMoment.Boss, floors.Boss.displayName, 2.6f);
         }
 
         void OnKilled(Enemy enemy)
         {
-            if (enemy is BossEnemy) Say(RadioMoment.BossDown, null, 1f);
+            if (enemy is FinchBoss)
+            {
+                Say(RadioMoment.FinchDown, null, 1f);
+                _finchDown = true;
+            }
+            else if (enemy is BossEnemy) Say(RadioMoment.BossDown, null, 1f);
         }
+
+        void OnDose(FinchBoss finch) => Say(RadioMoment.FinchDose);
 
         void OnItem(ItemDefinition item) => Say(RadioMoment.Item, null, 0f, 0.35f);
 

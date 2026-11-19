@@ -217,6 +217,68 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_finch()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            SaveSystem.Data.meta.runsStarted = 3;
+            foreach (var note in FinchNotes.All) FinchNotes.Collect(note);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+
+            // The door, in the lab.
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            var door = Object.FindAnyObjectByType<HiddenDoor>();
+            player.Teleport(door.transform.position + new Vector3(3.2f, 0.05f, 0f));
+            player.transform.rotation = Quaternion.Euler(0f, -90f, 0f);
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.6f);
+            yield return Screen(Path.Combine(folder, "door.png"));
+
+            // The bottom, and Finch.
+            RunDirector.Descent = true;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            yield return null;
+            player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            player.Teleport(floors.ArenaCentre + new Vector3(0f, 0.05f, -5f));
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.Snap();
+            for (float t = 0f; t < 6f && floors.Boss == null; t += Time.unscaledDeltaTime) yield return null;
+            Assert.IsNotNull(floors.Boss);
+            yield return new WaitForSecondsRealtime(1.2f);
+            yield return Screen(Path.Combine(folder, "finch-card.png"));
+            for (float t = 0f; t < 8f && Time.timeScale <= 0f; t += Time.unscaledDeltaTime) yield return null;
+            var finch = (FinchBoss)floors.Boss;
+            for (float t = 0f; t < 8f && finch.Bursts == 0; t += Time.deltaTime) yield return null;
+            yield return new WaitForSeconds(0.25f);
+            player.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(finch.transform.position - player.transform.position, Vector3.up));
+            CameraFollow.Instance.Snap();
+            yield return null;
+            yield return Screen(Path.Combine(folder, "finch-fight.png"));
+
+            finch.Health.TakeDamage(Mathf.CeilToInt(finch.Health.maxHealth * 0.7f), Vector3.forward);
+            for (float t = 0f; t < 12f && finch.FlasksThrown == 0; t += Time.deltaTime) yield return null;
+            yield return new WaitForSeconds(0.4f);
+            player.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(finch.transform.position - player.transform.position, Vector3.up));
+            CameraFollow.Instance.Snap();
+            yield return null;
+            yield return Screen(Path.Combine(folder, "finch-small.png"));
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_evidence()
         {
             SaveSystem.Profile = "tests";

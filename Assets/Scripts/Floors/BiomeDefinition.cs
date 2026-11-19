@@ -24,6 +24,8 @@ namespace Shrunk
         public string id = "biome";
         [Tooltip("Shown on the portal that leads here.")]
         public string mutationTheme = "";
+        [Tooltip("The bottom: nothing lives here but its boss, and after the boss there is only the way home.")]
+        public bool isBottom;
 
         [Header("Light and sky")]
         [Tooltip("What shows where there is nothing: the dark of the earth underground, the sky outdoors.")]
