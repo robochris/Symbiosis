@@ -228,6 +228,42 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Items_found_in_a_run_are_on_file_in_the_lab()
+        {
+            SaveSystem.Data.meta.runsStarted = 2;
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var cabinet = Object.FindAnyObjectByType<FilingCabinet>(FindObjectsInactive.Include);
+            Assert.IsNotNull(cabinet, "the lab has no filing cabinet");
+            Assert.IsFalse(cabinet.gameObject.activeInHierarchy, "the cabinet is there before anything has been found");
+
+            // Two kinds picked up in a run, one of them twice: two cards.
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var library = GameAssets.Instance.items;
+            var items = PlayerController.Instance.Items;
+            items.Add(library.Get(ItemType.NeedleTip));
+            items.Add(library.Get(ItemType.NeedleTip));
+            items.Add(library.Get(ItemType.Lunchbox));
+            Assert.AreEqual(2, FilingCabinet.Filed);
+            SaveSystem.Save();
+            SaveSystem.Load();
+            Assert.AreEqual(2, FilingCabinet.Filed, "what was found was not kept");
+
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            cabinet = Object.FindAnyObjectByType<FilingCabinet>(FindObjectsInactive.Include);
+            Assert.IsTrue(cabinet.gameObject.activeInHierarchy);
+            Vector3 at = cabinet.transform.position + new Vector3(-1.2f, 0.05f, 1.2f);
+            Assert.That(WorldPrompt.For(at), Does.Contain("2 of " + library.items.Length + " items on file").And.Contain("Lunchbox"));
+            Assert.IsNull(WorldPrompt.For(new Vector3(0f, 0f, 1f)));
+            Assert.That(WorldPrompt.For(at), Does.Contain("Needle Tip").And.Contain("pierce"));
+        }
+
+        [UnityTest]
         public IEnumerator Beaten_bosses_end_up_in_jars_on_the_shelf()
         {
             SaveSystem.Data.meta.runsStarted = 3;

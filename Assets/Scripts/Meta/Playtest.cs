@@ -24,6 +24,7 @@ namespace Shrunk
             }
             foreach (var note in FinchNotes.All) if (!meta.notes.Contains(note.id)) meta.notes.Add(note.id);
             foreach (var specimen in Specimens.All) if (!meta.specimens.Contains(specimen.key)) meta.specimens.Add(specimen.key);
+            // Not the items: the filing cabinet is for what was really found.
             meta.runsStarted = Mathf.Max(meta.runsStarted, 1);
             meta.extractions = Mathf.Max(meta.extractions, 1);
             meta.deaths = Mathf.Max(meta.deaths, 3);

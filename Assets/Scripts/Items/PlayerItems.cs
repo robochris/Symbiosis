@@ -149,6 +149,8 @@ namespace Shrunk
             if (item == null) return;
             _counts[item.type] = Count(item.type) + 1;
             _collected.Add(item);
+            // On file in the lab from now on. It is written to disk with the next save.
+            FilingCabinet.File(item);
 
             switch (item.type)
             {

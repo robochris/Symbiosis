@@ -179,6 +179,24 @@ namespace Shrunk.EditorTools
             }
             rack.AddComponent<PowerRack>().canisters = canisters;
 
+            // ----- the filing cabinet: every kind of item ever found, in the corner by the record board -----
+            var cabinet = new GameObject("Filing Cabinet");
+            cabinet.transform.position = new Vector3(9.4f, 0f, -6.6f);
+            cabinet.transform.rotation = Quaternion.Euler(0f, -45f, 0f);
+            var cabinetMat = ArenaSceneBuilder.Lit("FilingCabinet", new Color(0.4f, 0.47f, 0.42f), 0.6f);
+            var cabinetBody = ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Body", cabinet.transform, Vector3.zero, new Vector3(1.1f, 2.4f, 0.9f), cabinetMat, false);
+            cabinetBody.transform.localPosition = new Vector3(0f, 1.2f, -0.35f);
+            var drawers = new Transform[4];
+            for (int i = 0; i < drawers.Length; i++)
+            {
+                var drawer = ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Drawer " + (i + 1), cabinet.transform, Vector3.zero, new Vector3(0.95f, 0.48f, 0.3f), benchMat, false);
+                drawer.transform.localPosition = new Vector3(0f, 0.36f + i * 0.56f, 0.18f);
+                var handle = ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Handle", drawer.transform, Vector3.zero, new Vector3(0.4f, 0.14f, 0.2f), paper, false);
+                handle.transform.localPosition = new Vector3(0f, 0f, 0.55f);
+                drawers[i] = drawer.transform;
+            }
+            cabinet.AddComponent<FilingCabinet>().drawers = drawers;
+
             // ----- the hidden door: turns up with the last page, on the wall the radio never mentions -----
             var door = new GameObject("Hidden Door");
             door.transform.position = new Vector3(-8.2f, 0f, 0.8f);
@@ -217,6 +235,7 @@ namespace Shrunk.EditorTools
                 // New stations go on the end: the save remembers which ones the player has been told about by position.
                 new LabGrowth.Station { name = "the specimen shelf", thing = shelf, needs = LabGrowth.Needs.ABossBeaten },
                 new LabGrowth.Station { name = "the power rack", thing = rack, needs = LabGrowth.Needs.ARunStarted },
+                new LabGrowth.Station { name = "the filing cabinet", thing = cabinet, needs = LabGrowth.Needs.AnItemFound },
             };
 
             EditorSceneManager.SaveScene(scene, ScenePath);

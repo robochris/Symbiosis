@@ -495,6 +495,41 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_lab_full()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            GameSettings.Radio = 0;
+            Playtest.UnlockEverything();
+            SaveSystem.Data.meta.labSeen = ~0;
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+
+            // From the north wall looking south: the portal, the shelf, the rack, the mirror and the door.
+            player.Teleport(new Vector3(0f, 0.05f, 2.5f));
+            player.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+            CameraFollow.Instance.SetMode(CameraMode.Wide);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.8f);
+            yield return Screen(Path.Combine(folder, "lab-south.png"));
+
+            // And the other way: the bench and its eight pads.
+            player.Teleport(new Vector3(0f, 0.05f, -2f));
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.8f);
+            yield return Screen(Path.Combine(folder, "lab-north.png"));
+            GameSettings.Reset();
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_pause()
         {
             SaveSystem.Profile = "tests";
