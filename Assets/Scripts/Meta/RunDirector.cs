@@ -137,7 +137,7 @@ namespace Shrunk
                 if (picks.Count > 0) _player.Items.Add(picks[0]);
             }
 
-            _floors.depth = 1;
+            _floors.depth = TimeClock.StartDepth;
             _floors.BuildFloor(1);
         }
 

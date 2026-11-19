@@ -91,6 +91,32 @@ namespace Shrunk.EditorTools
             herald.favouredDrops = new[] { ItemType.PheromoneCloud, ItemType.ExtraLegs };
             var heraldPrefab = SaveEnemy(herald);
 
+            // Mimic: a heap of coins that is not. The same one turns up in every biome, from floor 4.
+            var coinGold = ArenaSceneBuilder.Unlit("Gold", new Color(1f, 0.82f, 0.2f));
+            var mimic = Creature<MimicEnemy>("Mimic", 0.5f, 1.2f, 9, 1f, 2.2f, out var mimicModel);
+            var mimicDisguise = new GameObject("Disguise").transform;
+            mimicDisguise.SetParent(mimicModel, false);
+            Decor(PrimitiveType.Cylinder, "Coin A", mimicDisguise, new Vector3(0f, 0.04f, 0f), new Vector3(0.7f, 0.04f, 0.7f), coinGold);
+            Decor(PrimitiveType.Cylinder, "Coin B", mimicDisguise, new Vector3(0.12f, 0.12f, 0.08f), new Vector3(0.7f, 0.04f, 0.7f), coinGold);
+            Decor(PrimitiveType.Cylinder, "Coin C", mimicDisguise, new Vector3(-0.3f, 0.3f, -0.1f), new Vector3(0.7f, 0.04f, 0.7f), coinGold).transform.localRotation = Quaternion.Euler(0f, 0f, 62f);
+            var mimicBody = new GameObject("Body").transform;
+            mimicBody.SetParent(mimicModel, false);
+            Decor(PrimitiveType.Cylinder, "Coin", mimicBody, new Vector3(0f, 0.75f, 0f), new Vector3(1.1f, 0.07f, 1.1f), coinGold).transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            Decor(PrimitiveType.Sphere, "Eye L", mimicBody, new Vector3(-0.2f, 0.95f, 0.09f), Vector3.one * 0.16f, antDark);
+            Decor(PrimitiveType.Sphere, "Eye R", mimicBody, new Vector3(0.2f, 0.95f, 0.09f), Vector3.one * 0.16f, antDark);
+            for (int i = 0; i < 4; i++)
+            {
+                Decor(PrimitiveType.Cube, "Tooth " + i, mimicBody, new Vector3(-0.24f + i * 0.16f, 0.6f, 0.09f), new Vector3(0.1f, 0.16f, 0.05f), ArenaSceneBuilder.Lit("Sugar", new Color(0.95f, 0.95f, 0.92f), 0.6f));
+            }
+            Decor(PrimitiveType.Cube, "Leg L", mimicBody, new Vector3(-0.22f, 0.12f, 0f), new Vector3(0.08f, 0.28f, 0.08f), antDark);
+            Decor(PrimitiveType.Cube, "Leg R", mimicBody, new Vector3(0.22f, 0.12f, 0f), new Vector3(0.08f, 0.28f, 0.08f), antDark);
+            mimicBody.gameObject.SetActive(false);
+            mimic.disguise = mimicDisguise.gameObject;
+            mimic.body = mimicBody.gameObject;
+            mimic.moveSpeed = 4.8f;
+            mimic.favouredDrops = new[] { ItemType.FridgeMagnet, ItemType.Lunchbox };
+            var mimicPrefab = SaveEnemy(mimic);
+
             // ----- bosses and what they bring -----
             var pale = ArenaSceneBuilder.Lit("LarvaPod", new Color(0.9f, 0.85f, 0.6f), 0.5f);
             var telegraph = ArenaSceneBuilder.Unlit("Telegraph", new Color(1f, 0.25f, 0.2f));
@@ -217,6 +243,7 @@ namespace Shrunk.EditorTools
                 new EnemySpawnEntry { prefab = wingedPrefab, weight = 2, minFloor = 4 },
                 new EnemySpawnEntry { prefab = bombardierPrefab, weight = 2, minFloor = 5 },
                 new EnemySpawnEntry { prefab = heraldPrefab, weight = 1, minFloor = 6 },
+                new EnemySpawnEntry { prefab = mimicPrefab, weight = 1, minFloor = 4 },
             };
             biome.mutations = new[]
             {

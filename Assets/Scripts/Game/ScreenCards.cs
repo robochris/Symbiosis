@@ -49,6 +49,7 @@ namespace Shrunk
             "Tip: samples only count if you get them home.",
             "Tip: the treasure room is free. Nothing else down here is.",
             "Tip: the pink crumbs are food. The shop sells one; bosses drop one.",
+            "Tip: coins lie flat. If a heap of them is standing up, shoot it first.",
             "Tip: a bombardier throws over walls, at where you are going. Stop going there.",
             "Tip: the small pink ant makes the others faster. It is the one to shoot.",
             "Reminder: you are roughly the size of a sprinkle.",

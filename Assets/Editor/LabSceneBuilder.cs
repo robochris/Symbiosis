@@ -197,6 +197,16 @@ namespace Shrunk.EditorTools
             }
             cabinet.AddComponent<FilingCabinet>().drawers = drawers;
 
+            // ----- the time clock: overtime, for after the ending. In the corner past the mirror. -----
+            var clock = new GameObject("Time Clock");
+            clock.transform.position = new Vector3(-9.3f, 0f, -5.4f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Box", clock.transform, new Vector3(-1.5f, 1.9f, 0f), new Vector3(0.35f, 1.3f, 0.9f), benchMat, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Face", clock.transform, new Vector3(-1.3f, 2.15f, 0f), new Vector3(0.6f, 0.03f, 0.6f), paper, false).transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Slot", clock.transform, new Vector3(-1.3f, 1.5f, 0f), new Vector3(0.05f, 0.08f, 0.5f), black, false);
+            var clockLamp = ArenaSceneBuilder.Primitive(PrimitiveType.Sphere, "Lamp", clock.transform, new Vector3(-1.4f, 2.75f, 0f), Vector3.one * 0.3f, ArenaSceneBuilder.Unlit("Telegraph", new Color(1f, 0.25f, 0.2f)), false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", clock.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), paper, false);
+            clock.AddComponent<TimeClock>().lamp = clockLamp;
+
             // ----- the hidden door: turns up with the last page, on the wall the radio never mentions -----
             var door = new GameObject("Hidden Door");
             door.transform.position = new Vector3(-8.2f, 0f, 0.8f);
@@ -236,6 +246,7 @@ namespace Shrunk.EditorTools
                 new LabGrowth.Station { name = "the specimen shelf", thing = shelf, needs = LabGrowth.Needs.ABossBeaten },
                 new LabGrowth.Station { name = "the power rack", thing = rack, needs = LabGrowth.Needs.ARunStarted },
                 new LabGrowth.Station { name = "the filing cabinet", thing = cabinet, needs = LabGrowth.Needs.AnItemFound },
+                new LabGrowth.Station { name = "a time clock", thing = clock, needs = LabGrowth.Needs.FinchBeaten },
             };
 
             EditorSceneManager.SaveScene(scene, ScenePath);

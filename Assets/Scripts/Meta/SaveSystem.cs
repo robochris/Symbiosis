@@ -22,6 +22,8 @@ namespace Shrunk
         public int finchBeaten;
         /// <summary>The ending card has been shown: it is only shown the once.</summary>
         public bool endingSeen;
+        /// <summary>Clocked in at the lab's time clock: new runs start a depth further down.</summary>
+        public bool overtime;
         /// <summary>Achievements earned, as AchievementId numbers.</summary>
         public List<int> achievements = new List<int>();
         public int shellsShattered;

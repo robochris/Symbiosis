@@ -246,7 +246,7 @@ namespace Shrunk
             else if (first)
             {
                 // The scene has just opened: a new run, or a saved one picked up. After the arrival card.
-                bool fresh = floors.FloorNumber == 1 && floors.depth == 1;
+                bool fresh = floors.FloorNumber == 1 && floors.depth == TimeClock.StartDepth;
                 Say(fresh ? RadioMoment.RunStart : RadioMoment.Resume, null, 3.2f);
             }
             else if (floors.FloorInBiome == 1)

@@ -243,6 +243,8 @@ namespace Shrunk.EditorTools
                 new EnemySpawnEntry { prefab = flyPrefab, weight = 2, minFloor = 4 },
                 new EnemySpawnEntry { prefab = sodaPrefab, weight = 2, minFloor = 5 },
                 new EnemySpawnEntry { prefab = hornPrefab, weight = 1, minFloor = 6 },
+                // The mimic is the ants' own prefab: coins are coins everywhere.
+                new EnemySpawnEntry { prefab = ants.EnemyNamed("Mimic"), weight = 1, minFloor = 4 },
             };
             biome.mutations = new[]
             {

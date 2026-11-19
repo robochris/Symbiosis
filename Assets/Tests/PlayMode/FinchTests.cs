@@ -164,6 +164,21 @@ namespace Shrunk.Tests
             var again = Object.FindAnyObjectByType<HiddenDoor>();
             Assert.That(WorldPrompt.For(again.transform.position), Does.Contain("only smaller"));
 
+            // The time clock is there now. Clocked in, the next run starts a depth down and is worth more.
+            var clock = Object.FindAnyObjectByType<TimeClock>();
+            Assert.IsNotNull(clock, "no time clock after the ending");
+            Assert.IsFalse(TimeClock.On);
+            Assert.That(WorldPrompt.For(clock.transform.position), Does.Contain("ordinary hours"));
+            Assert.IsTrue(clock.Toggle());
+            Assert.That(WorldPrompt.For(clock.transform.position), Does.Contain("on overtime"));
+            SaveSystem.Data.run = new RunSave();
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            Assert.AreEqual(TimeClock.OvertimeDepth, FloorManager.Instance.depth, "an overtime run did not start a depth down");
+            Assert.AreEqual(RadioMoment.RunStart, Radio.Instance.LastMoment, "an overtime run should still open like a new run");
+            Assert.AreEqual(1, FloorManager.Instance.FloorNumber);
+
             // Back in the lab another day: no second ending.
             SceneManager.LoadScene("Lab");
             yield return null;

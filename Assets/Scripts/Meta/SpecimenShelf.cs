@@ -73,7 +73,7 @@ namespace Shrunk
     {
         [Tooltip("One per specimen, in shelf order; they are switched on as bosses are beaten.")]
         public GameObject[] jars;
-        public float readDistance = 3.2f;
+        public float readDistance = 2.6f;
 
         int _reading = -1;
         bool _near;

@@ -257,6 +257,8 @@ namespace Shrunk.EditorTools
                 new EnemySpawnEntry { prefab = mothPrefab, weight = 2, minFloor = 4 },
                 new EnemySpawnEntry { prefab = popcornPrefab, weight = 2, minFloor = 5 },
                 new EnemySpawnEntry { prefab = remotePrefab, weight = 1, minFloor = 6 },
+                // The mimic is the ants' own prefab: coins are coins everywhere.
+                new EnemySpawnEntry { prefab = ants.EnemyNamed("Mimic"), weight = 1, minFloor = 4 },
             };
             var sticky = AssetDatabase.LoadAssetAtPath<MutationDefinition>("Assets/Data/Mutations/" + MutationType.Sticky + ".asset");
             var mutations = new System.Collections.Generic.List<MutationDefinition>

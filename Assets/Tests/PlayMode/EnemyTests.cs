@@ -88,6 +88,47 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator A_mimic_is_coins_until_it_is_walked_up_to_or_shot_or_left_alone()
+        {
+            // With company in the room and the player far off: it sits there, and nothing aims at it.
+            Enemy company = Spawn("WorkerAnt", new Vector3(10f, 0f, 14f));
+            company.frozen = true;
+            var mimic = (MimicEnemy)Spawn("Mimic", new Vector3(0f, 0f, 12f));
+            _player.Health.SetInvulnerable(600f);
+            Vector3 sat = mimic.transform.position;
+            yield return new WaitForSeconds(1.5f);
+            Assert.IsTrue(mimic.Asleep);
+            Assert.IsFalse(mimic.Targetable, "aim assist would give it away");
+            Assert.IsTrue(mimic.disguise.activeSelf && !mimic.body.activeSelf);
+            Assert.Less((mimic.transform.position - sat).magnitude, 0.3f, "the coins moved");
+
+            // Walking up to it: it shakes, gets up, and comes for the player.
+            _player.Teleport(mimic.transform.position + new Vector3(0f, 0.05f, -2.5f));
+            yield return WaitUntil(() => mimic.Waking, 1f, "the coins to shake");
+            Assert.IsTrue(mimic.Asleep, "it got up with no warning");
+            yield return WaitUntil(() => !mimic.Asleep, 2f, "it to get up");
+            Assert.IsTrue(mimic.Targetable);
+            Assert.IsTrue(mimic.body.activeSelf && !mimic.disguise.activeSelf);
+            mimic.Health.Kill();
+            yield return new WaitForSeconds(0.4f);
+
+            // Shooting the heap finds it out from a distance.
+            _player.Teleport(new Vector3(0f, 0.05f, 0f));
+            var second = (MimicEnemy)Spawn("Mimic", new Vector3(0f, 0f, 12f));
+            yield return new WaitForSeconds(0.3f);
+            Assert.IsTrue(second.Asleep);
+            second.Health.TakeDamage(1, Vector3.forward);
+            yield return WaitUntil(() => !second.Asleep, 2f, "a shot mimic to get up");
+            second.Health.Kill();
+            company.Health.Kill();
+            yield return new WaitForSeconds(0.4f);
+
+            // Left as the only thing in the room, it gives itself away.
+            var last = (MimicEnemy)Spawn("Mimic", new Vector3(0f, 0f, 13f));
+            yield return WaitUntil(() => !last.Asleep, last.aloneTime + last.wakeTime + 1.5f, "the last mimic to give itself away");
+        }
+
+        [UnityTest]
         public IEnumerator Lobber_throws_at_where_the_player_is_going_and_keeps_its_distance()
         {
             var lobber = (LobberEnemy)Spawn("BombardierAnt", new Vector3(0f, 0f, 11f));

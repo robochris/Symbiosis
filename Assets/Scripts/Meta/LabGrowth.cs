@@ -22,7 +22,9 @@ namespace Shrunk
             /// <summary>The hidden door: once the whole notebook has been found.</summary>
             AllNotesFound,
             /// <summary>The filing cabinet: once any item has been picked up.</summary>
-            AnItemFound
+            AnItemFound,
+            /// <summary>The time clock: once Dr. Finch has been beaten.</summary>
+            FinchBeaten
         }
 
         [Serializable]
@@ -45,6 +47,7 @@ namespace Shrunk
                 case Needs.ANoteFound: return meta.notes.Count > 0;
                 case Needs.AllNotesFound: return meta.notes.Count >= FinchNotes.All.Length;
                 case Needs.AnItemFound: return meta.itemsFound.Count > 0;
+                case Needs.FinchBeaten: return meta.finchBeaten > 0;
                 default:
                     if (Achievements.EverythingUnlocked) return true;
                     foreach (var achievement in Achievements.All)

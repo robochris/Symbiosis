@@ -150,6 +150,9 @@ namespace Shrunk.Tests
             Assert.IsNotNull(Object.FindAnyObjectByType<HiddenDoor>(), "the door is not there with everything unlocked");
             Assert.IsNotNull(Object.FindAnyObjectByType<SpecimenShelf>());
             Assert.IsNotNull(Object.FindAnyObjectByType<PowerRack>());
+            // Not the time clock: that is for whoever has really been to the bottom.
+            Assert.IsNull(Object.FindAnyObjectByType<TimeClock>(), "overtime offered without beating Finch");
+            Assert.AreEqual(1, TimeClock.StartDepth);
             var style = PlayerController.Instance.GetComponent<PlayerStyle>();
             Assert.AreEqual(style.styles.Length, style.UnlockedCount);
         }
