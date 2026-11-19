@@ -5,8 +5,8 @@ namespace Shrunk.EditorTools
 {
     /// <summary>
     /// The third biome: Under the Sofa. Dark, dusty, and full of everything anybody ever lost. Like the cake it is
-    /// built from the same parts: four enemies on the four base behaviours, and two bosses on the Brood Mother's and
-    /// the Ant Queen's fights under new bodies. Its portal opens once the Trick Candle has been beaten.
+    /// built from the same parts for its four enemies, one per base behaviour. Its two bosses, Grandmother Dust and
+    /// the Robot Vacuum, have fights of their own. Its portal opens once the Trick Candle has been beaten.
     /// </summary>
     public static partial class ContentBuilder
     {
@@ -123,42 +123,50 @@ namespace Shrunk.EditorTools
             var lintPrefab = (EggEnemy)SaveEnemy(lint);
 
             // Grandmother Dust (floor 5): a dust bunny the size of a car, with a soft white tail. The tail is the weak point.
-            var granny = Creature<BroodMother>("GrandmotherDust", 1.65f, 3.6f, 140, 3f, 4.8f, out var grannyModel);
+            var fluffShot = new GameObject("FluffShot");
+            Decor(PrimitiveType.Sphere, "Visual", fluffShot.transform, Vector3.zero, Vector3.one * 0.55f, dust);
+            fluffShot.AddComponent<Bullet>().radius = 0.27f;
+            var fluffShotPrefab = ArenaSceneBuilder.SavePrefab(fluffShot, "Enemies/FluffShot").GetComponent<Bullet>();
+
+            var granny = Creature<GrandmotherDust>("GrandmotherDust", 1.65f, 3.6f, 150, 3f, 4.8f, out var grannyModel);
             grannyModel.localScale = Vector3.one * 2.7f;
             BunnyParts(grannyModel, dustDark, dust, dark);
             Decor(PrimitiveType.Sphere, "Tail", grannyModel, new Vector3(0f, 0.55f, -0.6f), Vector3.one * 0.5f, white);
             granny.displayName = "Grandmother Dust";
             granny.subtitle = "Has been under here since the sofa was new.";
-            granny.larvaPrefab = fluffPrefab;
+            granny.fluffPrefab = fluffPrefab;
+            granny.projectilePrefab = fluffShotPrefab;
+            granny.stickyMaterial = ArenaSceneBuilder.Unlit("LintPatch", new Color(0.55f, 0.53f, 0.5f));
             granny.telegraphMaterial = telegraph;
             granny.sampleReward = 12;
             granny.knockbackOnHit = 0f;
             var grannyPrefab = (BossEnemy)SaveEnemy(granny);
 
-            // The Robot Vacuum (floor 10): throws sparks, wakes the lint, calls marbles, and charges in straight lines.
-            var vacuum = Creature<AntQueen>("RobotVacuum", 1.9f, 4f, 300, 3.4f, 4.6f, out var vacuumModel);
+            // The Robot Vacuum (floor 10): its own fight. Drives, sprays sparks, sucks, and has to stop to empty its bin.
+            var vacuum = Creature<RobotVacuum>("RobotVacuum", 1.9f, 4f, 320, 3.4f, 4.6f, out var vacuumModel);
             Decor(PrimitiveType.Cylinder, "Body", vacuumModel, new Vector3(0f, 0.6f, 0f), new Vector3(4.2f, 0.5f, 4.2f), plastic);
-            Decor(PrimitiveType.Cylinder, "Top", vacuumModel, new Vector3(0f, 1.14f, 0f), new Vector3(3.5f, 0.05f, 3.5f), plasticLight);
+            // The lid and everything standing on it lift together when the bin opens.
+            var lid = new GameObject("Lid").transform;
+            lid.SetParent(vacuumModel, false);
+            lid.localPosition = new Vector3(0f, 1.14f, 0f);
+            vacuum.lid = lid;
+            Decor(PrimitiveType.Cylinder, "Plate", lid, Vector3.zero, new Vector3(3.5f, 0.05f, 3.5f), plasticLight);
+            // What shows when the lid is up: the full bin.
+            Decor(PrimitiveType.Cylinder, "Bin", vacuumModel, new Vector3(0f, 1.1f, 0f), new Vector3(3f, 0.04f, 3f), dustDark);
             Decor(PrimitiveType.Cube, "Bumper", vacuumModel, new Vector3(0f, 0.6f, 1.85f), new Vector3(2.8f, 0.7f, 0.5f), plasticLight);
-            Decor(PrimitiveType.Cylinder, "Tower", vacuumModel, new Vector3(0f, 1.7f, 0f), new Vector3(1.3f, 0.55f, 1.3f), plastic);
-            Decor(PrimitiveType.Sphere, "Eye", vacuumModel, new Vector3(0f, 1.75f, 0.6f), Vector3.one * 0.5f, redEye);
-            Decor(PrimitiveType.Cylinder, "Button", vacuumModel, new Vector3(0f, 2.28f, 0f), new Vector3(0.6f, 0.04f, 0.6f), spark);
+            Decor(PrimitiveType.Cylinder, "Tower", lid, new Vector3(0f, 0.56f, 0f), new Vector3(1.3f, 0.55f, 1.3f), plastic);
+            Decor(PrimitiveType.Sphere, "Eye", lid, new Vector3(0f, 0.61f, 0.6f), Vector3.one * 0.5f, redEye);
+            Decor(PrimitiveType.Cylinder, "Button", lid, new Vector3(0f, 1.14f, 0f), new Vector3(0.6f, 0.04f, 0.6f), spark);
             Decor(PrimitiveType.Cube, "Brush L", vacuumModel, new Vector3(-1.5f, 0.15f, 1.5f), new Vector3(1.1f, 0.06f, 0.12f), white).transform.localRotation = Quaternion.Euler(0f, 40f, 0f);
             Decor(PrimitiveType.Cube, "Brush R", vacuumModel, new Vector3(1.5f, 0.15f, 1.5f), new Vector3(1.1f, 0.06f, 0.12f), white).transform.localRotation = Quaternion.Euler(0f, -40f, 0f);
-            var vacuumMuzzle = new GameObject("Muzzle").transform;
-            vacuumMuzzle.SetParent(vacuum.transform, false);
-            vacuumMuzzle.localPosition = new Vector3(0f, 0.8f, 2.5f);
             vacuum.displayName = "The Robot Vacuum";
             vacuum.subtitle = "Scheduled for 9 a.m. It is 9 a.m.";
-            vacuum.muzzle = vacuumMuzzle;
             vacuum.projectilePrefab = dustShotPrefab;
-            vacuum.eggPrefab = lintPrefab;
-            vacuum.soldierPrefab = marblePrefab;
+            vacuum.lintPrefab = lintPrefab;
             vacuum.telegraphMaterial = telegraph;
-            vacuum.acidMaterial = spark;
+            vacuum.sparkMaterial = spark;
             vacuum.sampleReward = 30;
             vacuum.knockbackOnHit = 0f;
-            vacuum.jellyChance = 0f; // it is a household appliance
             var vacuumPrefab = (BossEnemy)SaveEnemy(vacuum);
 
             // ----- the biome -----

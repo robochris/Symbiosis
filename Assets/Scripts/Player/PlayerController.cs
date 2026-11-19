@@ -52,6 +52,17 @@ namespace Shrunk
         float _slowUntil;
         float _slowTo = 1f;
         GameObject _soaked;
+        Vector3 _push;
+
+        /// <summary>
+        /// Shoves the player along for this frame, on top of their own walking or dodging: a boss's suction, a wind.
+        /// Call it every frame the shove lasts.
+        /// </summary>
+        public void Push(Vector3 velocity)
+        {
+            velocity.y = 0f;
+            _push += velocity;
+        }
 
         /// <summary>Slows walking to this share of normal speed for a while. A second one restarts the clock.</summary>
         /// <param name="look">If given, a puddle of this material shows round the player's feet while it lasts.</param>
@@ -139,6 +150,8 @@ namespace Shrunk
                 }
             }
 
+            velocity += _push;
+            _push = Vector3.zero;
             velocity.y = -5f; // keep the controller pressed to the floor
             _controller.Move(velocity * Time.deltaTime);
         }

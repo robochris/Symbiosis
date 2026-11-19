@@ -272,6 +272,20 @@ namespace Shrunk.Tests
                 CameraFollow.Instance.Snap();
                 yield return null;
                 yield return Screen(Path.Combine(folder, "sofa-boss-" + number + ".png"));
+
+                // And each one's signature moment: the vacuum with its bin open, Grandmother Dust mid-hop.
+                var bossNow = floors.Boss;
+                System.Func<bool> moment = () => bossNow is RobotVacuum vacuum ? vacuum.BinOpen
+                    : bossNow is GrandmotherDust granny && granny.Current == GrandmotherDust.State.Air;
+                Time.timeScale = 3f;
+                for (float t = 0f; t < 40f && !moment(); t += Time.deltaTime) yield return null;
+                Time.timeScale = 1f;
+                yield return new WaitForSeconds(bossNow is RobotVacuum ? 0.3f : 0.3f);
+                player.Teleport(bossNow.transform.position + new Vector3(0f, 0.05f, -10f));
+                player.transform.rotation = Quaternion.identity;
+                CameraFollow.Instance.Snap();
+                yield return null;
+                yield return Screen(Path.Combine(folder, "sofa-boss-" + number + "-moment.png"));
                 floors.Boss.Health.Kill();
                 yield return new WaitForSeconds(0.5f);
             }

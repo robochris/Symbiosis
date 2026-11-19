@@ -183,7 +183,7 @@ GameObject:
   - component: {fileID: 2647837504310434715}
   - component: {fileID: 3382803610289556104}
   - component: {fileID: 3225994409557959506}
-  - component: {fileID: 8240266311716219332}
+  - component: {fileID: 2142811535136302959}
   - component: {fileID: 4067230953258750703}
   - component: {fileID: 1509001414507020057}
   m_Layer: 0
@@ -247,9 +247,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   team: 1
-  maxHealth: 140
+  maxHealth: 150
   hitInvulnerability: 0
---- !u!114 &8240266311716219332
+--- !u!114 &2142811535136302959
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -258,7 +258,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1737186192424781142}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70e60feb2f517044ba57fee48a6a99ab, type: 3}
+  m_Script: {fileID: 11500000, guid: e5877c43705755843b25315e9439606b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   visual: {fileID: 4056196846797343213}
@@ -271,28 +271,27 @@ MonoBehaviour:
   subtitle: Has been under here since the sofa was new.
   telegraphMaterial: {fileID: 2100000, guid: 4120780dd9ff2244ca1acb01ea1c585d, type: 2}
   sampleReward: 12
-  crawlSpeed: 2.2
-  scuttleSpeed: 5
-  scuttleFrom: 7
-  scuttleFull: 14
-  turnSpeed: 65
-  biteRange: 3.4
-  biteWindup: 0.6
-  biteInterval: 2.2
-  biteDamage: 1
-  larvaPrefab: {fileID: 394481777804165726, guid: efd1368d6c04ec0478f3437546ba559a, type: 3}
-  layInterval: 8
-  larvaePerLay: 3
-  tailRange: 5.5
-  tailOffset: 3.6
-  tailRadius: 2.8
-  tailFuse: 0.8
-  tailCooldown: 3
-  burrowInterval: 9
-  burrowWarning: 1.2
-  burrowRadius: 3
-  ringLarvae: 5
-  ringRadius: 4
+  crouchTime: 0.75
+  airTime: 0.7
+  hopRange: 16
+  hopHeight: 5
+  landRadius: 3.4
+  restTime: 1.8
+  turnSpeed: 220
+  fluffPrefab: {fileID: 394481777804165726, guid: efd1368d6c04ec0478f3437546ba559a, type: 3}
+  fluffPerLanding: 2
+  maxFluff: 6
+  projectilePrefab: {fileID: 5707263811799626676, guid: b4756a50a625aaf40b8340195513e2d8, type: 3}
+  sneezeEvery: 3
+  sneezeWindup: 0.7
+  sneezeShots: 5
+  sneezeSpread: 13
+  projectileSpeed: 8
+  projectileRange: 24
+  shedAt: 0.5
+  shedRest: 0.6
+  stickyPatches: 5
+  stickyMaterial: {fileID: 2100000, guid: 10d1d9b8b79b1b94d994f2e244a68cdb, type: 2}
   weakPointMultiplier: 2
 --- !u!114 &4067230953258750703
 MonoBehaviour:
