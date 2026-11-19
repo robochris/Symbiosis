@@ -9,6 +9,8 @@ namespace Shrunk
         public static BossEnemy InPlay { get; private set; }
 
         public string displayName = "Boss";
+        [Tooltip("One line for its title card.")]
+        public string subtitle = "";
         [Tooltip("Colour of the warning shapes for its big attacks.")]
         public Material telegraphMaterial;
         [Tooltip("Samples dropped when it dies.")]

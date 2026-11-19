@@ -159,6 +159,60 @@ namespace Shrunk.Tests
             SaveSystem.Wipe();
         }
 
+        // The title, the arrival and floor cards, a boss card and the end-of-biome summary.
+        [UnityTest, Explicit]
+        public IEnumerator Capture_cards()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            ScreenCards.ShowInTests = true;
+            ScreenCards.TitleSeen = false;
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            PlayerController.Instance.Input.overrideFrame = new InputFrame();
+            yield return new WaitForSeconds(0.5f);
+            yield return Screen(Path.Combine(folder, "card-title.png"));
+            ScreenCards.Instance.DismissTitle();
+
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            yield return new WaitForSeconds(0.4f);
+            yield return Screen(Path.Combine(folder, "card-biome.png"));
+
+            floors.BuildFloor(4, 4242);
+            yield return new WaitForSeconds(0.5f);
+            yield return Screen(Path.Combine(folder, "card-floor.png"));
+
+            floors.BuildFloor(10, 99);
+            yield return null;
+            player.Health.SetInvulnerable(600f);
+            player.Teleport(floors.ArenaCentre + new Vector3(0f, 0.05f, -11f));
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.SetMode(CameraMode.Auto);
+            for (float t = 0f; t < 3f && floors.Boss == null; t += Time.unscaledDeltaTime) yield return null;
+            yield return new WaitForSecondsRealtime(0.4f);
+            yield return Screen(Path.Combine(folder, "card-boss.png"));
+            yield return new WaitForSecondsRealtime(2.5f);
+
+            floors.Boss.Health.Kill();
+            for (float t = 0f; t < 3f && floors.ExtractPortal == null; t += Time.deltaTime) yield return null;
+            yield return new WaitForSeconds(0.6f);
+            yield return Screen(Path.Combine(folder, "card-summary.png"));
+
+            ScreenCards.ShowInTests = false;
+            SaveSystem.Wipe();
+        }
+
         [UnityTest, Explicit]
         public IEnumerator Capture_enemy_lineup()
         {

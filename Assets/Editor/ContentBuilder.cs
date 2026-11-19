@@ -130,6 +130,7 @@ namespace Shrunk.EditorTools
             var mother = Ant<BroodMother>("BroodMother", 3f, 140, soldierBody, antDark, false, out var motherModel);
             Decor(PrimitiveType.Sphere, "Egg Sac", motherModel, new Vector3(0f, 0.95f, -0.85f), new Vector3(0.95f, 0.8f, 1.1f), pale);
             mother.displayName = "Brood Mother";
+            mother.subtitle = "4,000 children. Knows none of their names.";
             mother.larvaPrefab = larvaPrefab;
             mother.telegraphMaterial = telegraph;
             mother.sampleReward = 12;
@@ -147,6 +148,7 @@ namespace Shrunk.EditorTools
             queenMuzzle.SetParent(queen.transform, false);
             queenMuzzle.localPosition = new Vector3(0f, 0.7f, 3.6f);
             queen.displayName = "Ant Queen";
+            queen.subtitle = "Has never once opened a door for herself.";
             queen.muzzle = queenMuzzle;
             queen.projectilePrefab = spitPrefab;
             queen.eggPrefab = eggPrefab;
@@ -219,6 +221,7 @@ namespace Shrunk.EditorTools
         public static void AddGameAssets(GameObject game)
         {
             var assets = game.AddComponent<GameAssets>();
+            game.AddComponent<ScreenCards>();
             game.AddComponent<Fx>().material = ArenaSceneBuilder.LoadOrCreate("Particle", "Universal Render Pipeline/Particles/Unlit");
             assets.items = BuildItems(out var larva);
             assets.larvaPrefab = larva;

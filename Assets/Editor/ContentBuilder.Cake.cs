@@ -130,6 +130,7 @@ namespace Shrunk.EditorTools
             GummyParts(motherModel, gummyGreen, gummyPale, dark);
             Decor(PrimitiveType.Sphere, "Jelly", motherModel, new Vector3(0f, 0.75f, -0.45f), new Vector3(0.7f, 0.7f, 0.6f), gummyPale);
             mother.displayName = "Jelly Mother";
+            mother.subtitle = "97% sugar. 3% spite.";
             mother.larvaPrefab = gumdropPrefab;
             mother.telegraphMaterial = telegraph;
             mother.sampleReward = 12;
@@ -153,6 +154,7 @@ namespace Shrunk.EditorTools
             candleMuzzle.SetParent(candle.transform, false);
             candleMuzzle.localPosition = new Vector3(0f, 0.8f, 2.4f);
             candle.displayName = "The Trick Candle";
+            candle.subtitle = "Make a wish. It won't help.";
             candle.muzzle = candleMuzzle;
             candle.projectilePrefab = waxPrefab;
             candle.eggPrefab = sparklerPrefab;

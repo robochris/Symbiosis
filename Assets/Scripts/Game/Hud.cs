@@ -75,6 +75,8 @@ namespace Shrunk
         {
             if (floors.biome == null || (floors.biome == _shownBiome && floors.FloorInBiome != 1)) return;
             _shownBiome = floors.biome;
+            // The arrival card (ScreenCards) says where this is; with none in the scene, a line of text does.
+            if (ScreenCards.Instance != null) return;
             string theme = string.IsNullOrEmpty(floors.biome.mutationTheme) ? "" : ": " + floors.biome.mutationTheme;
             Toast(floors.depth > 1 ? $"{floors.biome.displayName}{theme}  ·  depth {floors.depth}" : floors.biome.displayName + theme, 4f);
         }

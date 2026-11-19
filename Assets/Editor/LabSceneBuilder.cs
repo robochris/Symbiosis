@@ -123,6 +123,7 @@ namespace Shrunk.EditorTools
             var game = new GameObject("Game");
             ContentBuilder.AddGameAssets(game);
             game.AddComponent<LabDirector>();
+            game.GetComponent<ScreenCards>().title = true;
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             RunSceneBuilder.UpdateBuildScenes();

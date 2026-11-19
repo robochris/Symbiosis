@@ -23,6 +23,80 @@ namespace Shrunk.Tests
         {
             SaveSystem.Wipe();
             Time.timeScale = 1f;
+            ScreenCards.ShowInTests = false;
+            ScreenCards.TitleSeen = false;
+        }
+
+        [UnityTest]
+        public IEnumerator The_game_opens_on_a_title_over_the_lab_once()
+        {
+            ScreenCards.ShowInTests = true;
+            ScreenCards.TitleSeen = false;
+            yield return Load("Lab");
+            var cards = ScreenCards.Instance;
+            Assert.IsNotNull(cards, "the lab has no screen cards");
+            Assert.IsTrue(cards.TitleShowing, "no title when the game opens");
+            Assert.IsTrue(ScreenCards.Blocking);
+
+            // The camera circles the Void, and the controls do nothing until the player starts.
+            Vector3 view = Camera.main.transform.position;
+            Player.Input.overrideFrame = null;
+            Assert.AreEqual(Vector3.zero, Player.Input.Read().move);
+            Assert.IsFalse(Player.Input.Read().fire);
+            yield return new WaitForSeconds(0.4f);
+            Assert.AreNotEqual(view, Camera.main.transform.position, "the title camera is not moving");
+            Assert.IsFalse(CameraFollow.Instance.enabled);
+
+            cards.DismissTitle();
+            yield return null;
+            Assert.IsFalse(ScreenCards.Blocking);
+            Assert.IsTrue(CameraFollow.Instance.enabled, "the camera did not go back to the player");
+            Player.Input.overrideFrame = new InputFrame();
+
+            // Back to the lab later in the same sitting: no title again.
+            yield return Load("Lab");
+            Assert.IsFalse(ScreenCards.Instance.TitleShowing, "the title came back on returning to the lab");
+        }
+
+        [UnityTest]
+        public IEnumerator Cards_announce_the_biome_each_floor_the_boss_and_the_end_of_the_biome()
+        {
+            ScreenCards.ShowInTests = true;
+            ScreenCards.TitleSeen = true;
+            yield return Load("Run");
+            var cards = ScreenCards.Instance;
+            Assert.AreEqual("BACKYARD ANT COLONY", cards.LastHeading, "arriving in a biome should say which");
+            Assert.That(cards.LastLine, Does.Contain("acid"));
+            Assert.IsTrue(cards.CardShowing || cards.LastHeading.Length > 0);
+
+            Floors.BuildFloor(3);
+            yield return null;
+            Assert.AreEqual("FLOOR 3", cards.LastHeading);
+            Assert.That(ScreenCards.FloorLines, Does.Contain(cards.LastLine));
+            Assert.AreEqual(1f, Time.timeScale, "a floor card must not stop the game");
+
+            // The boss walks on: its card, a joke, and the world held still for a moment.
+            Floors.BuildFloor(10);
+            yield return null;
+            Player.Health.SetInvulnerable(600f);
+            Player.Teleport(Floors.ArenaCentre + new Vector3(0f, 0.05f, -8f));
+            for (float t = 0f; t < 3f && Floors.Boss == null; t += Time.unscaledDeltaTime) yield return null;
+            Assert.IsNotNull(Floors.Boss);
+            yield return null;
+            Assert.AreEqual("ANT QUEEN", cards.LastHeading);
+            Assert.IsNotEmpty(Floors.Boss.subtitle, "the boss has no line for its card");
+            Assert.AreEqual(Floors.Boss.subtitle, cards.LastLine);
+            Assert.AreEqual(0f, Time.timeScale, "the world should stand still for the boss's card");
+            yield return new WaitForSecondsRealtime(cards.bossFreeze + 0.4f);
+            Assert.AreEqual(1f, Time.timeScale, "the world never started again");
+
+            // And when it falls: the summary.
+            Assert.IsFalse(cards.SummaryShowing);
+            Floors.Boss.Health.Kill();
+            yield return WaitUntil(() => Floors.ExtractPortal != null, 3f, "the portals");
+            yield return null;
+            Assert.IsTrue(cards.SummaryShowing, "no summary at the end of the biome");
+            Assert.That(cards.LastSummary, Does.Contain("BACKYARD ANT COLONY CLEARED").And.Contain("Kills").And.Contain("Hits taken 0"));
         }
 
         static PlayerController Player => PlayerController.Instance;

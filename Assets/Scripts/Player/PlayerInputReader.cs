@@ -52,7 +52,7 @@ namespace Shrunk
             if (overrideFrame.HasValue) return overrideFrame.Value;
 
             // Nothing gets through while the pause menu is up.
-            if (PauseMenu.IsOpen) return new InputFrame();
+            if (PauseMenu.IsOpen || ScreenCards.Blocking) return new InputFrame();
 
             var follow = CameraFollow.Instance;
             bool usingTouch = touch != null && touch.Active;
