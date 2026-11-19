@@ -81,6 +81,7 @@ namespace Shrunk
             Add("Looking up and down", () => GameSettings.LockVertical ? "Locked" : "Free", () => GameSettings.LockVertical = !GameSettings.LockVertical);
             Add("Touch controls", () => GameSettings.LeftHanded ? "Left-handed" : "Right-handed", () => GameSettings.LeftHanded = !GameSettings.LeftHanded);
             Add("Enemy arrows", () => GameSettings.EnemyArrows ? "On" : "Off", () => GameSettings.EnemyArrows = !GameSettings.EnemyArrows);
+            Add("Difficulty", () => GameSettings.Relaxed ? "Relaxed (+2 health)" : "As intended", () => GameSettings.Relaxed = !GameSettings.Relaxed);
             Add("Radio chatter", () => new[] { "Off", "Less", "Normal" }[GameSettings.Radio], () => GameSettings.Radio = (GameSettings.Radio + 1) % 3);
             Add("Sound", () => Level(GameSettings.Volume, "Off", "Quiet", "Full"), () => GameSettings.Volume = Next(GameSettings.Volume, 0f, 0.5f, 1f));
 
@@ -101,8 +102,8 @@ namespace Shrunk
                 row.rect = (RectTransform)go.transform;
                 row.rect.SetParent(panel, false);
                 row.rect.anchorMin = row.rect.anchorMax = row.rect.pivot = new Vector2(0.5f, 0.5f);
-                row.rect.anchoredPosition = new Vector2(0f, 320f - i * 82f);
-                row.rect.sizeDelta = new Vector2(900f, 72f);
+                row.rect.anchoredPosition = new Vector2(0f, 330f - i * 78f);
+                row.rect.sizeDelta = new Vector2(900f, 68f);
                 row.background = go.GetComponent<Image>();
                 row.text = MakeText(row.rect, "", 38, Vector2.zero, new Vector2(860f, 64f));
             }

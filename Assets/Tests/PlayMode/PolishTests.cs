@@ -27,6 +27,7 @@ namespace Shrunk.Tests
             Radio.ChanceOverride = null;
             Fade.EnabledOverride = null;
             GameLoop.SlowMotionOverride = null;
+            GameSettings.Reset();
             ScreenCards.ShowInTests = false;
             ScreenCards.TitleSeen = false;
             Time.timeScale = 1f;
@@ -150,6 +151,45 @@ namespace Shrunk.Tests
             Assert.IsNotNull(Object.FindAnyObjectByType<PowerRack>());
             var style = PlayerController.Instance.GetComponent<PlayerStyle>();
             Assert.AreEqual(style.styles.Length, style.UnlockedCount);
+        }
+
+        [UnityTest]
+        public IEnumerator Relaxed_mode_is_two_more_health_and_can_be_switched_mid_run()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            int usual = player.Health.maxHealth;
+
+            // Switched on in the pause menu, in the middle of a run: two more, straight away.
+            var menu = PauseMenu.Instance;
+            int row = menu.RowNamed("Difficulty");
+            Assert.GreaterOrEqual(row, 0, "no difficulty row in the pause menu");
+            menu.Open();
+            yield return null;
+            Assert.That(menu.RowText(row), Does.Contain("As intended"));
+            menu.Use(row);
+            yield return null;
+            Assert.That(menu.RowText(row), Does.Contain("Relaxed"));
+            menu.Close();
+            Assert.AreEqual(usual + GameSettings.RelaxedHealth, player.Health.maxHealth);
+            Assert.AreEqual(usual + GameSettings.RelaxedHealth, player.Health.Current);
+
+            // It is remembered: the next run starts with it.
+            SaveSystem.Wipe();
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            player = PlayerController.Instance;
+            Assert.AreEqual(usual + GameSettings.RelaxedHealth, player.Health.maxHealth);
+
+            // And off again takes them away without killing anybody.
+            PauseMenu.Instance.Use(PauseMenu.Instance.RowNamed("Difficulty"));
+            Assert.AreEqual(usual, player.Health.maxHealth);
+            Assert.AreEqual(usual, player.Health.Current);
+            GameSettings.Reset();
         }
 
         [UnityTest]

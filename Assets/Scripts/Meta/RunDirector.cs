@@ -50,6 +50,7 @@ namespace Shrunk
             FloorManager.FloorBuilt += OnFloorBuilt;
             FloorManager.ExtractChosen += Extract;
             Enemy.Killed += OnKilled;
+            GameSettings.Changed += ApplyDifficulty;
         }
 
         void OnDisable()
@@ -57,6 +58,26 @@ namespace Shrunk
             FloorManager.FloorBuilt -= OnFloorBuilt;
             FloorManager.ExtractChosen -= Extract;
             Enemy.Killed -= OnKilled;
+            GameSettings.Changed -= ApplyDifficulty;
+        }
+
+        bool _relaxed;
+
+        // Relaxed mode is two more points of health. It can be switched on or off in the middle of a run.
+        void ApplyDifficulty()
+        {
+            if (_player == null || GameSettings.Relaxed == _relaxed) return;
+            _relaxed = GameSettings.Relaxed;
+            Health health = _player.Health;
+            if (_relaxed)
+            {
+                health.SetMaxHealth(health.maxHealth + GameSettings.RelaxedHealth, false);
+                health.Heal(GameSettings.RelaxedHealth);
+            }
+            else
+            {
+                health.SetMaxHealth(Mathf.Max(1, health.maxHealth - GameSettings.RelaxedHealth), false);
+            }
         }
 
         void OnKilled(Enemy enemy)
@@ -101,6 +122,7 @@ namespace Shrunk
             _player.dodgeRechargeMultiplier = Upgrades.DodgeRechargeMultiplier;
             if (_player.Power != null) _player.Power.fillMultiplier = Upgrades.PowerFillMultiplier;
             _floors.treasureChoices = Upgrades.TreasureChoices;
+            ApplyDifficulty();
         }
 
         void Begin()

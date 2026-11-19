@@ -72,6 +72,15 @@ namespace Shrunk
             set => SetInt("enemyArrows", value ? 1 : 0);
         }
 
+        /// <summary>Relaxed mode: two more points of health on every run. For learning the game, or for an easier evening.</summary>
+        public static bool Relaxed
+        {
+            get => PlayerPrefs.GetInt(Prefix + "relaxed", 0) == 1;
+            set => SetInt("relaxed", value ? 1 : 0);
+        }
+
+        public const int RelaxedHealth = 2;
+
         static void Set(string key, float value)
         {
             PlayerPrefs.SetFloat(Prefix + key, value);
@@ -87,7 +96,7 @@ namespace Shrunk
         /// <summary>Back to the defaults.</summary>
         public static void Reset()
         {
-            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "volume", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows" })
+            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "volume", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed" })
             {
                 PlayerPrefs.DeleteKey(Prefix + key);
             }
