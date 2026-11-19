@@ -405,6 +405,71 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator A_rubber_band_brings_a_missed_shot_back_off_the_wall()
+        {
+            // The target stands behind the player; the shot is fired the other way, at the wall.
+            _player.Teleport(new Vector3(0f, 0.05f, 12f));
+            yield return null;
+            Enemy dummy = Dummy(new Vector3(0f, 0f, 7f), "SoldierAnt");
+            yield return null;
+            int before = Bullet.Bounces;
+
+            yield return FireOnce();
+            yield return new WaitForSeconds(0.6f);
+            Assert.AreEqual(0, Lost(dummy), "a plain shot came back");
+            Assert.AreEqual(before, Bullet.Bounces);
+
+            Give(ItemType.RubberBand);
+            _player.Input.overrideFrame = new InputFrame { aim = Vector3.forward, fire = true };
+            yield return null;
+            _player.Input.overrideFrame = new InputFrame();
+            yield return new WaitForSeconds(1.5f);
+            Assert.AreEqual(before + 1, Bullet.Bounces, "the shot did not come back off the wall");
+            Assert.AreEqual(1, Lost(dummy), "the shot came back but missed what was behind");
+        }
+
+        [UnityTest]
+        public IEnumerator The_ice_cube_chills_the_magnet_reaches_and_the_battery_charges()
+        {
+            // Ice Cube: what is hit does everything slower for a while.
+            Enemy dummy = Dummy(new Vector3(0f, 0f, 6f), "SoldierAnt");
+            yield return null;
+            Give(ItemType.IceCube);
+            yield return FireOnce();
+            Assert.IsTrue(dummy.IsChilled, "not chilled by the shot");
+            Assert.AreEqual(Enemy.ChilledSpeed, dummy.SpeedScale, 0.001f);
+            yield return new WaitForSeconds(2.6f);
+            Assert.IsFalse(dummy.IsChilled, "it never thawed");
+            dummy.Health.Kill();
+            yield return new WaitForSeconds(1.2f);
+
+            // Fridge Magnet: a coin too far off to notice the player is pulled in.
+            int coins = RunState.Coins;
+            Pickup.Coin(_player.transform.position + new Vector3(8f, 0f, 0f), 1);
+            yield return new WaitForSeconds(1.2f);
+            Assert.AreEqual(coins, RunState.Coins, "a coin eight metres off flew in without a magnet");
+            Give(ItemType.FridgeMagnet);
+            // (The coins the dummy dropped, also out of the usual reach, come in with it.)
+            yield return WaitUntil(() => RunState.Coins > coins, 3f, "the magnet to pull the coin in");
+
+            // Spare Battery: a kill fills more of the meter.
+            var power = _player.Power;
+            power.SetMeter(0f);
+            Dummy(new Vector3(0f, 0f, 14f)).Health.Kill();
+            float usual = power.Meter;
+            Assert.Greater(usual, 0f);
+            power.SetMeter(0f);
+            Give(ItemType.SpareBattery);
+            Dummy(new Vector3(0f, 0f, 14f)).Health.Kill();
+            Assert.AreEqual(usual * 1.35f, power.Meter, 0.001f);
+
+            // Lunchbox: twice the chance of a crumb.
+            Assert.AreEqual(1f, PlayerStats.Default.crumbMultiplier);
+            Give(ItemType.Lunchbox);
+            Assert.AreEqual(2f, _items.Stats.crumbMultiplier);
+        }
+
+        [UnityTest]
         public IEnumerator Freeze_Frame_slows_enemies_and_their_shots_but_not_the_player()
         {
             var power = _player.Power;
@@ -530,7 +595,7 @@ namespace Shrunk.Tests
         public IEnumerator Every_item_has_a_name_a_description_and_a_look()
         {
             var library = GameAssets.Instance.items;
-            Assert.AreEqual(17, library.items.Length);
+            Assert.AreEqual(22, library.items.Length);
             foreach (var item in library.items)
             {
                 Assert.IsNotEmpty(item.displayName);
@@ -540,7 +605,7 @@ namespace Shrunk.Tests
                 _items.Add(item); // must not throw
             }
             yield return null;
-            Assert.AreEqual(17, _items.Collected.Count);
+            Assert.AreEqual(22, _items.Collected.Count);
         }
 
         // ---------- hero power ----------

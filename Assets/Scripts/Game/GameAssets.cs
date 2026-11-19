@@ -14,6 +14,7 @@ namespace Shrunk
         public Material playerAcid;
         public Material fire;
         public Material confused;
+        public Material chilled;
 
         [Header("Pickup materials")]
         public Material coin;

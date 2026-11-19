@@ -63,6 +63,8 @@ namespace Shrunk
                 split = stats.split,
                 acid = stats.acid,
                 burn = stats.burn,
+                chill = stats.chill,
+                bounce = stats.bounce,
                 crit = Random.value < stats.critChance,
                 owner = _health
             };

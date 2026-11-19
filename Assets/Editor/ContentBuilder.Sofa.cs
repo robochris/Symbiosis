@@ -61,7 +61,7 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Sphere, "Eye L", marbleModel, new Vector3(-0.28f, 1f, 0.7f), Vector3.one * 0.2f, dark);
             Decor(PrimitiveType.Sphere, "Eye R", marbleModel, new Vector3(0.28f, 1f, 0.7f), Vector3.one * 0.2f, dark);
             marble.knockbackOnHit = 2f;
-            marble.favouredDrops = new[] { ItemType.LostMarble, ItemType.ChitinPlate };
+            marble.favouredDrops = new[] { ItemType.LostMarble, ItemType.RubberBand };
             marble.telegraphMaterial = telegraph;
             var marblePrefab = SaveEnemy(marble);
 
@@ -128,7 +128,7 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Sphere, "Eye L", remoteModel, new Vector3(-0.13f, 1.3f, 0.11f), Vector3.one * 0.12f, white);
             Decor(PrimitiveType.Sphere, "Eye R", remoteModel, new Vector3(0.13f, 1.3f, 0.11f), Vector3.one * 0.12f, white);
             remote.pulseColor = new Color(1f, 0.25f, 0.2f);
-            remote.favouredDrops = new[] { ItemType.StaticSock, ItemType.CompoundEye };
+            remote.favouredDrops = new[] { ItemType.SpareBattery, ItemType.CompoundEye };
             var remotePrefab = SaveEnemy(remote);
 
             // ----- bosses and what they bring -----

@@ -61,7 +61,7 @@ namespace Shrunk.EditorTools
             for (int i = 0; i < fuzz.Length; i++) Decor(PrimitiveType.Sphere, "Fuzz " + i, mouldyModel, fuzz[i], Vector3.one * (0.32f - 0.03f * i), mould);
             Decor(PrimitiveType.Sphere, "Eye L", mouldyModel, new Vector3(-0.17f, 0.6f, 0.42f), Vector3.one * 0.11f, white);
             Decor(PrimitiveType.Sphere, "Eye R", mouldyModel, new Vector3(0.17f, 0.6f, 0.42f), Vector3.one * 0.11f, white);
-            mouldy.favouredDrops = new[] { ItemType.PheromoneCloud, ItemType.SugarCube };
+            mouldy.favouredDrops = new[] { ItemType.Lunchbox, ItemType.SugarCube };
             var mouldyPrefab = SaveEnemy(mouldy);
 
             // Frozen pea: the Charger. Small, hard, and thrown by nobody in particular.
@@ -71,7 +71,7 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Sphere, "Eye L", peaModel, new Vector3(-0.28f, 0.85f, 0.72f), Vector3.one * 0.2f, dark);
             Decor(PrimitiveType.Sphere, "Eye R", peaModel, new Vector3(0.28f, 0.85f, 0.72f), Vector3.one * 0.2f, dark);
             frozenPea.knockbackOnHit = 2f;
-            frozenPea.favouredDrops = new[] { ItemType.ChitinPlate, ItemType.LostMarble };
+            frozenPea.favouredDrops = new[] { ItemType.IceCube, ItemType.ChitinPlate };
             frozenPea.telegraphMaterial = telegraph;
             var peaPrefab = SaveEnemy(frozenPea);
 
@@ -126,7 +126,7 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Sphere, "Eye L", sodaModel, new Vector3(-0.17f, 1.05f, 0.26f), Vector3.one * 0.12f, dark);
             Decor(PrimitiveType.Sphere, "Eye R", sodaModel, new Vector3(0.17f, 1.05f, 0.26f), Vector3.one * 0.12f, dark);
             soda.pulseColor = new Color(0.8f, 0.93f, 1f);
-            soda.favouredDrops = new[] { ItemType.ExtraLegs, ItemType.StaticSock };
+            soda.favouredDrops = new[] { ItemType.FridgeMagnet, ItemType.ExtraLegs };
             var sodaPrefab = SaveEnemy(soda);
 
             // Spore: grows into a mouldy berry if it is left. (What the egg-box pods hatch.)

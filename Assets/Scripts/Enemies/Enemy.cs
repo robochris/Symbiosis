@@ -52,7 +52,17 @@ namespace Shrunk
         /// <summary>Airborne enemies are not hurt by puddles on the floor.</summary>
         public virtual bool IgnoresGroundHazards => false;
         /// <summary>Everything that changes how fast this enemy moves and attacks, multiplied together.</summary>
-        public float SpeedScale => SpeedMultiplier * (IsBuffed ? 1.4f : 1f) * WorldSlow;
+        public float SpeedScale => SpeedMultiplier * (IsBuffed ? 1.4f : 1f) * (IsChilled ? ChilledSpeed : 1f) * WorldSlow;
+        /// <summary>Chilled by an Ice Cube shot: slower in everything it does until it thaws.</summary>
+        public bool IsChilled => Time.time < _chilledUntil;
+        public const float ChilledSpeed = 0.6f;
+        float _chilledUntil;
+        GameObject _chilledTell;
+
+        public void Chill(float seconds)
+        {
+            _chilledUntil = Mathf.Max(_chilledUntil, Time.time + seconds);
+        }
         /// <summary>
         /// Slows every enemy and every enemy shot at once: 1 is normal, 0.3 is a crawl. Freeze Frame sets it and
         /// puts it back.
@@ -129,6 +139,8 @@ namespace Shrunk
             _hasCorner = false;
             _nextPathTime = 0f;
             _buffUntil = 0f;
+            _chilledUntil = 0f;
+            if (_chilledTell != null) _chilledTell.SetActive(false);
             _burnUntil = 0f;
             _confusedUntil = 0f;
             if (_fireTell != null) _fireTell.SetActive(false);
@@ -175,6 +187,7 @@ namespace Shrunk
             if (_crown != null) _crown.transform.Rotate(0f, 90f * Time.deltaTime, 0f);
             ShowTell(ref _fireTell, IsBurning, 0f);
             ShowTell(ref _confusedTell, IsConfused, 0.5f);
+            ShowTell(ref _chilledTell, IsChilled, -0.5f);
 
             if (frozen)
             {
@@ -250,21 +263,21 @@ namespace Shrunk
             return _reachBonus;
         }
 
-        // A small coloured ball over the enemy while a status lasts: orange for fire, pink for confused.
+        // A small coloured ball over the enemy while a status lasts: orange for fire, pink for confused, pale blue for chilled.
         void ShowTell(ref GameObject tell, bool show, float sideways)
         {
             if (tell == null)
             {
                 if (!show || GameAssets.Instance == null) return;
                 tell = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                tell.name = sideways > 0f ? "Confused" : "On fire";
+                tell.name = sideways > 0f ? "Confused" : sideways < 0f ? "Chilled" : "On fire";
                 var collider = tell.GetComponent<Collider>();
                 collider.enabled = false;
                 Destroy(collider);
                 tell.transform.SetParent(transform, false);
                 tell.transform.localPosition = new Vector3(sideways, 1.6f, 0f);
                 tell.transform.localScale = Vector3.one * 0.45f;
-                tell.GetComponent<Renderer>().sharedMaterial = sideways > 0f ? GameAssets.Instance.confused : GameAssets.Instance.fire;
+                tell.GetComponent<Renderer>().sharedMaterial = sideways > 0f ? GameAssets.Instance.confused : sideways < 0f ? GameAssets.Instance.chilled : GameAssets.Instance.fire;
             }
             if (tell.activeSelf != show) tell.SetActive(show);
         }

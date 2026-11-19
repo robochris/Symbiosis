@@ -18,6 +18,10 @@ namespace Shrunk
         public int acid;
         /// <summary>Sets what it hits on fire.</summary>
         public int burn;
+        /// <summary>Chills what it hits, slowing it for a while.</summary>
+        public int chill;
+        /// <summary>How many more times it comes back off a wall instead of stopping there.</summary>
+        public int bounce;
         public bool crit;
         /// <summary>Split-off shots keep every effect except splitting again.</summary>
         public bool isChild;
@@ -26,7 +30,7 @@ namespace Shrunk
 
         public Shot Child() => new Shot
         {
-            damage = damage, pierce = pierce, split = 0, acid = acid, burn = burn, crit = crit, isChild = true, owner = owner
+            damage = damage, pierce = pierce, split = 0, acid = acid, burn = burn, chill = chill, bounce = bounce, crit = crit, isChild = true, owner = owner
         };
     }
 
@@ -71,6 +75,7 @@ namespace Shrunk
             float nearest = float.MaxValue;
             Health nearestHealth = null;
             Vector3 nearestPoint = transform.position;
+            Vector3 nearestNormal = -_direction;
 
             for (int i = 0; i < count; i++)
             {
@@ -86,6 +91,7 @@ namespace Shrunk
                     nearestHealth = health;
                     // A cast that starts inside something reports distance 0 and no point.
                     nearestPoint = Hits[i].distance > 0f ? Hits[i].point : transform.position;
+                    nearestNormal = Hits[i].distance > 0f ? Hits[i].normal : -_direction;
                     hitSomething = true;
                 }
             }
@@ -95,6 +101,23 @@ namespace Shrunk
                 Fx.Burst(nearestPoint, Colour, nearestHealth != null ? 5 : 3, 3f, 0.12f, 0.3f);
                 bool keepFlying = nearestHealth != null && HitCharacter(nearestHealth, nearestPoint);
                 if (nearestHealth == null && _shot.acid > 0) LeavePuddle(nearestPoint);
+
+                // Rubber Band: off the wall and back into the room, flat along the floor.
+                if (nearestHealth == null && _shot.bounce > 0)
+                {
+                    Vector3 back = Vector3.Reflect(_direction, nearestNormal);
+                    back.y = 0f;
+                    if (back.sqrMagnitude > 0.01f)
+                    {
+                        _shot.bounce--;
+                        Bounces++;
+                        _direction = back.normalized;
+                        transform.SetPositionAndRotation(new Vector3(nearestPoint.x, transform.position.y, nearestPoint.z) + _direction * (radius + 0.05f), Quaternion.LookRotation(_direction));
+                        _alreadyHit.Clear();
+                        return;
+                    }
+                }
+
                 if (!keepFlying)
                 {
                     Despawn();
@@ -116,6 +139,11 @@ namespace Shrunk
             {
                 var enemy = health.GetComponent<Enemy>();
                 if (enemy != null) enemy.Ignite(_shot.burn);
+            }
+            if (_shot.chill > 0)
+            {
+                var enemy = health.GetComponent<Enemy>();
+                if (enemy != null) enemy.Chill(1.5f + 0.75f * _shot.chill);
             }
             if (_shot.acid > 0) LeavePuddle(point);
 
@@ -150,6 +178,9 @@ namespace Shrunk
 
         void OnEnable() => Live.Add(this);
         void OnDisable() => Live.Remove(this);
+
+        /// <summary>How many times shots have come back off a wall, for tests.</summary>
+        public static int Bounces;
 
         /// <summary>Every shot in the air.</summary>
         public static readonly List<Bullet> Live = new List<Bullet>();

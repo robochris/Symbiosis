@@ -20,7 +20,12 @@ namespace Shrunk
         BirthdayCandle,
         LostMarble,
         Sprinkles,
-        FinchsDose
+        FinchsDose,
+        RubberBand,
+        IceCube,
+        FridgeMagnet,
+        SpareBattery,
+        Lunchbox
     }
 
     /// <summary>Where an item shows on the character. Two items in one slot: the newer one shows.</summary>

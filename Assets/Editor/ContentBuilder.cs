@@ -252,6 +252,7 @@ namespace Shrunk.EditorTools
             assets.playerAcid = ArenaSceneBuilder.Unlit("PlayerAcid", new Color(0.35f, 0.95f, 0.75f));
             assets.fire = ArenaSceneBuilder.Unlit("Fire", new Color(1f, 0.55f, 0.1f));
             assets.confused = ArenaSceneBuilder.Unlit("Confused", new Color(1f, 0.45f, 0.75f));
+            assets.chilled = ArenaSceneBuilder.Unlit("IceGlow", new Color(0.55f, 0.85f, 1f));
             assets.coin = ArenaSceneBuilder.Unlit("Gold", new Color(1f, 0.82f, 0.2f));
             assets.sample = ArenaSceneBuilder.Unlit("Sample", new Color(0.45f, 0.95f, 1f));
         }
@@ -402,6 +403,41 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Cylinder, "Neck", look.transform, new Vector3(0.3f, -0.22f, 0.3f), new Vector3(0.07f, 0.06f, 0.07f), silver);
             items.Add(Item(ItemType.FinchsDose, "Finch's Dose", "Smaller again: less of you to hit, quicker on your feet, dodge back sooner.", ItemSlot.Aura, true, 0, new Color(0.45f, 1f, 0.6f), look));
 
+            // Rubber Band: wound round one wrist.
+            look = new GameObject("RubberBand");
+            var rubber = ArenaSceneBuilder.Lit("ItemRubber", new Color(0.8f, 0.55f, 0.3f), 0.4f);
+            Decor(PrimitiveType.Cylinder, "Band", look.transform, new Vector3(0.45f, -0.05f, 0.25f), new Vector3(0.3f, 0.03f, 0.3f), rubber).transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            Decor(PrimitiveType.Cylinder, "Band 2", look.transform, new Vector3(0.47f, -0.05f, 0.25f), new Vector3(0.26f, 0.03f, 0.26f), rubber).transform.localRotation = Quaternion.Euler(20f, 0f, 90f);
+            items.Add(Item(ItemType.RubberBand, "Rubber Band", "Shots come back off the first wall they hit.", ItemSlot.Hands, false, 25, new Color(0.8f, 0.55f, 0.3f), look));
+
+            // Ice Cube: balanced on the head, not melting.
+            look = new GameObject("IceCube");
+            Decor(PrimitiveType.Cube, "Cube", look.transform, new Vector3(0f, 1.08f, 0f), Vector3.one * 0.32f, ArenaSceneBuilder.Lit("IceCube", new Color(0.7f, 0.88f, 1f), 0.95f)).transform.localRotation = Quaternion.Euler(8f, 25f, 6f);
+            items.Add(Item(ItemType.IceCube, "Ice Cube", "Shots chill what they hit: it does everything slower for a while.", ItemSlot.Head, false, 25, new Color(0.7f, 0.88f, 1f), look));
+
+            // Fridge Magnet: a horseshoe on the back.
+            look = new GameObject("FridgeMagnet");
+            var magnetRed = ArenaSceneBuilder.Lit("ItemMagnetRed", new Color(0.85f, 0.12f, 0.12f), 0.6f);
+            Decor(PrimitiveType.Cube, "Bar", look.transform, new Vector3(0f, 0.25f, -0.42f), new Vector3(0.5f, 0.14f, 0.12f), magnetRed);
+            Decor(PrimitiveType.Cube, "Arm L", look.transform, new Vector3(-0.19f, 0.02f, -0.42f), new Vector3(0.12f, 0.36f, 0.12f), magnetRed);
+            Decor(PrimitiveType.Cube, "Arm R", look.transform, new Vector3(0.19f, 0.02f, -0.42f), new Vector3(0.12f, 0.36f, 0.12f), magnetRed);
+            Decor(PrimitiveType.Cube, "Tip L", look.transform, new Vector3(-0.19f, -0.2f, -0.42f), new Vector3(0.13f, 0.1f, 0.13f), silver);
+            Decor(PrimitiveType.Cube, "Tip R", look.transform, new Vector3(0.19f, -0.2f, -0.42f), new Vector3(0.13f, 0.1f, 0.13f), silver);
+            items.Add(Item(ItemType.FridgeMagnet, "Fridge Magnet", "Coins and samples fly to you from much further off.", ItemSlot.Back, false, 15, new Color(0.85f, 0.12f, 0.12f), look));
+
+            // Spare Battery: strapped to the hip.
+            look = new GameObject("SpareBattery");
+            Decor(PrimitiveType.Cylinder, "Cell", look.transform, new Vector3(-0.42f, -0.35f, 0f), new Vector3(0.16f, 0.2f, 0.16f), ArenaSceneBuilder.Lit("ItemBattery", new Color(0.15f, 0.15f, 0.18f), 0.6f));
+            Decor(PrimitiveType.Cylinder, "Band", look.transform, new Vector3(-0.42f, -0.22f, 0f), new Vector3(0.165f, 0.06f, 0.165f), ArenaSceneBuilder.Unlit("StaticSpark", new Color(1f, 0.95f, 0.4f)));
+            Decor(PrimitiveType.Cylinder, "Nub", look.transform, new Vector3(-0.42f, -0.13f, 0f), new Vector3(0.06f, 0.03f, 0.06f), silver);
+            items.Add(Item(ItemType.SpareBattery, "Spare Battery", "Your hero power fills a third faster.", ItemSlot.Body, false, 25, new Color(1f, 0.95f, 0.4f), look));
+
+            // Lunchbox: carried on the back.
+            look = new GameObject("Lunchbox");
+            Decor(PrimitiveType.Cube, "Box", look.transform, new Vector3(0f, -0.25f, -0.45f), new Vector3(0.5f, 0.36f, 0.2f), ArenaSceneBuilder.Lit("ItemLunchbox", new Color(0.3f, 0.65f, 0.85f), 0.5f));
+            Decor(PrimitiveType.Cube, "Handle", look.transform, new Vector3(0f, -0.03f, -0.45f), new Vector3(0.22f, 0.05f, 0.05f), silver);
+            items.Add(Item(ItemType.Lunchbox, "Lunchbox", "Enemies leave crumbs twice as often when you are hurt.", ItemSlot.Back, false, 20, new Color(0.3f, 0.65f, 0.85f), look));
+
             const string libraryPath = "Assets/Data/Items/ItemLibrary.asset";
             var library = AssetDatabase.LoadAssetAtPath<ItemLibrary>(libraryPath);
             if (library == null)
@@ -457,7 +493,12 @@ namespace Shrunk.EditorTools
                 case ItemType.BirthdayCandle: return "Someone made a wish on this. You're using it as arson.";
                 case ItemType.LostMarble: return "You have, technically, found your marbles.";
                 case ItemType.Sprinkles: return "Hundreds and thousands. You took eight.";
-                case ItemType.FinchsDose: return "Not approved for interns. Nothing was."; 
+                case ItemType.FinchsDose: return "Not approved for interns. Nothing was.";
+                case ItemType.RubberBand: return "Holds nothing together. Sends everything back.";
+                case ItemType.IceCube: return "It should have melted by now. It knows.";
+                case ItemType.FridgeMagnet: return "Says 'World's Best Intern'. Somebody had it made as a joke.";
+                case ItemType.SpareBattery: return "Found down the back of something. Still has a bit in it.";
+                case ItemType.Lunchbox: return "Packed by somebody who assumed you would be back for tea.";
                 default: return "";
             }
         }

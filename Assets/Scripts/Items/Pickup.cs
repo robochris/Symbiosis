@@ -178,7 +178,9 @@ namespace Shrunk
             }
 
             // A short delay so drops are seen landing before they fly in.
-            if (_age > 0.35f && distance <= MagnetRange)
+            var carried = player.Items;
+            float pull = MagnetRange * (carried != null ? carried.Stats.magnetMultiplier : 1f);
+            if (_age > 0.35f && distance <= pull)
             {
                 transform.position += to.normalized * Mathf.Min(MagnetSpeed * Time.deltaTime, distance);
             }
@@ -221,7 +223,8 @@ namespace Shrunk
             // Something to eat: always from a boss, now and then from anything else if the player is hurt.
             var eater = PlayerController.Instance;
             bool hurt = eater != null && eater.Health.Current < eater.Health.maxHealth;
-            if (enemy is BossEnemy || (hurt && UnityEngine.Random.value < (CrumbChanceOverride ?? (enemy.IsElite ? CrumbChance * 4f : CrumbChance))))
+            float luck = eater != null && eater.Items != null ? eater.Items.Stats.crumbMultiplier : 1f;
+            if (enemy is BossEnemy || (hurt && UnityEngine.Random.value < (CrumbChanceOverride ?? (enemy.IsElite ? CrumbChance * 4f : CrumbChance) * luck)))
             {
                 Pickup.Health(origin + Scatter());
             }

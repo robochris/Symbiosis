@@ -157,7 +157,9 @@ namespace Shrunk
         void OnKilled(Enemy enemy)
         {
             // The meter doesn't fill while the power is running.
-            if (!IsActive) AddCharge(1f / killsToFill);
+            if (IsActive) return;
+            var items = GetComponent<PlayerItems>();
+            AddCharge(1f / killsToFill * (items != null ? items.Stats.powerFillMultiplier : 1f));
         }
 
         public void AddCharge(float amount)

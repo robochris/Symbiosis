@@ -26,11 +26,22 @@ namespace Shrunk
         public int chargedEvery;
         /// <summary>Above 0: a dodge leaves a burning patch behind, bigger with more.</summary>
         public int fireDodge;
+        /// <summary>How many times a shot comes back off a wall.</summary>
+        public int bounce;
+        /// <summary>Above 0: shots chill what they hit, slowing it. More lasts longer.</summary>
+        public int chill;
+        /// <summary>How much further coins and samples fly in from. 1 = the usual reach.</summary>
+        public float magnetMultiplier;
+        /// <summary>How much faster kills fill the hero power. 1 = the usual rate.</summary>
+        public float powerFillMultiplier;
+        /// <summary>How much more often enemies leave a crumb for a hurt player. 1 = the usual chance.</summary>
+        public float crumbMultiplier;
 
         public static PlayerStats Default => new PlayerStats
         {
             moveSpeedMultiplier = 1f, dodgeCooldownMultiplier = 1f, dodgeCharges = 1,
-            damageMultiplier = 1, fireIntervalMultiplier = 1f
+            damageMultiplier = 1, fireIntervalMultiplier = 1f,
+            magnetMultiplier = 1f, powerFillMultiplier = 1f, crumbMultiplier = 1f
         };
     }
 
@@ -118,6 +129,11 @@ namespace Shrunk
                     // The sock: every fifth shot, then every fourth, never more often than every second.
                     chargedEvery = sock > 0 ? Mathf.Max(2, 6 - sock) : 0,
                     fireDodge = Count(ItemType.BirthdayCandle),
+                    bounce = Count(ItemType.RubberBand),
+                    chill = Count(ItemType.IceCube),
+                    magnetMultiplier = 1f + 1.5f * Count(ItemType.FridgeMagnet),
+                    powerFillMultiplier = 1f + 0.35f * Count(ItemType.SpareBattery),
+                    crumbMultiplier = 1f + Count(ItemType.Lunchbox),
                     pierce = 2 * Count(ItemType.NeedleTip) + (overcharged ? 99 : 0),
                     split = Count(ItemType.SplitterMandible),
                     acid = Count(ItemType.AcidGland),
