@@ -129,6 +129,10 @@ namespace Shrunk
         {
             Health = GetComponent<Health>();
             Controller = GetComponent<CharacterController>();
+            // Every floor is flat, so nothing needs to climb. Left at the defaults, an enemy backing away from the
+            // player could walk up the side of a pebble and stand on top of it, where no shot reaches.
+            Controller.slopeLimit = 5f;
+            Controller.stepOffset = Mathf.Min(Controller.stepOffset, 0.08f);
             Mutations = GetComponent<EnemyMutations>();
         }
 

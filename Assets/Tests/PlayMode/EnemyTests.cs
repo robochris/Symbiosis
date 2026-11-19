@@ -88,6 +88,29 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Nothing_can_climb_onto_cover()
+        {
+            // A ramp a good deal gentler than anything could not walk up by default (20 degrees), right behind an ant
+            // that wants to back away from the player. It leads up to well above where shots fly.
+            var boulder = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            boulder.transform.SetPositionAndRotation(new Vector3(0f, 1.25f, 11.6f), Quaternion.Euler(-20f, 0f, 0f));
+            boulder.transform.localScale = new Vector3(5f, 0.2f, 8f);
+            Physics.SyncTransforms();
+            var lobber = (LobberEnemy)Spawn("BombardierAnt", new Vector3(0f, 0f, 7.5f));
+            _player.Health.SetInvulnerable(600f);
+            _player.Teleport(new Vector3(0f, 0.05f, 4f));
+
+            float highest = 0f;
+            for (float t = 0f; t < 4f; t += Time.deltaTime)
+            {
+                highest = Mathf.Max(highest, lobber.transform.position.y);
+                yield return null;
+            }
+            Object.Destroy(boulder);
+            Assert.Less(highest, 0.4f, "an enemy walked up onto cover, out of reach of every shot");
+        }
+
+        [UnityTest]
         public IEnumerator A_mimic_is_coins_until_it_is_walked_up_to_or_shot_or_left_alone()
         {
             // With company in the room and the player far off: it sits there, and nothing aims at it.
