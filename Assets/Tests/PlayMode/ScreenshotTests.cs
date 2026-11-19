@@ -530,6 +530,39 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_mimic()
+        {
+            GameSettings.Reset();
+            SceneManager.LoadScene("Arena");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var spawner = Object.FindAnyObjectByType<EnemySpawner>();
+            spawner.maxAlive = 0;
+            foreach (var enemy in new List<Enemy>(Enemy.Active)) Object.Destroy(enemy.gameObject);
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            yield return null;
+
+            // One still pretending, one that has been found out, and a real coin for comparison.
+            var asleep = (MimicEnemy)spawner.SpawnAt(spawner.biome.EnemyNamed("Mimic"), new Vector3(-2.5f, 0f, 7f), null);
+            var awake = (MimicEnemy)spawner.SpawnAt(spawner.biome.EnemyNamed("Mimic"), new Vector3(2.5f, 0f, 7f), null);
+            Pickup.Coin(new Vector3(0f, 0f, 6f), 1);
+            yield return null;
+            awake.Health.TakeDamage(1, Vector3.forward);
+            for (float t = 0f; t < 3f && awake.Asleep; t += Time.deltaTime) yield return null;
+            awake.frozen = true;
+            asleep.frozen = true;
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.3f);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            yield return Screen(Path.Combine(folder, "mimic.png"));
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_pause()
         {
             SaveSystem.Profile = "tests";
