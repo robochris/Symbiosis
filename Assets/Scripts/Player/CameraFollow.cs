@@ -51,6 +51,9 @@ namespace Shrunk
         public float hideBodyDistance = 1.1f;
         [Tooltip("Metres per second the camera backs out again once a wall is out of the way. Coming in is instant.")]
         public float backOutSpeed = 9f;
+        [Tooltip("With a wall close behind, the camera also rises by up to this many metres and tips down, to look over the character's head instead of into their back.")]
+        public float squeezeLift = 1.3f;
+        public float squeezeTilt = 14f;
 
         /// <summary>Things standing in a room (pebbles, roots, pods) are on this layer: shots hit them, the camera looks past them.</summary>
         public const int DressingLayer = 2;
@@ -271,7 +274,9 @@ namespace Shrunk
                     float clear = ClearDistance(pivot, offset.normalized, offset.magnitude);
                     _rigDistance = clear < _rigDistance || _snap ? clear : Mathf.MoveTowards(_rigDistance, clear, backOutSpeed * Time.deltaTime);
                     _snap = false;
-                    position = pivot + offset.normalized * _rigDistance;
+                    float squeeze = 1f - Mathf.Clamp01(_rigDistance / offset.magnitude);
+                    position = pivot + offset.normalized * _rigDistance + Vector3.up * (squeezeLift * squeeze);
+                    rotation *= Quaternion.Euler(squeezeTilt * squeeze, 0f, 0f);
 
                     // Backed into a corner the camera ends up inside the character: hide them until there is room again.
                     bool squeezed = _squeezed ? _rigDistance < hideBodyDistance + 0.3f : _rigDistance < hideBodyDistance;

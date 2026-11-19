@@ -592,6 +592,8 @@ namespace Shrunk.Tests
             yield return FloorOf(RoomFeature.Nursery, node => nursery = node);
             Room room = _floors.RoomAt(nursery.cell);
             var pods = room.GetComponentsInChildren<LarvaPod>();
+            var hud = Object.FindAnyObjectByType<Hud>();
+            Assert.That(hud.LastToast ?? "", Does.Not.Contain("Nursery"), "the room was announced before the player got there");
             Assert.AreEqual(room.Shape.cover.Count, pods.Length, "one pod per cover tile");
 
             // Shot open: gone, and counted. With the dice loaded, it leaves a coin.
@@ -620,6 +622,7 @@ namespace Shrunk.Tests
 
             _player.Teleport(StandingSpot(nursery) + Vector3.up * 0.05f);
             yield return WaitUntil(() => _floors.IsLocked, 2f, "the nursery to lock");
+            Assert.That(hud.LastToast, Does.Contain("Nursery"), "walking in should say what kind of room it is");
             int before = _floors.LiveEnemies.Count;
             yield return WaitUntil(() => LarvaPod.Hatched > hatched, 3f, "the live pod to hatch");
             Assert.AreEqual(before + 1, _floors.LiveEnemies.Count, "the hatchling did not join the fight");

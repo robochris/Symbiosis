@@ -33,6 +33,19 @@ namespace Shrunk
             }
         }
 
+        /// <summary>One line for the player the first time they walk in. Null for a plain room.</summary>
+        public static string HintFor(RoomFeature feature)
+        {
+            switch (feature)
+            {
+                case RoomFeature.FoodStore: return "Food store: crumbs and sugar make good cover.";
+                case RoomFeature.RootHall: return "Root hall: roots block shots, yours and theirs.";
+                case RoomFeature.Nursery: return "Nursery: pop the pods for coins. The swelling ones hatch.";
+                case RoomFeature.DewRoom: return "Dew room: a drop on a wet patch slows you down.";
+                default: return null;
+            }
+        }
+
         public static void Build(Room room, BiomeDefinition biome)
         {
             RoomShape shape = room.Shape;

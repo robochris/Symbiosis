@@ -46,11 +46,13 @@ namespace Shrunk
         void OnEnable()
         {
             Pickup.ItemCollected += OnItemCollected;
+            FloorManager.RoomChanged += OnRoomChanged;
         }
 
         void OnDisable()
         {
             Pickup.ItemCollected -= OnItemCollected;
+            FloorManager.RoomChanged -= OnRoomChanged;
         }
 
         void Start()
@@ -61,6 +63,21 @@ namespace Shrunk
                 desktopHint.SetActive(touch == null || !touch.Active);
                 _hintText = desktopHint.GetComponent<Text>();
             }
+        }
+
+        RoomNode _announced;
+
+        /// <summary>The last message shown, for tests.</summary>
+        public string LastToast => _toast;
+
+        // Walking into a special kind of fight room for the first time: say what it is and what to do about it.
+        void OnRoomChanged(FloorManager floors)
+        {
+            RoomNode node = floors.CurrentNode;
+            if (node == null || node == _announced || node.cleared || floors.CurrentRoom == null) return;
+            _announced = node;
+            string hint = RoomDressing.HintFor(floors.CurrentRoom.Shape.feature);
+            if (hint != null) Toast(hint, 3.5f);
         }
 
         void OnItemCollected(ItemDefinition item)
