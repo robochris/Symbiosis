@@ -3,13 +3,100 @@ using UnityEngine;
 
 namespace Shrunk
 {
+    /// <summary>Which active ability the Void carries. Chosen at the rack in the lab.</summary>
+    public enum PowerKind { Overcharge, FreezeFrame, SecondWind }
+
+    /// <summary>What the lab's rack says about a power, and what it takes to be issued one.</summary>
+    public class PowerInfo
+    {
+        public PowerKind kind;
+        public string name;
+        public string does;
+        /// <summary>How to get it, as the player reads it. Empty for the one everybody starts with.</summary>
+        public string needs;
+        public float killsToFill;
+        public float duration;
+    }
+
     /// <summary>
-    /// The one active ability. The demo's is Overcharge: fill the meter by killing, then set it off. It starts with a
-    /// surge that hurts and throws back everything close, then for its length gives double damage, piercing, faster
-    /// shots and faster feet, with the view opened wide and the Void's eyes blazing.
+    /// The active ability: fill the meter by killing, then set it off. Three to choose from, one carried at a time.
+    /// Overcharge is attack: a surge that hurts and throws back everything close, then double damage, piercing,
+    /// faster shots and faster feet. Freeze Frame is control: everything that is not you, and every shot that is not
+    /// yours, crawls. Second Wind is defence: a point of health back, every enemy shot swept out of the air, and a
+    /// few seconds in which nothing can hurt you.
     /// </summary>
     public class HeroPower : MonoBehaviour
     {
+        public static readonly PowerInfo[] All =
+        {
+            new PowerInfo { kind = PowerKind.Overcharge, name = "Overcharge", does = "A surge that throws everything back, then double damage and piercing shots for 15 seconds.", needs = "", killsToFill = 25f, duration = 15f },
+            new PowerInfo { kind = PowerKind.FreezeFrame, name = "Freeze Frame", does = "For 6 seconds every enemy and every enemy shot crawls. You don't.", needs = "Issued after your first extraction.", killsToFill = 20f, duration = 6f },
+            new PowerInfo { kind = PowerKind.SecondWind, name = "Second Wind", does = "One health back, every enemy shot swept away, and 4 seconds in which nothing can hurt you.", needs = "Issued to interns who have fallen three times.", killsToFill = 18f, duration = 4f },
+        };
+
+        public const float FreezeSlow = 0.3f;
+
+        public static PowerInfo Info(PowerKind kind)
+        {
+            foreach (var info in All) if (info.kind == kind) return info;
+            return All[0];
+        }
+
+        /// <summary>Whether the lab has issued this one yet.</summary>
+        public static bool Unlocked(PowerKind kind)
+        {
+            if (Achievements.EverythingUnlocked) return true;
+            MetaSave meta = SaveSystem.Data.meta;
+            switch (kind)
+            {
+                case PowerKind.FreezeFrame: return meta.extractions >= 1;
+                case PowerKind.SecondWind: return meta.deaths >= 3;
+                default: return true;
+            }
+        }
+
+        /// <summary>The one the save file says to carry, or Overcharge if that one has not been issued.</summary>
+        public static PowerKind Chosen
+        {
+            get
+            {
+                var kind = (PowerKind)Mathf.Clamp(SaveSystem.Data.meta.power, 0, All.Length - 1);
+                return Unlocked(kind) ? kind : PowerKind.Overcharge;
+            }
+        }
+
+        /// <summary>Which one this is. Set from the save when the scene starts.</summary>
+        public PowerKind Kind { get; private set; } = PowerKind.Overcharge;
+        /// <summary>True while Overcharge itself is running: the one that changes what a shot does.</summary>
+        public bool IsOvercharged => IsActive && Kind == PowerKind.Overcharge;
+        public bool IsFreezing => IsActive && Kind == PowerKind.FreezeFrame;
+
+        /// <summary>Carries a different power. The meter is kept as a share, so swapping in the lab loses nothing.</summary>
+        public void SetKind(PowerKind kind)
+        {
+            if (IsActive) End();
+            Kind = kind;
+            PowerInfo info = Info(kind);
+            displayName = info.name;
+            killsToFill = info.killsToFill;
+            duration = info.duration;
+        }
+
+        void Start() => SetKind(Chosen);
+
+        // Whatever the power changed about the world is put back.
+        void End()
+        {
+            _activeUntil = 0f;
+            if (_slowing)
+            {
+                _slowing = false;
+                Enemy.WorldSlow = 1f;
+            }
+        }
+
+        bool _slowing;
+
         public string displayName = "Overcharge";
         [Tooltip("Kills needed to fill the meter from empty.")]
         public float killsToFill = 25f;
@@ -64,6 +151,7 @@ namespace Shrunk
         void OnDisable()
         {
             Enemy.Killed -= OnKilled;
+            End();
         }
 
         void OnKilled(Enemy enemy)
@@ -89,9 +177,36 @@ namespace Shrunk
             _activeUntil = Time.time + duration;
             Activated?.Invoke();
             Sfx.Play(SfxId.PowerOn);
-            Surge();
+
+            switch (Kind)
+            {
+                case PowerKind.FreezeFrame:
+                    _slowing = true;
+                    Enemy.WorldSlow = FreezeSlow;
+                    if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.25f);
+                    Fx.Burst(transform.position + Vector3.up * 0.9f, new Color(0.6f, 0.85f, 1f), 40, 12f, 0.2f, 0.7f);
+                    break;
+
+                case PowerKind.SecondWind:
+                    var health = GetComponent<Health>();
+                    if (health != null)
+                    {
+                        health.Heal(1);
+                        health.SetInvulnerable(duration);
+                    }
+                    LastShotsCleared = Bullet.ClearEnemyShots();
+                    Surge();
+                    break;
+
+                default:
+                    Surge();
+                    break;
+            }
             return true;
         }
+
+        /// <summary>Enemy shots the last Second Wind swept away.</summary>
+        public int LastShotsCleared { get; private set; }
 
         // Everything close is hit and thrown straight back, bosses included (they just don't move).
         void Surge()
@@ -132,6 +247,8 @@ namespace Shrunk
 
         void Update()
         {
+            if (_slowing && !IsActive) End();
+
             // The surge: a disc that races out to its full reach and is gone.
             if (_ring != null && _ring.gameObject.activeSelf)
             {

@@ -34,6 +34,8 @@ namespace Shrunk
         public List<int> radioHeard = new List<int>();
         /// <summary>Which character style the Void is wearing.</summary>
         public int style;
+        /// <summary>Which hero power the Void carries, as a PowerKind number.</summary>
+        public int power;
     }
 
     /// <summary>A run in progress, as it stood at the start of its current floor.</summary>

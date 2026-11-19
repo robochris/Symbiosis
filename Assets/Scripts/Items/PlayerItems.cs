@@ -103,7 +103,7 @@ namespace Shrunk
                 int legs = Count(ItemType.ExtraLegs), wings = Count(ItemType.WingBuds), jelly = Count(ItemType.QueensJelly);
                 int marble = Count(ItemType.LostMarble), sprinkles = Count(ItemType.Sprinkles), sock = Count(ItemType.StaticSock);
                 int dose = Count(ItemType.FinchsDose);
-                bool overcharged = _power != null && _power.IsActive;
+                bool overcharged = _power != null && _power.IsOvercharged;
 
                 return new PlayerStats
                 {

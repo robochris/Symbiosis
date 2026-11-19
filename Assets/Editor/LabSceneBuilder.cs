@@ -163,6 +163,21 @@ namespace Shrunk.EditorTools
             }
             shelf.AddComponent<SpecimenShelf>().jars = jars;
 
+            // ----- the power rack: which hero power to carry, against the south wall on the other side of the portal -----
+            var rack = new GameObject("Power Rack");
+            rack.transform.position = new Vector3(5.5f, 0f, -5.4f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Rack", rack.transform, new Vector3(0f, 0.6f, -2.2f), new Vector3(3.4f, 1.2f, 0.7f), benchMat, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", rack.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("PowerMat", new Color(1f, 0.82f, 0.2f)), false);
+            Color[] powerColours = { new Color(0.45f, 0.95f, 1f), new Color(0.6f, 0.75f, 1f), new Color(0.5f, 1f, 0.55f) };
+            var canisters = new Transform[HeroPower.All.Length];
+            for (int i = 0; i < canisters.Length; i++)
+            {
+                var canister = ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, HeroPower.All[i].name, rack.transform,
+                    new Vector3(-1.1f + i * 1.1f, 1.6f, -2.2f), new Vector3(0.5f, 0.4f, 0.5f), ArenaSceneBuilder.Unlit("Power" + HeroPower.All[i].kind, powerColours[i % powerColours.Length]), false);
+                canisters[i] = canister.transform;
+            }
+            rack.AddComponent<PowerRack>().canisters = canisters;
+
             // ----- the hidden door: turns up with the last page, on the wall the radio never mentions -----
             var door = new GameObject("Hidden Door");
             door.transform.position = new Vector3(-8.2f, 0f, 0.8f);
@@ -189,6 +204,7 @@ namespace Shrunk.EditorTools
             var game = new GameObject("Game");
             ContentBuilder.AddGameAssets(game);
             game.AddComponent<LabDirector>();
+            game.AddComponent<Playtest>();
             game.GetComponent<ScreenCards>().title = true;
             // The lab starts with the portal and the workbench, and fills in as there is a reason for each thing.
             game.AddComponent<LabGrowth>().stations = new[]
@@ -199,6 +215,7 @@ namespace Shrunk.EditorTools
                 new LabGrowth.Station { name = "a door that was not there before", thing = door, needs = LabGrowth.Needs.AllNotesFound },
                 // New stations go on the end: the save remembers which ones the player has been told about by position.
                 new LabGrowth.Station { name = "the specimen shelf", thing = shelf, needs = LabGrowth.Needs.ABossBeaten },
+                new LabGrowth.Station { name = "the power rack", thing = rack, needs = LabGrowth.Needs.ARunStarted },
             };
 
             EditorSceneManager.SaveScene(scene, ScenePath);

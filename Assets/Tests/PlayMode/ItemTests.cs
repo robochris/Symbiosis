@@ -405,6 +405,66 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Freeze_Frame_slows_enemies_and_their_shots_but_not_the_player()
+        {
+            var power = _player.Power;
+            power.SetKind(PowerKind.FreezeFrame);
+            Assert.AreEqual("Freeze Frame", power.displayName);
+            Enemy runner = _spawner.SpawnAt(_biome.EnemyNamed("WorkerAnt"), new Vector3(0f, 0f, 16f), null);
+            runner.transform.position += Vector3.up * 0.05f;
+            _player.Health.SetInvulnerable(600f);
+            yield return new WaitForSeconds(0.3f);
+
+            // How far it gets in half a second at full speed, then in a second of Freeze Frame.
+            Vector3 from = runner.transform.position;
+            yield return new WaitForSeconds(0.5f);
+            float usual = Vector3.ProjectOnPlane(runner.transform.position - from, Vector3.up).magnitude * 2f;
+            Assert.Greater(usual, 2f, "the ant was not running to begin with");
+
+            power.SetMeter(1f);
+            Assert.IsTrue(power.TryActivate());
+            Assert.IsTrue(power.IsFreezing);
+            Assert.IsFalse(power.IsOvercharged, "Freeze Frame should not give the damage Overcharge does");
+            Assert.AreEqual(1, _items.Stats.damageMultiplier);
+            from = runner.transform.position;
+            Vector3 playerFrom = _player.transform.position;
+            _player.Input.overrideFrame = new InputFrame { move = Vector3.left };
+            yield return new WaitForSeconds(1f);
+            _player.Input.overrideFrame = new InputFrame();
+            float slowed = Vector3.ProjectOnPlane(runner.transform.position - from, Vector3.up).magnitude;
+            Assert.Less(slowed, usual * 0.4f, "the enemy was not slowed");
+            Assert.Greater((_player.transform.position - playerFrom).magnitude, 4f, "the player was slowed too");
+
+            // It wears off, and the world is put back.
+            yield return new WaitForSeconds(power.duration);
+            Assert.IsFalse(power.IsActive);
+            Assert.AreEqual(1f, Enemy.WorldSlow);
+        }
+
+        [UnityTest]
+        public IEnumerator Second_Wind_heals_clears_shots_and_keeps_the_player_safe()
+        {
+            var power = _player.Power;
+            power.SetKind(PowerKind.SecondWind);
+            _player.Health.TakeDamage(1, Vector3.forward);
+            yield return WaitUntil(() => !_player.Health.Invulnerable, 3f, "the hit to wear off");
+            int hurt = _player.Health.Current;
+
+            // A shot from a spitter is in the air when it goes off.
+            var spitter = (ShooterEnemy)_spawner.SpawnAt(_biome.EnemyNamed("SpitterAnt"), new Vector3(0f, 0f, 9f), null);
+            yield return WaitUntil(() => spitter.ShotsFired > 0, 6f, "a shot to be in the air");
+            yield return null;
+
+            power.SetMeter(1f);
+            Assert.IsTrue(power.TryActivate());
+            Assert.AreEqual(hurt + 1, _player.Health.Current, "no health back");
+            Assert.GreaterOrEqual(power.LastShotsCleared, 1, "the shot in the air was left there");
+            Assert.IsTrue(_player.Health.Invulnerable);
+            Assert.IsFalse(_player.Health.TakeDamage(1, Vector3.forward), "hurt during Second Wind");
+            Assert.AreEqual(hurt + 1, _player.Health.Current);
+        }
+
+        [UnityTest]
         public IEnumerator The_marble_hits_harder_and_slower_and_sprinkles_fire_faster()
         {
             Enemy dummy = Dummy(new Vector3(0f, 0f, 6f), "SoldierAnt");

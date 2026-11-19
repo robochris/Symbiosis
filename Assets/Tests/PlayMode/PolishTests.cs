@@ -92,6 +92,67 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_power_rack_hands_out_only_what_has_been_issued()
+        {
+            SaveSystem.Data.meta.runsStarted = 2;
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var rack = Object.FindAnyObjectByType<PowerRack>();
+            Assert.IsNotNull(rack, "the lab has no power rack");
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+
+            // A new intern has the one power, and is told what the next takes.
+            Assert.AreEqual(PowerKind.Overcharge, HeroPower.Chosen);
+            Assert.AreEqual(PowerKind.Overcharge, rack.Next(), "a power was handed out before it was issued");
+            Assert.That(WorldPrompt.For(rack.transform.position), Does.Contain("you carry Overcharge").And.Contain("first extraction"));
+
+            // After an extraction: Freeze Frame. After three falls: Second Wind. Round and back to the start.
+            SaveSystem.Data.meta.extractions = 1;
+            Assert.AreEqual(PowerKind.FreezeFrame, rack.Next());
+            Assert.AreEqual(PowerKind.FreezeFrame, player.Power.Kind, "the Void is not carrying what was chosen");
+            Assert.AreEqual(PowerKind.Overcharge, rack.Next());
+            SaveSystem.Data.meta.deaths = 3;
+            Assert.AreEqual(PowerKind.FreezeFrame, rack.Next());
+            Assert.AreEqual(PowerKind.SecondWind, rack.Next());
+            Assert.That(WorldPrompt.For(rack.transform.position), Does.Contain("you carry Second Wind"));
+
+            // It is remembered, and carried into a run.
+            SaveSystem.Load();
+            Assert.AreEqual(PowerKind.SecondWind, HeroPower.Chosen);
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            Assert.AreEqual(PowerKind.SecondWind, PlayerController.Instance.Power.Kind);
+            Assert.AreEqual("Second Wind", PlayerController.Instance.Power.displayName);
+        }
+
+        [UnityTest]
+        public IEnumerator The_playtest_shortcut_unlocks_all_of_it()
+        {
+            Playtest.UnlockEverything();
+            Assert.AreEqual(Achievements.All.Length, Achievements.Count);
+            Assert.IsTrue(Achievements.BiomeUnlocked("cake") && Achievements.BiomeUnlocked("sofa"));
+            Assert.AreEqual(FinchNotes.All.Length, FinchNotes.Count);
+            Assert.AreEqual(Specimens.All.Length, Specimens.Count);
+            foreach (var info in HeroPower.All) Assert.IsTrue(HeroPower.Unlocked(info.kind), info.name + " is still locked");
+            // Twice does no harm.
+            Playtest.UnlockEverything();
+            Assert.AreEqual(Achievements.All.Length, Achievements.Count);
+
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            Assert.IsNotNull(Object.FindAnyObjectByType<Playtest>(), "the lab has no playtest keys");
+            Assert.IsNotNull(Object.FindAnyObjectByType<HiddenDoor>(), "the door is not there with everything unlocked");
+            Assert.IsNotNull(Object.FindAnyObjectByType<SpecimenShelf>());
+            Assert.IsNotNull(Object.FindAnyObjectByType<PowerRack>());
+            var style = PlayerController.Instance.GetComponent<PlayerStyle>();
+            Assert.AreEqual(style.styles.Length, style.UnlockedCount);
+        }
+
+        [UnityTest]
         public IEnumerator Beaten_bosses_end_up_in_jars_on_the_shelf()
         {
             SaveSystem.Data.meta.runsStarted = 3;

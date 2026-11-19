@@ -52,7 +52,12 @@ namespace Shrunk
         /// <summary>Airborne enemies are not hurt by puddles on the floor.</summary>
         public virtual bool IgnoresGroundHazards => false;
         /// <summary>Everything that changes how fast this enemy moves and attacks, multiplied together.</summary>
-        public float SpeedScale => SpeedMultiplier * (IsBuffed ? 1.4f : 1f);
+        public float SpeedScale => SpeedMultiplier * (IsBuffed ? 1.4f : 1f) * WorldSlow;
+        /// <summary>
+        /// Slows every enemy and every enemy shot at once: 1 is normal, 0.3 is a crawl. Freeze Frame sets it and
+        /// puts it back.
+        /// </summary>
+        public static float WorldSlow = 1f;
 
         protected CharacterController Controller { get; private set; }
         protected Vector3 Knockback;
@@ -370,6 +375,8 @@ namespace Shrunk
         protected void Move(Vector3 velocity)
         {
             Knockback = Vector3.MoveTowards(Knockback, Vector3.zero, knockbackDecay * Time.deltaTime);
+            // Freeze Frame: whatever it meant to do, it does it at a crawl. Being knocked back is not slowed.
+            velocity *= WorldSlow;
             velocity += Knockback;
             velocity.y = -5f;
             Controller.Move(velocity * Time.deltaTime);

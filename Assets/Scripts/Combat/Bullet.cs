@@ -64,7 +64,7 @@ namespace Shrunk
 
         void Update()
         {
-            float step = _speed * Time.deltaTime;
+            float step = _speed * (_team == Team.Enemy ? Enemy.WorldSlow : 1f) * Time.deltaTime;
             int count = Physics.SphereCastNonAlloc(transform.position, radius, _direction, Hits, step, ~0, QueryTriggerInteraction.Ignore);
 
             bool hitSomething = false;
@@ -146,6 +146,26 @@ namespace Shrunk
             if (assets == null) return;
             bool burning = _shot.burn > 0;
             GroundHazard.SpawnFriendlyPuddle(point, _shot.acid, burning, burning ? assets.fire : assets.playerAcid);
+        }
+
+        void OnEnable() => Live.Add(this);
+        void OnDisable() => Live.Remove(this);
+
+        /// <summary>Every shot in the air.</summary>
+        public static readonly List<Bullet> Live = new List<Bullet>();
+
+        /// <summary>Takes every enemy shot out of the air. Returns how many there were.</summary>
+        public static int ClearEnemyShots()
+        {
+            int cleared = 0;
+            foreach (var bullet in Live.ToArray())
+            {
+                if (bullet._team != Team.Enemy) continue;
+                Fx.Burst(bullet.transform.position, bullet.Colour, 3, 3f, 0.12f, 0.3f);
+                bullet.Despawn();
+                cleared++;
+            }
+            return cleared;
         }
 
         void Despawn()

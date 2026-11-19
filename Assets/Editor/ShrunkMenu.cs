@@ -22,6 +22,23 @@ namespace Shrunk.EditorTools
             Debug.Log("[Shrunk] Saved progress deleted.");
         }
 
+        [MenuItem("Shrunk/Playtest: Unlock Everything", priority = 61)]
+        public static void UnlockEverything()
+        {
+            if (!EditorUtility.DisplayDialog("Unlock everything?", "Every biome, style, item, hero power, notebook page and the hidden door, written into your save. Delete Saved Progress undoes it.", "Unlock", "Cancel")) return;
+            if (!EditorApplication.isPlaying) SaveSystem.Profile = "player";
+            Playtest.UnlockEverything();
+            Debug.Log("[Shrunk] Everything unlocked. If the game is running, walk back into the lab to see it.");
+        }
+
+        [MenuItem("Shrunk/Playtest: Add 500 Samples", priority = 62)]
+        public static void AddSamples()
+        {
+            if (!EditorApplication.isPlaying) SaveSystem.Profile = "player";
+            Playtest.AddSamples(500);
+            Debug.Log("[Shrunk] 500 samples added.");
+        }
+
         [MenuItem("Shrunk/Open Arena Scene (one ant, empty room)", priority = 2)]
         public static void OpenArena() => Open("Assets/Scenes/Arena.unity");
 
