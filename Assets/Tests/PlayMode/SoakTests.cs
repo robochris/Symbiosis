@@ -372,6 +372,17 @@ namespace Shrunk.Tests
             Achievements.EverythingUnlocked = false;
         }
 
+        /// <summary>By name only: the fridge, late enough for every kind of enemy, and its mini boss.</summary>
+        [UnityTest, Explicit, Timeout(600000)]
+        public IEnumerator A_bot_clears_two_fridge_floors_on_foot()
+        {
+            Achievements.EverythingUnlocked = true;
+            Assert.IsTrue(_floors.SetBiome("fridge"));
+            Time.timeScale = 4f;
+            yield return PlayFloor(7, 4001);
+            yield return PlayFloor(5, 4002);
+        }
+
         /// <summary>The long version, by name only: ten floors in a row, new ones every time.</summary>
         [UnityTest, Explicit, Timeout(3600000)]
         public IEnumerator A_bot_clears_a_whole_biome_on_foot()

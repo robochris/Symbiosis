@@ -219,9 +219,9 @@ namespace Shrunk
             SaveSystem.Data.run = new RunSave();
             SaveSystem.Save();
 
-            LastRunMessage = multiplier > 1f
+            LastRunMessage = (multiplier > 1f
                 ? $"Extracted! {RunState.Samples} samples ×{multiplier:0.#} = {banked} brought home."
-                : $"Extracted! {banked} samples brought home.";
+                : $"Extracted! {banked} samples brought home.") + Tally();
             Fade.LoadScene(labScene);
         }
 
@@ -243,8 +243,18 @@ namespace Shrunk
 
             LastRunMessage = IsDescent
                 ? "You fell at the bottom. The door is still there, whatever the radio says."
-                : $"You fell on floor {floor}. {Mathf.RoundToInt(share * 100f)}% of your samples made it home: {kept}.";
+                : $"You fell on floor {floor}. {Mathf.RoundToInt(share * 100f)}% of your samples made it home: {kept}." + Tally();
             StartCoroutine(GoHome());
+        }
+
+        // The rest of how it went, for the line the lab greets the player with.
+        string Tally()
+        {
+            int items = _player != null && _player.Items != null ? _player.Items.Collected.Count : 0;
+            string where = _floors != null && _floors.biome != null ? _floors.biome.displayName : "";
+            string text = $"  {RunState.Kills} kills, {items} {(items == 1 ? "item" : "items")}";
+            if (_floors != null && _floors.depth > 1) text += $", depth {_floors.depth}";
+            return where.Length > 0 ? text + $", last seen in {where}." : text + ".";
         }
 
         IEnumerator GoHome()

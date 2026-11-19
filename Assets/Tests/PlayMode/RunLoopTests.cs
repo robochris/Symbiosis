@@ -346,6 +346,8 @@ namespace Shrunk.Tests
             Assert.AreEqual(1, SaveSystem.Data.meta.deaths);
             Assert.IsFalse(SaveSystem.Data.run.active, "a dead run was left saved");
             Assert.AreEqual(3, Player.Health.Current, "arrived in the lab hurt");
+            // The lab says how it went: where, how far, and what was done on the way.
+            Assert.That(Object.FindAnyObjectByType<Hud>().LastToast, Does.Contain("fell on floor 1").And.Contain("0 kills").And.Contain("Backyard Ant Colony"));
 
             var portal = Object.FindAnyObjectByType<LabPortal>();
             Assert.That(WorldPrompt.For(portal.transform.position + Vector3.forward * 2f), Does.Contain("start a run"));
