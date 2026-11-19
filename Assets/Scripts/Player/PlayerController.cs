@@ -112,7 +112,8 @@ namespace Shrunk
             }
             else
             {
-                velocity = input.move * (moveSpeed * stats.moveSpeedMultiplier * (IsSlowed ? _slowTo : 1f));
+                velocity = input.move * (moveSpeed * stats.moveSpeedMultiplier * (IsSlowed ? _slowTo : 1f)
+                    * (Power != null && Power.IsActive ? Power.moveSpeedMultiplier : 1f));
 
                 if (input.dodge && _charges > 0)
                 {

@@ -460,6 +460,32 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Overcharge_starts_with_a_surge_and_makes_the_player_faster()
+        {
+            var power = _player.Power;
+            var near = Dummy(new Vector3(0f, 0f, 4f));
+            var far = Dummy(new Vector3(0f, 0f, 12f));
+            yield return null;
+            float fieldOfView = Camera.main.fieldOfView;
+
+            power.SetMeter(1f);
+            Assert.IsTrue(power.TryActivate());
+            Assert.AreEqual(1, power.LastSurgeHits, "the surge should catch the near ant and not the far one");
+            Assert.AreEqual(near.Health.maxHealth - power.surgeDamage, near.Health.Current);
+            Assert.AreEqual(far.Health.maxHealth, far.Health.Current);
+            yield return new WaitForSeconds(0.3f);
+            Assert.Greater(near.transform.position.z, 4.3f, "the near ant was not thrown back");
+            Assert.Greater(Camera.main.fieldOfView, fieldOfView + 5f, "the view did not open up");
+
+            Vector3 from = _player.transform.position;
+            _player.Input.overrideFrame = new InputFrame { move = Vector3.left };
+            yield return new WaitForSeconds(0.5f);
+            _player.Input.overrideFrame = new InputFrame();
+            float covered = (_player.transform.position - from).magnitude;
+            Assert.Greater(covered, _player.moveSpeed * 0.5f * 1.1f, "no faster with the power on");
+        }
+
+        [UnityTest]
         public IEnumerator Overcharge_ends_after_its_time()
         {
             var power = _player.Power;

@@ -129,6 +129,7 @@ namespace Shrunk
             piece.name = name;
             // Straight away, not at the end of the frame: the navmesh is baked this same frame.
             if (!solid) Object.DestroyImmediate(piece.GetComponent<Collider>());
+            piece.layer = CameraFollow.DressingLayer;
             piece.transform.SetParent(room.transform, false);
             piece.transform.localPosition = localPosition;
             piece.transform.localScale = scale;

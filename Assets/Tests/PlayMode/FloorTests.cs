@@ -498,10 +498,10 @@ namespace Shrunk.Tests
                     {
                         pebbles++;
                         Vector3 at = room.TileWorld(tile);
-                        Assert.IsTrue(Physics.CheckSphere(at + Vector3.up * 0.6f, 0.3f), "nothing solid on a cover tile\n" + Describe(node));
+                        Assert.IsTrue(Physics.CheckSphere(at + Vector3.up * 0.6f, 0.3f, ~0), "nothing solid on a cover tile\n" + Describe(node));
                         if (room.Shape.feature != RoomFeature.RootHall)
                         {
-                            Assert.IsFalse(Physics.CheckSphere(at + Vector3.up * 2.6f, 0.3f), "cover is too tall to be low cover\n" + Describe(node));
+                            Assert.IsFalse(Physics.CheckSphere(at + Vector3.up * 2.6f, 0.3f, ~0), "cover is too tall to be low cover\n" + Describe(node));
                         }
                         Assert.IsFalse(NavMesh.SamplePosition(at, out var on, 0.3f, NavMesh.AllAreas) && on.position.y < 0.5f,
                             "ants can walk through a pebble\n" + Describe(node));
@@ -688,7 +688,7 @@ namespace Shrunk.Tests
             Assert.IsNotNull(hall.transform.Find("Root"));
             // A root blocks sight all the way up, which pebbles don't.
             Vector3 at = hall.TileWorld(hall.Shape.cover[0]);
-            Assert.IsTrue(Physics.CheckSphere(at + Vector3.up * 4f, 0.2f), "the root does not reach up to the ceiling");
+            Assert.IsTrue(Physics.CheckSphere(at + Vector3.up * 4f, 0.2f, ~0), "the root does not reach up to the ceiling");
         }
     }
 }

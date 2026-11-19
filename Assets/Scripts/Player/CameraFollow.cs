@@ -49,6 +49,11 @@ namespace Shrunk
         [Header("Squeezed against a wall")]
         [Tooltip("When a wall pushes the camera this close, the character is hidden so they don't fill the screen.")]
         public float hideBodyDistance = 1.1f;
+        [Tooltip("Metres per second the camera backs out again once a wall is out of the way. Coming in is instant.")]
+        public float backOutSpeed = 9f;
+
+        /// <summary>Things standing in a room (pebbles, roots, pods) are on this layer: shots hit them, the camera looks past them.</summary>
+        public const int DressingLayer = 2;
 
         [Header("First person")]
         public float eyeHeight = 1.55f;
@@ -111,6 +116,7 @@ namespace Shrunk
         float _pullVelocity;
         float _rigDistance;
         bool _squeezed;
+        bool _snap = true;
         Renderer[] _targetRenderers;
 
         void Awake()
@@ -215,6 +221,7 @@ namespace Shrunk
         {
             if (target != null) _focus = target.position;
             _velocity = Vector3.zero;
+            _snap = true;
             Apply();
         }
 
@@ -260,7 +267,10 @@ namespace Shrunk
                     Vector3 pivot = _focus + Vector3.up * Mathf.Lerp(shoulderHeight, wideHeight, wide);
                     Vector3 offset = rotation * new Vector3(shoulderSide * (1f - wide), 0f,
                         -(Mathf.Lerp(shoulderDistance, wideDistance, wide) + autoBossDistance * boss));
-                    _rigDistance = ClearDistance(pivot, offset.normalized, offset.magnitude);
+                    // In past a wall at once, so the view never ends up inside it; back out gently, so it doesn't lurch.
+                    float clear = ClearDistance(pivot, offset.normalized, offset.magnitude);
+                    _rigDistance = clear < _rigDistance || _snap ? clear : Mathf.MoveTowards(_rigDistance, clear, backOutSpeed * Time.deltaTime);
+                    _snap = false;
                     position = pivot + offset.normalized * _rigDistance;
 
                     // Backed into a corner the camera ends up inside the character: hide them until there is room again.
@@ -285,7 +295,7 @@ namespace Shrunk
         // Pulls the camera in front of any wall between it and the character, so it never ends up outside the room.
         float ClearDistance(Vector3 from, Vector3 direction, float wanted)
         {
-            int count = Physics.SphereCastNonAlloc(from, 0.3f, direction, Hits, wanted, ~0, QueryTriggerInteraction.Ignore);
+            int count = Physics.SphereCastNonAlloc(from, 0.3f, direction, Hits, wanted, ~(1 << DressingLayer), QueryTriggerInteraction.Ignore);
             float nearest = wanted;
             for (int i = 0; i < count; i++)
             {

@@ -144,7 +144,9 @@ namespace Shrunk.EditorTools
             player.visual = visual;
             root.AddComponent<HitFlash>();
             root.AddComponent<PlayerItems>();
-            root.AddComponent<HeroPower>().eyes = new[] { visual.Find("Eye L"), visual.Find("Eye R") };
+            var power = root.AddComponent<HeroPower>();
+            power.eyes = new[] { visual.Find("Eye L"), visual.Find("Eye R") };
+            power.surgeMaterial = eyes;
             return root;
         }
 
