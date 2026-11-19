@@ -148,6 +148,8 @@ namespace Shrunk
         void OnDestroy()
         {
             if (Instance == this) Instance = null;
+            Loot.CoinBonus = 0;
+            Loot.SampleBonus = 0;
         }
 
         void Start()
@@ -168,10 +170,13 @@ namespace Shrunk
         {
             ClearFloor();
             if (_firstBiome == null) _firstBiome = biome;
-            ApplyLook();
 
             FloorNumber = number;
             int seed = seedOverride != 0 ? seedOverride : fixedSeed != 0 ? fixedSeed + number : UnityEngine.Random.Range(1, int.MaxValue);
+            Twist = twistOverride ?? FloorTwists.Roll(seed, number, biome, twistChance);
+            Loot.CoinBonus = Twist == FloorTwist.Crowded ? FloorTwists.CrowdedCoins : 0;
+            Loot.SampleBonus = Twist == FloorTwist.PowerCut ? FloorTwists.PowerCutSamples : 0;
+            ApplyLook();
             Layout = FloorLayout.Generate(seed, FloorLayout.RoomCountForFloor(number), FloorLayout.IsBossFloor(number));
 
             foreach (var node in Layout.ordered)
@@ -227,7 +232,8 @@ namespace Shrunk
         void ApplyLook()
         {
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = biome.ambientColor;
+            bool dark = Twist == FloorTwist.PowerCut;
+            RenderSettings.ambientLight = dark ? biome.ambientColor * FloorTwists.PowerCutAmbient : biome.ambientColor;
             RenderSettings.fog = biome.fog;
             RenderSettings.fogMode = FogMode.Linear;
             RenderSettings.fogColor = biome.fogColor;
@@ -244,7 +250,55 @@ namespace Shrunk
                     if (light.type == LightType.Directional) { _sun = light; break; }
                 }
             }
-            if (_sun != null) _sun.intensity = biome.sunIntensity;
+            if (_sun != null) _sun.intensity = dark ? biome.sunIntensity * FloorTwists.PowerCutSun : biome.sunIntensity;
+        }
+
+        /// <summary>What is different about this floor, if anything.</summary>
+        public FloorTwist Twist { get; private set; }
+        [Tooltip("Chance that a floor has a twist. Never the first two floors, a biome's first floor or a boss's.")]
+        public float twistChance = 0.3f;
+        /// <summary>Tests and clips set this to get one particular twist (or none) on the next floor built.</summary>
+        [System.NonSerialized] public FloorTwist? twistOverride;
+
+        /// <summary>The dare left in a cleared room on this floor, until it is rung.</summary>
+        public DareBell Dare { get; private set; }
+        [Tooltip("Chance that clearing an ordinary room leaves a dare behind. One a floor at most, and never on floor 1.")]
+        public float dareChance = 0.25f;
+        /// <summary>Tests set this to make the roll certain (1) or impossible (0).</summary>
+        [System.NonSerialized] public float dareChanceOverride = -1f;
+        /// <summary>How many more enemies a dare brings than the room had the first time.</summary>
+        public const int DareExtra = 3, DareCoins = 5;
+        /// <summary>True while the fight going on is one the player asked for.</summary>
+        public bool DareFight { get; private set; }
+        bool _dareOffered;
+
+        public static event Action<FloorManager> DareRung;
+        public static event Action<FloorManager> DareWon;
+
+        /// <summary>Shuts a cleared room again on a second, worse wave. Called by the bell when it is rung.</summary>
+        public bool StartDare(DareBell bell)
+        {
+            if (IsLocked || bell == null || bell.room == null || Layout == null) return false;
+            Room room = bell.room;
+            RoomNode node = null;
+            foreach (var pair in _rooms) if (pair.Value == room) node = Layout.rooms[pair.Key];
+            if (node == null) return false;
+
+            var player = PlayerController.Instance;
+            Vector3 at = player != null ? player.transform.position : room.Centre;
+            IsLocked = true;
+            DareFight = true;
+            _fightNode = node;
+            _fightRoom = room;
+            SetFightLocked(true);
+            SpawnWave(room, at, DareExtra + (Twist == FloorTwist.Crowded ? FloorTwists.CrowdedExtra : 0), true, 1);
+
+            Destroy(bell.gameObject);
+            Dare = null;
+            Sfx.Play(SfxId.Item);
+            DareRung?.Invoke(this);
+            RoomChanged?.Invoke(this);
+            return true;
         }
 
         /// <summary>Lab upgrade: how many items a treasure room offers.</summary>
@@ -274,11 +328,12 @@ namespace Shrunk
                 {
                     var picks = assets.items.RandomCommon(rng, 3);
                     Vector3[] spots = { new Vector3(-2f, 0f, -1.7f), new Vector3(0f, 0f, -2.3f), new Vector3(2f, 0f, -1.7f) };
-                    for (int i = 0; i < picks.Count; i++) Pickup.Item(picks[i], room.Centre + spots[i], picks[i].price);
+                    bool sale = Twist == FloorTwist.Sale;
+                    for (int i = 0; i < picks.Count; i++) Pickup.Item(picks[i], room.Centre + spots[i], sale ? FloorTwists.Discount(picks[i].price) : picks[i].price);
                     // And something to eat, beside the counter. Both stay inside the square every room keeps clear round its middle.
-                    Pickup.Health(room.Centre + new Vector3(2.6f, 0f, 0.9f), Pickup.CrumbPrice);
+                    Pickup.Health(room.Centre + new Vector3(2.6f, 0f, 0.9f), sale ? FloorTwists.Discount(Pickup.CrumbPrice) : Pickup.CrumbPrice);
                     // On the other side, the bell: a few coins for three different things.
-                    ShopReroll.Create(room, room.Centre + new Vector3(-2.6f, 0f, 0.9f), spots, assets.coin, assets.note);
+                    ShopReroll.Create(room, room.Centre + new Vector3(-2.6f, 0f, 0.9f), spots, assets.coin, assets.note).sale = sale;
                 }
             }
         }
@@ -346,6 +401,9 @@ namespace Shrunk
             _fightNode = null;
             _fightRoom = null;
             Boss = null;
+            Dare = null;
+            DareFight = false;
+            _dareOffered = false;
             ExtractPortal = null;
             _portals.Clear();
             IsLocked = false;
@@ -485,8 +543,15 @@ namespace Shrunk
                 return;
             }
 
+            SpawnWave(room, playerPosition, Twist == FloorTwist.Crowded ? FloorTwists.CrowdedExtra : 0, Twist == FloorTwist.Promotions, 0);
+            RoomChanged?.Invoke(this);
+        }
+
+        // One room's worth of enemies, put down away from the player.
+        void SpawnWave(Room room, Vector3 playerPosition, int extra, bool forceElite, int extraBudget)
+        {
             int count = biome.EnemiesFor(FloorInBiome, room.Shape.interior.Count);
-            count += UnityEngine.Random.Range(0, 2);
+            count += UnityEngine.Random.Range(0, 2) + extra;
 
             // Any clear tile far enough from the player can hold an enemy. In a tiny room, fall back to the farthest tiles.
             var points = new List<Vector3>();
@@ -504,10 +569,10 @@ namespace Shrunk
             }
 
             var rng = new System.Random(UnityEngine.Random.Range(0, int.MaxValue));
-            int budget = MutationBudget.MaxPoints(depth, FloorInBiome);
+            int budget = MutationBudget.MaxPoints(depth, FloorInBiome) + extraBudget;
             // Some rooms have an elite: the first ant in gets a full load of mutations, more health and a crown.
             float eliteChance = eliteChanceOverride >= 0f ? eliteChanceOverride : MutationBudget.EliteChance(depth, FloorInBiome);
-            bool elite = rng.NextDouble() < eliteChance;
+            bool elite = forceElite || rng.NextDouble() < eliteChance;
             for (int i = 0; i < count && points.Count > 0; i++)
             {
                 int pick = UnityEngine.Random.Range(0, points.Count);
@@ -523,8 +588,6 @@ namespace Shrunk
                 }
                 points.RemoveAt(pick);
             }
-
-            RoomChanged?.Invoke(this);
         }
 
         string PortalPrompt(Vector3 playerPosition)
@@ -660,6 +723,30 @@ namespace Shrunk
             node.cleared = true;
             SetFightLocked(false);
             Vector3 middle = node.type == RoomType.Exit && FloorLayout.IsBossFloor(FloorNumber) ? ArenaCentre : room.Centre;
+
+            var assets = GameAssets.Instance;
+            if (DareFight)
+            {
+                // The prize for asking for it: an item where the bell stood, and a handful of coins.
+                DareFight = false;
+                if (assets != null && assets.items != null)
+                {
+                    var picks = assets.items.RandomCommon(new System.Random(UnityEngine.Random.Range(0, int.MaxValue)), 1);
+                    if (picks.Count > 0) Pickup.Item(picks[0], room.Centre, 0);
+                }
+                for (int i = 0; i < DareCoins; i++)
+                {
+                    Vector2 offset = UnityEngine.Random.insideUnitCircle * 1.4f;
+                    Pickup.Coin(room.Centre + new Vector3(offset.x, 0f, offset.y), 1);
+                }
+                DareWon?.Invoke(this);
+            }
+            else if (node.type == RoomType.Normal && !_dareOffered && FloorNumber >= 2 && !room.Shape.isArenaPart && assets != null
+                     && UnityEngine.Random.value < (dareChanceOverride >= 0f ? dareChanceOverride : dareChance))
+            {
+                _dareOffered = true;
+                Dare = DareBell.Create(room, room.Centre, biome.eliteMaterial != null ? biome.eliteMaterial : assets.coin, assets.coin);
+            }
 
             if (node.type == RoomType.Exit)
             {

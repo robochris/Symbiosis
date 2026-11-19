@@ -23,6 +23,7 @@ namespace Shrunk
             LarvaPod.PodPopped += OnPod;
             RunDirector.Extracted += OnExtracted;
             FinchNotes.Found += OnNote;
+            FloorManager.DareWon += OnDare;
         }
 
         void OnDisable()
@@ -36,6 +37,7 @@ namespace Shrunk
             LarvaPod.PodPopped -= OnPod;
             RunDirector.Extracted -= OnExtracted;
             FinchNotes.Found -= OnNote;
+            FloorManager.DareWon -= OnDare;
             if (_watched != null) _watched.Health.Damaged -= OnHit;
         }
 
@@ -121,6 +123,14 @@ namespace Shrunk
             if (player != null && player.Items != null && player.Items.Collected.Count >= Achievements.ItemsNeeded) Achievements.Unlock(AchievementId.Hoarder);
             var library = GameAssets.Instance != null ? GameAssets.Instance.items : null;
             if (library != null && library.items != null && FilingCabinet.Filed >= library.items.Length) Achievements.Unlock(AchievementId.FiledAway);
+        }
+
+        void OnDare(FloorManager floors)
+        {
+            var meta = SaveSystem.Data.meta;
+            meta.daresWon++;
+            SaveSystem.Save();
+            if (meta.daresWon >= Achievements.DaresNeeded) Achievements.Unlock(AchievementId.AskedForIt);
         }
 
         void OnShell()

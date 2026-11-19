@@ -73,6 +73,13 @@ namespace Shrunk
         // Arriving somewhere new: say where.
         void OnFloorBuilt(FloorManager floors)
         {
+            // A floor with a twist says so. The floor's card does it; with none in the scene, a line of text does.
+            if (floors.Twist != FloorTwist.None)
+            {
+                if (ScreenCards.Instance != null) return;
+                Toast($"{FloorTwists.Name(floors.Twist)}: {FloorTwists.Line(floors.Twist)}", 5.5f);
+                return;
+            }
             if (floors.biome == null || (floors.biome == _shownBiome && floors.FloorInBiome != 1)) return;
             _shownBiome = floors.biome;
             // The arrival card (ScreenCards) says where this is; with none in the scene, a line of text does.
@@ -151,6 +158,7 @@ namespace Shrunk
             {
                 _shownFloor = floors.FloorNumber;
                 floorText.text = floors.biome != null && floors.biome.isBottom ? "The bottom" : "Floor " + _shownFloor;
+                if (floors.Twist != FloorTwist.None) floorText.text += "  ·  " + FloorTwists.Name(floors.Twist);
             }
 
             if (killsText != null && _shownKills != RunState.Kills)

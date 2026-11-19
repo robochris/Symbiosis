@@ -60,6 +60,7 @@ namespace Shrunk
         {
             FloorManager.FloorBuilt += OnFloorBuilt;
             FloorManager.RoomChanged += OnRoomChanged;
+            FloorManager.DareRung += OnDare;
             Enemy.Killed += OnKilled;
             Pickup.ItemCollected += OnItem;
             RunDirector.Extracted += OnExtracted;
@@ -71,6 +72,7 @@ namespace Shrunk
         {
             FloorManager.FloorBuilt -= OnFloorBuilt;
             FloorManager.RoomChanged -= OnRoomChanged;
+            FloorManager.DareRung -= OnDare;
             Enemy.Killed -= OnKilled;
             Pickup.ItemCollected -= OnItem;
             RunDirector.Extracted -= OnExtracted;
@@ -249,6 +251,10 @@ namespace Shrunk
                 bool fresh = floors.FloorNumber == 1 && floors.depth == TimeClock.StartDepth;
                 Say(fresh ? RadioMoment.RunStart : RadioMoment.Resume, null, 3.2f);
             }
+            else if (floors.Twist != FloorTwist.None)
+            {
+                Say(RadioMoment.Twist, null, 2.4f);
+            }
             else if (floors.FloorInBiome == 1)
             {
                 Say(RadioMoment.Biome, floors.biome != null ? floors.biome.id : null, 3.2f);
@@ -283,6 +289,8 @@ namespace Shrunk
         }
 
         void OnDose(FinchBoss finch) => Say(RadioMoment.FinchDose);
+
+        void OnDare(FloorManager floors) => Say(RadioMoment.Dare, null, 0.6f);
 
         void OnItem(ItemDefinition item)
         {

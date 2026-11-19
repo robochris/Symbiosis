@@ -207,6 +207,8 @@ namespace Shrunk
         public const float CrumbChance = 0.05f;
         /// <summary>Tests set this to make the roll certain (1) or impossible (0).</summary>
         public static float? CrumbChanceOverride;
+        /// <summary>Set by the floor when it has a twist: more coins, or more samples, from everything on it.</summary>
+        public static int CoinBonus, SampleBonus;
 
         public static void Drop(Enemy enemy)
         {
@@ -215,10 +217,10 @@ namespace Shrunk
             int points = enemy.Mutations != null ? enemy.Mutations.TotalCost : 0;
 
             if (enemy is BossEnemy boss) boss.DropRewards();
-            int coins = Mathf.Min(8, 1 + enemy.Health.maxHealth / 4);
+            int coins = Mathf.Min(8, 1 + enemy.Health.maxHealth / 4) + (enemy is BossEnemy ? 0 : CoinBonus);
             for (int i = 0; i < coins; i++) Pickup.Coin(origin + Scatter(), 1);
 
-            Pickup.Sample(origin + Scatter(), SamplesPerEnemy + points);
+            Pickup.Sample(origin + Scatter(), SamplesPerEnemy + points + SampleBonus);
 
             // Something to eat: always from a boss, now and then from anything else if the player is hurt.
             var eater = PlayerController.Instance;

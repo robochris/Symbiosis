@@ -94,6 +94,63 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_cupboard_issues_three_weapons_that_shoot_differently()
+        {
+            SaveSystem.Data.meta.runsStarted = 2;
+            SaveSystem.Data.meta.bossesBeaten = 1;
+            Achievements.Unlock(AchievementId.MothersDay);
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var rack = Object.FindAnyObjectByType<WeaponRack>();
+            Assert.IsNotNull(rack, "the lab has no equipment cupboard");
+
+            // The Sprinkler is issued, the Syringe is not: the cupboard goes between the two it has and says what the third takes.
+            Assert.AreEqual(WeaponKind.Pipette, Weapons.Chosen);
+            Assert.AreEqual(WeaponKind.Sprinkler, rack.Next());
+            Assert.AreEqual(WeaponKind.Pipette, rack.Next(), "a weapon was handed out before it was issued");
+            Assert.That(WorldPrompt.For(rack.transform.position), Does.Contain("you carry the Pipette").And.Contain("Ant Queen"));
+            Achievements.Unlock(AchievementId.Regicide);
+            Assert.AreEqual(WeaponKind.Sprinkler, rack.Next());
+            Assert.AreEqual(WeaponKind.Syringe, rack.Next());
+
+            // It is remembered, and carried into a run.
+            SaveSystem.Load();
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            Weapon weapon = player.weapon;
+            Assert.AreEqual(WeaponKind.Syringe, weapon.kind);
+            player.Input.overrideFrame = new InputFrame();
+            yield return new WaitForSeconds(0.5f);
+
+            // The Syringe: one shot a pull, three damage, and it goes through the first thing it hits.
+            int before = Bullet.Live.Count;
+            weapon.Tick(true, Vector3.forward);
+            Assert.AreEqual(before + 1, Bullet.Live.Count);
+            Bullet heavy = null;
+            foreach (var bullet in Object.FindObjectsByType<Bullet>(FindObjectsSortMode.None)) if (bullet.Shot != null && bullet.Shot.damage == weapon.damage * 3) heavy = bullet;
+            Assert.IsNotNull(heavy, "the Syringe does not hit three times as hard");
+            Assert.AreEqual(1, heavy.Shot.pierce);
+            Assert.Greater(weapon.Reach, weapon.range);
+
+            // The Sprinkler: three a pull, slower to fire again, and short.
+            yield return new WaitForSeconds(1f);
+            weapon.kind = WeaponKind.Sprinkler;
+            before = Bullet.Live.Count;
+            weapon.Tick(true, Vector3.forward);
+            Assert.AreEqual(before + 3, Bullet.Live.Count, "the Sprinkler did not throw three");
+            Assert.Less(weapon.Reach, weapon.range * 0.6f);
+            yield return new WaitForSeconds(weapon.fireInterval * 1.3f);
+            weapon.Tick(true, Vector3.forward);
+            Assert.AreEqual(1, weapon.ShotsFired - 1, "the Sprinkler fires as fast as the Pipette");
+            yield return new WaitForSeconds(weapon.fireInterval);
+            weapon.Tick(true, Vector3.forward);
+            Assert.AreEqual(3, weapon.ShotsFired);
+        }
+
+        [UnityTest]
         public IEnumerator The_power_rack_hands_out_only_what_has_been_issued()
         {
             SaveSystem.Data.meta.runsStarted = 2;
@@ -290,7 +347,8 @@ namespace Shrunk.Tests
             stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<FilingCabinet>(), "The filing cabinet"));
             stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<HiddenDoor>(), "door"));
             stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<TimeClock>(), "The time clock"));
-            Assert.AreEqual(System.Enum.GetValues(typeof(UpgradeType)).Length + 9, stations.Count);
+            stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<WeaponRack>(), "The equipment cupboard"));
+            Assert.AreEqual(System.Enum.GetValues(typeof(UpgradeType)).Length + 10, stations.Count);
 
             foreach (var station in stations)
             {

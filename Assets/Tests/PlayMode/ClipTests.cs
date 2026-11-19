@@ -212,6 +212,60 @@ namespace Shrunk.Tests
             End();
         }
 
+        /// <summary>A crowded floor: clear a room, ring the dare left behind, beat the second wave, take the prize.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_dare()
+        {
+            yield return Begin("dare");
+            _floors.twistOverride = FloorTwist.Crowded;
+            _floors.dareChanceOverride = 1f;
+            _floors.BuildFloor(4, 31337);
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+
+            RoomNode fight = NearestFightRoom();
+            Room room = _floors.RoomAt(fight.cell);
+            yield return Stand(2f);
+            yield return Walk(OnNavMesh(room.Centre), 25f, () => _floors.IsLocked);
+            yield return Fight(40f);
+            foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) if (!enemy.Health.IsDead) enemy.Health.Kill();
+            yield return Stand(1f);
+            Assert.IsNotNull(_floors.Dare, "no dare to ring");
+            yield return Walk(_floors.Dare.transform.position, 12f, () => false);
+            for (float t = 0f; t < 3f && !_floors.IsLocked; t += Time.deltaTime)
+            {
+                Steer(Vector3.zero, false);
+                yield return Shoot();
+            }
+            Assert.IsTrue(_floors.DareFight, "the bell was not rung");
+            yield return Fight(45f);
+            foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) if (!enemy.Health.IsDead) enemy.Health.Kill();
+            yield return Stand(1f);
+            yield return Walk(room.Centre, 8f, () => false);
+            yield return Stand(3f);
+            End();
+        }
+
+        /// <summary>A power cut: the same sort of room with the light off.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_powercut()
+        {
+            yield return Begin("powercut");
+            _floors.twistOverride = FloorTwist.PowerCut;
+            _floors.dareChanceOverride = 0f;
+            _floors.BuildFloor(4, 4711);
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+
+            RoomNode fight = NearestFightRoom();
+            Room room = _floors.RoomAt(fight.cell);
+            yield return Stand(2f);
+            yield return Walk(OnNavMesh(room.Centre), 25f, () => _floors.IsLocked);
+            yield return Fight(20f);
+            yield return Stand(1.5f);
+            End();
+        }
+
         /// <summary>The same walk and fight in the Birthday Cake, the second biome.</summary>
         [UnityTest, Explicit]
         public IEnumerator Capture_clip_cake()

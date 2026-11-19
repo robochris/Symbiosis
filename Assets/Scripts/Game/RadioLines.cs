@@ -38,6 +38,10 @@ namespace Shrunk
         Dose,
         /// <summary>Clocking in for overtime at the lab's time clock.</summary>
         Overtime,
+        /// <summary>The player has rung a dare bell.</summary>
+        Dare,
+        /// <summary>Arriving on a floor with a twist.</summary>
+        Twist,
         // From here down is chatter: said only now and then, and not at all on the Less setting.
         LowHealth,
         Item,
@@ -213,6 +217,18 @@ namespace Shrunk
                 "You've clocked in. I didn't think that clock still worked. I didn't think you did, either.",
                 "Overtime. It's paid at time and a half. Half of nothing is still very reasonable.",
                 "Extra hours. I'd have approved them, if anybody had asked, and if I could reach the form.",
+            },
+            [RadioMoment.Dare] = new[]
+            {
+                "You rang a bell with DARE written over it. I'd like that noted somewhere, with the time.",
+                "That bell calls more of them. I don't know who put it there. I suspect it was them.",
+                "A dare. From a bell. And you took it. We'll discuss this when you're back. If.",
+            },
+            [RadioMoment.Twist] = new[]
+            {
+                "Something's different about this floor. I'd say be careful, but you've heard that one.",
+                "This floor has a twist. I didn't order it. Nobody down there takes orders.",
+                "Conditions have changed. The notice is on your screen. I read it. I didn't like it.",
             },
             [RadioMoment.LowHealth] = new[]
             {

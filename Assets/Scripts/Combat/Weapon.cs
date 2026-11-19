@@ -2,6 +2,63 @@ using UnityEngine;
 
 namespace Shrunk
 {
+    /// <summary>The weapons the lab issues. Chosen at the equipment cupboard and kept between runs.</summary>
+    public enum WeaponKind { Pipette, Sprinkler, Syringe }
+
+    /// <summary>What the cupboard says about a weapon, and how it differs from the plain one.</summary>
+    public class WeaponInfo
+    {
+        public WeaponKind kind;
+        public string name;
+        public string does;
+        /// <summary>How to get it, as the player reads it. Empty for the one everybody starts with.</summary>
+        public string needs;
+        /// <summary>Shots per pull of the trigger, fanned out.</summary>
+        public int pellets = 1;
+        public float spread;
+        public float intervalMultiplier = 1f, rangeMultiplier = 1f, speedMultiplier = 1f;
+        public int damageMultiplier = 1, pierce;
+    }
+
+    public static class Weapons
+    {
+        public static readonly WeaponInfo[] All =
+        {
+            new WeaponInfo { kind = WeaponKind.Pipette, name = "Pipette", does = "Standard issue. Quick, straight, and reaches across a room.", needs = "" },
+            new WeaponInfo { kind = WeaponKind.Sprinkler, name = "Sprinkler", does = "Three shots in a fan, slower, and they do not travel far. For getting close, which is discouraged.",
+                needs = "Issued once the Brood Mother has been dealt with.", pellets = 3, spread = 11f, intervalMultiplier = 1.9f, rangeMultiplier = 0.55f },
+            new WeaponInfo { kind = WeaponKind.Syringe, name = "Syringe", does = "One slow, heavy shot: triple damage, goes through the first thing it hits, and reaches further.",
+                needs = "Issued once the Ant Queen has been dealt with.", intervalMultiplier = 2.4f, rangeMultiplier = 1.35f, speedMultiplier = 1.6f, damageMultiplier = 3, pierce = 1 },
+        };
+
+        public static WeaponInfo Info(WeaponKind kind)
+        {
+            foreach (var info in All) if (info.kind == kind) return info;
+            return All[0];
+        }
+
+        public static bool Unlocked(WeaponKind kind)
+        {
+            if (Achievements.EverythingUnlocked) return true;
+            switch (kind)
+            {
+                case WeaponKind.Sprinkler: return Achievements.Has(AchievementId.MothersDay);
+                case WeaponKind.Syringe: return Achievements.Has(AchievementId.Regicide);
+                default: return true;
+            }
+        }
+
+        /// <summary>The weapon picked at the cupboard, or the Pipette if that one is not issued.</summary>
+        public static WeaponKind Chosen
+        {
+            get
+            {
+                var kind = (WeaponKind)Mathf.Clamp(SaveSystem.Data.meta.weapon, 0, All.Length - 1);
+                return Unlocked(kind) ? kind : WeaponKind.Pipette;
+            }
+        }
+    }
+
     /// <summary>Fires pooled bullets while the trigger is held, bending each shot toward the nearest enemy in the aim cone. Items change what each shot carries.</summary>
     public class Weapon : MonoBehaviour
     {
@@ -20,6 +77,12 @@ namespace Shrunk
         [Range(0f, 1f), Tooltip("0 = off, 1 = shots go straight at the target.")]
         public float aimAssistStrength = 1f;
 
+        /// <summary>Which of the lab's weapons this is. The player's is set from the save when the scene opens.</summary>
+        [System.NonSerialized] public WeaponKind kind;
+
+        /// <summary>How far a shot from the weapon being carried goes.</summary>
+        public float Reach => range * Weapons.Info(kind).rangeMultiplier;
+
         public int ShotsFired { get; private set; }
         public int ChargedShots { get; private set; }
         int _shotsSinceCharge;
@@ -34,6 +97,7 @@ namespace Shrunk
             _pool = new Pool<Bullet>(bulletPrefab);
             _items = GetComponent<PlayerItems>();
             _health = GetComponent<Health>();
+            if (_items != null) kind = Weapons.Chosen;
         }
 
         PlayerStats Stats => _items != null ? _items.Stats : PlayerStats.Default;
@@ -45,7 +109,8 @@ namespace Shrunk
             if (!triggerHeld || Time.time < _nextShot || aimDirection.sqrMagnitude < 0.001f) return;
 
             PlayerStats stats = Stats;
-            _nextShot = Time.time + fireInterval * stats.fireIntervalMultiplier;
+            WeaponInfo info = Weapons.Info(kind);
+            _nextShot = Time.time + fireInterval * stats.fireIntervalMultiplier * info.intervalMultiplier;
 
             // Static Sock: every so many shots, one is charged.
             _shotsSinceCharge++;
@@ -56,22 +121,26 @@ namespace Shrunk
                 ChargedShots++;
             }
 
-            var shot = new Shot
-            {
-                damage = (damage + stats.damageBonus) * stats.damageMultiplier * (charged ? 2 : 1),
-                pierce = stats.pierce + (charged ? 2 : 0),
-                split = stats.split,
-                acid = stats.acid,
-                burn = stats.burn,
-                chill = stats.chill,
-                bounce = stats.bounce,
-                crit = Random.value < stats.critChance,
-                owner = _health
-            };
-
             Vector3 origin = muzzle != null ? muzzle.position : transform.position;
             Vector3 direction = ApplyAimAssist(origin, Converge(origin, aimDirection.normalized, aimDistance), aimAssistAngle + stats.aimAssistBonusAngle);
-            _pool.Get().Launch(origin, direction, bulletSpeed, shot, range, Team.Player, _pool);
+            // The Sprinkler throws a fan; the middle shot is the aimed one.
+            for (int i = 0; i < info.pellets; i++)
+            {
+                var shot = new Shot
+                {
+                    damage = (damage + stats.damageBonus) * stats.damageMultiplier * (charged ? 2 : 1) * info.damageMultiplier,
+                    pierce = stats.pierce + (charged ? 2 : 0) + info.pierce,
+                    split = stats.split,
+                    acid = stats.acid,
+                    burn = stats.burn,
+                    chill = stats.chill,
+                    bounce = stats.bounce,
+                    crit = Random.value < stats.critChance,
+                    owner = _health
+                };
+                float turn = (i - (info.pellets - 1) * 0.5f) * info.spread;
+                _pool.Get().Launch(origin, Quaternion.Euler(0f, turn, 0f) * direction, bulletSpeed * info.speedMultiplier, shot, Reach, Team.Player, _pool);
+            }
             ShotsFired++;
             Sfx.Play(SfxId.Shoot, 0.6f);
         }
@@ -81,6 +150,7 @@ namespace Shrunk
         {
             if (aimDirection.sqrMagnitude < 0.001f) return false;
             Vector3 origin = muzzle != null ? muzzle.position : transform.position;
+            float range = Reach;
             if (FindTarget(origin, aimDirection.normalized, aimAssistAngle + Stats.aimAssistBonusAngle, out _) != null) return true;
 
             // Larva pods count too, but only when aimed at squarely: shots are never bent toward them.
@@ -127,7 +197,7 @@ namespace Shrunk
                 Vector3 to = enemy.transform.position - origin;
                 to.y = 0f;
                 float distance = to.magnitude;
-                if (distance > range || distance < 0.01f) continue;
+                if (distance > Reach || distance < 0.01f) continue;
 
                 float angle = Vector3.Angle(direction, to);
                 if (angle < bestAngle)

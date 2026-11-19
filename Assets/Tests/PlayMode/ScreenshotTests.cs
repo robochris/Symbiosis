@@ -612,6 +612,34 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_cupboard()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            SaveSystem.Data.meta.runsStarted = 3;
+            SaveSystem.Data.meta.bossesBeaten = 2;
+            Achievements.Unlock(AchievementId.MothersDay);
+            Achievements.Unlock(AchievementId.Regicide);
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            var rack = Object.FindAnyObjectByType<WeaponRack>();
+            rack.Next();
+            player.Teleport(rack.transform.position + new Vector3(1.6f, 0.05f, 0f));
+            player.transform.rotation = Quaternion.Euler(0f, 270f, 0f);
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.6f);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            yield return Screen(Path.Combine(folder, "cupboard.png"));
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_evidence()
         {
             SaveSystem.Profile = "tests";

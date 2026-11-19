@@ -43,6 +43,7 @@ namespace Shrunk
 
         readonly List<Health> _alreadyHit = new List<Health>();
         Shot _shot;
+        public Shot Shot => _shot;
         Vector3 _direction;
         float _speed;
         float _range;

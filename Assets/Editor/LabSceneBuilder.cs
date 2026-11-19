@@ -207,6 +207,21 @@ namespace Shrunk.EditorTools
             ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", clock.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), paper, false);
             clock.AddComponent<TimeClock>().lamp = clockLamp;
 
+            // ----- the equipment cupboard: which weapon to carry. Free-standing, west of the middle of the room. -----
+            var cupboard = new GameObject("Equipment Cupboard");
+            cupboard.transform.position = new Vector3(-4.2f, 0f, -1.2f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Cupboard", cupboard.transform, new Vector3(-1.9f, 0.6f, 0f), new Vector3(0.7f, 1.2f, 3.2f), benchMat, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", cupboard.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("WeaponMat", new Color(1f, 0.5f, 0.3f)), false);
+            Color[] weaponColours = { new Color(0.45f, 0.95f, 1f), new Color(1f, 0.6f, 0.3f), new Color(0.85f, 0.4f, 1f) };
+            var pieces = new Transform[Weapons.All.Length];
+            for (int i = 0; i < pieces.Length; i++)
+            {
+                var piece = ArenaSceneBuilder.Primitive(PrimitiveType.Cube, Weapons.All[i].name, cupboard.transform,
+                    new Vector3(-1.9f, 1.5f, -1f + i * 1f), new Vector3(0.3f, 0.3f, i == 1 ? 0.45f : 0.8f), ArenaSceneBuilder.Unlit("Weapon" + Weapons.All[i].kind, weaponColours[i % weaponColours.Length]), false);
+                pieces[i] = piece.transform;
+            }
+            cupboard.AddComponent<WeaponRack>().pieces = pieces;
+
             // ----- the hidden door: turns up with the last page, on the wall the radio never mentions -----
             var door = new GameObject("Hidden Door");
             door.transform.position = new Vector3(-8.2f, 0f, 0.8f);
@@ -247,6 +262,7 @@ namespace Shrunk.EditorTools
                 new LabGrowth.Station { name = "the power rack", thing = rack, needs = LabGrowth.Needs.ARunStarted },
                 new LabGrowth.Station { name = "the filing cabinet", thing = cabinet, needs = LabGrowth.Needs.AnItemFound },
                 new LabGrowth.Station { name = "a time clock", thing = clock, needs = LabGrowth.Needs.FinchBeaten },
+                new LabGrowth.Station { name = "the equipment cupboard", thing = cupboard, needs = LabGrowth.Needs.ABossBeaten },
             };
 
             EditorSceneManager.SaveScene(scene, ScenePath);

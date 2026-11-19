@@ -8,7 +8,7 @@ namespace Shrunk
         FirstSteps, MothersDay, Regicide, Untouchable, Omelette, HandsOff,
         Deeper, Hoarder, ShellShock, BubbleWrap, SweetTooth, FullPockets,
         PaperTrail, PerformanceReview, SpringClean, Unplugged, Defrosted,
-        LooseChange, FiledAway, TimeAndAHalf
+        LooseChange, FiledAway, TimeAndAHalf, AskedForIt
     }
 
     /// <summary>One achievement: what to do, and what doing it gives.</summary>
@@ -60,9 +60,10 @@ namespace Shrunk
             new Achievement { id = AchievementId.LooseChange, name = "Loose Change", how = "Put down 10 mimics.", reward = "the certainty that no coin can be trusted" },
             new Achievement { id = AchievementId.FiledAway, name = "Filed Away", how = "Get every kind of item on file in the cabinet.", reward = "the Paper style", style = "Paper" },
             new Achievement { id = AchievementId.TimeAndAHalf, name = "Time and a Half", how = "Extract from a run on overtime.", reward = "nothing extra. Read your contract" },
+            new Achievement { id = AchievementId.AskedForIt, name = "Asked For It", how = "Ring 5 dare bells and live.", reward = "the Brass style", style = "Brass" },
         };
 
-        public const int ShellsNeeded = 20, PodsNeeded = 50, ItemsNeeded = 6, SamplesNeeded = 300, MimicsNeeded = 10;
+        public const int ShellsNeeded = 20, PodsNeeded = 50, ItemsNeeded = 6, SamplesNeeded = 300, MimicsNeeded = 10, DaresNeeded = 5;
 
         public static Achievement Get(AchievementId id)
         {

@@ -15,6 +15,8 @@ namespace Shrunk
         public Room room;
         public Vector3[] spots;
         public int price = FirstPrice;
+        /// <summary>On a closing-down sale floor, what the bell puts out is half price too.</summary>
+        public bool sale;
         public StepPad pad = new StepPad { radius = 0.9f };
 
         public int Rerolls { get; private set; }
@@ -87,7 +89,7 @@ namespace Shrunk
             }
             for (int i = 0; picks != null && i < picks.Count && i < spots.Length; i++)
             {
-                Pickup.Item(picks[i], room.Centre + spots[i], picks[i].price);
+                Pickup.Item(picks[i], room.Centre + spots[i], sale ? FloorTwists.Discount(picks[i].price) : picks[i].price);
             }
 
             Rerolls++;

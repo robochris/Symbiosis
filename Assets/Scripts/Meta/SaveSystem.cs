@@ -29,6 +29,9 @@ namespace Shrunk
         public int shellsShattered;
         public int podsPopped;
         public int mimicsKilled;
+        public int daresWon;
+        /// <summary>The weapon chosen at the equipment cupboard.</summary>
+        public int weapon;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>
         public int labSeen;
         /// <summary>Pages of Dr. Finch's notebook found, by id.</summary>
