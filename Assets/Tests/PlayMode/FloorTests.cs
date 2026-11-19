@@ -672,6 +672,41 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator A_tunnel_bend_locks_fights_and_clears_like_any_room()
+        {
+            // Look through floors until one has a bend, then play it.
+            RoomNode bend = null;
+            for (int seed = 5000; seed < 5060 && bend == null; seed++)
+            {
+                _floors.BuildFloor(4, seed);
+                yield return null;
+                foreach (var node in _floors.Layout.ordered)
+                {
+                    if (_floors.RoomAt(node.cell).Shape.feature == RoomFeature.TunnelBend) { bend = node; break; }
+                }
+            }
+            Assert.IsNotNull(bend, "sixty floors without a single tunnel bend");
+            _player.Health.SetInvulnerable(600f);
+            Room room = _floors.RoomAt(bend.cell);
+            Assert.AreEqual(2, bend.DoorCount);
+
+            // Both doorways lead to each other on foot.
+            var ends = new List<Vector3>();
+            for (int side = 0; side < 4; side++)
+            {
+                if (room.DoorObject(side) == null) continue;
+                Vector2Int d = FloorLayout.Directions[side];
+                ends.Add(OnNavMesh(room.transform.position + new Vector3(d.x, 0f, d.y) * ((RoomShape.Size * 0.5f - 1.5f) * RoomShape.TileSize)));
+            }
+            Assert.AreEqual(2, ends.Count);
+            var path = new NavMeshPath();
+            Assert.IsTrue(NavMesh.CalculatePath(ends[0], ends[1], NavMesh.AllAreas, path) && path.status == NavMeshPathStatus.PathComplete, "no way through the bend\n" + Describe(bend));
+            Assert.Greater(path.corners.Length, 2, "a bend should turn at least one corner\n" + Describe(bend));
+
+            yield return FightRoom(bend);
+        }
+
+        [UnityTest]
         public IEnumerator Nursery_pods_pop_for_loot_and_live_ones_hatch_into_the_fight()
         {
             RoomNode nursery = null;

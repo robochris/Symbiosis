@@ -108,10 +108,11 @@ namespace Shrunk.Tests
                     if (node.type != RoomType.Normal || candidate.Shape.feature != feature) continue;
                     if (room == null || candidate.Shape.cover.Count + candidate.Shape.spots.Count > room.Shape.cover.Count + room.Shape.spots.Count) room = candidate;
                 }
-                Assert.IsNotNull(room, "no " + feature);
+                // Bends only happen where the dice put them, so a floor may have none.
+                if (room == null) continue;
 
                 // Look at whatever makes the room what it is: the nearest dew spot, or the nearest cover.
-                var tiles = feature == RoomFeature.DewRoom ? room.Shape.spots : room.Shape.cover;
+                var tiles = feature == RoomFeature.DewRoom ? room.Shape.spots : room.Shape.cover.Count > 0 ? room.Shape.cover : room.Shape.glows;
                 Vector3 look = room.TileWorld(tiles[0]);
                 foreach (var tile in tiles)
                 {

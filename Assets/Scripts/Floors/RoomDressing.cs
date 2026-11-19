@@ -15,7 +15,9 @@ namespace Shrunk
         /// <summary>Nursery: larva pods. Pop them for coins, or some hatch during the fight.</summary>
         Nursery,
         /// <summary>Dew room: droplets fall on marked spots and slow whoever is under them.</summary>
-        DewRoom
+        DewRoom,
+        /// <summary>Tunnel bend: no big chamber, only a wide tunnel that winds between the two doorways, so ants come round the corner at you.</summary>
+        TunnelBend
     }
 
     /// <summary>Puts the things that stand in a room on its floor: cover on the cover tiles, and whatever its feature adds.</summary>
@@ -29,6 +31,7 @@ namespace Shrunk
                 case RoomFeature.RootHall: return "Root hall";
                 case RoomFeature.Nursery: return "Nursery";
                 case RoomFeature.DewRoom: return "Dew room";
+                case RoomFeature.TunnelBend: return "Tunnel bend";
                 default: return "Open chamber";
             }
         }
@@ -42,6 +45,7 @@ namespace Shrunk
                 case RoomFeature.RootHall: return "Root hall: roots block shots, yours and theirs.";
                 case RoomFeature.Nursery: return "Nursery: pop the pods for coins. The swelling ones hatch.";
                 case RoomFeature.DewRoom: return "Dew room: a drop on a wet patch slows you down.";
+                case RoomFeature.TunnelBend: return "Tunnel bend: they come round the corner at you.";
                 default: return null;
             }
         }

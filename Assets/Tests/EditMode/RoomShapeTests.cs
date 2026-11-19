@@ -134,6 +134,35 @@ namespace Shrunk.Tests
         }
 
         [Test]
+        public void One_through_room_in_four_is_a_tunnel_bend()
+        {
+            int bends = 0, through = 0, bendTiles = 0, plainTiles = 0;
+            string sample = null;
+            for (int seed = 1; seed <= 800; seed++)
+            {
+                // Every pair of doorways: corners and straight-throughs.
+                Doors[] pairs = { Doors.North | Doors.East, Doors.North | Doors.South, Doors.East | Doors.West, Doors.South | Doors.West, Doors.North | Doors.West, Doors.East | Doors.South };
+                var shape = RoomShape.Generate(seed * 977, pairs[seed % pairs.Length], RoomType.Normal, (seed % 11) / 10f);
+                through++;
+                if (shape.feature == RoomFeature.TunnelBend)
+                {
+                    bends++;
+                    bendTiles += shape.interior.Count;
+                    if (sample == null) sample = shape.ToAscii();
+                    Assert.IsEmpty(shape.Validate(), shape.ToAscii());
+                }
+                else plainTiles += shape.interior.Count;
+
+                // Never with one doorway, three or four.
+                Assert.AreNotEqual(RoomFeature.TunnelBend, RoomShape.Generate(seed * 977, Doors.North, RoomType.Normal, 0.5f).feature);
+                Assert.AreNotEqual(RoomFeature.TunnelBend, RoomShape.Generate(seed * 977, Doors.North | Doors.East | Doors.South, RoomType.Normal, 0.5f).feature);
+            }
+            Debug.Log($"[Shrunk] {bends} of {through} two-door fight rooms are tunnel bends; {(float)bendTiles / bends:F0} open tiles each against {(float)plainTiles / (through - bends):F0}\n{sample}");
+            Assert.That(bends, Is.InRange(through * 0.18f, through * 0.32f));
+            Assert.Less((float)bendTiles / bends, (float)plainTiles / (through - bends) * 0.8f, "a bend should be tighter than a chamber");
+        }
+
+        [Test]
         public void A_feature_never_changes_the_shape_of_a_room()
         {
             for (int seed = 1; seed <= 60; seed++)

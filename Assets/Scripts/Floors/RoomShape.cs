@@ -40,6 +40,8 @@ namespace Shrunk
         public readonly List<Vector2Int> spots = new List<Vector2Int>();
         /// <summary>Tiles against a wall where a clump of glowing mushrooms grows: the room's lamps. Still free floor.</summary>
         public readonly List<Vector2Int> glows = new List<Vector2Int>();
+        /// <summary>Out of 100: how many fight rooms with exactly two doorways are tunnel bends.</summary>
+        public const int BendChance = 25;
         /// <summary>For tests and trying things out: every fight room gets this feature.</summary>
         public static RoomFeature? ForceFeature;
 
@@ -57,6 +59,16 @@ namespace Shrunk
         }
 
         bool HasDoor(int side) => (doors & (Doors)(1 << side)) != 0;
+
+        public int DoorCount
+        {
+            get
+            {
+                int count = 0;
+                for (int side = 0; side < 4; side++) if (HasDoor(side)) count++;
+                return count;
+            }
+        }
 
         void OpenDoorway(int side)
         {
@@ -94,6 +106,12 @@ namespace Shrunk
             var shape = new RoomShape { seed = seed, doors = doors, type = type, isArena = arena };
             bool fight = (type == RoomType.Normal || type == RoomType.Exit) && !arena;
 
+            // One through-room in four is a tunnel bend: a small chamber tucked as far from both doorways as it will
+            // go, so the tunnels to it are long and turn a corner. Decided on its own dice, before anything is carved.
+            int doorCount = 0;
+            for (int side = 0; side < 4; side++) if (shape.HasDoor(side)) doorCount++;
+            bool bend = fight && type == RoomType.Normal && doorCount == 2 && new System.Random(seed ^ 0x2545f491).Next(100) < BendChance;
+
             if (arena)
             {
                 for (int x = Min; x <= Max; x++)
@@ -111,7 +129,7 @@ namespace Shrunk
 
             // 1. The main chamber: an oval or a box somewhere inside the room.
             // Half-widths in tiles: a fight chamber is 9 to 15 tiles across (18 to 30 m), the quiet rooms 7.
-            int half = fight ? Mathf.Clamp(Mathf.RoundToInt(Mathf.Lerp(4f, 7f, size01)), 4, 7) : 3;
+            int half = bend ? 2 : fight ? Mathf.Clamp(Mathf.RoundToInt(Mathf.Lerp(4f, 7f, size01)), 4, 7) : 3;
             int halfX = half, halfY = half;
             if (fight && half > 4)
             {
@@ -123,6 +141,16 @@ namespace Shrunk
 
             int cx = rng.Next(Min + halfX, Max - halfX + 1);
             int cy = rng.Next(Min + halfY, Max - halfY + 1);
+            if (bend)
+            {
+                // Away from each doorway; with doorways facing each other, off to one side or the other.
+                bool north = shape.HasDoor(0), east = shape.HasDoor(1), south = shape.HasDoor(2), west = shape.HasDoor(3);
+                int low = Min + half, high = Max - half;
+                cy = north && south ? cy : north ? low : south ? high : (rng.Next(2) == 0 ? low : high);
+                cx = east && west ? cx : east ? low : west ? high : (rng.Next(2) == 0 ? low : high);
+                if (north && south) cx = rng.Next(2) == 0 ? low : high;
+                if (east && west) cy = rng.Next(2) == 0 ? low : high;
+            }
             shape.centre = new Vector2Int(cx, cy);
             bool box = rng.Next(4) == 0;
 
@@ -139,7 +167,7 @@ namespace Shrunk
                     shape.open[x, y] = true;
 
             // 2. Side pockets: a few round bulges that overlap the chamber, for an uneven outline.
-            if (fight)
+            if (fight && !bend)
             {
                 int pockets = rng.Next(0, size01 < 0.4f ? 3 : 4);
                 for (int i = 0; i < pockets; i++)
@@ -171,7 +199,7 @@ namespace Shrunk
             shape.FillUnreachable();
 
             // 4. Pillars: lumps of earth left standing as cover, as long as they don't cut anything off.
-            if (fight)
+            if (fight && !bend)
             {
                 int tries = rng.Next(0, 4 + half * 2);
                 for (int i = 0; i < tries; i++)
@@ -206,6 +234,8 @@ namespace Shrunk
                 int roll = dice.Next(100);
                 shape.feature = ForceFeature ?? (roll < 40 ? RoomFeature.Open : roll < 60 ? RoomFeature.FoodStore
                     : roll < 75 ? RoomFeature.RootHall : roll < 90 ? RoomFeature.Nursery : RoomFeature.DewRoom);
+                // A bend is a bend whatever else was rolled or asked for: the shape must never depend on the feature.
+                if (bend || shape.feature == RoomFeature.TunnelBend) shape.feature = bend ? RoomFeature.TunnelBend : RoomFeature.Open;
 
                 if (shape.feature == RoomFeature.DewRoom)
                 {
@@ -445,6 +475,8 @@ namespace Shrunk
                 if (!free.Contains(tile)) problems.Add($"dew spot at {tile.x},{tile.y} is not on free floor");
             }
             if (feature == RoomFeature.DewRoom && spots.Count == 0) problems.Add("dew room with nowhere for the dew to fall");
+            if (feature == RoomFeature.TunnelBend && (interior.Count > 110 || DoorCount != 2))
+                problems.Add($"a tunnel bend with {interior.Count} open tiles and {DoorCount} doorways");
             if ((feature == RoomFeature.FoodStore || feature == RoomFeature.RootHall || feature == RoomFeature.Nursery) && cover.Count == 0)
                 problems.Add($"{feature} with no cover tiles to build it from");
 
