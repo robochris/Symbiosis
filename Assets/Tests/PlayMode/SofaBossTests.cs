@@ -150,6 +150,90 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Static_enemies_shock_whatever_stands_close()
+        {
+            MutationDefinition charge = _floors.biome.Mutation(MutationType.Static);
+            Assert.IsNotNull(charge, "the sofa has no Static mutation");
+
+            _floors.BuildFloor(4);
+            yield return null;
+            _player.Health.SetInvulnerable(6000f);
+            foreach (var node in _floors.Layout.ordered)
+            {
+                if (node.type != RoomType.Normal) continue;
+                _player.Teleport(_floors.RoomAt(node.cell).Centre + new Vector3(RoomShape.TileSize, 0.05f, 0f));
+                break;
+            }
+            yield return WaitUntil(() => _floors.IsLocked && _floors.LiveEnemies.Count > 0, 3f, "a fight");
+            Enemy enemy = _floors.LiveEnemies[0];
+            enemy.frozen = true;
+            foreach (var other in new System.Collections.Generic.List<Enemy>(_floors.LiveEnemies)) if (other != enemy) other.Vanish();
+            enemy.Mutations.Apply(new System.Collections.Generic.List<MutationDefinition> { charge });
+            Assert.AreEqual(0, enemy.Mutations.Discharges, "it went off the moment it arrived");
+
+            yield return WaitUntil(() => enemy.Mutations.Discharges > 0, 6f, "a discharge");
+            bool disc = false;
+            foreach (var hazard in GroundHazard.All) disc |= hazard.isBlast && (hazard.transform.position - enemy.transform.position).magnitude < 1f;
+            Assert.IsTrue(disc, "a discharge with no warning disc");
+
+            // Standing in it when it goes off hurts.
+            _player.Teleport(enemy.transform.position + new Vector3(1.5f, 0.05f, 0f));
+            _player.Health.ClearInvulnerability();
+            int health = _player.Health.Current;
+            yield return WaitUntil(() => enemy.Mutations.Discharges > 1, 8f, "the next discharge");
+            yield return new WaitForSeconds(EnemyMutations.StaticFuse + 0.3f);
+            Assert.Less(_player.Health.Current, health, "standing next to a Static enemy did not hurt");
+        }
+
+        [UnityTest]
+        public IEnumerator The_Trick_Candle_drips_wax_lights_sparklers_and_spins()
+        {
+            Assert.IsTrue(_floors.SetBiome("cake"));
+            yield return MeetBoss(10, new Vector3(0f, 0f, -10f));
+            var candle = (TrickCandle)_floors.Boss;
+            yield return null;
+            Assert.AreEqual(candle.sparklerCount, EggEnemy.All.Count);
+
+            // Wax: a warning first, then a pool that stays.
+            yield return WaitUntil(() => candle.WaxDropped > 0, 8f, "wax");
+            bool warned = false;
+            foreach (var hazard in GroundHazard.All) warned |= hazard.isBlast;
+            Assert.IsTrue(warned, "wax with no warning");
+            yield return new WaitForSeconds(candle.waxFuse + 0.3f);
+            bool pool = false;
+            foreach (var hazard in GroundHazard.All) pool |= !hazard.isBlast && hazard.hurts == Team.Player;
+            Assert.IsTrue(pool, "the wax left no pool");
+
+            // It does not charge about: it slides.
+            Vector3 was = candle.transform.position;
+            yield return new WaitForSeconds(2f);
+            Assert.Less((candle.transform.position - was).magnitude, 2f * candle.slideSpeed * 1.5f);
+
+            // The boxes are lit one at a time.
+            yield return WaitUntil(() => candle.SparklersLit > 0, 30f, "a sparkler box to be lit");
+            Assert.AreEqual(candle.sparklerCount - 1, EggEnemy.All.Count);
+
+            // Below 60%: the spiral.
+            Assert.AreEqual(0, candle.Spirals);
+            candle.Health.TakeDamage(candle.Health.Current - Mathf.FloorToInt(candle.Health.maxHealth * 0.55f), Vector3.forward);
+            yield return WaitUntil(() => candle.Current == TrickCandle.State.Spiral, 10f, "the spiral");
+            Assert.AreEqual(2, candle.Phase);
+            yield return WaitUntil(() => candle.Current == TrickCandle.State.Burn, 10f, "the spiral to end");
+
+            // The trick still works, and it is quicker afterwards.
+            candle.Health.TakeDamage(candle.Health.Current - Mathf.FloorToInt(candle.Health.maxHealth * 0.3f), Vector3.forward);
+            yield return WaitUntil(() => candle.IsOut, 3f, "it to go out");
+            yield return WaitUntil(() => !candle.IsOut, 10f, "it to relight");
+            Assert.AreEqual(3, candle.Phase);
+            Assert.Greater(candle.SpeedMultiplier, 1.2f);
+
+            candle.Health.Kill();
+            yield return WaitUntil(() => _floors.ExtractPortal != null, 8f, "the portals");
+            Assert.IsTrue(Achievements.Has(AchievementId.SweetTooth));
+            Assert.IsFalse(Achievements.Has(AchievementId.Regicide), "the candle was mistaken for the Ant Queen");
+        }
+
+        [UnityTest]
         public IEnumerator The_Robot_Vacuum_sprays_sucks_and_has_to_empty_its_bin()
         {
             yield return MeetBoss(10, new Vector3(0f, 0f, -9f));

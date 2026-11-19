@@ -27,6 +27,10 @@ namespace Shrunk
 
         public IReadOnlyList<MutationDefinition> Active => _active;
         public const float SugarRushSpeed = 1.8f;
+        public const float StaticInterval = 4f, StaticRadius = 2.7f, StaticFuse = 0.9f;
+        /// <summary>How many times a Static enemy has gone off.</summary>
+        public int Discharges { get; private set; }
+        float _nextDischarge;
         /// <summary>A hardened shell has just been shot to bits.</summary>
         public static event System.Action ShellShattered;
         /// <summary>True once a Sugar Rush ant has dropped to half health and sped up.</summary>
@@ -125,6 +129,9 @@ namespace Shrunk
             _active.Clear();
             _summoned = false;
             _rushing = false;
+            Discharges = 0;
+            // Not the moment it walks in: the first one comes after a couple of seconds.
+            _nextDischarge = Time.time + 2f;
             ShellLeft = 0;
             _shellPlate = null;
         }
@@ -175,6 +182,12 @@ namespace Shrunk
                     case MutationType.Sticky:
                         BodyTell(PrimitiveType.Sphere, "Sticky glob", mutation, new Vector3(-0.25f, 0.22f, -0.3f), new Vector3(0.45f, 0.3f, 0.45f));
                         BodyTell(PrimitiveType.Sphere, "Sticky glob", mutation, new Vector3(0.22f, 0.18f, 0.25f), new Vector3(0.38f, 0.26f, 0.38f));
+                        break;
+                    case MutationType.Static:
+                        // Sparks that never stop.
+                        Moving(Motion.Glow, BodyTell(PrimitiveType.Sphere, "Static spark", mutation, new Vector3(0.3f, 1.1f, 0.1f), Vector3.one * 0.14f), 0f);
+                        Moving(Motion.Glow, BodyTell(PrimitiveType.Sphere, "Static spark", mutation, new Vector3(-0.28f, 0.9f, -0.25f), Vector3.one * 0.12f), 0.4f);
+                        Moving(Motion.Glow, BodyTell(PrimitiveType.Sphere, "Static spark", mutation, new Vector3(0f, 1.25f, -0.1f), Vector3.one * 0.1f), 0.8f);
                         break;
                     case MutationType.SugarRush:
                         // Sparks that sit quietly until the rush starts, then never stop.
@@ -318,6 +331,15 @@ namespace Shrunk
             {
                 _nextTrail = Time.time + 0.4f;
                 PheromoneTrail.Drop(transform.position, _enemy, pheromone.effectMaterial);
+            }
+
+            // Static: every few seconds a disc fills in round it and then goes off. Keep your distance, or time it.
+            var charge = Find(MutationType.Static);
+            if (charge != null && Time.time >= _nextDischarge)
+            {
+                _nextDischarge = Time.time + StaticInterval;
+                Discharges++;
+                GroundHazard.SpawnBlast(transform.position, StaticRadius, StaticFuse, charge.effectMaterial);
             }
 
             Animate();

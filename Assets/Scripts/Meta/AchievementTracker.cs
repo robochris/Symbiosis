@@ -79,7 +79,6 @@ namespace Shrunk
 
         void OnKilled(Enemy enemy)
         {
-            // The candle is a queen underneath, so it is asked about first.
             if (enemy is FinchBoss)
             {
                 Achievements.Unlock(AchievementId.PerformanceReview);

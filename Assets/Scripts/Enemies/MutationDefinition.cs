@@ -16,7 +16,9 @@ namespace Shrunk
         /// <summary>Birthday Cake: leaves a sticky patch on death that slows the player.</summary>
         Sticky,
         /// <summary>Birthday Cake: below half health it moves and attacks much faster.</summary>
-        SugarRush
+        SugarRush,
+        /// <summary>Under the Sofa: every few seconds it discharges, shocking anything standing close.</summary>
+        Static
     }
 
     /// <summary>A mutation as data: what it is, what it costs from the point budget, and the colour players read it by.</summary>

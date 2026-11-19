@@ -179,7 +179,7 @@ namespace Shrunk.EditorTools
 
             biome.displayName = "Under the Sofa";
             biome.id = "sofa";
-            biome.mutationTheme = "armour, sticky lint";
+            biome.mutationTheme = "static, sticky lint";
             biome.isBottom = false;
             biome.floorMaterial = carpet;
             biome.wallMaterial = underside;
@@ -231,6 +231,7 @@ namespace Shrunk.EditorTools
                 ants.Mutation(MutationType.ExplodesOnDeath), ants.Mutation(MutationType.SwarmCall), ants.Mutation(MutationType.HardenedShell),
             };
             if (sticky != null) mutations.Add(sticky);
+            mutations.Add(Mutation(MutationType.Static, "Static", 2, "Every few seconds it shocks anything standing close.", new Color(1f, 0.95f, 0.4f)));
             biome.mutations = mutations.ToArray();
 
             biome.startProp = ants.startProp;

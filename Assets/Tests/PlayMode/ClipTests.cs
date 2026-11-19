@@ -290,6 +290,17 @@ namespace Shrunk.Tests
             yield return BossClip(35f);
         }
 
+        /// <summary>The Birthday Cake's boss, the Trick Candle.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_candle()
+        {
+            yield return Begin("candle");
+            Assert.IsTrue(_floors.SetBiome("cake"));
+            _floors.BuildFloor(10, 2027);
+            yield return null;
+            yield return BossClip(50f);
+        }
+
         /// <summary>The Brood Mother on floor 5, for the boss view.</summary>
         [UnityTest, Explicit]
         public IEnumerator Capture_clip_boss()

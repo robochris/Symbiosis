@@ -6,8 +6,7 @@ namespace Shrunk.EditorTools
     /// <summary>
     /// The second biome, as a test of how different a biome can be made from the same parts: the Birthday Cake.
     /// Open to the sky, sponge floors and frosting walls, and candy for enemies. Every enemy reuses one of the four
-    /// base behaviours with a new body. The Jelly Mother has a fight of her own; the Trick Candle fights like the
-    /// Ant Queen with one trick added (it goes out, and relights).
+    /// base behaviours with a new body. Its two bosses, the Jelly Mother and the Trick Candle, have fights of their own.
     /// </summary>
     public static partial class ContentBuilder
     {
@@ -139,7 +138,8 @@ namespace Shrunk.EditorTools
             mother.knockbackOnHit = 0f;
             var motherPrefab = (BossEnemy)SaveEnemy(mother);
 
-            // The Trick Candle (floor 10): spits hot wax, calls jawbreakers, and charges leaving wax behind.
+            // The Trick Candle (floor 10): its own fight. Drips wax where you are going, lights its sparkler boxes,
+            // spins out a spiral of wax, and once goes out and relights.
             var candle = Creature<TrickCandle>("TrickCandle", 1.85f, 4f, 300, 3.4f, 6.2f, out var candleModel);
             Decor(PrimitiveType.Cylinder, "Plate", candleModel, new Vector3(0f, 0.12f, 0f), new Vector3(4f, 0.12f, 4f), white);
             Decor(PrimitiveType.Cylinder, "Candle", candleModel, new Vector3(0f, 2.2f, 0f), new Vector3(2.4f, 2f, 2.4f), wax);
@@ -152,17 +152,12 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Sphere, "Eye L", candleModel, new Vector3(-0.45f, 3f, 1.12f), Vector3.one * 0.36f, dark);
             Decor(PrimitiveType.Sphere, "Eye R", candleModel, new Vector3(0.45f, 3f, 1.12f), Vector3.one * 0.36f, dark);
             Decor(PrimitiveType.Cube, "Mouth", candleModel, new Vector3(0f, 2.4f, 1.18f), new Vector3(0.8f, 0.14f, 0.1f), dark);
-            var candleMuzzle = new GameObject("Muzzle").transform;
-            candleMuzzle.SetParent(candle.transform, false);
-            candleMuzzle.localPosition = new Vector3(0f, 0.8f, 2.4f);
             candle.displayName = "The Trick Candle";
             candle.subtitle = "Make a wish. It won't help.";
-            candle.muzzle = candleMuzzle;
             candle.projectilePrefab = waxPrefab;
-            candle.eggPrefab = sparklerPrefab;
-            candle.soldierPrefab = breakerPrefab;
+            candle.sparklerPrefab = sparklerPrefab;
             candle.telegraphMaterial = telegraph;
-            candle.acidMaterial = hotWax;
+            candle.waxMaterial = hotWax;
             candle.sampleReward = 30;
             candle.knockbackOnHit = 0f;
             var candlePrefab = (BossEnemy)SaveEnemy(candle);
