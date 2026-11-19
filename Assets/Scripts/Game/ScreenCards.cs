@@ -94,10 +94,27 @@ namespace Shrunk
             "Mind the springs. They are older than you and less forgiving.",
         };
 
+        /// <summary>The fridge's own lines.</summary>
+        public static readonly string[] FridgeLines =
+        {
+            "Tip: frost on the floor slows walking. A dodge goes straight over it.",
+            "Tip: a line on the floor in front of the machine is where the row comes up.",
+            "Tip: nothing gets into the tub while the lid is on. Wait for the lid.",
+            "Tip: the box of baking soda keeps the others fresh. Open it first.",
+            "Tip: a yogurt pot throws at where you will be. Be late.",
+            "Tip: frozen peas only go straight. So do you, if you are not careful.",
+            "Reminder: the light is only on because you are in here.",
+            "Reminder: nothing in this fridge is as old as the thing at the back.",
+            "Fact: the use-by date is a suggestion. The thing in the tub took it as a dare.",
+            "Fact: somebody opens the door every hour, looks, and shuts it again.",
+            "It gets colder further back. So does everything else.",
+            "Mind the shelf edge. It is a long way down to the salad drawer.",
+        };
+
         /// <summary>The line under "Floor N" for a biome: its own if it has any, otherwise the ants'. The floor's seed picks it.</summary>
         public static string TipFor(string biomeId, int seed)
         {
-            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : FloorLines;
+            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : biomeId == "fridge" ? FridgeLines : FloorLines;
             return lines[Mathf.Abs(seed) % lines.Length];
         }
 

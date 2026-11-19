@@ -266,6 +266,19 @@ namespace Shrunk
             {
                 "Mostly hair and regret. Go round the back. I didn't tell you that.",
             },
+            ["fridge"] = new[]
+            {
+                "The fridge. Somebody keeps opening the door to look, then closing it. That is not weather. That is a person.",
+                "Cold in here. Things keep, down here. Not well, but for a very long time.",
+            },
+            ["leftovers"] = new[]
+            {
+                "The Leftovers. I don't know what it was. It doesn't either, and it is angry about that.",
+            },
+            ["ice maker"] = new[]
+            {
+                "The Ice Maker. It was fitted for convenience. Nobody has asked whose.",
+            },
             ["queen"] = new[]
             {
                 "Her Majesty. We had an arrangement once. Don't mention my name.",

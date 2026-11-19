@@ -23,6 +23,8 @@ namespace Shrunk
             new Specimen { key = "TrickCandle", title = "The Trick Candle", label = "It keeps relighting. The lid is on tight and I check it more often than I would like." },
             new Specimen { key = "GrandmotherDust", title = "Grandmother Dust", label = "Older than the sofa. Do not open. She gets everywhere." },
             new Specimen { key = "RobotVacuum", title = "The Robot Vacuum", label = "The battery is in a separate jar. I am not an amateur." },
+            new Specimen { key = "Leftovers", title = "The Leftovers", label = "Do not open. I mean it more for this one than for the others." },
+            new Specimen { key = "IceMaker", title = "The Ice Maker", label = "Unplugged. It is still cold to the touch, which I put down to spite." },
             new Specimen { key = "DrFinch", title = "Dr. Finch", label = "An empty jar. I am in it. Please do not tap the glass." },
         };
 

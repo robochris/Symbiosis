@@ -322,6 +322,28 @@ namespace Shrunk.Tests
             End();
         }
 
+        /// <summary>The Fridge's mini boss, the Leftovers.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_leftovers()
+        {
+            yield return Begin("leftovers");
+            Assert.IsTrue(_floors.SetBiome("fridge"));
+            _floors.BuildFloor(5, 2030);
+            yield return null;
+            yield return BossClip(32f);
+        }
+
+        /// <summary>The Fridge's boss, the Ice Maker.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_icemaker()
+        {
+            yield return Begin("icemaker");
+            Assert.IsTrue(_floors.SetBiome("fridge"));
+            _floors.BuildFloor(10, 2031);
+            yield return null;
+            yield return BossClip(45f);
+        }
+
         /// <summary>The Brood Mother on floor 5, for the boss view.</summary>
         [UnityTest, Explicit]
         public IEnumerator Capture_clip_boss()

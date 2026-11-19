@@ -150,6 +150,86 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_Leftovers_can_only_be_hurt_while_the_lid_is_up()
+        {
+            Assert.IsTrue(_floors.SetBiome("fridge"));
+            yield return MeetBoss(5, new Vector3(0f, 0f, -10f));
+            var tub = (Leftovers)_floors.Boss;
+            yield return null;
+            yield return null;
+
+            // Lid on: nothing gets in, from any side.
+            Assert.IsFalse(tub.IsOpen);
+            int full = tub.Health.Current;
+            tub.Health.TakeDamage(5, Vector3.forward);
+            tub.Health.TakeDamage(5, Vector3.back);
+            Assert.AreEqual(full, tub.Health.Current, "hurt with the lid on");
+            Assert.AreEqual(2, tub.ShotsBlocked);
+
+            // The lid rattles, then comes up: it can be hurt, and things come out.
+            yield return WaitUntil(() => tub.Current == Leftovers.State.Rattle, 12f, "the lid to rattle");
+            yield return WaitUntil(() => tub.IsOpen, 4f, "the lid to come up");
+            Assert.AreEqual(1, tub.Openings);
+            Assert.Greater(tub.Released, 0, "nothing came out");
+            Assert.Greater(_floors.LiveEnemies.Count, 1);
+            tub.Health.TakeDamage(5, Vector3.forward);
+            Assert.AreEqual(full - 5, tub.Health.Current, "not hurt with the lid up");
+
+            // And it goes back on.
+            yield return WaitUntil(() => !tub.IsOpen, 8f, "the lid to go back on");
+            tub.Health.TakeDamage(5, Vector3.forward);
+            Assert.AreEqual(full - 5, tub.Health.Current);
+
+            // Below half: open for less time.
+            yield return WaitUntil(() => tub.IsOpen, 15f, "the lid to come up again");
+            tub.Health.TakeDamage(tub.Health.Current - tub.Health.maxHealth / 2 + 3, Vector3.forward);
+            yield return WaitUntil(() => !tub.IsOpen, 8f, "the lid to go back on");
+            Assert.AreEqual(2, tub.Phase);
+
+            tub.Health.Kill();
+            yield return WaitUntil(() => !_floors.IsLocked, 6f, "the arena to open");
+        }
+
+        [UnityTest]
+        public IEnumerator The_Ice_Maker_lobs_cubes_raises_rows_and_freezes()
+        {
+            Assert.IsTrue(_floors.SetBiome("fridge"));
+            yield return MeetBoss(10, new Vector3(0f, 0f, -10f));
+            var maker = (IceMaker)_floors.Boss;
+
+            // A volley: warning discs, and frost left where the cubes land.
+            yield return WaitUntil(() => maker.Volleys > 0, 10f, "a volley");
+            int discs = 0;
+            foreach (var hazard in GroundHazard.All) if (hazard.isBlast) discs++;
+            Assert.GreaterOrEqual(discs, maker.cubes, "fewer warnings than cubes");
+            yield return new WaitForSeconds(maker.cubeFuse + 0.3f);
+            bool frost = false;
+            foreach (var hazard in GroundHazard.All) frost |= hazard.slowTo > 0f;
+            Assert.IsTrue(frost, "the cubes left no frost");
+
+            // A row: a line on the floor first, then a string of discs out from the machine.
+            yield return WaitUntil(() => maker.Current == IceMaker.State.RowWindup, 12f, "a row to wind up");
+            yield return null;
+            Assert.IsTrue(maker.ChargeLineShowing, "a row with no line to warn of it");
+            yield return WaitUntil(() => maker.Rows > 0, 4f, "the row");
+            Assert.AreEqual(0, maker.Freezes, "a deep freeze before half health");
+
+            // Below half: the deep freeze, and peas with it.
+            maker.Health.TakeDamage(maker.Health.Current - Mathf.FloorToInt(maker.Health.maxHealth * 0.45f), Vector3.forward);
+            yield return WaitUntil(() => maker.Freezes > 0, 30f, "a deep freeze");
+            Assert.AreEqual(2, maker.Phase);
+            bool big = false;
+            foreach (var hazard in GroundHazard.All) big |= hazard.isBlast && hazard.radius >= maker.freezeRadius - 0.1f;
+            Assert.IsTrue(big, "a deep freeze with no warning");
+            yield return WaitUntil(() => _floors.LiveEnemies.Count > 1, 8f, "the peas");
+
+            maker.Health.Kill();
+            yield return WaitUntil(() => _floors.ExtractPortal != null, 8f, "the portals");
+            Assert.IsTrue(Achievements.Has(AchievementId.Defrosted));
+            Assert.IsTrue(Specimens.Has("IceMaker"));
+        }
+
+        [UnityTest]
         public IEnumerator Static_enemies_shock_whatever_stands_close()
         {
             MutationDefinition charge = _floors.biome.Mutation(MutationType.Static);

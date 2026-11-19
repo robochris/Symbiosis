@@ -37,7 +37,7 @@ namespace Shrunk.Tests
         public void Each_biome_has_its_own_lines_between_floors()
         {
             var seen = new HashSet<string>();
-            foreach (var lines in new[] { ScreenCards.FloorLines, ScreenCards.CakeLines, ScreenCards.SofaLines })
+            foreach (var lines in new[] { ScreenCards.FloorLines, ScreenCards.CakeLines, ScreenCards.SofaLines, ScreenCards.FridgeLines })
             {
                 Assert.GreaterOrEqual(lines.Length, 10);
                 foreach (string line in lines)
@@ -48,6 +48,7 @@ namespace Shrunk.Tests
             }
             CollectionAssert.Contains(ScreenCards.CakeLines, ScreenCards.TipFor("cake", 12345));
             CollectionAssert.Contains(ScreenCards.SofaLines, ScreenCards.TipFor("sofa", -7));
+            CollectionAssert.Contains(ScreenCards.FridgeLines, ScreenCards.TipFor("fridge", 99));
             CollectionAssert.Contains(ScreenCards.FloorLines, ScreenCards.TipFor("ants", 3));
             CollectionAssert.Contains(ScreenCards.FloorLines, ScreenCards.TipFor("bottom", 3));
         }
@@ -234,7 +235,7 @@ namespace Shrunk.Tests
             Assert.IsTrue(shelf.gameObject.activeInHierarchy);
             Assert.IsTrue(shelf.jars[0].activeSelf && !shelf.jars[1].activeSelf && shelf.jars[shelf.jars.Length - 1].activeSelf);
             Vector3 at = shelf.transform.position + Vector3.up * 0.05f;
-            Assert.That(WorldPrompt.For(at), Does.Contain("2 of 7 jars").And.Contain("Dr. Finch").And.Contain("do not tap the glass"));
+            Assert.That(WorldPrompt.For(at), Does.Contain("2 of " + Specimens.All.Length + " jars").And.Contain("Dr. Finch").And.Contain("do not tap the glass"));
             Assert.IsNull(WorldPrompt.For(at + Vector3.right * 9f + Vector3.forward * 3f));
             Assert.That(WorldPrompt.For(at), Does.Contain("Brood Mother"));
         }

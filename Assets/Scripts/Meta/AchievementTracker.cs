@@ -83,6 +83,10 @@ namespace Shrunk
             {
                 Achievements.Unlock(AchievementId.PerformanceReview);
             }
+            else if (enemy is IceMaker)
+            {
+                Achievements.Unlock(AchievementId.Defrosted);
+            }
             else if (enemy is RobotVacuum vacuum)
             {
                 Achievements.Unlock(AchievementId.SpringClean);

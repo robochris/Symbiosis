@@ -108,6 +108,28 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_fridge_opens_with_the_vacuum()
+        {
+            Assert.IsFalse(Achievements.BiomeUnlocked("fridge"), "the fridge is open to a new player");
+            Achievements.Unlock(AchievementId.SpringClean);
+            Assert.IsTrue(Achievements.BiomeUnlocked("fridge"));
+            Assert.IsTrue(_floors.SetBiome("fridge"));
+            _floors.BuildFloor(4);
+            yield return null;
+            Assert.AreEqual("The Fridge", _floors.biome.displayName);
+            foreach (var node in _floors.Layout.ordered)
+            {
+                if (node.type != RoomType.Normal) continue;
+                _player.Teleport(_floors.RoomAt(node.cell).Centre + new Vector3(RoomShape.TileSize, 0.05f, 0f));
+                yield return WaitUntil(() => _floors.IsLocked, 2f, "a room to lock");
+                break;
+            }
+            Assert.Greater(_floors.LiveEnemies.Count, 0);
+            var names = new HashSet<string> { "MouldyBerry", "FrozenPea", "KetchupPacket", "FruitFly", "YogurtPot", "BakingSoda" };
+            foreach (var enemy in _floors.LiveEnemies) Assert.IsTrue(names.Contains(enemy.name.Replace("(Clone)", "")), enemy.name + " does not live in the fridge");
+        }
+
+        [UnityTest]
         public IEnumerator Every_biome_is_complete()
         {
             var ids = new HashSet<string>();

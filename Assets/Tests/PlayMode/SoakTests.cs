@@ -285,6 +285,16 @@ namespace Shrunk.Tests
             yield return MeasureBoss(10, 903, "Dr. Finch");
         }
 
+        /// <summary>Not a test: the fridge's two.</summary>
+        [UnityTest, Explicit, Timeout(3600000)]
+        public IEnumerator Measure_fridge_bosses()
+        {
+            Achievements.EverythingUnlocked = true;
+            Assert.IsTrue(_floors.SetBiome("fridge"));
+            yield return MeasureBoss(5, 504, "The Leftovers");
+            yield return MeasureBoss(10, 904, "The Ice Maker");
+        }
+
         /// <summary>Not a test: the three that needed taming, again.</summary>
         [UnityTest, Explicit, Timeout(3600000)]
         public IEnumerator Measure_tuned_bosses()
