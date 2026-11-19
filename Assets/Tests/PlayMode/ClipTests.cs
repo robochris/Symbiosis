@@ -30,11 +30,14 @@ namespace Shrunk.Tests
         int _frame;
         float _strafe = 1f, _nextSwap;
 
-        IEnumerator Begin(string clip)
+        IEnumerator Begin(string clip, bool descent = false)
         {
             SaveSystem.Profile = "tests";
             SaveSystem.Wipe();
             GameSettings.Reset();
+            Radio.Forget();
+            RunDirector.Descent = descent;
+            GameLoop.SlowMotionOverride = true;
             SceneManager.LoadScene("Run");
             yield return null;
             yield return null;
@@ -65,6 +68,8 @@ namespace Shrunk.Tests
         void End()
         {
             Time.captureFramerate = 0;
+            Time.timeScale = 1f;
+            GameLoop.SlowMotionOverride = null;
             _target.Release();
             Object.Destroy(_target);
             Object.Destroy(_picture);
@@ -224,6 +229,65 @@ namespace Shrunk.Tests
             yield return Fight(40f);
             yield return Stand(2f);
             End();
+        }
+
+        // A boss fight from the edge of its arena: walk in, fight for a while, finish it, and stay for the ending.
+        IEnumerator BossClip(float fightSeconds)
+        {
+            _player.Health.SetInvulnerable(600f);
+            Vector3 middle = _floors.ArenaCentre;
+            _player.Teleport(OnNavMesh(middle + new Vector3(0f, 0f, -20f)) + Vector3.up * 0.05f);
+            _follow.SetMode(CameraMode.Auto);
+            LookAt(middle, 100000f);
+            yield return Stand(0.8f);
+            yield return Walk(OnNavMesh(middle + new Vector3(0f, 0f, -9f)), 12f, () => false);
+            yield return Fight(fightSeconds);
+            if (_floors.Boss != null && !_floors.Boss.Health.IsDead) _floors.Boss.Health.Kill();
+            yield return Stand(3.5f);
+            End();
+        }
+
+        /// <summary>The secret ending: Dr. Finch at the bottom, through both doses.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_finch()
+        {
+            yield return Begin("finch", true);
+            yield return null;
+            Assert.IsTrue(_floors.biome.isBottom);
+            yield return BossClip(55f);
+        }
+
+        /// <summary>Under the Sofa's boss, the Robot Vacuum.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_vacuum()
+        {
+            yield return Begin("vacuum");
+            Assert.IsTrue(_floors.SetBiome("sofa"));
+            _floors.BuildFloor(10, 2024);
+            yield return null;
+            yield return BossClip(50f);
+        }
+
+        /// <summary>Under the Sofa's mini boss, Grandmother Dust.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_granny()
+        {
+            yield return Begin("granny");
+            Assert.IsTrue(_floors.SetBiome("sofa"));
+            _floors.BuildFloor(5, 2025);
+            yield return null;
+            yield return BossClip(30f);
+        }
+
+        /// <summary>The Birthday Cake's mini boss, the Jelly Mother.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_jelly()
+        {
+            yield return Begin("jelly");
+            Assert.IsTrue(_floors.SetBiome("cake"));
+            _floors.BuildFloor(5, 2026);
+            yield return null;
+            yield return BossClip(35f);
         }
 
         /// <summary>The Brood Mother on floor 5, for the boss view.</summary>
