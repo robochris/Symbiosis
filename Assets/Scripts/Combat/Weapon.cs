@@ -18,6 +18,8 @@ namespace Shrunk
         public float spread;
         public float intervalMultiplier = 1f, rangeMultiplier = 1f, speedMultiplier = 1f;
         public int damageMultiplier = 1, pierce;
+        /// <summary>How its shots look: scale, and stretch along the way they are going.</summary>
+        public float shotSize = 1f, shotLength = 1f;
     }
 
     public static class Weapons
@@ -26,9 +28,9 @@ namespace Shrunk
         {
             new WeaponInfo { kind = WeaponKind.Pipette, name = "Pipette", does = "Standard issue. Quick, straight, and reaches across a room.", needs = "" },
             new WeaponInfo { kind = WeaponKind.Sprinkler, name = "Sprinkler", does = "Three shots in a fan, slower, and they do not travel far. For getting close, which is discouraged.",
-                needs = "Issued once the Brood Mother has been dealt with.", pellets = 3, spread = 11f, intervalMultiplier = 2.1f, rangeMultiplier = 0.55f },
+                needs = "Issued once the Brood Mother has been dealt with.", pellets = 3, spread = 11f, shotSize = 0.75f, intervalMultiplier = 2.1f, rangeMultiplier = 0.55f },
             new WeaponInfo { kind = WeaponKind.Syringe, name = "Syringe", does = "One slow, heavy shot: triple damage, goes through the first thing it hits, and reaches further.",
-                needs = "Issued once the Ant Queen has been dealt with.", intervalMultiplier = 3f, rangeMultiplier = 1.35f, speedMultiplier = 1.6f, damageMultiplier = 3, pierce = 1 },
+                needs = "Issued once the Ant Queen has been dealt with.", intervalMultiplier = 3f, rangeMultiplier = 1.35f, speedMultiplier = 1.6f, damageMultiplier = 3, pierce = 1, shotSize = 1.15f, shotLength = 2.6f },
         };
 
         public static WeaponInfo Info(WeaponKind kind)
@@ -136,6 +138,8 @@ namespace Shrunk
                     chill = stats.chill,
                     bounce = stats.bounce,
                     crit = Random.value < stats.critChance,
+                    size = info.shotSize,
+                    length = info.shotLength,
                     owner = _health
                 };
                 float turn = (i - (info.pellets - 1) * 0.5f) * info.spread;

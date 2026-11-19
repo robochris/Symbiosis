@@ -25,6 +25,8 @@ namespace Shrunk
         public bool crit;
         /// <summary>Split-off shots keep every effect except splitting again.</summary>
         public bool isChild;
+        /// <summary>How big it looks and how long it is drawn: the Sprinkler's are small, the Syringe's long.</summary>
+        public float size = 1f, length = 1f;
         /// <summary>Who fired it; it never hits them.</summary>
         public Health owner;
 
@@ -54,7 +56,8 @@ namespace Shrunk
         public void Launch(Vector3 position, Vector3 direction, float speed, Shot shot, float range, Team team, Pool<Bullet> pool, Health alreadyHit = null)
         {
             transform.SetPositionAndRotation(position, Quaternion.LookRotation(direction));
-            transform.localScale = Vector3.one * (shot.isChild ? 0.7f : 1f);
+            float size = (shot.isChild ? 0.7f : 1f) * shot.size;
+            transform.localScale = new Vector3(size, size, size * shot.length);
             _direction = direction;
             _speed = speed;
             _shot = shot;

@@ -133,6 +133,7 @@ namespace Shrunk.Tests
             foreach (var bullet in Object.FindObjectsByType<Bullet>(FindObjectsSortMode.None)) if (bullet.Shot != null && bullet.Shot.damage == weapon.damage * 3) heavy = bullet;
             Assert.IsNotNull(heavy, "the Syringe does not hit three times as hard");
             Assert.AreEqual(1, heavy.Shot.pierce);
+            Assert.Greater(heavy.transform.localScale.z, heavy.transform.localScale.x * 2f, "the Syringe's shot looks like any other");
             Assert.Greater(weapon.Reach, weapon.range);
 
             // The Sprinkler: three a pull, slower to fire again, and short.
