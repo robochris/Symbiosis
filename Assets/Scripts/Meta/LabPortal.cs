@@ -19,7 +19,7 @@ namespace Shrunk
             if (player == null) return;
             if (pad.SteppedOn(transform.position, player.transform.position))
             {
-                UnityEngine.SceneManagement.SceneManager.LoadScene(runScene);
+                Fade.LoadScene(runScene);
             }
         }
 

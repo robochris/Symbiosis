@@ -135,7 +135,10 @@ namespace Shrunk.Tests
             finch.Health.Kill();
             yield return WaitUntil(() => floors.ExtractPortal != null, 6f, "the way back up");
             Assert.AreEqual(1, SaveSystem.Data.meta.finchBeaten);
+            Assert.IsTrue(Achievements.Has(AchievementId.PerformanceReview));
+            Assert.IsTrue(Achievements.StyleUnlocked("Lab Coat"));
             Assert.IsNull(floors.DeeperPortal, "there is something under the bottom");
+            Assert.AreEqual("BACK UP", floors.ExtractPortal.GetComponentInChildren<PortalTag>().Shown);
             Assert.AreEqual(RadioMoment.FinchDown, Radio.Instance.LastMoment);
             Time.timeScale = 1f;
 

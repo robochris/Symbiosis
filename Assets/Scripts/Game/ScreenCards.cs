@@ -284,7 +284,7 @@ namespace Shrunk
             if (freeze && Time.timeScale > 0f)
             {
                 _frozen = true;
-                _timeBefore = Time.timeScale;
+                _timeBefore = GameLoop.InSlowMotion ? 1f : Time.timeScale;
                 Time.timeScale = 0f;
             }
 

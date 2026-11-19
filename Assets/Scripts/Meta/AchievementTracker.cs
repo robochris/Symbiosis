@@ -22,6 +22,7 @@ namespace Shrunk
             EnemyMutations.ShellShattered += OnShell;
             LarvaPod.PodPopped += OnPod;
             RunDirector.Extracted += OnExtracted;
+            FinchNotes.Found += OnNote;
         }
 
         void OnDisable()
@@ -34,6 +35,7 @@ namespace Shrunk
             EnemyMutations.ShellShattered -= OnShell;
             LarvaPod.PodPopped -= OnPod;
             RunDirector.Extracted -= OnExtracted;
+            FinchNotes.Found -= OnNote;
             if (_watched != null) _watched.Health.Damaged -= OnHit;
         }
 
@@ -78,7 +80,11 @@ namespace Shrunk
         void OnKilled(Enemy enemy)
         {
             // The candle is a queen underneath, so it is asked about first.
-            if (enemy is TrickCandle)
+            if (enemy is FinchBoss)
+            {
+                Achievements.Unlock(AchievementId.PerformanceReview);
+            }
+            else if (enemy is TrickCandle)
             {
                 Achievements.Unlock(AchievementId.SweetTooth);
             }
@@ -112,6 +118,11 @@ namespace Shrunk
             var meta = SaveSystem.Data.meta;
             meta.podsPopped++;
             if (meta.podsPopped >= Achievements.PodsNeeded) Achievements.Unlock(AchievementId.BubbleWrap);
+        }
+
+        void OnNote(FinchNote note)
+        {
+            if (FinchNotes.Count >= FinchNotes.All.Length) Achievements.Unlock(AchievementId.PaperTrail);
         }
 
         void OnExtracted(int samples)

@@ -21,7 +21,7 @@ namespace Shrunk
             if (player == null) return;
             if (!pad.SteppedOn(transform.position, player.transform.position)) return;
             RunDirector.Descent = true;
-            SceneManager.LoadScene(runScene);
+            Fade.LoadScene(runScene);
         }
 
         string Prompt(Vector3 playerPosition)

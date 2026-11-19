@@ -180,7 +180,7 @@ namespace Shrunk
                 SaveSystem.Data.meta.samples += RunState.Samples;
                 SaveSystem.Save();
                 LastRunMessage = $"You came back up from the bottom with {RunState.Samples} samples. Dr. Finch is, on paper, still employed.";
-                SceneManager.LoadScene(labScene);
+                Fade.LoadScene(labScene);
                 return;
             }
 
@@ -199,7 +199,7 @@ namespace Shrunk
             LastRunMessage = multiplier > 1f
                 ? $"Extracted! {RunState.Samples} samples ×{multiplier:0.#} = {banked} brought home."
                 : $"Extracted! {banked} samples brought home.";
-            SceneManager.LoadScene(labScene);
+            Fade.LoadScene(labScene);
         }
 
         // A bad run still counts: a share of the samples makes it home.
@@ -228,7 +228,7 @@ namespace Shrunk
         {
             if (_player != null && _player.visual != null) _player.visual.gameObject.SetActive(false);
             yield return new WaitForSeconds(deathDelay);
-            SceneManager.LoadScene(labScene);
+            Fade.LoadScene(labScene);
         }
 
         // "...and whenever the app goes to the background."

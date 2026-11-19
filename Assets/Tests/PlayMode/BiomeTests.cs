@@ -61,6 +61,53 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_sofa_opens_with_the_candle_and_has_its_own_bosses()
+        {
+            Assert.IsFalse(Achievements.BiomeUnlocked("sofa"), "the sofa is open to a new player");
+            Achievements.Unlock(AchievementId.SweetTooth);
+            Assert.IsTrue(Achievements.BiomeUnlocked("sofa"));
+
+            Assert.IsTrue(_floors.SetBiome("sofa"));
+            _floors.BuildFloor(5);
+            yield return null;
+            Assert.IsTrue(RenderSettings.fog, "under the sofa should be dark and hazy");
+            _player.Teleport(_floors.RoomAt(_floors.Layout.exit.cell).Centre + Vector3.up * 0.05f);
+            yield return WaitUntil(() => _floors.Boss != null, 2f, "the mini boss");
+            Assert.AreEqual("Grandmother Dust", _floors.Boss.displayName);
+            yield return new WaitForSeconds(5f);
+            Assert.Greater(_floors.LiveEnemies.Count, 1, "Grandmother Dust shed nothing");
+            _floors.Boss.Health.Kill();
+            yield return WaitUntil(() => !_floors.IsLocked, 2f, "the arena to open");
+
+            _floors.BuildFloor(10);
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+            _player.Teleport(_floors.RoomAt(_floors.Layout.exit.cell).Centre + Vector3.up * 0.05f);
+            yield return WaitUntil(() => _floors.Boss != null, 2f, "the boss");
+            Assert.AreEqual("The Robot Vacuum", _floors.Boss.displayName);
+            yield return new WaitForSeconds(0.5f);
+            Assert.Greater(EggEnemy.All.Count, 0, "the Robot Vacuum has no lint piles");
+            _floors.Boss.Health.Kill();
+            yield return WaitUntil(() => !_floors.IsLocked, 2f, "the arena to open");
+            Assert.AreEqual("sofa", _floors.Portals[0].leadsTo.id);
+
+            // A fight room fills with the sofa's own.
+            _floors.BuildFloor(4);
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+            foreach (var node in _floors.Layout.ordered)
+            {
+                if (node.type != RoomType.Normal) continue;
+                _player.Teleport(_floors.RoomAt(node.cell).Centre + new Vector3(RoomShape.TileSize, 0.05f, 0f));
+                yield return WaitUntil(() => _floors.IsLocked, 2f, "a room to lock");
+                break;
+            }
+            Assert.Greater(_floors.LiveEnemies.Count, 0);
+            var names = new HashSet<string> { "DustBunny", "Marble", "ToySoldier", "Moth" };
+            foreach (var enemy in _floors.LiveEnemies) Assert.IsTrue(names.Contains(enemy.name.Replace("(Clone)", "")), enemy.name + " does not live under the sofa");
+        }
+
+        [UnityTest]
         public IEnumerator Every_biome_is_complete()
         {
             var ids = new HashSet<string>();
@@ -197,8 +244,13 @@ namespace Shrunk.Tests
             Assert.Greater(EggEnemy.All.Count, 0, "the Trick Candle has no sparkler boxes");
             _floors.Boss.Health.Kill();
             yield return WaitUntil(() => !_floors.IsLocked, 2f, "the arena to open");
-            Assert.AreEqual(2, _floors.Portals.Count);
-            Assert.AreEqual("ants", _floors.Portals[1].leadsTo.id, "from the cake, the other portal leads back to the ants");
+            // The cake again, the way back to the ants, and (the candle being what opens it) the way under the sofa.
+            Assert.AreEqual(3, _floors.Portals.Count);
+            var leads = new List<string>();
+            foreach (var portal in _floors.Portals) leads.Add(portal.leadsTo.id);
+            Assert.AreEqual("cake", leads[0]);
+            CollectionAssert.Contains(leads, "ants", "from the cake, a portal leads back to the ants");
+            CollectionAssert.Contains(leads, "sofa", "beating the candle did not open the way under the sofa");
         }
 
         [UnityTest]
@@ -326,7 +378,8 @@ namespace Shrunk.Tests
             yield return null;
             yield return KillTheBoss();
             // From the cake, the way back to the ants is always there: the ants need no unlocking.
-            Assert.AreEqual(2, _floors.Portals.Count);
+            // The candle's death has just opened the sofa, so that is there too. The cake itself is "this biome again".
+            Assert.AreEqual(3, _floors.Portals.Count);
             Assert.IsTrue(Achievements.Has(AchievementId.SweetTooth));
         }
 

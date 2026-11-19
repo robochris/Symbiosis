@@ -217,6 +217,103 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_sofa()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            GameSettings.Radio = 0;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            Assert.IsTrue(floors.SetBiome("sofa"));
+
+            // A fight room.
+            floors.BuildFloor(8, 4242);
+            yield return null;
+            RoomNode fight = null;
+            foreach (var node in floors.Layout.ordered)
+            {
+                if (node.type != RoomType.Normal) continue;
+                if (fight == null || floors.RoomAt(node.cell).Shape.interior.Count > floors.RoomAt(fight.cell).Shape.interior.Count) fight = node;
+            }
+            player.Teleport(floors.RoomAt(fight.cell).Centre + Vector3.up * 0.05f);
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            CameraFollow.Instance.Snap();
+            for (float t = 0f; t < 6f && Time.timeScale <= 0f; t += Time.unscaledDeltaTime) yield return null;
+            yield return new WaitForSeconds(1.6f);
+            if (floors.LiveEnemies.Count > 0)
+            {
+                player.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(floors.LiveEnemies[0].transform.position - player.transform.position, Vector3.up));
+                CameraFollow.Instance.Snap();
+                yield return null;
+            }
+            yield return Screen(Path.Combine(folder, "sofa-room.png"));
+
+            // The two bosses.
+            foreach (int number in new[] { 5, 10 })
+            {
+                floors.BuildFloor(number);
+                yield return null;
+                player.Health.SetInvulnerable(600f);
+                player.Teleport(floors.ArenaCentre + new Vector3(0f, 0.05f, -9f));
+                player.transform.rotation = Quaternion.identity;
+                CameraFollow.Instance.Snap();
+                for (float t = 0f; t < 6f && floors.Boss == null; t += Time.unscaledDeltaTime) yield return null;
+                for (float t = 0f; t < 8f && Time.timeScale <= 0f; t += Time.unscaledDeltaTime) yield return null;
+                yield return new WaitForSeconds(1.5f);
+                player.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(floors.Boss.transform.position - player.transform.position, Vector3.up));
+                CameraFollow.Instance.Snap();
+                yield return null;
+                yield return Screen(Path.Combine(folder, "sofa-boss-" + number + ".png"));
+                floors.Boss.Health.Kill();
+                yield return new WaitForSeconds(0.5f);
+            }
+            GameSettings.Reset();
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
+        public IEnumerator Capture_portals()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            GameSettings.Radio = 0;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            floors.BuildFloor(10);
+            yield return null;
+            player.Teleport(floors.ArenaCentre + Vector3.up * 0.05f);
+            for (float t = 0f; t < 6f && floors.Boss == null; t += Time.unscaledDeltaTime) yield return null;
+            for (float t = 0f; t < 8f && Time.timeScale <= 0f; t += Time.unscaledDeltaTime) yield return null;
+            RunState.AddSamples(23);
+            floors.Boss.Health.Kill();
+            for (float t = 0f; t < 8f && floors.ExtractPortal == null; t += Time.unscaledDeltaTime) yield return null;
+            player.Teleport(floors.ArenaCentre + new Vector3(0f, 0.05f, -9f));
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSecondsRealtime(13f); // the summary goes away
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            yield return Screen(Path.Combine(folder, "portals.png"));
+            GameSettings.Reset();
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_finch()
         {
             SaveSystem.Profile = "tests";

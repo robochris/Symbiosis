@@ -199,7 +199,7 @@ namespace Shrunk
             // The run was saved at the start of this floor; it carries on from there next time.
             SaveSystem.Save();
             Close();
-            SceneManager.LoadScene(labScene);
+            Fade.LoadScene(labScene);
         }
 
         void Refresh()

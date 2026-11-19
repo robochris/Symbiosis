@@ -200,7 +200,11 @@ namespace Shrunk
             }
 
             FloorsBuilt++;
-            if (FloorsBuilt > 1) Sfx.Play(SfxId.NextFloor);
+            if (FloorsBuilt > 1)
+            {
+                Sfx.Play(SfxId.NextFloor);
+                Fade.In();
+            }
             FloorBuilt?.Invoke(this);
             Enter(Layout.start);
         }
@@ -601,6 +605,19 @@ namespace Shrunk
         {
             var gate = Instantiate(prop, middle + offset, Quaternion.identity, room.transform);
             _portals.Add(new BiomePortal { gate = gate, leadsTo = leadsTo });
+            string where = leadsTo == biome ? "DEEPER" : leadsTo.displayName.ToUpperInvariant();
+            string worth = $"depth {depth + 1}  ·  ×{RunDirector.RewardMultiplier(depth + 1):0.#}";
+            PortalTag.Create(gate.transform, () => where + "\n" + worth, DeeperColor);
+        }
+
+        static readonly Color HomeColor = new Color(0.55f, 0.95f, 1f);
+        static readonly Color DeeperColor = new Color(1f, 0.6f, 0.45f);
+
+        // What going home now would bank, kept up to date as the boss's samples are picked up.
+        string HomeTag()
+        {
+            int worth = Mathf.RoundToInt(RunState.Samples * RunDirector.RewardMultiplier(depth));
+            return "GO HOME\n" + worth + (worth == 1 ? " sample" : " samples");
         }
 
         bool AllDead()
@@ -633,12 +650,14 @@ namespace Shrunk
                 {
                     // There is nothing under the bottom: the only way on is back up.
                     ExtractPortal = Instantiate(biome.extractPortalProp, middle, Quaternion.identity, room.transform);
+                    PortalTag.Create(ExtractPortal.transform, () => "BACK UP", HomeColor);
                 }
                 else if (FloorInBiome == 10 && biome.extractPortalProp != null && biome.deeperPortalProp != null)
                 {
                     // The biome boss is dead: two portals instead of a hole in the floor.
                     // The way home on the left, this biome again on the right, and the other biomes along the far side.
                     ExtractPortal = Instantiate(biome.extractPortalProp, middle + new Vector3(-4f, 0f, 0f), Quaternion.identity, room.transform);
+                    PortalTag.Create(ExtractPortal.transform, HomeTag, HomeColor);
                     AddPortal(room, middle, biome, biome.deeperPortalProp, new Vector3(4f, 0f, 0f));
 
                     var others = AllBiomes();

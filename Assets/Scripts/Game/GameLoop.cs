@@ -11,6 +11,16 @@ namespace Shrunk
 
         public float restartDelay = 1.5f;
         public float hitShake = 0.35f;
+        [Tooltip("When a boss dies the world slows to this speed...")]
+        public float bossDeathSlow = 0.22f;
+        [Tooltip("...for this many real seconds.")]
+        public float bossDeathTime = 1.1f;
+
+        /// <summary>Tests set this to turn the slow motion on or off; left alone, it is on except in headless runs.</summary>
+        public static bool? SlowMotionOverride;
+        /// <summary>True while a boss's death is playing out slowly.</summary>
+        public static bool InSlowMotion { get; private set; }
+        float _speedBefore = 1f;
 
         void Awake()
         {
@@ -26,6 +36,33 @@ namespace Shrunk
         void OnDisable()
         {
             Enemy.Killed -= OnEnemyKilled;
+            EndSlowMotion();
+        }
+
+        IEnumerator BossDeath(Enemy boss)
+        {
+            Vector3 at = boss.transform.position + Vector3.up * 1.5f;
+            if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.9f);
+            Fx.Burst(at, Color.white, 40, 12f, 0.3f, 0.9f);
+
+            if (!(SlowMotionOverride ?? !Application.isBatchMode) || InSlowMotion || Time.timeScale <= 0f) yield break;
+            InSlowMotion = true;
+            _speedBefore = Time.timeScale;
+            for (float t = 0f; t < bossDeathTime; t += Time.unscaledDeltaTime)
+            {
+                // Ease back up over the last third. A pause or a card holding the world still is left alone.
+                float back = Mathf.InverseLerp(bossDeathTime * 0.66f, bossDeathTime, t);
+                if (Time.timeScale > 0f) Time.timeScale = Mathf.Lerp(bossDeathSlow, 1f, back) * _speedBefore;
+                yield return null;
+            }
+            EndSlowMotion();
+        }
+
+        void EndSlowMotion()
+        {
+            if (!InSlowMotion) return;
+            InSlowMotion = false;
+            if (Time.timeScale > 0f) Time.timeScale = _speedBefore;
         }
 
         void Start()
@@ -39,7 +76,11 @@ namespace Shrunk
         void OnEnemyKilled(Enemy enemy)
         {
             RunState.AddKill();
-            if (enemy is BossEnemy) SaveSystem.Data.meta.bossesBeaten++;
+            if (enemy is BossEnemy)
+            {
+                SaveSystem.Data.meta.bossesBeaten++;
+                StartCoroutine(BossDeath(enemy));
+            }
             Loot.Drop(enemy);
         }
 

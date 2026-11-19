@@ -6,7 +6,8 @@ namespace Shrunk
     public enum AchievementId
     {
         FirstSteps, MothersDay, Regicide, Untouchable, Omelette, HandsOff,
-        Deeper, Hoarder, ShellShock, BubbleWrap, SweetTooth, FullPockets
+        Deeper, Hoarder, ShellShock, BubbleWrap, SweetTooth, FullPockets,
+        PaperTrail, PerformanceReview
     }
 
     /// <summary>One achievement: what to do, and what doing it gives.</summary>
@@ -48,8 +49,10 @@ namespace Shrunk
             new Achievement { id = AchievementId.Hoarder, name = "Hoarder", how = "Carry 6 items at once.", reward = "Pheromone Cloud can now drop", item = ItemType.PheromoneCloud },
             new Achievement { id = AchievementId.ShellShock, name = "Shell Shock", how = "Shatter 20 hardened shells.", reward = "Needle Tip can now drop", item = ItemType.NeedleTip },
             new Achievement { id = AchievementId.BubbleWrap, name = "Bubble Wrap", how = "Pop 50 larva pods.", reward = "Wing Buds can now drop", item = ItemType.WingBuds },
-            new Achievement { id = AchievementId.SweetTooth, name = "Sweet Tooth", how = "Blow out the Trick Candle for good.", reward = "the Gold style", style = "Gold" },
+            new Achievement { id = AchievementId.SweetTooth, name = "Sweet Tooth", how = "Blow out the Trick Candle for good.", reward = "the Gold style, and a portal under the sofa", style = "Gold", biome = "sofa" },
             new Achievement { id = AchievementId.FullPockets, name = "Full Pockets", how = "Extract with 300 samples or more.", reward = "bragging rights, and a peg on the board" },
+            new Achievement { id = AchievementId.PaperTrail, name = "Paper Trail", how = "Find every page of the notebook.", reward = "a door the radio would rather you had not" },
+            new Achievement { id = AchievementId.PerformanceReview, name = "Performance Review", how = "Reach the bottom, and win the argument.", reward = "the Lab Coat style", style = "Lab Coat" },
         };
 
         public const int ShellsNeeded = 20, PodsNeeded = 50, ItemsNeeded = 6, SamplesNeeded = 300;

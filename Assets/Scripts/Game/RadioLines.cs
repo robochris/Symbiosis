@@ -245,6 +245,19 @@ namespace Shrunk
                 "A birthday cake. Someone's party is going ahead without them. Don't touch the candles.",
                 "Everything in here is edible, and feels the same way about you.",
             },
+            ["sofa"] = new[]
+            {
+                "Under the sofa. Everything anybody ever lost is here. Including, for a while, me.",
+                "Dark, dusty, and the coins are the size of dinner tables. Don't get attached to one.",
+            },
+            ["vacuum"] = new[]
+            {
+                "The robot vacuum. It keeps a schedule. You are on it.",
+            },
+            ["grandmother"] = new[]
+            {
+                "Mostly hair and regret. Go round the back. I didn't tell you that.",
+            },
             ["queen"] = new[]
             {
                 "Her Majesty. We had an arrangement once. Don't mention my name.",
