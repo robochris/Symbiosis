@@ -65,8 +65,26 @@ namespace Shrunk
     /// <summary>Loads and saves progress as one small file on the device.</summary>
     public static class SaveSystem
     {
-        static string _profile = "player";
+        static string _profile = StartingProfile();
         static SaveFile _data;
+
+        // "Shrunk.exe -saveProfile name" plays on a save file of its own, leaving the usual one alone.
+        static string StartingProfile()
+        {
+            try
+            {
+                string[] args = Environment.GetCommandLineArgs();
+                for (int i = 0; i < args.Length - 1; i++)
+                {
+                    if (args[i] == "-saveProfile" && !string.IsNullOrWhiteSpace(args[i + 1])) return args[i + 1];
+                }
+            }
+            catch (Exception)
+            {
+                // No command line on this platform: the usual save.
+            }
+            return "player";
+        }
 
         /// <summary>Which save file is in use. Tests use their own so they never touch real progress.</summary>
         public static string Profile
