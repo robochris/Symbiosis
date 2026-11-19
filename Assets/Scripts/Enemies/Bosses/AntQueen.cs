@@ -17,7 +17,7 @@ namespace Shrunk
         public EggEnemy eggPrefab;
         public int eggCount = 5;
         [Tooltip("Seconds between an egg hatching by itself.")]
-        public float hatchInterval = 15f;
+        public float hatchInterval = 18f;
         [Tooltip("How far from her the egg clusters sit, when no wall is nearer.")]
         public float eggRing = 11f;
 
@@ -28,10 +28,10 @@ namespace Shrunk
         [Header("Acid fan")]
         public Bullet projectilePrefab;
         public Transform muzzle;
-        public float fanInterval = 3.4f;
+        public float fanInterval = 4.4f;
         [Tooltip("Degrees between the three shots.")]
         public float fanSpread = 18f;
-        public float projectileSpeed = 8.5f;
+        public float projectileSpeed = 7.5f;
         public float projectileRange = 26f;
         [Range(0f, 1f), Tooltip("How much the middle shot of the fan aims ahead of a moving target. 0 = straight at them, 1 = exactly where they will be.")]
         public float fanLead = 0.4f;
@@ -40,7 +40,7 @@ namespace Shrunk
         [Header("Charge (phase 2 and 3)")]
         [Range(0f, 1f)] public float phase2At = 0.6f;
         [Range(0f, 1f)] public float phase3At = 0.25f;
-        public float restTime = 1.4f;
+        public float restTime = 2.1f;
         public float chargeWindup = 0.9f;
         public float chargeSpeed = 15f;
         [Tooltip("Seconds a charge lasts if she hits nothing: 1.7 s at 15 m/s crosses most of a 30 m arena.")]

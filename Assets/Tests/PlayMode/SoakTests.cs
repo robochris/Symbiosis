@@ -194,7 +194,7 @@ namespace Shrunk.Tests
             {
                 if (arena.DoorObject(side) == null) continue;
                 Vector2Int d = FloorLayout.Directions[side];
-                door = arena.Centre + new Vector3(d.x, 0f, d.y) * (RoomShape.Size * 0.5f * RoomShape.TileSize - 3f);
+                door = arena.Centre + new Vector3(d.x, 0f, d.y) * (RoomShape.Size * 0.5f * RoomShape.TileSize - 6f);
                 break;
             }
             _player.Health.ClearInvulnerability();
@@ -221,9 +221,9 @@ namespace Shrunk.Tests
         [UnityTest, Explicit, Timeout(1800000)]
         public IEnumerator Measure_boss_difficulty()
         {
-            Time.timeScale = 4f;
-            for (int i = 0; i < 3; i++) yield return MeasureBoss(5, 500 + i, "Brood Mother");
-            for (int i = 0; i < 3; i++) yield return MeasureBoss(10, 900 + i, "Ant Queen");
+            // At normal speed: sped up, the bot misses far more and the numbers mean nothing.
+            for (int i = 0; i < 2; i++) yield return MeasureBoss(5, 500 + i, "Brood Mother");
+            for (int i = 0; i < 2; i++) yield return MeasureBoss(10, 900 + i, "Ant Queen");
         }
 
         /// <summary>The long version, by name only: ten floors in a row, new ones every time.</summary>
