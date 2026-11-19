@@ -191,11 +191,20 @@ namespace Shrunk.Tests
             _player.Input.overrideFrame = new InputFrame();
         }
 
-        IEnumerator PlayFloor(int floor, int seed)
+        IEnumerator PlayFloor(int floor, int seed, bool canBeHurt = false)
         {
             _floors.BuildFloor(floor, seed);
             yield return null;
-            _player.Health.SetInvulnerable(100000f);
+            if (canBeHurt)
+            {
+                // For measuring: nothing protects the bot, and it has health enough never to fall.
+                _player.Health.ClearInvulnerability();
+                _player.Health.SetMaxHealth(9999, true);
+            }
+            else
+            {
+                _player.Health.SetInvulnerable(100000f);
+            }
 
             // Nearest rooms first, so the walk is the one a player would take.
             var order = new List<RoomNode>(_floors.Layout.ordered);
@@ -283,6 +292,50 @@ namespace Shrunk.Tests
             yield return MeasureBoss(10, 902, "Robot Vacuum");
             _floors.biome = _floors.bottomBiome;
             yield return MeasureBoss(10, 903, "Dr. Finch");
+        }
+
+        // Plays one whole floor with nothing protecting the bot, and says how long it took and how often it was hit.
+        IEnumerator MeasureFloor(string biome, int floor, int seed)
+        {
+            Assert.IsTrue(_floors.SetBiome(biome));
+            int hits = 0, rooms = 0, pools = 0;
+            System.Action<int, Vector3> count = (amount, direction) => { hits += amount; if (direction == Vector3.zero) pools += amount; };
+            _player.Health.Damaged += count;
+            float started = Time.time;
+            yield return PlayFloor(floor, seed, true);
+            _player.Health.Damaged -= count;
+            foreach (var node in _floors.Layout.ordered) if (node.type == RoomType.Normal || node.type == RoomType.Exit) rooms++;
+            Debug.Log($"[Shrunk] MEASURE FLOOR {biome} {floor}: {Time.time - started:F0} s, {hits} hits over {rooms} fight rooms ({(float)hits / Mathf.Max(1, rooms):F1} a room), {pools} of them from pools and blasts");
+        }
+
+        /// <summary>
+        /// Not a test: an early floor and a late floor of every biome, played with nothing protecting the bot. The
+        /// late floors have the lobbers and supports. Read the log for the MEASURE FLOOR lines. Sped up, so the bot
+        /// is clumsier than it would be: compare the lines with each other, not with a person.
+        /// </summary>
+        [UnityTest, Explicit, Timeout(3600000)]
+        public IEnumerator Measure_floors()
+        {
+            Achievements.EverythingUnlocked = true;
+            Time.timeScale = 3f;
+            foreach (string biome in new[] { "ants", "cake", "sofa", "fridge" })
+            {
+                yield return MeasureFloor(biome, 3, 7003);
+                yield return MeasureFloor(biome, 8, 7008);
+            }
+        }
+
+        /// <summary>Not a test: three late floors of the ants and of the cake, to tell a hard biome from an unlucky floor.</summary>
+        [UnityTest, Explicit, Timeout(3600000)]
+        public IEnumerator Measure_late_floors()
+        {
+            Achievements.EverythingUnlocked = true;
+            Time.timeScale = 3f;
+            foreach (int seed in new[] { 8101, 8102, 8103 })
+            {
+                yield return MeasureFloor("ants", 8, seed);
+                yield return MeasureFloor("cake", 8, seed);
+            }
         }
 
         /// <summary>Not a test: the fridge's two.</summary>

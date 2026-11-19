@@ -27,6 +27,7 @@ namespace Shrunk
 
         public IReadOnlyList<MutationDefinition> Active => _active;
         public const float SugarRushSpeed = 1.8f;
+        public const float AcidBloodTime = 3.2f;
         public const float StaticInterval = 4f, StaticRadius = 2.7f, StaticFuse = 0.9f;
         /// <summary>How many times a Static enemy has gone off.</summary>
         public int Discharges { get; private set; }
@@ -380,7 +381,9 @@ namespace Shrunk
             if (explode != null) GroundHazard.SpawnExplosion(transform.position, explode.effectMaterial);
 
             var acid = Find(MutationType.AcidBlood);
-            if (acid != null) GroundHazard.SpawnAcidPool(transform.position, acid.effectMaterial);
+            // A shorter-lived pool than a boss leaves: measured with a bot, these were most of what made the ants'
+            // late floors twice as punishing as any other biome's.
+            if (acid != null) GroundHazard.SpawnAcidPool(transform.position, acid.effectMaterial).lifetime = AcidBloodTime;
 
             var sticky = Find(MutationType.Sticky);
             if (sticky != null) GroundHazard.SpawnStickyPatch(transform.position, sticky.effectMaterial);
