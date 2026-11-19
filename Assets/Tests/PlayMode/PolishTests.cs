@@ -32,6 +32,72 @@ namespace Shrunk.Tests
             Time.timeScale = 1f;
         }
 
+        [Test]
+        public void Each_biome_has_its_own_lines_between_floors()
+        {
+            var seen = new HashSet<string>();
+            foreach (var lines in new[] { ScreenCards.FloorLines, ScreenCards.CakeLines, ScreenCards.SofaLines })
+            {
+                Assert.GreaterOrEqual(lines.Length, 10);
+                foreach (string line in lines)
+                {
+                    Assert.IsTrue(seen.Add(line), "said in two places: " + line);
+                    Assert.LessOrEqual(line.Length, 90, "too long for the card: " + line);
+                }
+            }
+            CollectionAssert.Contains(ScreenCards.CakeLines, ScreenCards.TipFor("cake", 12345));
+            CollectionAssert.Contains(ScreenCards.SofaLines, ScreenCards.TipFor("sofa", -7));
+            CollectionAssert.Contains(ScreenCards.FloorLines, ScreenCards.TipFor("ants", 3));
+            CollectionAssert.Contains(ScreenCards.FloorLines, ScreenCards.TipFor("bottom", 3));
+        }
+
+        [UnityTest]
+        public IEnumerator Beaten_bosses_end_up_in_jars_on_the_shelf()
+        {
+            SaveSystem.Data.meta.runsStarted = 3;
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var shelf = Object.FindAnyObjectByType<SpecimenShelf>(FindObjectsInactive.Include);
+            Assert.IsNotNull(shelf, "the lab has no specimen shelf");
+            Assert.IsFalse(shelf.gameObject.activeInHierarchy, "the shelf is there before any boss is beaten");
+            Assert.AreEqual(Specimens.All.Length, shelf.jars.Length);
+
+            // Beat a boss in a run: it is kept, once.
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            for (int round = 0; round < 2; round++)
+            {
+                floors.BuildFloor(5);
+                yield return null;
+                player.Teleport(floors.ArenaCentre + Vector3.up * 0.05f);
+                yield return WaitUntil(() => floors.Boss != null, 5f, "the boss");
+                floors.Boss.Health.Kill();
+                yield return WaitUntil(() => !floors.IsLocked, 5f, "the arena to open");
+            }
+            Assert.AreEqual(1, Specimens.Count, "the same boss should fill one jar, however often it is beaten");
+            Assert.IsTrue(Specimens.Has("BroodMother"));
+            Assert.AreEqual(2, SaveSystem.Data.meta.bossesBeaten);
+            SaveSystem.Data.meta.specimens.Add("DrFinch");
+            SaveSystem.Save();
+
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            shelf = Object.FindAnyObjectByType<SpecimenShelf>(FindObjectsInactive.Include);
+            Assert.IsTrue(shelf.gameObject.activeInHierarchy);
+            Assert.IsTrue(shelf.jars[0].activeSelf && !shelf.jars[1].activeSelf && shelf.jars[shelf.jars.Length - 1].activeSelf);
+            Vector3 at = shelf.transform.position + Vector3.up * 0.05f;
+            Assert.That(WorldPrompt.For(at), Does.Contain("2 of 7 jars").And.Contain("Dr. Finch").And.Contain("do not tap the glass"));
+            Assert.IsNull(WorldPrompt.For(at + Vector3.right * 9f + Vector3.forward * 3f));
+            Assert.That(WorldPrompt.For(at), Does.Contain("Brood Mother"));
+        }
+
         [UnityTest]
         public IEnumerator The_title_has_a_play_button_and_a_careful_erase_button()
         {

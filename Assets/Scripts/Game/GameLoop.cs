@@ -79,6 +79,7 @@ namespace Shrunk
             if (enemy is BossEnemy)
             {
                 SaveSystem.Data.meta.bossesBeaten++;
+                Specimens.Keep(enemy);
                 StartCoroutine(BossDeath(enemy));
             }
             Loot.Drop(enemy);

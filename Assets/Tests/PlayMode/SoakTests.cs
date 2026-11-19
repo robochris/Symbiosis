@@ -39,6 +39,7 @@ namespace Shrunk.Tests
         public void Restore()
         {
             Time.timeScale = 1f;
+            Achievements.EverythingUnlocked = false;
             GameSettings.Reset();
             SaveSystem.Wipe();
         }
@@ -266,6 +267,46 @@ namespace Shrunk.Tests
             // At normal speed: sped up, the bot misses far more and the numbers mean nothing.
             for (int i = 0; i < 2; i++) yield return MeasureBoss(5, 500 + i, "Brood Mother");
             for (int i = 0; i < 2; i++) yield return MeasureBoss(10, 900 + i, "Ant Queen");
+        }
+
+        /// <summary>Not a test: one fight with every boss in the game, for comparing them. Read the log for the MEASURE lines.</summary>
+        [UnityTest, Explicit, Timeout(3600000)]
+        public IEnumerator Measure_every_boss()
+        {
+            yield return MeasureBoss(5, 500, "Brood Mother");
+            yield return MeasureBoss(10, 900, "Ant Queen");
+            Assert.IsTrue(_floors.SetBiome("cake"));
+            yield return MeasureBoss(5, 501, "Jelly Mother");
+            yield return MeasureBoss(10, 901, "Trick Candle");
+            Assert.IsTrue(_floors.SetBiome("sofa"));
+            yield return MeasureBoss(5, 502, "Grandmother Dust");
+            yield return MeasureBoss(10, 902, "Robot Vacuum");
+            _floors.biome = _floors.bottomBiome;
+            yield return MeasureBoss(10, 903, "Dr. Finch");
+        }
+
+        /// <summary>Not a test: the three that needed taming, again.</summary>
+        [UnityTest, Explicit, Timeout(3600000)]
+        public IEnumerator Measure_tuned_bosses()
+        {
+            Assert.IsTrue(_floors.SetBiome("cake"));
+            yield return MeasureBoss(10, 901, "Trick Candle");
+            Assert.IsTrue(_floors.SetBiome("sofa"));
+            yield return MeasureBoss(5, 502, "Grandmother Dust");
+            _floors.biome = _floors.bottomBiome;
+            yield return MeasureBoss(10, 903, "Dr. Finch");
+        }
+
+        /// <summary>Under the Sofa, on a floor late enough to have its lobbers and supports, and its mini boss.</summary>
+        [UnityTest, Timeout(600000)]
+        public IEnumerator A_bot_clears_two_sofa_floors_on_foot()
+        {
+            Achievements.EverythingUnlocked = true;
+            Assert.IsTrue(_floors.SetBiome("sofa"));
+            Time.timeScale = 4f;
+            yield return PlayFloor(6, 3001);
+            yield return PlayFloor(5, 3002);
+            Achievements.EverythingUnlocked = false;
         }
 
         /// <summary>The long version, by name only: ten floors in a row, new ones every time.</summary>

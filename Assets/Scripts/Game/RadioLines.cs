@@ -34,6 +34,8 @@ namespace Shrunk
         FinchHome,
         /// <summary>Opening the game in the lab any time after Finch has been beaten.</summary>
         After,
+        /// <summary>The player has picked up what was left in Finch's flask.</summary>
+        Dose,
         // From here down is chatter: said only now and then, and not at all on the Less setting.
         LowHealth,
         Item,
@@ -189,6 +191,12 @@ namespace Shrunk
                 "The portal's open. So is the door. I've stopped pretending about the door.",
                 "I've had time to think. I'm told that is what the bottom is for.",
                 "You're still my intern, technically. I checked. Nobody else did.",
+            },
+            [RadioMoment.Dose] = new[]
+            {
+                "That was mine. It was also the last of it. Do enjoy being shorter.",
+                "You drank it. Of course you did. Welcome to the size I was last month.",
+                "Smaller, are we? It doesn't suit you. It didn't suit me either.",
             },
             [RadioMoment.LowHealth] = new[]
             {

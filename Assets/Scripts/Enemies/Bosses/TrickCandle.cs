@@ -21,11 +21,13 @@ namespace Shrunk
         public float turnSpeed = 140f;
 
         [Header("Wax drips")]
-        public float waxInterval = 3.4f;
-        public int waxDrops = 3;
+        public float waxInterval = 4.4f;
+        public int waxDrops = 2;
         public float waxRadius = 2.3f;
         [Tooltip("Seconds between the warning disc and the wax landing.")]
-        public float waxFuse = 1f;
+        public float waxFuse = 1.2f;
+        [Tooltip("Seconds a pool of wax stays hot.")]
+        public float waxPoolTime = 3f;
         [Tooltip("What the pool left behind is made of.")]
         public Material waxMaterial;
 
@@ -44,7 +46,7 @@ namespace Shrunk
         public float spiralTime = 3.2f;
         public int spiralArms = 3;
         [Tooltip("Seconds between shots down each arm.")]
-        public float spiralGap = 0.16f;
+        public float spiralGap = 0.22f;
         [Tooltip("Degrees a second the spiral turns.")]
         public float spiralTurn = 75f;
         public float projectileSpeed = 7f;
@@ -262,7 +264,7 @@ namespace Shrunk
             for (int i = _fallingAt.Count - 1; i >= 0; i--)
             {
                 if (Time.time < _fallingWhen[i]) continue;
-                GroundHazard.SpawnAcidPool(_fallingAt[i], waxMaterial);
+                GroundHazard.SpawnAcidPool(_fallingAt[i], waxMaterial).lifetime = waxPoolTime;
                 _fallingAt.RemoveAt(i);
                 _fallingWhen.RemoveAt(i);
             }

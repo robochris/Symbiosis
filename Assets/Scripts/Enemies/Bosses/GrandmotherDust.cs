@@ -20,8 +20,8 @@ namespace Shrunk
         [Tooltip("The furthest one hop carries it.")]
         public float hopRange = 16f;
         public float hopHeight = 5f;
-        public float landRadius = 3.4f;
-        public float restTime = 1.8f;
+        public float landRadius = 3.1f;
+        public float restTime = 2.1f;
         public float turnSpeed = 220f;
 
         [Header("Fluff")]
@@ -35,14 +35,14 @@ namespace Shrunk
         [Tooltip("Sneezes instead of hopping every this many turns.")]
         public int sneezeEvery = 3;
         public float sneezeWindup = 0.7f;
-        public int sneezeShots = 5;
+        public int sneezeShots = 4;
         public float sneezeSpread = 13f;
         public float projectileSpeed = 8f;
         public float projectileRange = 24f;
 
         [Header("Shedding (below half health)")]
         [Range(0f, 1f)] public float shedAt = 0.5f;
-        public float shedRest = 0.6f;
+        public float shedRest = 0.7f;
         public int stickyPatches = 5;
         public Material stickyMaterial;
 

@@ -19,10 +19,10 @@ namespace Shrunk
         public static event Action<FinchBoss> Dosed;
 
         [Header("Moving")]
-        public float moveSpeed = 4.2f;
+        public float moveSpeed = 3.5f;
         public float turnSpeed = 540f;
         [Tooltip("The distance from the player they try to keep.")]
-        public float keepRange = 9f;
+        public float keepRange = 8f;
 
         [Header("Bursts")]
         public Bullet projectilePrefab;
@@ -41,7 +41,7 @@ namespace Shrunk
         public float dashSpeed = 15f;
         public float dashTime = 0.22f;
         [Tooltip("Seconds before they can sidestep another hit.")]
-        public float dashCooldown = 2.2f;
+        public float dashCooldown = 3.6f;
 
         [Header("Doses")]
         [Range(0f, 1f)] public float phase2At = 0.66f;
@@ -51,12 +51,12 @@ namespace Shrunk
         [Tooltip("Body size in each phase.")]
         public float[] phaseSize = { 1f, 0.7f, 0.48f };
         [Tooltip("Speed in each phase.")]
-        public float[] phaseSpeed = { 1f, 1.2f, 1.4f };
+        public float[] phaseSpeed = { 1f, 1.12f, 1.25f };
 
         [Header("Flasks (after the first dose)")]
-        public float flaskInterval = 4.5f;
-        public float flaskRadius = 2.8f;
-        public float flaskFuse = 1.1f;
+        public float flaskInterval = 5.5f;
+        public float flaskRadius = 2.5f;
+        public float flaskFuse = 1.3f;
 
         [Header("Company")]
         [Tooltip("What turns up after each dose. They have an understanding.")]
@@ -105,12 +105,12 @@ namespace Shrunk
         float Size(int phase) => phaseSize != null && phaseSize.Length >= phase ? phaseSize[phase - 1] : 1f;
         float Speed(int phase) => phaseSpeed != null && phaseSpeed.Length >= phase ? phaseSpeed[phase - 1] : 1f;
 
-        // The body shrinks all the way; the part that can be shot shrinks half as much, so the fight stays fair.
+        // The body shrinks all the way; the part that can be shot shrinks a third as much, so the fight stays fair.
         void SetSize(float size)
         {
             BaseScale = size;
             SetVisualScale(1f);
-            float body = (1f + size) * 0.5f;
+            float body = (2f + size) / 3f;
             Controller.radius = _radius * body;
             Controller.height = _height * body;
             Controller.center = new Vector3(0f, Controller.height * 0.5f, 0f);
@@ -279,13 +279,12 @@ namespace Shrunk
             }
         }
 
-        // One where the player stands and one where they are going; after the second dose, one behind them too.
+        // One where the player is going; after the second dose, one where they are standing too.
         void ThrowFlasks(Vector3 targetPosition)
         {
             Vector3 ahead = _targetVelocity.sqrMagnitude > 1f ? _targetVelocity.normalized : transform.right;
-            Spill(targetPosition);
-            Spill(targetPosition + ahead * (flaskRadius * 1.8f));
-            if (Phase >= 3) Spill(targetPosition - ahead * (flaskRadius * 1.8f));
+            Spill(targetPosition + ahead * (flaskRadius * 1.6f));
+            if (Phase >= 3) Spill(targetPosition);
         }
 
         void Spill(Vector3 position)

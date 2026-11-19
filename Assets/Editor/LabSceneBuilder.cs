@@ -125,6 +125,44 @@ namespace Shrunk.EditorTools
             }
             evidence.AddComponent<EvidenceBoard>().pages = pinned;
 
+            // ----- the specimen shelf: a jar for every boss beaten, against the south wall -----
+            var shelf = new GameObject("Specimen Shelf");
+            shelf.transform.position = new Vector3(-5.5f, 0f, -5.6f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Shelf", shelf.transform, new Vector3(0f, 1.1f, -2.05f), new Vector3(5.6f, 0.15f, 0.7f), benchMat, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Leg L", shelf.transform, new Vector3(-2.6f, 0.52f, -2.05f), new Vector3(0.15f, 1.05f, 0.6f), benchMat, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Leg R", shelf.transform, new Vector3(2.6f, 0.52f, -2.05f), new Vector3(0.15f, 1.05f, 0.6f), benchMat, false);
+            var jarGlass = ArenaSceneBuilder.Lit("JarGlass", new Color(0.6f, 0.8f, 0.85f), 0.95f);
+            Color[] jarColours =
+            {
+                new Color(0.3f, 0.08f, 0.06f), new Color(0.45f, 0.1f, 0.35f), new Color(0.3f, 0.8f, 0.25f), new Color(0.55f, 0.8f, 0.95f),
+                new Color(0.62f, 0.6f, 0.58f), new Color(0.13f, 0.14f, 0.16f), new Color(0.45f, 1f, 0.6f)
+            };
+            var jars = new GameObject[Specimens.All.Length];
+            for (int i = 0; i < jars.Length; i++)
+            {
+                var jar = new GameObject("Jar " + Specimens.All[i].key);
+                jar.transform.SetParent(shelf.transform, false);
+                jar.transform.localPosition = new Vector3(-2.25f + i * 0.75f, 1.18f, -2.05f);
+                // No see-through glass yet, so a jar is a base, a lid and four thin posts, with the specimen in between.
+                ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Base", jar.transform, new Vector3(0f, 0.03f, 0f), new Vector3(0.54f, 0.03f, 0.54f), jarGlass, false);
+                ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Lid", jar.transform, new Vector3(0f, 0.67f, 0f), new Vector3(0.54f, 0.04f, 0.54f), benchMat, false);
+                for (int post = 0; post < 4; post++)
+                {
+                    Vector3 corner = Quaternion.Euler(0f, 45f + post * 90f, 0f) * new Vector3(0.24f, 0.35f, 0f);
+                    ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Post " + post, jar.transform, corner, new Vector3(0.03f, 0.32f, 0.03f), jarGlass, false);
+                }
+                ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Label", jar.transform, new Vector3(0f, -0.2f, 0.36f), new Vector3(0.4f, 0.16f, 0.02f), paper, false);
+                // The last jar is Finch's, and is empty.
+                if (i < jars.Length - 1)
+                {
+                    ArenaSceneBuilder.Primitive(PrimitiveType.Sphere, "Specimen", jar.transform, new Vector3(0f, 0.33f, 0f), Vector3.one * 0.36f,
+                        ArenaSceneBuilder.Unlit("Specimen" + Specimens.All[i].key, jarColours[i % jarColours.Length]), false);
+                }
+                jar.SetActive(false);
+                jars[i] = jar;
+            }
+            shelf.AddComponent<SpecimenShelf>().jars = jars;
+
             // ----- the hidden door: turns up with the last page, on the wall the radio never mentions -----
             var door = new GameObject("Hidden Door");
             door.transform.position = new Vector3(-8.2f, 0f, 0.8f);
@@ -159,6 +197,8 @@ namespace Shrunk.EditorTools
                 new LabGrowth.Station { name = "the mirror", thing = mirror, needs = LabGrowth.Needs.AStyleUnlocked },
                 new LabGrowth.Station { name = "the evidence board", thing = evidence, needs = LabGrowth.Needs.ANoteFound },
                 new LabGrowth.Station { name = "a door that was not there before", thing = door, needs = LabGrowth.Needs.AllNotesFound },
+                // New stations go on the end: the save remembers which ones the player has been told about by position.
+                new LabGrowth.Station { name = "the specimen shelf", thing = shelf, needs = LabGrowth.Needs.ABossBeaten },
             };
 
             EditorSceneManager.SaveScene(scene, ScenePath);

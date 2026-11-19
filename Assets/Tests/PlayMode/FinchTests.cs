@@ -142,7 +142,8 @@ namespace Shrunk.Tests
             foreach (var pickup in Object.FindObjectsByType<Pickup>(FindObjectsSortMode.None)) dose |= pickup.kind == PickupKind.Item && pickup.item.type == ItemType.FinchsDose;
             Assert.IsTrue(dose, "Finch left nothing in the flask");
             Assert.AreEqual("BACK UP", floors.ExtractPortal.GetComponentInChildren<PortalTag>().Shown);
-            Assert.AreEqual(RadioMoment.FinchDown, Radio.Instance.LastMoment);
+            // Finch has the last word on being beaten, unless the flask has already been picked up, which gets one too.
+            Assert.That(Radio.Instance.LastMoment, Is.EqualTo(RadioMoment.FinchDown).Or.EqualTo(RadioMoment.Dose));
             Time.timeScale = 1f;
 
             player.Teleport(floors.ExtractPortal.transform.position + new Vector3(5f, 0.05f, 0f));

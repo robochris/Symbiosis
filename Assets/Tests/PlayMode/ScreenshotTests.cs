@@ -391,6 +391,32 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_shelf()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            SaveSystem.Data.meta.runsStarted = 3;
+            SaveSystem.Data.meta.bossesBeaten = 6;
+            foreach (var specimen in Specimens.All) if (specimen.key != "TrickCandle") SaveSystem.Data.meta.specimens.Add(specimen.key);
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            var shelf = Object.FindAnyObjectByType<SpecimenShelf>();
+            player.Teleport(shelf.transform.position + new Vector3(0f, 0.05f, 0.6f));
+            player.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.6f);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            yield return Screen(Path.Combine(folder, "shelf.png"));
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_evidence()
         {
             SaveSystem.Profile = "tests";

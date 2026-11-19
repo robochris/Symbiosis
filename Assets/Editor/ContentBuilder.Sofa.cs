@@ -175,7 +175,7 @@ namespace Shrunk.EditorTools
             var grannyPrefab = (BossEnemy)SaveEnemy(granny);
 
             // The Robot Vacuum (floor 10): its own fight. Drives, sprays sparks, sucks, and has to stop to empty its bin.
-            var vacuum = Creature<RobotVacuum>("RobotVacuum", 1.9f, 4f, 320, 3.4f, 4.6f, out var vacuumModel);
+            var vacuum = Creature<RobotVacuum>("RobotVacuum", 1.9f, 4f, 280, 3.4f, 4.6f, out var vacuumModel);
             Decor(PrimitiveType.Cylinder, "Body", vacuumModel, new Vector3(0f, 0.6f, 0f), new Vector3(4.2f, 0.5f, 4.2f), plastic);
             // The lid and everything standing on it lift together when the bin opens.
             var lid = new GameObject("Lid").transform;

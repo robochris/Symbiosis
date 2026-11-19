@@ -28,7 +28,7 @@ namespace Shrunk.EditorTools
             var shotPrefab = ArenaSceneBuilder.SavePrefab(shot, "Enemies/FinchShot").GetComponent<Bullet>();
 
             // ----- Dr. Finch: a person in a lab coat, 1.8 m tall at the start of the fight -----
-            var finch = Creature<FinchBoss>("DrFinch", 0.5f, 1.8f, 240, 1f, 2.6f, out var model);
+            var finch = Creature<FinchBoss>("DrFinch", 0.5f, 1.8f, 150, 1f, 2.6f, out var model);
             Decor(PrimitiveType.Cube, "Leg L", model, new Vector3(-0.16f, 0.35f, 0f), new Vector3(0.2f, 0.7f, 0.22f), dark);
             Decor(PrimitiveType.Cube, "Leg R", model, new Vector3(0.16f, 0.35f, 0f), new Vector3(0.2f, 0.7f, 0.22f), dark);
             Decor(PrimitiveType.Cube, "Coat", model, new Vector3(0f, 0.95f, 0f), new Vector3(0.7f, 0.95f, 0.42f), coat);

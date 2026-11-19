@@ -284,7 +284,12 @@ namespace Shrunk
 
         void OnDose(FinchBoss finch) => Say(RadioMoment.FinchDose);
 
-        void OnItem(ItemDefinition item) => Say(RadioMoment.Item, null, 0f, 0.35f);
+        void OnItem(ItemDefinition item)
+        {
+            // The dose is Finch's own: that always gets a word, a moment after whatever was being said.
+            if (item != null && item.type == ItemType.FinchsDose) Say(RadioMoment.Dose, null, 4f);
+            else Say(RadioMoment.Item, null, 0f, 0.35f);
+        }
 
         void OnHit(int amount, Vector3 direction)
         {

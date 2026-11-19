@@ -48,6 +48,8 @@ namespace Shrunk
             "Tip: crowned ants hit harder, last longer and pay better.",
             "Tip: samples only count if you get them home.",
             "Tip: the treasure room is free. Nothing else down here is.",
+            "Tip: a bombardier throws over walls, at where you are going. Stop going there.",
+            "Tip: the small pink ant makes the others faster. It is the one to shoot.",
             "Reminder: you are roughly the size of a sprinkle.",
             "Reminder: the lab is insured. You are not.",
             "Fact: an ant can carry fifty times its own weight. You weigh almost nothing.",
@@ -56,6 +58,47 @@ namespace Shrunk
             "It gets deeper. It does not get friendlier.",
             "Further down. Mind your head, wherever it is.",
         };
+
+        /// <summary>The cake's own lines, used instead of the ants' while the run is there.</summary>
+        public static readonly string[] CakeLines =
+        {
+            "Tip: the red disc under you is about to be something. Leave.",
+            "Tip: a soda bottle throws at where you are going. Go somewhere else instead.",
+            "Tip: the party horn hurts nobody. Shoot it first anyway.",
+            "Tip: hot wax stays where it lands. So should you not.",
+            "Tip: gumdrops grow up. Deal with them while they are small.",
+            "Tip: sugar rush means it gets faster when it is losing.",
+            "Reminder: it is somebody's birthday. They are not having as bad a day as you.",
+            "Reminder: everything here is food. You are in it.",
+            "Fact: a cake this size has its own weather.",
+            "Fact: the candles were lit eleven minutes ago. You have been here longer than that.",
+            "Nobody has cut the cake yet. Try to be somewhere else when they do.",
+            "Further in. It gets sweeter. That is not a good thing.",
+        };
+
+        /// <summary>The sofa's own lines.</summary>
+        public static readonly string[] SofaLines =
+        {
+            "Tip: sparks round an enemy mean it is about to go off. Count to four.",
+            "Tip: the remote turns everything up. Turn it off first.",
+            "Tip: popcorn lands where you were heading. Change your mind.",
+            "Tip: a marble only goes in straight lines. Stand somewhere bent.",
+            "Tip: when the vacuum's lid is up, everything you do to it counts twice.",
+            "Tip: sticky lint slows walking. It does not slow a dodge.",
+            "Reminder: everything anybody ever lost is down here. So are you.",
+            "Reminder: that coin is worth more than your whole expedition. Leave it.",
+            "Fact: nobody has moved this sofa since it arrived.",
+            "Fact: the dust is nine tenths other people.",
+            "It is darker further in. The torch somebody dropped is still on.",
+            "Mind the springs. They are older than you and less forgiving.",
+        };
+
+        /// <summary>The line under "Floor N" for a biome: its own if it has any, otherwise the ants'. The floor's seed picks it.</summary>
+        public static string TipFor(string biomeId, int seed)
+        {
+            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : FloorLines;
+            return lines[Mathf.Abs(seed) % lines.Length];
+        }
 
         CanvasGroup _card, _titleGroup;
         Text _heading, _line, _titleText, _titleHint, _summaryText;
@@ -395,7 +438,7 @@ namespace Shrunk
                 return;
             }
 
-            string tip = FloorLines[Mathf.Abs(floors.Layout.seed) % FloorLines.Length];
+            string tip = TipFor(floors.biome.id, floors.Layout.seed);
             ShowCard("FLOOR " + floors.FloorInBiome, tip, 2.2f);
         }
 

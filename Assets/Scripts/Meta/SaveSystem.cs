@@ -28,6 +28,8 @@ namespace Shrunk
         public int labSeen;
         /// <summary>Pages of Dr. Finch's notebook found, by id.</summary>
         public List<int> notes = new List<int>();
+        /// <summary>Bosses beaten at least once, by prefab name: the jars on the lab's specimen shelf.</summary>
+        public List<string> specimens = new List<string>();
         /// <summary>Radio lines already heard, so none repeats until the rest of its pool has been said.</summary>
         public List<int> radioHeard = new List<int>();
         /// <summary>Which character style the Void is wearing.</summary>

@@ -301,6 +301,27 @@ namespace Shrunk.Tests
             yield return BossClip(50f);
         }
 
+        /// <summary>A walk and a fight under the sofa, deep enough for the lobbers and supports to turn up.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_sofa()
+        {
+            yield return Begin("sofa");
+            Achievements.EverythingUnlocked = true;
+            Assert.IsTrue(_floors.SetBiome("sofa"));
+            _floors.BuildFloor(8, 5150);
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+
+            RoomNode fight = NearestFightRoom();
+            Room room = _floors.RoomAt(fight.cell);
+            yield return Stand(1f);
+            yield return Walk(OnNavMesh(room.Centre), 25f, () => _floors.IsLocked);
+            yield return Fight(45f);
+            yield return Stand(2f);
+            Achievements.EverythingUnlocked = false;
+            End();
+        }
+
         /// <summary>The Brood Mother on floor 5, for the boss view.</summary>
         [UnityTest, Explicit]
         public IEnumerator Capture_clip_boss()
