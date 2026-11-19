@@ -154,11 +154,21 @@ namespace Shrunk.Tests
             yield return null;
 
             Assert.AreEqual(RadioMoment.FinchHome, Radio.Instance.LastMoment);
+            // The ending, once.
+            Assert.AreEqual(LabDirector.EndingHeading, ScreenCards.Instance.LastHeading);
+            Assert.IsTrue(ScreenCards.Instance.CardShowing, "no ending card");
+            Assert.IsTrue(SaveSystem.Data.meta.endingSeen);
             Assert.That(Object.FindAnyObjectByType<Hud>().LastToast, Does.Contain("bottom"));
             Assert.IsTrue(SaveSystem.Data.run.active, "the saved run was thrown away");
             Assert.AreEqual(4, SaveSystem.Data.run.floorNumber);
             var again = Object.FindAnyObjectByType<HiddenDoor>();
             Assert.That(WorldPrompt.For(again.transform.position), Does.Contain("only smaller"));
+
+            // Back in the lab another day: no second ending.
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            Assert.AreNotEqual(LabDirector.EndingHeading, ScreenCards.Instance.LastHeading, "the ending was shown twice");
         }
     }
 }

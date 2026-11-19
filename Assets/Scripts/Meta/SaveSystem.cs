@@ -20,6 +20,8 @@ namespace Shrunk
         public int bossesBeaten;
         /// <summary>Times Dr. Finch has been beaten at the bottom.</summary>
         public int finchBeaten;
+        /// <summary>The ending card has been shown: it is only shown the once.</summary>
+        public bool endingSeen;
         /// <summary>Achievements earned, as AchievementId numbers.</summary>
         public List<int> achievements = new List<int>();
         public int shellsShattered;

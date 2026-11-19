@@ -7,8 +7,20 @@ namespace Shrunk
     /// <summary>Greets the player in the lab with how the last run went.</summary>
     public class LabDirector : MonoBehaviour
     {
+        public const string EndingHeading = "END OF PROBATION";
+        public const string EndingLine = "You are now permanent staff. Dr. Finch remains, technically, your manager.";
+
         void Start()
         {
+            // Home from the bottom with Finch beaten, for the first time: the ending, such as it is.
+            MetaSave meta = SaveSystem.Data.meta;
+            if (meta.finchBeaten > 0 && !meta.endingSeen)
+            {
+                meta.endingSeen = true;
+                SaveSystem.Save();
+                if (ScreenCards.Instance != null) ScreenCards.Instance.ShowCard(EndingHeading, EndingLine, 7f);
+            }
+
             var hud = FindAnyObjectByType<Hud>();
             if (hud == null) return;
 
