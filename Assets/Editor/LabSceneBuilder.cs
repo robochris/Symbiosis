@@ -109,15 +109,16 @@ namespace Shrunk.EditorTools
 
             // ----- the evidence board: pages of Finch's notebook -----
             var evidence = new GameObject("Evidence Board");
-            evidence.transform.position = new Vector3(8.2f, 0f, 2.2f);
+            // Clear of the last upgrade pad, so standing at the board reads the board.
+            evidence.transform.position = new Vector3(8.2f, 0f, 0.9f);
             var cork = ArenaSceneBuilder.Lit("Cork", new Color(0.55f, 0.38f, 0.22f), 0.1f);
-            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Board", evidence.transform, new Vector3(2.55f, 2.2f, 0f), new Vector3(0.2f, 2.4f, 3.2f), cork, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Board", evidence.transform, new Vector3(2.55f, 2f, 0f), new Vector3(0.2f, 3.5f, 3.2f), cork, false);
             var paper = ArenaSceneBuilder.Unlit("FinchNote", new Color(1f, 0.96f, 0.8f));
             var pinned = new GameObject[FinchNotes.All.Length];
             for (int i = 0; i < pinned.Length; i++)
             {
                 pinned[i] = ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Page " + (i + 1), evidence.transform,
-                    new Vector3(2.42f, 2.75f - (i / 3) * 1.05f, -0.95f + (i % 3) * 0.95f), new Vector3(0.04f, 0.8f, 0.6f), paper, false);
+                    new Vector3(2.42f, 3.1f - (i / 3) * 1.1f, -0.95f + (i % 3) * 0.95f), new Vector3(0.04f, 0.8f, 0.6f), paper, false);
                 // Pinned by someone in a hurry.
                 pinned[i].transform.localRotation = Quaternion.Euler((i * 37 % 13) - 6f, 0f, 0f);
                 pinned[i].SetActive(false);

@@ -152,7 +152,7 @@ namespace Shrunk
                 "There is no door. If there were one, it would be locked. It isn't locked. There is no door.",
                 "I see you've found the door there isn't. Do leave it alone.",
                 "That door goes nowhere you're paid to go.",
-                "You read all six pages. I had hoped you would skim.",
+                "You read every page. I had hoped you would skim.",
             },
             [RadioMoment.Bottom] = new[]
             {

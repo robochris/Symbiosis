@@ -113,7 +113,7 @@ namespace Shrunk.Tests
             var player = PlayerController.Instance;
             player.Input.overrideFrame = new InputFrame();
             Vector3 at = board.transform.position + Vector3.up * 0.05f;
-            Assert.That(WorldPrompt.For(at), Does.Contain("2 of 6 pages").And.Contain("Day 9."));
+            Assert.That(WorldPrompt.For(at), Does.Contain("2 of 9 pages").And.Contain("Day 9."));
             Assert.IsNull(WorldPrompt.For(at + Vector3.left * 8f));
             Assert.That(WorldPrompt.For(at), Does.Contain("Day 1."));
         }

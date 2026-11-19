@@ -28,6 +28,9 @@ namespace Shrunk
             new FinchNote { id = 4, biome = "cake", text = "Day 52. The cake is for somebody's eighth birthday. I counted the candles. I did not stay for the singing." },
             new FinchNote { id = 5, biome = "cake", text = "Day 61. Second dose. Smaller again. The intern's contract reached the lab today. I signed it for them. It seemed quicker." },
             new FinchNote { id = 6, biome = "cake", text = "Day 80. Far enough down there is no more down, only me. I would like to see that. Somebody will have to keep the way open." },
+            new FinchNote { id = 7, biome = "sofa", text = "Day 96. Passed under the sofa on the way down. Found my good pen. It is a bridge now. I crossed it and felt nothing." },
+            new FinchNote { id = 8, biome = "sofa", text = "Day 104. The vacuum runs at nine. I set my watch by it, and then lost the watch. It is the size of a town square." },
+            new FinchNote { id = 9, biome = "sofa", text = "Day 131. Third dose is ready. If anyone is reading these in order: I am sorry about the door. There is a door." },
         };
 
         /// <summary>A page has just been picked up.</summary>
