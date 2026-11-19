@@ -260,8 +260,15 @@ namespace Shrunk
         /// <summary>Tests and clips set this to get one particular twist (or none) on the next floor built.</summary>
         [System.NonSerialized] public FloorTwist? twistOverride;
 
-        /// <summary>Set by the tests, for every floor manager: the chance of a twist and of a dare where a test has not asked for one.</summary>
-        public static float? TwistChanceForAll, DareChanceForAll;
+        /// <summary>Set by the tests, for every floor manager: the chance of a twist, a dare and an exchange where a test has not asked for one.</summary>
+        public static float? TwistChanceForAll, DareChanceForAll, ExchangeChanceForAll;
+
+        /// <summary>The sample exchange in this floor's first room, if it has one.</summary>
+        public SampleExchange Exchange { get; private set; }
+        [Tooltip("Chance that a floor's first room has a sample exchange in it. Never on floor 1 or at the bottom.")]
+        public float exchangeChance = 0.3f;
+        /// <summary>Tests set this to make the roll certain (1) or impossible (0).</summary>
+        [System.NonSerialized] public float exchangeChanceOverride = -1f;
 
         /// <summary>The dare left in a cleared room on this floor, until it is rung.</summary>
         public DareBell Dare { get; private set; }
@@ -313,6 +320,14 @@ namespace Shrunk
             var assets = GameAssets.Instance;
             if (assets == null || assets.items == null) return;
             var rng = new System.Random(seed ^ 0x2545F491);
+
+            // Some floors open with the exchange in a corner of the first room's clear middle.
+            float exchange = exchangeChanceOverride >= 0f ? exchangeChanceOverride : ExchangeChanceForAll ?? exchangeChance;
+            if (FloorNumber >= 2 && !biome.isBottom && new System.Random(seed ^ 0x0EC4A26E).NextDouble() < exchange)
+            {
+                Room first = _rooms[Layout.start.cell];
+                Exchange = SampleExchange.Create(first, first.Centre + new Vector3(2f, 0f, 1.2f), assets.sample, assets.coin);
+            }
 
             foreach (var node in Layout.ordered)
             {
@@ -405,6 +420,7 @@ namespace Shrunk
             _fightRoom = null;
             Boss = null;
             Dare = null;
+            Exchange = null;
             DareFight = false;
             _dareOffered = false;
             ExtractPortal = null;

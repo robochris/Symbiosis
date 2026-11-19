@@ -640,6 +640,35 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_exchange()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            floors.exchangeChanceOverride = 1f;
+            floors.BuildFloor(2, 4242);
+            yield return null;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            RunState.AddSamples(22);
+            player.Teleport(floors.Exchange.transform.position + new Vector3(0f, 0.05f, -3.2f));
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(3.2f);
+            player.Teleport(floors.Exchange.transform.position + new Vector3(0f, 0.05f, -1.6f));
+            yield return new WaitForSeconds(0.4f);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            yield return Screen(Path.Combine(folder, "exchange.png"));
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_evidence()
         {
             SaveSystem.Profile = "tests";

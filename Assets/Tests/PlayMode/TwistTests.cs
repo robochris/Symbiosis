@@ -82,6 +82,7 @@ namespace Shrunk.Tests
         {
             Assert.AreEqual(0f, FloorManager.TwistChanceForAll, "the tests are running with random twists on");
             Assert.AreEqual(0f, FloorManager.DareChanceForAll, "the tests are running with random dares on");
+            Assert.AreEqual(0f, FloorManager.ExchangeChanceForAll, "the tests are running with random exchanges on");
             var biome = _floors.biome;
             for (int seed = 1; seed < 200; seed++)
             {
@@ -293,6 +294,52 @@ namespace Shrunk.Tests
             yield return EnterFight(FightRoom());
             yield return KillAll();
             Assert.IsTrue(_floors.Dare == null, "a second dare on the same floor");
+        }
+
+        [UnityTest]
+        public IEnumerator The_exchange_takes_samples_for_one_item_a_floor()
+        {
+            _floors.exchangeChanceOverride = 1f;
+            _floors.BuildFloor(1);
+            yield return null;
+            Assert.IsTrue(_floors.Exchange == null, "an exchange on the first floor, before there is anything to trade");
+
+            _floors.BuildFloor(2);
+            yield return null;
+            SampleExchange exchange = _floors.Exchange;
+            Assert.IsNotNull(exchange, "no exchange");
+            Vector3 mat = exchange.transform.position + Vector3.up * 0.05f;
+            Assert.IsTrue(NavMesh.SamplePosition(mat, out var hit, 0.5f, NavMesh.AllAreas) && hit.position.y < 0.5f, "the exchange is not on open floor");
+            Assert.Greater((_player.transform.position - exchange.transform.position).magnitude, exchange.radius + 1f, "the run starts on its mat");
+
+            // Not enough: it says so, and standing there does nothing.
+            RunState.AddSamples(SampleExchange.Price - 1 - RunState.Samples);
+            _player.Teleport(mat);
+            yield return new WaitForSeconds(SampleExchange.HoldTime + 0.4f);
+            Assert.IsFalse(exchange.Shut);
+            Assert.That(WorldPrompt.For(mat), Does.Contain("does not do credit"));
+
+            // Enough: crossing it trades nothing, standing on it does.
+            RunState.AddSamples(11);
+            int carried = RunState.Samples;
+            int itemsBefore = 0;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Item) itemsBefore++;
+            _player.Teleport(mat + new Vector3(-4f, 0f, 0f));
+            yield return null;
+            _player.Teleport(mat);
+            yield return new WaitForSeconds(SampleExchange.HoldTime * 0.4f);
+            Assert.IsFalse(exchange.Shut, "walking past traded");
+            yield return new WaitForSeconds(SampleExchange.HoldTime);
+            Assert.IsTrue(exchange.Shut);
+            Assert.AreEqual(carried - SampleExchange.Price, RunState.Samples);
+            int itemsAfter = 0;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Item) itemsAfter++;
+            Assert.AreEqual(itemsBefore + 1, itemsAfter + _player.Items.Collected.Count, "nothing came out of the hatch");
+
+            // Once a floor.
+            RunState.AddSamples(100);
+            Assert.IsFalse(exchange.Trade());
+            Assert.That(WorldPrompt.For(mat), Does.Contain("shut"));
         }
 
         [UnityTest]

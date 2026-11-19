@@ -58,6 +58,9 @@ namespace Shrunk.Tests
             yield return WaitUntil(() => _floors.Boss != null, 2f, "the boss to appear");
             _floors.Boss.Health.Kill();
             yield return WaitUntil(() => !_floors.IsLocked, 2f, "the arena to open");
+            // Clear of where the portals appear: a pad only counts a step onto it from outside.
+            _player.Teleport(_floors.ArenaCentre + new Vector3(0f, 0.05f, -9f));
+            yield return null;
         }
 
         [UnityTest]

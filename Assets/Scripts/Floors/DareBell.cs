@@ -84,8 +84,7 @@ namespace Shrunk
             Vector3 to = playerPosition - transform.position;
             to.y = 0f;
             if (to.magnitude > 3.2f) return null;
-            return "A dare. Ring it and the doors shut on something worse than last time; beat that and there is a prize. " +
-                   "Stand still on the mat to ring it. Walking past is also allowed.";
+            return "A dare: ring it and the doors shut on something worse.\nBeat that and there is a prize. Stand still on the mat to ring it.";
         }
     }
 }
