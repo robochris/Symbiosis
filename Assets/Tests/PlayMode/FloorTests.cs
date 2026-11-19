@@ -542,6 +542,42 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_minimap_pointer_follows_the_player_and_points_where_they_look()
+        {
+            var minimap = Object.FindAnyObjectByType<Minimap>();
+            yield return null;
+            Assert.IsNotNull(minimap.Pointer, "no pointer on the minimap");
+            Vector2 atStart = minimap.Pointer.anchoredPosition;
+
+            // East on the floor is right on the map; north is up.
+            _player.Teleport(_player.transform.position + new Vector3(4f, 0f, 0f));
+            yield return null;
+            yield return null;
+            Assert.Greater(minimap.Pointer.anchoredPosition.x, atStart.x + 0.5f);
+            Assert.AreEqual(atStart.y, minimap.Pointer.anchoredPosition.y, 0.01f);
+            _player.Teleport(_player.transform.position + new Vector3(0f, 0f, 4f));
+            yield return null;
+            yield return null;
+            Assert.Greater(minimap.Pointer.anchoredPosition.y, atStart.y + 0.5f);
+
+            // Looking east turns the pointer a quarter turn clockwise.
+            var follow = CameraFollow.Instance;
+            follow.AddLook(90f - follow.LookYaw, 0f);
+            yield return null;
+            Assert.AreEqual(90f, follow.LookYaw, 0.1f);
+            Vector3 nose = minimap.Pointer.up;
+            Assert.Greater(nose.x, 0.99f, "the pointer's nose should point right when looking east");
+
+            // A new floor gets a new pointer, not a second one.
+            _floors.BuildFloor(2);
+            yield return null;
+            yield return null;
+            int pointers = 0;
+            foreach (Transform child in minimap.container) if (child.name == "You") pointers++;
+            Assert.AreEqual(1, pointers, "pointers piling up");
+        }
+
+        [UnityTest]
         public IEnumerator Only_rooms_near_the_player_are_drawn()
         {
             _floors.BuildFloor(9, 2024);

@@ -24,6 +24,9 @@ namespace Shrunk
         public float hitReach = 1.9f;
         public int damage = 1;
         public float recoverTime = 1.1f;
+        [Tooltip("The warning strip shown along the charge's path while it winds up.")]
+        public Material telegraphMaterial;
+        public float telegraphWidth = 1.1f;
 
         public State Current { get; private set; }
 
@@ -41,6 +44,7 @@ namespace Shrunk
         {
             if (!TryGetTarget(out Vector3 targetPosition, out Health targetHealth))
             {
+                HideChargeLine();
                 SetVisualScale(1f);
                 Move(Vector3.zero);
                 return;
@@ -62,9 +66,11 @@ namespace Shrunk
                     // Lowers its head and swells while it takes aim: the telegraph.
                     Face(toPlayer, turnSpeed);
                     SetVisualScale(Mathf.Lerp(1.35f, 1f, _timer / windupTime));
+                    ShowChargeLine(1f - _timer / windupTime, chargeSpeed * SpeedScale * chargeTime, telegraphWidth * BaseScale, telegraphMaterial);
                     Move(Vector3.zero);
                     if (Tick())
                     {
+                        HideChargeLine();
                         _hit = false;
                         _chargedFor = 0f;
                         Enter(State.Charge, chargeTime);

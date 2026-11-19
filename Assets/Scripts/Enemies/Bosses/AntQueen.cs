@@ -176,10 +176,12 @@ namespace Shrunk
                     // Lowers her head and takes aim: the telegraph. The direction locks when it ends.
                     Face(toTarget, turnSpeed * 1.5f);
                     SetVisualScale(Mathf.Lerp(1.2f, 1f, _timer / chargeWindup));
+                    ShowChargeLine(1f - _timer / chargeWindup, chargeSpeed * SpeedScale * chargeTime, 3.2f, telegraphMaterial);
                     Move(Vector3.zero);
                     _timer -= Time.deltaTime * SpeedScale;
                     if (_timer <= 0f)
                     {
+                        HideChargeLine();
                         SetVisualScale(1f);
                         Charges++;
                         _hit = false;

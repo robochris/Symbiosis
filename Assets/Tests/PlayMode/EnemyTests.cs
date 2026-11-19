@@ -79,6 +79,30 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Charger_shows_where_it_will_charge_before_it_goes()
+        {
+            var soldier = (ChargerEnemy)Spawn("SoldierAnt", new Vector3(0f, 0f, 7f));
+            _player.Health.SetInvulnerable(600f);
+            Assert.IsFalse(soldier.ChargeLineShowing);
+
+            for (float t = 0f; t < 3f && soldier.Current != ChargerEnemy.State.Windup; t += Time.deltaTime) yield return null;
+            Assert.AreEqual(ChargerEnemy.State.Windup, soldier.Current, "the soldier never wound up");
+            yield return null;
+            Assert.IsTrue(soldier.ChargeLineShowing, "no warning strip during the wind-up");
+            float early = soldier.ChargeLineLength;
+
+            float longest = early;
+            while (soldier.Current == ChargerEnemy.State.Windup)
+            {
+                longest = Mathf.Max(longest, soldier.ChargeLineLength);
+                yield return null;
+            }
+            Assert.Greater(longest, early + 3f, "the strip should grow as the charge gets closer");
+            Assert.LessOrEqual(longest, soldier.chargeSpeed * soldier.chargeTime + 0.01f);
+            Assert.IsFalse(soldier.ChargeLineShowing, "the strip is still there after the charge began");
+        }
+
+        [UnityTest]
         public IEnumerator Charger_misses_a_player_who_steps_aside()
         {
             var soldier = (ChargerEnemy)Spawn("SoldierAnt", new Vector3(0f, 0f, 8f));

@@ -46,6 +46,7 @@ namespace Shrunk.EditorTools
 
             var soldier = Ant<ChargerEnemy>("SoldierAnt", 1.45f, 10, soldierBody, antDark, false, out _);
             soldier.knockbackOnHit = 2f;
+            soldier.telegraphMaterial = ArenaSceneBuilder.Unlit("Telegraph", new Color(1f, 0.25f, 0.2f));
             var soldierPrefab = SaveEnemy(soldier);
 
             var spitter = Ant<ShooterEnemy>("SpitterAnt", 0.9f, 4, spitterBody, antDark, false, out _);

@@ -130,6 +130,7 @@ namespace Shrunk
             BaseScale = 1f;
             Targetable = true;
             SetVisualScale(1f);
+            HideChargeLine();
         }
 
         protected virtual void OnDisable()
@@ -311,6 +312,52 @@ namespace Shrunk
             }
             gameObject.SetActive(false);
         }
+
+        GameObject _chargeLine;
+
+        /// <summary>True while a warning strip is showing on the floor in front of this enemy.</summary>
+        public bool ChargeLineShowing => _chargeLine != null && _chargeLine.activeSelf;
+        /// <summary>How long the strip is right now, in metres.</summary>
+        public float ChargeLineLength => ChargeLineShowing ? _chargeLine.transform.localScale.z : 0f;
+
+        /// <summary>
+        /// The warning for a charge: a strip on the floor that grows out in front, along the line the charge will take,
+        /// stopping at the first wall. Call every frame of the wind-up with how far through it is (0 to 1).
+        /// </summary>
+        protected void ShowChargeLine(float progress, float length, float width, Material material)
+        {
+            if (_chargeLine == null)
+            {
+                _chargeLine = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                _chargeLine.name = "Charge line";
+                var collider = _chargeLine.GetComponent<Collider>();
+                collider.enabled = false;
+                Destroy(collider);
+                _chargeLine.transform.SetParent(transform, false);
+                var renderer = _chargeLine.GetComponent<Renderer>();
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                if (material != null) renderer.sharedMaterial = material;
+            }
+
+            Vector3 from = transform.position + Vector3.up * 0.5f;
+            int count = Physics.RaycastNonAlloc(from, transform.forward, LineHits, length, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++)
+            {
+                if (LineHits[i].collider.GetComponentInParent<Health>() == null) length = Mathf.Min(length, LineHits[i].distance);
+            }
+
+            float shown = Mathf.Max(0.1f, length * Mathf.Clamp01(progress));
+            _chargeLine.transform.localPosition = new Vector3(0f, 0.04f - transform.position.y, shown * 0.5f);
+            _chargeLine.transform.localScale = new Vector3(width, 0.02f, shown);
+            if (!_chargeLine.activeSelf) _chargeLine.SetActive(true);
+        }
+
+        protected void HideChargeLine()
+        {
+            if (_chargeLine != null && _chargeLine.activeSelf) _chargeLine.SetActive(false);
+        }
+
+        static readonly RaycastHit[] LineHits = new RaycastHit[12];
 
         protected void SetVisualScale(float scale)
         {
