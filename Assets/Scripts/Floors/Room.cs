@@ -37,7 +37,7 @@ namespace Shrunk
                 ? new[] { biome.floorMaterial, biome.wallMaterial, biome.ceilingMaterial }
                 : new[] { biome.floorMaterial, biome.wallMaterial };
             // Underground the light is even: tall walls throwing shadows across the floor would hide half the room.
-            if (ceiling) renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            if (ceiling || !biome.roomCastsShadows) renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             go.AddComponent<MeshCollider>().sharedMesh = room._collision;
 
             // A barrier in each doorway, switched on while the room is locked.

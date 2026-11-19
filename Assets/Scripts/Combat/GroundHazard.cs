@@ -26,6 +26,8 @@ namespace Shrunk
         public bool burning;
         [Tooltip("Seconds between hits on enemies standing in it.")]
         public float tick = 0.5f;
+        [Tooltip("Above 0: slows the player standing in it to this share of their speed (0.45 = under half).")]
+        public float slowTo = 0f;
 
         float _age;
         float _nextTick;
@@ -37,6 +39,18 @@ namespace Shrunk
             var hazard = Create(PrimitiveType.Cylinder, "Acid Pool", Flat(position, 0.03f), material);
             hazard.radius = 1.6f;
             hazard.lifetime = 5f;
+            hazard.transform.localScale = new Vector3(hazard.radius * 2f, 0.02f, hazard.radius * 2f);
+            return hazard;
+        }
+
+        /// <summary>A sticky patch: it does no damage, but the player wades through it at under half speed.</summary>
+        public static GroundHazard SpawnStickyPatch(Vector3 position, Material material)
+        {
+            var hazard = Create(PrimitiveType.Cylinder, "Sticky Patch", Flat(position, 0.03f), material);
+            hazard.radius = 1.9f;
+            hazard.damage = 0;
+            hazard.slowTo = 0.45f;
+            hazard.lifetime = 7f;
             hazard.transform.localScale = new Vector3(hazard.radius * 2f, 0.02f, hazard.radius * 2f);
             return hazard;
         }
@@ -154,7 +168,9 @@ namespace Shrunk
             {
                 var player = PlayerController.Instance;
                 if (player == null || player.Health.IsDead || player.IsHovering) return;
-                if (Inside(player.transform.position)) player.Health.TakeDamage(damage, Vector3.zero);
+                if (!Inside(player.transform.position)) return;
+                if (damage > 0) player.Health.TakeDamage(damage, Vector3.zero);
+                if (slowTo > 0f) player.Slow(slowTo, 0.3f);
                 return;
             }
 

@@ -207,6 +207,25 @@ namespace Shrunk.Tests
             End();
         }
 
+        /// <summary>The same walk and fight in the Birthday Cake, the second biome.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_cake()
+        {
+            yield return Begin("cake");
+            Assert.IsTrue(_floors.SetBiome("cake"));
+            _floors.BuildFloor(6, 4711);
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+
+            RoomNode fight = NearestFightRoom();
+            Room room = _floors.RoomAt(fight.cell);
+            yield return Stand(1f);
+            yield return Walk(OnNavMesh(room.Centre), 25f, () => _floors.IsLocked);
+            yield return Fight(40f);
+            yield return Stand(2f);
+            End();
+        }
+
         /// <summary>The Brood Mother on floor 5, for the boss view.</summary>
         [UnityTest, Explicit]
         public IEnumerator Capture_clip_boss()

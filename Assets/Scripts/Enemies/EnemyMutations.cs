@@ -18,8 +18,17 @@ namespace Shrunk
         public float shellOffset = 1.1f;
         [Tooltip("How big the body is next to a worker ant (1). The looks are sized and placed by it.")]
         public float bodySize = 1f;
+        [Tooltip("Hardened Shell: shots from the front it stops before it shatters. Getting behind is still the quick way, but an enemy that always faces you (a spitter backing off) can never be untouchable.")]
+        public int shellStrength = 8;
+
+        /// <summary>Frontal shots the shell can still stop. 0 once it has shattered, or if there never was one.</summary>
+        public int ShellLeft { get; private set; }
+        GameObject _shellPlate;
 
         public IReadOnlyList<MutationDefinition> Active => _active;
+        public const float SugarRushSpeed = 1.8f;
+        /// <summary>True once a Sugar Rush ant has dropped to half health and sped up.</summary>
+        public bool IsRushing => _rushing;
 
         readonly List<MutationDefinition> _active = new List<MutationDefinition>();
         readonly List<GameObject> _tells = new List<GameObject>();
@@ -39,6 +48,7 @@ namespace Shrunk
         HitFlash _flash;
         Color _tint;
         bool _summoned;
+        bool _rushing;
         float _nextRegen;
         float _nextTrail;
 
@@ -53,12 +63,36 @@ namespace Shrunk
         {
             _health.Damaged += OnDamaged;
             _health.Died += OnDied;
+            _health.Blocked += OnBlocked;
+        }
+
+        // The shell took one for the ant. Enough of those and it breaks for good.
+        void OnBlocked(Vector3 direction)
+        {
+            if (ShellLeft <= 0) return;
+            ShellLeft--;
+            Sfx.Play(SfxId.Blocked, 0.5f);
+            var shell = Find(MutationType.HardenedShell);
+            Color colour = shell != null ? shell.color : Color.white;
+            Vector3 face = transform.position + transform.forward * shellOffset + Vector3.up * 0.75f;
+            if (ShellLeft > 0)
+            {
+                Fx.Burst(face, colour, 3, 3f, 0.1f, 0.25f);
+                // It visibly wears down: thinner with every hit.
+                if (_shellPlate != null) _shellPlate.transform.localScale = new Vector3(1.3f, 1.1f * (0.4f + 0.6f * ShellLeft / shellStrength), 0.15f);
+                return;
+            }
+
+            _health.ShouldBlock = null;
+            if (_shellPlate != null) _shellPlate.SetActive(false);
+            Fx.Burst(face, colour, 18, 6f, 0.2f, 0.5f);
         }
 
         void OnDisable()
         {
             _health.Damaged -= OnDamaged;
             _health.Died -= OnDied;
+            _health.Blocked -= OnBlocked;
             Clear();
         }
 
@@ -87,6 +121,9 @@ namespace Shrunk
             _moving.Clear();
             _active.Clear();
             _summoned = false;
+            _rushing = false;
+            ShellLeft = 0;
+            _shellPlate = null;
         }
 
         /// <summary>Call right after the enemy is switched on. Replaces any mutations it had.</summary>
@@ -132,6 +169,15 @@ namespace Shrunk
                         Moving(Motion.Drip, BodyTell(PrimitiveType.Sphere, "Acid drip", mutation, new Vector3(0.15f, 0.4f, -0.2f), Vector3.one * 0.11f), 0.4f);
                         Moving(Motion.Drip, BodyTell(PrimitiveType.Sphere, "Acid drip", mutation, new Vector3(0.05f, 0.45f, 0.45f), Vector3.one * 0.12f), 0.75f);
                         break;
+                    case MutationType.Sticky:
+                        BodyTell(PrimitiveType.Sphere, "Sticky glob", mutation, new Vector3(-0.25f, 0.22f, -0.3f), new Vector3(0.45f, 0.3f, 0.45f));
+                        BodyTell(PrimitiveType.Sphere, "Sticky glob", mutation, new Vector3(0.22f, 0.18f, 0.25f), new Vector3(0.38f, 0.26f, 0.38f));
+                        break;
+                    case MutationType.SugarRush:
+                        // Sparks that sit quietly until the rush starts, then never stop.
+                        Moving(Motion.Glow, BodyTell(PrimitiveType.Sphere, "Sugar spark", mutation, new Vector3(-0.3f, 1.15f, 0f), Vector3.one * 0.16f), 0f);
+                        Moving(Motion.Glow, BodyTell(PrimitiveType.Sphere, "Sugar spark", mutation, new Vector3(0.3f, 1.2f, -0.3f), Vector3.one * 0.14f), 0.5f);
+                        break;
                     case MutationType.SwarmCall:
                         // Antennae with glowing tips.
                         for (int side = -1; side <= 1; side += 2)
@@ -151,6 +197,7 @@ namespace Shrunk
                             direction.y = 0f;
                             return Vector3.Dot(direction.normalized, transform.forward) < -0.35f;
                         };
+                        ShellLeft = shellStrength;
                         AddShell(mutation);
                         break;
                 }
@@ -185,6 +232,7 @@ namespace Shrunk
         void AddShell(MutationDefinition mutation)
         {
             var plate = MakeTell(PrimitiveType.Cube, "Shell plate", mutation.effectMaterial);
+            _shellPlate = plate;
             plate.transform.localPosition = new Vector3(0f, 0.75f, shellOffset);
             plate.transform.localScale = new Vector3(1.3f, 1.1f, 0.15f);
         }
@@ -285,6 +333,14 @@ namespace Shrunk
 
         void OnDamaged(int amount, Vector3 direction)
         {
+            // Sugar rush: once it is down to half health, it speeds right up for the rest of its life.
+            if (!_rushing && !_health.IsDead && Has(MutationType.SugarRush) && _health.Current <= _health.maxHealth / 2)
+            {
+                _rushing = true;
+                _enemy.SpeedMultiplier *= SugarRushSpeed;
+                Fx.Burst(transform.position + Vector3.up, Find(MutationType.SugarRush).color, 12, 5f, 0.18f);
+            }
+
             // Swarm call: once, at half health, call in three workers.
             if (!_summoned && !_health.IsDead && Has(MutationType.SwarmCall) && _health.Current <= _health.maxHealth / 2)
             {
@@ -300,6 +356,9 @@ namespace Shrunk
 
             var acid = Find(MutationType.AcidBlood);
             if (acid != null) GroundHazard.SpawnAcidPool(transform.position, acid.effectMaterial);
+
+            var sticky = Find(MutationType.Sticky);
+            if (sticky != null) GroundHazard.SpawnStickyPatch(transform.position, sticky.effectMaterial);
         }
     }
 }

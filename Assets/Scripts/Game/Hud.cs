@@ -47,12 +47,14 @@ namespace Shrunk
         {
             Pickup.ItemCollected += OnItemCollected;
             FloorManager.RoomChanged += OnRoomChanged;
+            FloorManager.FloorBuilt += OnFloorBuilt;
         }
 
         void OnDisable()
         {
             Pickup.ItemCollected -= OnItemCollected;
             FloorManager.RoomChanged -= OnRoomChanged;
+            FloorManager.FloorBuilt -= OnFloorBuilt;
         }
 
         void Start()
@@ -66,6 +68,16 @@ namespace Shrunk
         }
 
         RoomNode _announced;
+        BiomeDefinition _shownBiome;
+
+        // Arriving somewhere new: say where.
+        void OnFloorBuilt(FloorManager floors)
+        {
+            if (floors.biome == null || (floors.biome == _shownBiome && floors.FloorInBiome != 1)) return;
+            _shownBiome = floors.biome;
+            string theme = string.IsNullOrEmpty(floors.biome.mutationTheme) ? "" : ": " + floors.biome.mutationTheme;
+            Toast(floors.depth > 1 ? $"{floors.biome.displayName}{theme}  ·  depth {floors.depth}" : floors.biome.displayName + theme, 4f);
+        }
 
         /// <summary>The last message shown, for tests.</summary>
         public string LastToast => _toast;
@@ -141,7 +153,7 @@ namespace Shrunk
             if (killsText != null && _shownKills != RunState.Kills)
             {
                 _shownKills = RunState.Kills;
-                killsText.text = "Ants: " + _shownKills;
+                killsText.text = "Kills: " + _shownKills;
             }
 
             if (resourcesText != null && lab)

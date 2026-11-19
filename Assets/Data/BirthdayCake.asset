@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 461a3036bed823b4caa1f39f91d27ca0, type: 3}
+  m_Name: BirthdayCake
+  m_EditorClassIdentifier: 
+  displayName: Birthday Cake
+  id: cake
+  mutationTheme: sugar rush, sticky
+  skyColor: {r: 0.55, g: 0.8, b: 0.97, a: 1}
+  ambientColor: {r: 0.52, g: 0.5, b: 0.55, a: 1}
+  sunIntensity: 0.95
+  fog: 0
+  fogColor: {r: 0.08, g: 0.06, b: 0.05, a: 1}
+  fogStart: 22
+  fogEnd: 90
+  roomCastsShadows: 0
+  floorMaterial: {fileID: 2100000, guid: 6d608d474916e23499b4372d26a42e1c, type: 2}
+  wallMaterial: {fileID: 2100000, guid: 4833ae8f3b64e0345a022c9b03f39014, type: 2}
+  doorMaterial: {fileID: 2100000, guid: 8fa980b97bfb5c14db9c9efd0575464a, type: 2}
+  wallHeight: 6
+  ceiling: 0
+  ceilingMaterial: {fileID: 0}
+  coverMaterial: {fileID: 2100000, guid: 9f623aedefc512f498e17fc81b795d96, type: 2}
+  crumbMaterial: {fileID: 2100000, guid: 6d608d474916e23499b4372d26a42e1c, type: 2}
+  sugarMaterial: {fileID: 2100000, guid: 38bac5c9a51be3d43acab8d85ef84be8, type: 2}
+  rootMaterial: {fileID: 2100000, guid: e95eda361d6d06441839d59032405935, type: 2}
+  podMaterial: {fileID: 2100000, guid: e3a479be17687334c8e6bdcf635b5fe5, type: 2}
+  podHatchling: {fileID: 5468892710605567079, guid: f0552539707c70940aa39401b56b0e89, type: 3}
+  dewMaterial: {fileID: 2100000, guid: 8d26706c66279aa4f8d925c403a9ef0c, type: 2}
+  startProp: {fileID: 695972606233312100, guid: e74553cbdcf1d0943b81f0ca983e9c61, type: 3}
+  exitProp: {fileID: 1403081933625777294, guid: 204faba197fa9854a966e5a107a9b9e1, type: 3}
+  treasureProp: {fileID: 1235595317397215819, guid: 62bb75bdd9d1be5489564243f71fe3d0, type: 3}
+  shopProp: {fileID: 4783187061587282082, guid: 4163612879fcbbc4590053e60f9712e7, type: 3}
+  extractPortalProp: {fileID: 8790912101371346294, guid: 029f146fe3856f64aa9f0a31bbad23f4, type: 3}
+  deeperPortalProp: {fileID: 225578734325243452, guid: 8f92f7658899bc24693ba020fbb53396, type: 3}
+  portalProp: {fileID: 5235685639803406468, guid: d0d852265eebff04fb762f3ec517606e, type: 3}
+  spawnTable:
+  - prefab: {fileID: 6661044304210419554, guid: ea7b210746102644a84f359e6b06b9b0, type: 3}
+    weight: 5
+    minFloor: 1
+  - prefab: {fileID: 6984281073576806580, guid: f68ef82606979794284ecc50218aad3f, type: 3}
+    weight: 2
+    minFloor: 2
+  - prefab: {fileID: 3319996340129679216, guid: 8010a0efab604fc4b8f12615969b2ae3, type: 3}
+    weight: 2
+    minFloor: 3
+  - prefab: {fileID: 991374832903310445, guid: f7592b6516aa43b4e919f4db3c14283a, type: 3}
+    weight: 2
+    minFloor: 4
+  miniBoss: {fileID: 2285003074015785388, guid: 2232d70cc4bc75d4d921d6417ae83fac, type: 3}
+  boss: {fileID: 7024756802026650186, guid: fdd423c911eb33844b823fd914d0a54c, type: 3}
+  swarmEnemy: {fileID: 6661044304210419554, guid: ea7b210746102644a84f359e6b06b9b0, type: 3}
+  baseEnemiesPerRoom: 2
+  floorsPerExtraEnemy: 3
+  tilesPerExtraEnemy: 60
+  maxExtraEnemiesForSize: 4
+  glowMaterial: {fileID: 2100000, guid: 4a6b62fc1f5fae6428a98ad8a4dd405a, type: 2}
+  glowStemMaterial: {fileID: 2100000, guid: 9e0c08327dfa2fc4d83e32205d1b4d92, type: 2}
+  glowLightRange: 11
+  glowLightIntensity: 1.5
+  eliteMaterial: {fileID: 2100000, guid: 05c381c34670aa9479243acbba8883aa, type: 2}
+  mutations:
+  - {fileID: 11400000, guid: 1a8a5af7fbefee247845ee27987d9a52, type: 2}
+  - {fileID: 11400000, guid: 090677eaf5b9b0f4489da51d0d120134, type: 2}
+  - {fileID: 11400000, guid: f9867f3f1696f9f4184512eb7f32400c, type: 2}
+  - {fileID: 11400000, guid: a9df033bc8543634f91fdc388818f376, type: 2}
+  - {fileID: 11400000, guid: 2611cb811d215f848bc53ba5848175a6, type: 2}
+  - {fileID: 11400000, guid: 5f6ec9f159b438e4a9ad0ccf1bde816a, type: 2}
+  - {fileID: 11400000, guid: 8ea3920b93aeca64cba984b55d1a1179, type: 2}

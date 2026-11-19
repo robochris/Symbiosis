@@ -20,6 +20,22 @@ namespace Shrunk
     public class BiomeDefinition : ScriptableObject
     {
         public string displayName = "Biome";
+        [Tooltip("Short name with no spaces, written into saved runs.")]
+        public string id = "biome";
+        [Tooltip("Shown on the portal that leads here.")]
+        public string mutationTheme = "";
+
+        [Header("Light and sky")]
+        [Tooltip("What shows where there is nothing: the dark of the earth underground, the sky outdoors.")]
+        public Color skyColor = new Color(0.08f, 0.06f, 0.05f);
+        public Color ambientColor = new Color(0.95f, 0.88f, 0.82f);
+        public float sunIntensity = 0.9f;
+        public bool fog = true;
+        public Color fogColor = new Color(0.08f, 0.06f, 0.05f);
+        public float fogStart = 22f;
+        public float fogEnd = 90f;
+        [Tooltip("Off: walls throw no shadows across the floor, which would hide half of a tall-walled room.")]
+        public bool roomCastsShadows = false;
 
         [Header("Room look")]
         public Material floorMaterial;
@@ -55,6 +71,8 @@ namespace Shrunk
         public GameObject extractPortalProp;
         [Tooltip("After the biome boss: the portal to the next biome, one depth deeper.")]
         public GameObject deeperPortalProp;
+        [Tooltip("The portal that leads INTO this biome from another one's portal room. Empty = the plain deeper portal.")]
+        public GameObject portalProp;
 
         [Header("Enemies")]
         public EnemySpawnEntry[] spawnTable;

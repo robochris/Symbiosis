@@ -102,6 +102,7 @@ namespace Shrunk
             RunState.Restore(run.kills, run.coins, run.samples);
 
             _floors.depth = Mathf.Max(1, run.depth);
+            if (!string.IsNullOrEmpty(run.biome)) _floors.SetBiome(run.biome);
             _floors.BuildFloor(Mathf.Max(1, run.floorNumber), run.seed);
         }
 
@@ -114,6 +115,7 @@ namespace Shrunk
             run.active = true;
             run.floorNumber = floors.FloorNumber;
             run.depth = floors.depth;
+            run.biome = floors.biome != null ? floors.biome.id : "";
             run.seed = floors.Layout.seed;
             run.health = _player.Health.Current;
             run.coins = RunState.Coins;

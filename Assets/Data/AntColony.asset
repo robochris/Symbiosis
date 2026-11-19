@@ -13,6 +13,16 @@ MonoBehaviour:
   m_Name: AntColony
   m_EditorClassIdentifier: 
   displayName: Backyard Ant Colony
+  id: ants
+  mutationTheme: acid, armour, swarming
+  skyColor: {r: 0.08, g: 0.06, b: 0.05, a: 1}
+  ambientColor: {r: 0.95, g: 0.88, b: 0.82, a: 1}
+  sunIntensity: 0.9
+  fog: 1
+  fogColor: {r: 0.08, g: 0.06, b: 0.05, a: 1}
+  fogStart: 22
+  fogEnd: 90
+  roomCastsShadows: 0
   floorMaterial: {fileID: 2100000, guid: 264dbc61b9e990f439193549bd65be6f, type: 2}
   wallMaterial: {fileID: 2100000, guid: 1a19cdd6cf7fbc447bc8813b5da2e5ab, type: 2}
   doorMaterial: {fileID: 2100000, guid: 8997cd1d4f6b2b04581540354eee05c4, type: 2}
@@ -32,6 +42,7 @@ MonoBehaviour:
   shopProp: {fileID: 4783187061587282082, guid: 4163612879fcbbc4590053e60f9712e7, type: 3}
   extractPortalProp: {fileID: 8790912101371346294, guid: 029f146fe3856f64aa9f0a31bbad23f4, type: 3}
   deeperPortalProp: {fileID: 225578734325243452, guid: 8f92f7658899bc24693ba020fbb53396, type: 3}
+  portalProp: {fileID: 2420979111680054149, guid: ea8904b76a0526144aa164cc4071abb4, type: 3}
   spawnTable:
   - prefab: {fileID: 3101907269320609805, guid: 6d01fc171c7482245b3e9320fbaf4c63, type: 3}
     weight: 5

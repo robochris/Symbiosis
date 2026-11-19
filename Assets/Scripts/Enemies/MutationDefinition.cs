@@ -12,7 +12,11 @@ namespace Shrunk
         AcidBlood,
         SwarmCall,
         HardenedShell,
-        PheromoneTrail
+        PheromoneTrail,
+        /// <summary>Birthday Cake: leaves a sticky patch on death that slows the player.</summary>
+        Sticky,
+        /// <summary>Birthday Cake: below half health it moves and attacks much faster.</summary>
+        SugarRush
     }
 
     /// <summary>A mutation as data: what it is, what it costs from the point budget, and the colour players read it by.</summary>

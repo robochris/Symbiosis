@@ -168,6 +168,23 @@ namespace Shrunk.Tests
             ant.Health.TakeDamage(1, ant.transform.forward);
             Assert.AreEqual(max - 1, ant.Health.Current, "shot from behind was blocked");
             yield return null;
+
+            // Enough shots to the face and the shell shatters, so nothing that keeps facing you is untouchable.
+            int strength = ant.Mutations.shellStrength;
+            Assert.AreEqual(strength - 1, ant.Mutations.ShellLeft);
+            Transform plate = null;
+            foreach (Transform child in ant.transform) if (child.name == "Shell plate") plate = child;
+            Assert.IsNotNull(plate);
+            for (int i = 0; i < strength - 1; i++)
+            {
+                Assert.IsTrue(plate.gameObject.activeSelf, "the shell broke early");
+                ant.Health.TakeDamage(1, -ant.transform.forward);
+            }
+            Assert.AreEqual(max - 1, ant.Health.Current, "the shell let something through before it broke");
+            Assert.AreEqual(0, ant.Mutations.ShellLeft);
+            Assert.IsFalse(plate.gameObject.activeSelf, "the broken shell is still showing");
+            ant.Health.TakeDamage(1, -ant.transform.forward);
+            Assert.AreEqual(max - 2, ant.Health.Current, "a shattered shell still blocks");
         }
 
         [UnityTest]

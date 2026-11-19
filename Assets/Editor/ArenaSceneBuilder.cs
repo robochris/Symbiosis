@@ -204,7 +204,7 @@ namespace Shrunk.EditorTools
                 pips[i] = UiImage("Health " + (i + 1), parent, knob, glow, new Vector2(0f, 1f), new Vector2(80f + i * 70f, -80f), 54f).GetComponent<Image>();
             }
 
-            var kills = UiText("Kills", parent, font, "Ants: 0", 44, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-260f, -80f), new Vector2(400f, 60f));
+            var kills = UiText("Kills", parent, font, "Kills: 0", 44, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-260f, -80f), new Vector2(400f, 60f));
             var hint = UiText("Desktop Hint", parent, font, "WASD move  ·  mouse aim  ·  hold click to fire  ·  Space dodge", 30, TextAnchor.LowerCenter, new Vector2(0.5f, 0f), new Vector2(0f, 50f), new Vector2(1700f, 50f));
             hint.color = new Color(1f, 1f, 1f, 0.6f);
 
@@ -302,6 +302,10 @@ namespace Shrunk.EditorTools
             text.raycastTarget = false;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
             text.verticalOverflow = VerticalWrapMode.Overflow;
+            // A dark edge, so white text reads against a bright biome as well as a dark one.
+            var edge = go.AddComponent<Outline>();
+            edge.effectColor = new Color(0f, 0f, 0f, 0.75f);
+            edge.effectDistance = new Vector2(2f, -2f);
             return text;
         }
 

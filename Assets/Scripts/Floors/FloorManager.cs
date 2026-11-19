@@ -20,6 +20,47 @@ namespace Shrunk
         public static event Action ExtractChosen;
 
         public BiomeDefinition biome;
+        [Tooltip("The other biomes a portal can lead to after a biome boss. The current one is always offered again.")]
+        public BiomeDefinition[] otherBiomes;
+        [Tooltip("How many portals to other biomes are offered, on top of the one back into this biome.")]
+        public int otherPortals = 2;
+
+        /// <summary>One way onward in the portal room: a gate, and the biome it leads to.</summary>
+        public class BiomePortal
+        {
+            public GameObject gate;
+            public BiomeDefinition leadsTo;
+            public readonly StepPad pad = new StepPad { radius = 1.5f };
+        }
+
+        /// <summary>After a biome boss: every way onward. The first is always this biome again.</summary>
+        public IReadOnlyList<BiomePortal> Portals => _portals;
+        readonly List<BiomePortal> _portals = new List<BiomePortal>();
+
+        /// <summary>Every biome this run can visit: the one it started in, then the others.</summary>
+        public List<BiomeDefinition> AllBiomes()
+        {
+            var all = new List<BiomeDefinition>();
+            if (_firstBiome != null) all.Add(_firstBiome);
+            if (otherBiomes != null) foreach (var other in otherBiomes) if (other != null && !all.Contains(other)) all.Add(other);
+            if (biome != null && !all.Contains(biome)) all.Add(biome);
+            return all;
+        }
+
+        /// <summary>Switches to the biome with this id, e.g. when a saved run is loaded. False if there is no such biome.</summary>
+        public bool SetBiome(string id)
+        {
+            foreach (var candidate in AllBiomes())
+            {
+                if (candidate.id != id) continue;
+                biome = candidate;
+                return true;
+            }
+            return false;
+        }
+
+        BiomeDefinition _firstBiome;
+        Light _sun;
         /// <summary>Distance between room centres: one room's full footprint.</summary>
         public float cellSize => RoomShape.Size * RoomShape.TileSize;
         [Tooltip("0 = a different floor every time. Any other number repeats the same run of floors.")]
@@ -45,7 +86,7 @@ namespace Shrunk
         /// <summary>After a biome boss: the way home. Null until then.</summary>
         public GameObject ExtractPortal { get; private set; }
         /// <summary>After a biome boss: the way on to the next biome, one depth deeper. Null until then.</summary>
-        public GameObject DeeperPortal { get; private set; }
+        public GameObject DeeperPortal => _portals.Count > 0 ? _portals[0].gate : null;
         public IReadOnlyList<Enemy> LiveEnemies => _live;
         /// <summary>For tests: 0 to 1 replaces the usual chance of an elite in a fight room. Negative = the usual chance.</summary>
         [System.NonSerialized] public float eliteChanceOverride = -1f;
@@ -60,11 +101,11 @@ namespace Shrunk
         NavMeshSurface _surface;
         bool _exitArmed;
         readonly StepPad _extractPad = new StepPad { radius = 1.5f };
-        readonly StepPad _deeperPad = new StepPad { radius = 1.5f };
 
         void Awake()
         {
             Instance = this;
+            _firstBiome = biome;
 
             _roomsRoot = new GameObject("Rooms").transform;
             _roomsRoot.SetParent(transform, false);
@@ -113,6 +154,8 @@ namespace Shrunk
         public void BuildFloor(int number, int seedOverride = 0)
         {
             ClearFloor();
+            if (_firstBiome == null) _firstBiome = biome;
+            ApplyLook();
 
             FloorNumber = number;
             int seed = seedOverride != 0 ? seedOverride : fixedSeed != 0 ? fixedSeed + number : UnityEngine.Random.Range(1, int.MaxValue);
@@ -144,6 +187,30 @@ namespace Shrunk
             if (FloorsBuilt > 1) Sfx.Play(SfxId.NextFloor);
             FloorBuilt?.Invoke(this);
             Enter(Layout.start);
+        }
+
+        // The sky, the light and the haze belong to the biome: the dark of the earth, or a bright afternoon.
+        void ApplyLook()
+        {
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            RenderSettings.ambientLight = biome.ambientColor;
+            RenderSettings.fog = biome.fog;
+            RenderSettings.fogMode = FogMode.Linear;
+            RenderSettings.fogColor = biome.fogColor;
+            RenderSettings.fogStartDistance = biome.fogStart;
+            RenderSettings.fogEndDistance = biome.fogEnd;
+
+            var view = Camera.main;
+            if (view != null) view.backgroundColor = biome.skyColor;
+
+            if (_sun == null)
+            {
+                foreach (var light in FindObjectsByType<Light>(FindObjectsSortMode.None))
+                {
+                    if (light.type == LightType.Directional) { _sun = light; break; }
+                }
+            }
+            if (_sun != null) _sun.intensity = biome.sunIntensity;
         }
 
         /// <summary>Lab upgrade: how many items a treasure room offers.</summary>
@@ -198,7 +265,7 @@ namespace Shrunk
             CurrentNode = null;
             Boss = null;
             ExtractPortal = null;
-            DeeperPortal = null;
+            _portals.Clear();
             IsLocked = false;
             ExitOpen = false;
             _exitArmed = false;
@@ -232,8 +299,10 @@ namespace Shrunk
                 ExtractChosen?.Invoke();
                 return;
             }
-            if (DeeperPortal != null && _deeperPad.SteppedOn(DeeperPortal.transform.position, position))
+            foreach (var portal in _portals)
             {
+                if (!portal.pad.SteppedOn(portal.gate.transform.position, position)) continue;
+                biome = portal.leadsTo;
                 depth++;
                 BuildFloor(FloorNumber + 1);
                 return;
@@ -344,9 +413,12 @@ namespace Shrunk
                     ? $"Extract: go home with {RunState.Samples} samples ×{multiplier:0.#} = {worth}. Step in to leave."
                     : $"Extract: go home with {worth} samples. Step in to leave.";
             }
-            if (DeeperPortal != null && _deeperPad.Distance(DeeperPortal.transform.position, playerPosition) < 3.5f)
+            foreach (var portal in _portals)
             {
-                return $"Go deeper: {biome.displayName} again, depth {depth + 1}. Samples will be worth ×{RunDirector.RewardMultiplier(depth + 1):0.#}; " +
+                if (portal.pad.Distance(portal.gate.transform.position, playerPosition) >= 3.5f) continue;
+                string where = portal.leadsTo == biome ? $"{biome.displayName} again" : portal.leadsTo.displayName;
+                string theme = string.IsNullOrEmpty(portal.leadsTo.mutationTheme) ? "" : $" ({portal.leadsTo.mutationTheme})";
+                return $"Go deeper: {where}{theme}, depth {depth + 1}. Samples will be worth ×{RunDirector.RewardMultiplier(depth + 1):0.#}; " +
                        $"enemies carry up to {MutationBudget.MaxPoints(depth + 1, 1)} mutation points. Step in to push on.";
             }
             return null;
@@ -422,6 +494,12 @@ namespace Shrunk
             return enemy;
         }
 
+        void AddPortal(Room room, BiomeDefinition leadsTo, GameObject prop, Vector3 offset)
+        {
+            var gate = Instantiate(prop, room.Centre + offset, Quaternion.identity, room.transform);
+            _portals.Add(new BiomePortal { gate = gate, leadsTo = leadsTo });
+        }
+
         bool AllDead()
         {
             foreach (var enemy in _live)
@@ -448,8 +526,24 @@ namespace Shrunk
                 if (FloorInBiome == 10 && biome.extractPortalProp != null && biome.deeperPortalProp != null)
                 {
                     // The biome boss is dead: two portals instead of a hole in the floor.
+                    // The way home on the left, this biome again on the right, and the other biomes along the far side.
                     ExtractPortal = Instantiate(biome.extractPortalProp, room.Centre + new Vector3(-4f, 0f, 0f), Quaternion.identity, room.transform);
-                    DeeperPortal = Instantiate(biome.deeperPortalProp, room.Centre + new Vector3(4f, 0f, 0f), Quaternion.identity, room.transform);
+                    AddPortal(room, biome, biome.deeperPortalProp, new Vector3(4f, 0f, 0f));
+
+                    var others = AllBiomes();
+                    others.Remove(biome);
+                    for (int i = others.Count - 1; i > 0; i--)
+                    {
+                        int j = UnityEngine.Random.Range(0, i + 1);
+                        (others[i], others[j]) = (others[j], others[i]);
+                    }
+                    int offered = Mathf.Min(otherPortals, others.Count);
+                    for (int i = 0; i < offered; i++)
+                    {
+                        float x = (i - (offered - 1) * 0.5f) * 7f;
+                        GameObject prop = others[i].portalProp != null ? others[i].portalProp : biome.deeperPortalProp;
+                        AddPortal(room, others[i], prop, new Vector3(x, 0f, 7f));
+                    }
                 }
                 else if (room.ExitHole != null)
                 {

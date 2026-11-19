@@ -26,6 +26,8 @@ namespace Shrunk
         public bool active;
         public int floorNumber;
         public int depth;
+        /// <summary>Which biome the run is in. Empty in saves from before there was more than one.</summary>
+        public string biome = "";
         /// <summary>The floor's seed, so the same floor is rebuilt.</summary>
         public int seed;
         public int health;

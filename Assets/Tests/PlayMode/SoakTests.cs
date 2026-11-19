@@ -47,6 +47,22 @@ namespace Shrunk.Tests
             $"floor {_floors.FloorNumber} (seed {_floors.Layout.seed}), {node.type} room {node.cell}, {RoomDressing.NameOf(_floors.RoomAt(node.cell).Shape.feature)}\n" +
             $"{_floors.Layout.ToAscii()}\n{_floors.RoomAt(node.cell).Shape.ToAscii()}";
 
+        // Who is still standing, and why the bot might not be able to finish them.
+        string Survivors()
+        {
+            var text = new System.Text.StringBuilder();
+            foreach (var enemy in Enemy.Active)
+            {
+                string mutations = "";
+                if (enemy.Mutations != null) foreach (var mutation in enemy.Mutations.Active) mutations += " " + mutation.type;
+                bool onMesh = NavMesh.SamplePosition(enemy.transform.position, out var hit, 1.5f, NavMesh.AllAreas);
+                text.AppendLine($"  {enemy.name}{(enemy.IsElite ? " ELITE" : "")} health {enemy.Health.Current}/{enemy.Health.maxHealth} at {enemy.transform.position}" +
+                                $" (player at {_player.transform.position}) mutations:{mutations} targetable={enemy.Targetable} active={enemy.gameObject.activeSelf}" +
+                                $" onNavMesh={onMesh} inSight={CanSee(enemy)} sinceHit={Time.time - enemy.Health.LastDamageTime:F1}s");
+            }
+            return text.ToString();
+        }
+
         static Vector3 OnNavMesh(Vector3 near) => NavMesh.SamplePosition(near, out var hit, 3f, NavMesh.AllAreas) ? hit.position : near;
 
         Vector3 NextStep(Vector3 destination)
@@ -105,8 +121,20 @@ namespace Shrunk.Tests
                 move = NextStep(OnNavMesh(nearest.transform.position)) - position;
                 move.y = 0f;
             }
-            _player.Input.overrideFrame = new InputFrame { move = move.normalized, aim = aim, fire = true };
+            // Something in its face that it can't hurt (a shell, or a wall at its back): roll out sideways, as a person would,
+            // and come round behind it.
+            bool pinned = nearestDistance < 3f && Time.time - nearest.Health.LastDamageTime > 2.5f;
+            bool dodge = pinned && _player.DodgeCharges > 0 && Time.time >= _nextDodge;
+            if (pinned) move = Vector3.Cross(Vector3.up, aim) * _strafe - aim * 0.3f;
+            if (dodge)
+            {
+                _nextDodge = Time.time + 1.2f;
+                _strafe = -_strafe;
+            }
+            _player.Input.overrideFrame = new InputFrame { move = move.normalized, aim = aim, fire = true, dodge = dodge };
         }
+
+        float _nextDodge;
 
         // Walks to a room on foot, fighting through anything that locks on the way. Fails if it can't get there.
         IEnumerator GoTo(RoomNode node)
@@ -123,7 +151,7 @@ namespace Shrunk.Tests
                 if (_floors.IsLocked)
                 {
                     fought += Time.deltaTime;
-                    if (fought > 150f) Assert.Fail("a fight that never ends: " + Enemy.Active.Count + " left\n" + Where(_floors.CurrentNode));
+                    if (fought > 150f) Assert.Fail("a fight that never ends: " + Enemy.Active.Count + " left\n" + Survivors() + Where(_floors.CurrentNode));
                     FightStep();
                     yield return null;
                     continue;
@@ -181,6 +209,15 @@ namespace Shrunk.Tests
             yield return PlayFloor(2, 1001);
             yield return PlayFloor(5, 1002);
             yield return PlayFloor(8, 1003);
+        }
+
+        [UnityTest, Timeout(600000)]
+        public IEnumerator A_bot_clears_two_Birthday_Cake_floors_on_foot()
+        {
+            Assert.IsTrue(_floors.SetBiome("cake"));
+            Time.timeScale = 4f;
+            yield return PlayFloor(4, 2001);
+            yield return PlayFloor(5, 2002);
         }
 
         // Walks into the boss room of a floor and fights with no invulnerability, counting what lands.
