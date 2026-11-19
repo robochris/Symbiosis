@@ -439,5 +439,83 @@ namespace Shrunk.Tests
             int max = _player.Health.maxHealth;
             yield return WaitUntil(() => _player.Health.Current < max, 12f, "an ant to reach and bite the player\n" + Describe(target));
         }
+
+        [UnityTest]
+        public IEnumerator Auto_camera_eases_back_for_a_fight_and_in_again_after()
+        {
+            var follow = CameraFollow.Instance;
+            Assert.AreEqual(CameraMode.Auto, follow.mode, "a run should start on the Auto camera");
+            Assert.AreEqual(0f, follow.Pull, 0.01f, "quiet room: should sit at the shoulder");
+            Assert.IsFalse(follow.BodyHidden);
+
+            RoomNode target = null;
+            foreach (var node in _floors.Layout.ordered)
+            {
+                if (node.type == RoomType.Normal) { target = node; break; }
+            }
+            _player.Health.SetInvulnerable(600f);
+            _player.Teleport(StandingSpot(target) + Vector3.up * 0.05f);
+            yield return WaitUntil(() => _floors.IsLocked, 2f, "the room to lock");
+            yield return new WaitForSeconds(0.1f);
+            Assert.Greater(follow.Pull, 0f, "the view did not start moving");
+            Assert.Less(follow.Pull, 0.9f, "the view jumped instead of easing");
+            yield return new WaitForSeconds(2.5f);
+            Assert.AreEqual(1f, follow.Pull, 0.03f, "fight: should be pulled back to the wide view");
+
+            foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) enemy.Health.Kill();
+            yield return WaitUntil(() => !_floors.IsLocked, 2f, "the room to unlock");
+            yield return new WaitForSeconds(2.5f);
+            Assert.AreEqual(0f, follow.Pull, 0.03f, "fight over: should be back at the shoulder");
+
+            // A boss gets the furthest view.
+            _floors.BuildFloor(5);
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+            _player.Teleport(_floors.RoomAt(_floors.Layout.exit.cell).Centre + Vector3.up * 0.05f);
+            yield return WaitUntil(() => _floors.Boss != null, 2f, "the boss to appear");
+            yield return new WaitForSeconds(3f);
+            Assert.AreEqual(2f, follow.Pull, 0.05f, "boss fight: should be pulled back furthest");
+
+            // The fixed views never move.
+            follow.SetMode(CameraMode.Shoulder);
+            yield return new WaitForSeconds(0.5f);
+            Assert.AreEqual(0f, follow.Pull, 0.001f);
+        }
+
+        [UnityTest]
+        public IEnumerator Pebbles_are_solid_cover_and_never_wall_anything_off()
+        {
+            int pebbles = 0;
+            for (int floor = 6; floor <= 8; floor++)
+            {
+                _floors.BuildFloor(floor);
+                yield return null;
+                var path = new NavMeshPath();
+                foreach (var node in _floors.Layout.ordered)
+                {
+                    Room room = _floors.RoomAt(node.cell);
+                    foreach (var tile in room.Shape.cover)
+                    {
+                        pebbles++;
+                        Vector3 at = room.TileWorld(tile);
+                        Assert.IsTrue(Physics.Raycast(at + Vector3.up * 5f, Vector3.down, out var top, 6f) && top.point.y > 0.8f,
+                            "no solid pebble on its tile\n" + Describe(node));
+                        Assert.Less(top.point.y, 1.8f, "pebble is too tall to be low cover");
+                        Assert.IsFalse(NavMesh.SamplePosition(at, out var on, 0.3f, NavMesh.AllAreas) && on.position.y < 0.5f,
+                            "ants can walk through a pebble\n" + Describe(node));
+                    }
+
+                    // Every clear tile can still be walked to from the middle of the room.
+                    Vector3 centre = OnNavMesh(room.Centre);
+                    foreach (var tile in room.Shape.free)
+                    {
+                        if (!NavMesh.SamplePosition(room.TileWorld(tile), out var hit, 1f, NavMesh.AllAreas)) continue;
+                        Assert.IsTrue(NavMesh.CalculatePath(centre, hit.position, NavMesh.AllAreas, path) && path.status == NavMeshPathStatus.PathComplete,
+                            $"tile {tile} is cut off\n" + Describe(node));
+                    }
+                }
+            }
+            Assert.Greater(pebbles, 10, "three deep floors had almost no cover");
+        }
     }
 }

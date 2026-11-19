@@ -90,6 +90,37 @@ namespace Shrunk.Tests
         }
 
         [Test]
+        public void Fight_rooms_have_cover_and_quiet_rooms_do_not()
+        {
+            int fightRooms = 0, withCover = 0, pebbles = 0;
+            for (int seed = 1; seed <= 300; seed++)
+            {
+                var fight = RoomShape.Generate(seed * 31, (Doors)(1 + seed % 15), RoomType.Normal, (seed % 11) / 10f);
+                fightRooms++;
+                pebbles += fight.cover.Count;
+                if (fight.cover.Count > 0) withCover++;
+                Assert.AreEqual(fight.interior.Count, fight.free.Count + fight.cover.Count);
+
+                Assert.AreEqual(0, RoomShape.Generate(seed * 31, Doors.South, RoomType.Treasure, 0f).cover.Count, "cover in a treasure room");
+                Assert.AreEqual(0, RoomShape.Generate(seed * 31, Doors.South, RoomType.Exit, 1f, arena: true).cover.Count, "cover in a boss arena");
+            }
+            Debug.Log($"[Shrunk] {withCover} of {fightRooms} fight rooms have cover, {(float)pebbles / fightRooms:F1} pebbles each on average");
+            Assert.Greater(withCover, fightRooms * 0.85f);
+        }
+
+        [Test]
+        public void Bigger_rooms_hold_more_enemies()
+        {
+            var biome = ScriptableObject.CreateInstance<BiomeDefinition>();
+            Assert.AreEqual(2, biome.EnemiesFor(1, 81), "a small room on floor 1");
+            Assert.AreEqual(3, biome.EnemiesFor(1, 121));
+            Assert.AreEqual(5, biome.EnemiesFor(1, 225), "the biggest chamber on floor 1");
+            Assert.AreEqual(5, biome.EnemiesFor(10, 81), "a small room on floor 10");
+            Assert.AreEqual(9, biome.EnemiesFor(10, 400), "the size bonus is capped");
+            Object.DestroyImmediate(biome);
+        }
+
+        [Test]
         public void Print_sample_rooms()
         {
             Debug.Log("[Shrunk] Small fight room, doors north and west\n" + RoomShape.Generate(11, Doors.North | Doors.West, RoomType.Normal, 0.1f).ToAscii());

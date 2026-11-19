@@ -82,6 +82,9 @@ namespace Shrunk.Tests
             var touch = Object.FindAnyObjectByType<TouchControls>();
             PauseMenu.Instance.Open();
 
+            Assert.AreEqual(CameraMode.Auto, follow.mode, "a new player should start on the Auto camera");
+            Assert.That(Row("Camera"), Does.Contain("Auto"));
+            UseRow("Camera");
             Assert.AreEqual(CameraMode.Shoulder, follow.mode);
             UseRow("Camera");
             Assert.AreEqual(CameraMode.Wide, follow.mode);
@@ -92,7 +95,7 @@ namespace Shrunk.Tests
             UseRow("Camera");
             Assert.AreEqual(CameraMode.TopDown, follow.mode);
             UseRow("Camera");
-            Assert.AreEqual(CameraMode.Shoulder, follow.mode, "the camera row should come back round to Shoulder");
+            Assert.AreEqual(CameraMode.Auto, follow.mode, "the camera row should come back round to Auto");
             GameSettings.Camera = CameraMode.TopDown;
 
             Assert.AreEqual(1f, Player.weapon.aimAssistStrength);
@@ -125,6 +128,7 @@ namespace Shrunk.Tests
         {
             yield return Load("Arena");
             PauseMenu.Instance.Open();
+            UseRow("Camera");
             UseRow("Camera");
             UseRow("Camera");
             UseRow("Camera");

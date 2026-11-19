@@ -46,8 +46,9 @@ namespace Shrunk
 
         public static CameraMode Camera
         {
-            get => (CameraMode)Mathf.Clamp(PlayerPrefs.GetInt(Prefix + "camera", (int)CameraMode.Shoulder), 0, 3);
-            set => SetInt("camera", (int)value);
+            // "cameraView", not the older "camera": everyone starts on Auto once, whatever they had picked before it existed.
+            get => (CameraMode)Mathf.Clamp(PlayerPrefs.GetInt(Prefix + "cameraView", (int)CameraMode.Auto), 0, 4);
+            set => SetInt("cameraView", (int)value);
         }
 
         static void Set(string key, float value)
@@ -65,7 +66,7 @@ namespace Shrunk
         /// <summary>Back to the defaults.</summary>
         public static void Reset()
         {
-            foreach (string key in new[] { "aimAssist", "lookSpeed", "volume", "leftHanded", "lockVertical", "camera" })
+            foreach (string key in new[] { "aimAssist", "lookSpeed", "volume", "leftHanded", "lockVertical", "camera", "cameraView" })
             {
                 PlayerPrefs.DeleteKey(Prefix + key);
             }

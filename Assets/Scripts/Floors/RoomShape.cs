@@ -30,6 +30,10 @@ namespace Shrunk
         public Vector2Int centre;
         /// <summary>Open tiles inside the border: places things can stand.</summary>
         public readonly List<Vector2Int> interior = new List<Vector2Int>();
+        /// <summary>Open tiles with a pebble on them: low cover to fight around. Never touching a wall or each other, so there is always a way past.</summary>
+        public readonly List<Vector2Int> cover = new List<Vector2Int>();
+        /// <summary>Open tiles with nothing on them: where enemies can appear.</summary>
+        public readonly List<Vector2Int> free = new List<Vector2Int>();
 
         /// <summary>One of the border tiles that form the doorway on a side (0 North, 1 East, 2 South, 3 West). index runs 0 to DoorWidth - 1.</summary>
         public static Vector2Int DoorTile(int side, int index)
@@ -171,7 +175,38 @@ namespace Shrunk
             }
 
             shape.CollectInterior();
+
+            // 5. Pebbles: low cover dotted about the floor, more of it in bigger rooms.
+            if (fight)
+            {
+                int tries = shape.interior.Count / 5;
+                for (int i = 0; i < tries; i++)
+                {
+                    var tile = shape.interior[rng.Next(shape.interior.Count)];
+                    if (shape.CanHoldCover(tile)) shape.cover.Add(tile);
+                }
+                shape.free.RemoveAll(shape.cover.Contains);
+            }
             return shape;
+        }
+
+        bool CanHoldCover(Vector2Int tile)
+        {
+            // Clear of the middle (the exit hole opens there) and of the doorways...
+            if (Mathf.Abs(tile.x - centre.x) <= 2 && Mathf.Abs(tile.y - centre.y) <= 2) return false;
+            if (!CanBePillar(tile)) return false;
+
+            // ...with open floor all the way round it...
+            for (int x = tile.x - 1; x <= tile.x + 1; x++)
+                for (int y = tile.y - 1; y <= tile.y + 1; y++)
+                    if (!open[x, y]) return false;
+
+            // ...and not right next to another one.
+            foreach (var other in cover)
+            {
+                if (Mathf.Abs(tile.x - other.x) <= 2 && Mathf.Abs(tile.y - other.y) <= 2) return false;
+            }
+            return true;
         }
 
         Vector2Int RandomOpen(System.Random rng)
@@ -243,6 +278,8 @@ namespace Shrunk
             for (int x = Min; x <= Max; x++)
                 for (int y = Min; y <= Max; y++)
                     if (open[x, y]) interior.Add(new Vector2Int(x, y));
+            free.Clear();
+            free.AddRange(interior);
         }
 
         int OpenCount()
@@ -322,11 +359,23 @@ namespace Shrunk
             }
 
             if (!IsConnected()) problems.Add("part of the room cannot be reached");
+
+            foreach (var tile in cover)
+            {
+                if (Mathf.Abs(tile.x - centre.x) <= 2 && Mathf.Abs(tile.y - centre.y) <= 2) problems.Add($"cover at {tile.x},{tile.y} is in the middle");
+                if (free.Contains(tile)) problems.Add($"cover at {tile.x},{tile.y} is also listed as free floor");
+                for (int x = tile.x - 1; x <= tile.x + 1; x++)
+                    for (int y = tile.y - 1; y <= tile.y + 1; y++)
+                    {
+                        if (!open[x, y]) problems.Add($"cover at {tile.x},{tile.y} touches a wall");
+                        else if ((x != tile.x || y != tile.y) && cover.Contains(new Vector2Int(x, y))) problems.Add($"cover at {tile.x},{tile.y} touches more cover");
+                    }
+            }
             if (interior.Count < 12) problems.Add($"only {interior.Count} open tiles");
             return problems;
         }
 
-        /// <summary>Text picture: # earth, . floor, C centre, D doorway.</summary>
+        /// <summary>Text picture: # earth, . floor, o pebble, C centre, D doorway.</summary>
         public string ToAscii()
         {
             var text = new StringBuilder();
@@ -335,7 +384,7 @@ namespace Shrunk
                 for (int x = 0; x < Size; x++)
                 {
                     bool border = x == 0 || y == 0 || x == Size - 1 || y == Size - 1;
-                    char symbol = !open[x, y] ? '#' : border ? 'D' : (x == centre.x && y == centre.y) ? 'C' : '.';
+                    char symbol = !open[x, y] ? '#' : border ? 'D' : (x == centre.x && y == centre.y) ? 'C' : cover.Contains(new Vector2Int(x, y)) ? 'o' : '.';
                     text.Append(symbol).Append(' ');
                 }
                 text.AppendLine();

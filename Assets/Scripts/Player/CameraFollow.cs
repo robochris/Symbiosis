@@ -12,7 +12,9 @@ namespace Shrunk
         /// <summary>Pulled back and above at a fixed angle, so most of the room stays in view.</summary>
         TopDown,
         /// <summary>Behind the character like Shoulder, but further back and higher: the character is smaller and more of the room shows.</summary>
-        Wide
+        Wide,
+        /// <summary>Shoulder while exploring, easing back to Wide when a fight starts and further still for a boss.</summary>
+        Auto
     }
 
     /// <summary>The game camera. Shoulder and first person turn with the player's look input; top-down stays fixed.</summary>
@@ -21,7 +23,7 @@ namespace Shrunk
         public static CameraFollow Instance { get; private set; }
 
         public Transform target;
-        public CameraMode mode = CameraMode.Shoulder;
+        public CameraMode mode = CameraMode.Auto;
 
         [Header("Shoulder")]
         [Tooltip("How far behind the character the camera sits.")]
@@ -35,6 +37,18 @@ namespace Shrunk
         public float wideHeight = 2f;
         [Tooltip("How far the view tilts down, in degrees.")]
         public float widePitch = 24f;
+
+        [Header("Auto (Shoulder when quiet, Wide in a fight)")]
+        [Tooltip("Seconds the view takes to ease out when a fight starts, and back in when it ends.")]
+        public float autoEaseTime = 0.45f;
+        [Tooltip("Extra metres back for a boss, on top of Wide.")]
+        public float autoBossDistance = 3f;
+        [Tooltip("Extra tilt down for a boss, in degrees.")]
+        public float autoBossPitch = 5f;
+
+        [Header("Squeezed against a wall")]
+        [Tooltip("When a wall pushes the camera this close, the character is hidden so they don't fill the screen.")]
+        public float hideBodyDistance = 1.1f;
 
         [Header("First person")]
         public float eyeHeight = 1.55f;
@@ -62,9 +76,13 @@ namespace Shrunk
         public float LookYaw { get; private set; }
         public float LookPitch { get; private set; }
         public bool IsLookMode => mode != CameraMode.TopDown;
+        /// <summary>How far the behind-the-character views are pulled back: 0 = Shoulder, 1 = Wide, 2 = boss. Auto eases between them.</summary>
+        public float Pull { get; private set; }
+        /// <summary>True while the character is hidden: first person, or the camera is squeezed right up against them.</summary>
+        public bool BodyHidden => mode == CameraMode.FirstPerson || _squeezed;
 
         /// <summary>The order the camera button steps through.</summary>
-        public static readonly CameraMode[] Order = { CameraMode.Shoulder, CameraMode.Wide, CameraMode.FirstPerson, CameraMode.TopDown };
+        public static readonly CameraMode[] Order = { CameraMode.Auto, CameraMode.Shoulder, CameraMode.Wide, CameraMode.FirstPerson, CameraMode.TopDown };
 
         public static CameraMode After(CameraMode mode)
         {
@@ -76,6 +94,7 @@ namespace Shrunk
         {
             switch (mode)
             {
+                case CameraMode.Auto: return "Auto";
                 case CameraMode.Shoulder: return "Shoulder";
                 case CameraMode.Wide: return "Wide";
                 case CameraMode.FirstPerson: return "First person";
@@ -89,6 +108,9 @@ namespace Shrunk
         Vector3 _focus;
         Vector3 _velocity;
         float _shake;
+        float _pullVelocity;
+        float _rigDistance;
+        bool _squeezed;
         Renderer[] _targetRenderers;
 
         void Awake()
@@ -109,7 +131,7 @@ namespace Shrunk
             Apply();
         }
 
-        /// <summary>Shoulder → wide → first person → top-down → shoulder.</summary>
+        /// <summary>Auto → shoulder → wide → first person → top-down → auto.</summary>
         public void CycleMode()
         {
             SetMode(After(mode));
@@ -119,6 +141,9 @@ namespace Shrunk
         {
             mode = newMode;
             if (target != null) LookYaw = target.eulerAngles.y;
+            Pull = WantedPull();
+            _pullVelocity = 0f;
+            _squeezed = false;
             ApplyMode();
             Snap();
         }
@@ -128,17 +153,35 @@ namespace Shrunk
         {
             if (target == null) return;
             _targetRenderers = target.GetComponentsInChildren<Renderer>(true);
-            foreach (var r in _targetRenderers) if (r != null) r.enabled = mode != CameraMode.FirstPerson;
+            ShowBody();
         }
 
         void ApplyMode()
         {
-            // In first person the body would fill the screen, so hide it.
-            if (_targetRenderers != null)
-            {
-                foreach (var r in _targetRenderers) if (r != null) r.enabled = mode != CameraMode.FirstPerson;
-            }
+            ShowBody();
             ModeChanged?.Invoke(mode);
+        }
+
+        // In first person, or jammed against a wall, the body would fill the screen, so it is hidden.
+        void ShowBody()
+        {
+            if (_targetRenderers == null) return;
+            bool show = !BodyHidden;
+            foreach (var r in _targetRenderers) if (r != null) r.enabled = show;
+        }
+
+        // Where the behind-the-character views should sit right now.
+        float WantedPull()
+        {
+            switch (mode)
+            {
+                case CameraMode.Wide: return 1f;
+                case CameraMode.Auto:
+                    var floors = FloorManager.Instance;
+                    if (floors == null || !floors.IsLocked) return 0f;
+                    return floors.Boss != null ? 2f : 1f;
+                default: return 0f;
+            }
         }
 
         /// <summary>Turns the view. Positive yaw is right, positive pitch is up.</summary>
@@ -155,7 +198,7 @@ namespace Shrunk
             Vector3 forward = transform.forward;
 
             // Ignore anything between the camera and the character.
-            float skip = mode == CameraMode.Shoulder ? shoulderDistance : mode == CameraMode.Wide ? wideDistance : 0f;
+            float skip = IsBehind ? _rigDistance : 0f;
             int count = Physics.RaycastNonAlloc(origin, forward, Hits, maxDistance, ~0, QueryTriggerInteraction.Ignore);
             float nearest = maxDistance;
             for (int i = 0; i < count; i++)
@@ -188,8 +231,11 @@ namespace Shrunk
                 _focus = Vector3.SmoothDamp(_focus, target.position, ref _velocity, smooth);
             }
             _shake = Mathf.MoveTowards(_shake, 0f, shakeDecay * Time.deltaTime * Mathf.Max(_shake, 0.1f));
+            Pull = Mathf.SmoothDamp(Pull, WantedPull(), ref _pullVelocity, autoEaseTime);
             Apply();
         }
+
+        bool IsBehind => mode == CameraMode.Shoulder || mode == CameraMode.Wide || mode == CameraMode.Auto;
 
         void Apply()
         {
@@ -204,18 +250,26 @@ namespace Shrunk
                     break;
 
                 case CameraMode.Shoulder:
-                    rotation = Quaternion.Euler(LookPitch, LookYaw, 0f);
-                    Vector3 pivot = _focus + Vector3.up * shoulderHeight;
-                    Vector3 offset = rotation * new Vector3(shoulderSide, 0f, -shoulderDistance);
-                    position = pivot + offset.normalized * ClearDistance(pivot, offset.normalized, offset.magnitude);
-                    break;
-
                 case CameraMode.Wide:
-                    // Same idea as Shoulder, centred: from this high the character sits below the crosshair anyway.
-                    rotation = Quaternion.Euler(LookPitch + widePitch - startPitch, LookYaw, 0f);
-                    Vector3 widePivot = _focus + Vector3.up * wideHeight;
-                    Vector3 back = rotation * Vector3.back;
-                    position = widePivot + back * ClearDistance(widePivot, back, wideDistance);
+                case CameraMode.Auto:
+                    // One rig for all three. Pull 0 is Shoulder: close, level, off to one side so the character doesn't
+                    // cover the crosshair. Pull 1 is Wide: further back, tilted down and centred, since from that high the
+                    // character sits below the crosshair anyway. Past 1 is the boss view: further and steeper again.
+                    float wide = Mathf.Clamp01(Pull), boss = Mathf.Clamp01(Pull - 1f);
+                    rotation = Quaternion.Euler(LookPitch + (widePitch - startPitch) * wide + autoBossPitch * boss, LookYaw, 0f);
+                    Vector3 pivot = _focus + Vector3.up * Mathf.Lerp(shoulderHeight, wideHeight, wide);
+                    Vector3 offset = rotation * new Vector3(shoulderSide * (1f - wide), 0f,
+                        -(Mathf.Lerp(shoulderDistance, wideDistance, wide) + autoBossDistance * boss));
+                    _rigDistance = ClearDistance(pivot, offset.normalized, offset.magnitude);
+                    position = pivot + offset.normalized * _rigDistance;
+
+                    // Backed into a corner the camera ends up inside the character: hide them until there is room again.
+                    bool squeezed = _squeezed ? _rigDistance < hideBodyDistance + 0.3f : _rigDistance < hideBodyDistance;
+                    if (squeezed != _squeezed)
+                    {
+                        _squeezed = squeezed;
+                        ShowBody();
+                    }
                     break;
 
                 default:

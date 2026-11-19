@@ -163,6 +163,9 @@ namespace Shrunk.EditorTools
             biome.doorMaterial = ArenaSceneBuilder.Lit("DoorLocked", new Color(0.85f, 0.3f, 0.15f), 0.3f);
             biome.ceilingMaterial = ArenaSceneBuilder.Lit("Ceiling", new Color(0.3f, 0.2f, 0.13f), 0.05f);
             biome.ceiling = true;
+            biome.coverMaterial = ArenaSceneBuilder.Lit("Pebble", new Color(0.5f, 0.47f, 0.42f), 0.25f);
+            biome.tilesPerExtraEnemy = 60;
+            biome.maxExtraEnemiesForSize = 4;
             biome.wallHeight = 6f;
             biome.swarmEnemy = workerPrefab;
             biome.miniBoss = motherPrefab;

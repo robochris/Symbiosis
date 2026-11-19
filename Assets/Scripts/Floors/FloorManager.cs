@@ -280,12 +280,12 @@ namespace Shrunk
                 return;
             }
 
-            int count = biome.baseEnemiesPerRoom + (FloorInBiome - 1) / Mathf.Max(1, biome.floorsPerExtraEnemy);
+            int count = biome.EnemiesFor(FloorInBiome, room.Shape.interior.Count);
             count += UnityEngine.Random.Range(0, 2);
 
-            // Any open tile far enough from the player can hold an enemy. In a tiny room, fall back to the farthest tiles.
+            // Any clear tile far enough from the player can hold an enemy. In a tiny room, fall back to the farthest tiles.
             var points = new List<Vector3>();
-            foreach (var tile in room.Shape.interior)
+            foreach (var tile in room.Shape.free)
             {
                 Vector3 point = room.TileWorld(tile);
                 if ((point - playerPosition).sqrMagnitude >= minSpawnDistance * minSpawnDistance) points.Add(point);
@@ -293,7 +293,7 @@ namespace Shrunk
             if (points.Count < count)
             {
                 points.Clear();
-                foreach (var tile in room.Shape.interior) points.Add(room.TileWorld(tile));
+                foreach (var tile in room.Shape.free) points.Add(room.TileWorld(tile));
                 points.Sort((a, b) => (b - playerPosition).sqrMagnitude.CompareTo((a - playerPosition).sqrMagnitude));
                 if (points.Count > count) points.RemoveRange(count, points.Count - count);
             }
@@ -365,7 +365,7 @@ namespace Shrunk
             Vector3 origin = source.transform.position;
 
             var tiles = new List<Vector3>();
-            foreach (var tile in room.Shape.interior) tiles.Add(room.TileWorld(tile));
+            foreach (var tile in room.Shape.free) tiles.Add(room.TileWorld(tile));
             tiles.Sort((a, b) => (a - origin).sqrMagnitude.CompareTo((b - origin).sqrMagnitude));
 
             var player = PlayerController.Instance;

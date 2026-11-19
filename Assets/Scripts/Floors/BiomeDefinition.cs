@@ -29,6 +29,8 @@ namespace Shrunk
         [Tooltip("On for underground biomes: a roof over every room, so the camera never sees over the walls.")]
         public bool ceiling = true;
         public Material ceilingMaterial;
+        [Tooltip("The pebbles that lie about fight rooms as cover. Empty = no cover.")]
+        public Material coverMaterial;
 
         [Header("Special room props (placed in the middle of the room)")]
         public GameObject startProp;
@@ -53,6 +55,17 @@ namespace Shrunk
         public int baseEnemiesPerRoom = 2;
         [Tooltip("One more enemy per room every this many floors.")]
         public int floorsPerExtraEnemy = 3;
+        [Tooltip("Bigger rooms hold more: one more enemy for every this many open tiles past the first lot.")]
+        public int tilesPerExtraEnemy = 60;
+        public int maxExtraEnemiesForSize = 4;
+
+        /// <summary>Enemies in a fight room, before the dice add one or not.</summary>
+        public int EnemiesFor(int floorInBiome, int openTiles)
+        {
+            int count = baseEnemiesPerRoom + (floorInBiome - 1) / Mathf.Max(1, floorsPerExtraEnemy);
+            if (tilesPerExtraEnemy > 0) count += Mathf.Clamp(Mathf.RoundToInt((float)openTiles / tilesPerExtraEnemy) - 1, 0, maxExtraEnemiesForSize);
+            return count;
+        }
 
         [Header("Mutations")]
         [Tooltip("What enemies here can roll: the universal ones plus this biome's own.")]
