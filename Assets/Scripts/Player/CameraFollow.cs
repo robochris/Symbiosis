@@ -297,7 +297,11 @@ namespace Shrunk
             transform.SetPositionAndRotation(position, rotation);
         }
 
-        // Pulls the camera in front of any wall between it and the character, so it never ends up outside the room.
+        [Tooltip("On, the camera backs through a room's walls and ceiling and looks in from behind them: they only show from inside, so the view stays put. Off, it jumps in front of them.")]
+        public bool seeThroughWalls = true;
+
+        // Pulls the camera in front of anything solid between it and the character. A room's own walls and ceiling
+        // are drawn on their inner face only, so with seeThroughWalls the camera is left where it is and sees in.
         float ClearDistance(Vector3 from, Vector3 direction, float wanted)
         {
             int count = Physics.SphereCastNonAlloc(from, 0.3f, direction, Hits, wanted, ~(1 << DressingLayer), QueryTriggerInteraction.Ignore);
@@ -306,6 +310,7 @@ namespace Shrunk
             {
                 if (Hits[i].distance >= nearest) continue;
                 if (Hits[i].collider.GetComponentInParent<Health>() != null) continue; // characters don't block the camera
+                if (seeThroughWalls && Hits[i].collider.GetComponent<Room>() != null) continue;
                 nearest = Hits[i].distance;
             }
             return Mathf.Max(nearest, 0.4f);

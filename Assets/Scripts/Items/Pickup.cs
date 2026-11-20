@@ -200,8 +200,8 @@ namespace Shrunk
         /// <summary>Chance of an item from an unmutated enemy; each mutation point adds this much again.</summary>
         public const float ItemChance = 0.02f;
         /// <summary>Samples from an unmutated enemy; each mutation point adds one more.</summary>
-        public const int SamplesPerEnemy = 2;
-        public const int EliteSamples = 5;
+        public const int SamplesPerEnemy = 1;
+        public const int EliteSamples = 3;
         public const float EliteItemChance = 0.3f;
         /// <summary>Chance an enemy leaves a crumb when the player is hurt. Never when they are not.</summary>
         public const float CrumbChance = 0.05f;
@@ -217,7 +217,8 @@ namespace Shrunk
             int points = enemy.Mutations != null ? enemy.Mutations.TotalCost : 0;
 
             if (enemy is BossEnemy boss) boss.DropRewards();
-            int coins = Mathf.Min(8, 1 + enemy.Health.maxHealth / 4) + (enemy is BossEnemy ? 0 : CoinBonus);
+            // A first playtest could buy the whole shop on every floor: this is half what it was.
+            int coins = Mathf.Min(4, 1 + enemy.Health.maxHealth / 8) + (enemy is BossEnemy ? 0 : CoinBonus);
             for (int i = 0; i < coins; i++) Pickup.Coin(origin + Scatter(), 1);
 
             Pickup.Sample(origin + Scatter(), SamplesPerEnemy + points + SampleBonus);

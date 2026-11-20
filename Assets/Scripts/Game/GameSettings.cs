@@ -33,8 +33,10 @@ namespace Shrunk
 
         public static float Volume
         {
-            get => PlayerPrefs.GetFloat(Prefix + "volume", 1f);
-            set => Set("volume", Mathf.Clamp01(value));
+            // Off unless turned on in the pause menu: the sounds are placeholders. The key was "volume" while it
+            // started at full, so anybody who played then starts muted too.
+            get => PlayerPrefs.GetFloat(Prefix + "sound", 0f);
+            set => Set("sound", Mathf.Clamp01(value));
         }
 
         /// <summary>Swaps the move and aim sides of the screen.</summary>
@@ -103,7 +105,7 @@ namespace Shrunk
         /// <summary>Back to the defaults.</summary>
         public static void Reset()
         {
-            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "volume", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed", "damageNumbers" })
+            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "sound", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed", "damageNumbers" })
             {
                 PlayerPrefs.DeleteKey(Prefix + key);
             }

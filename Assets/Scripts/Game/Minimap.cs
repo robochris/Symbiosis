@@ -152,7 +152,8 @@ namespace Shrunk
         {
             switch (type)
             {
-                case RoomType.Start: return startColor;
+                // The start room is not marked: the player's own marker says where they are, and it is only a room.
+                case RoomType.Start: return normalColor;
                 case RoomType.Exit: return exitColor;
                 case RoomType.Arena: return exitColor;
                 case RoomType.Treasure: return treasureColor;

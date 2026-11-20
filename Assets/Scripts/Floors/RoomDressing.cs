@@ -348,6 +348,9 @@ namespace Shrunk
             if (to.sqrMagnitude > radius * radius) return;
             player.Slow(slowTo, slowSeconds, _material);
             Sfx.Play(SfxId.Blocked, 0.6f);
+            // The puddle that follows the feet is this: say so, or it is only a coloured thing on the floor.
+            var hud = FindAnyObjectByType<Hud>();
+            if (hud != null) hud.Toast("Soaked: a drop landed on you. You are slower until it wears off.", 2.5f);
         }
     }
 }
