@@ -119,6 +119,7 @@ namespace Shrunk.Tests
             yield return MeetBoss(10);
             var librarian = (LibrarianBoss)_floors.Boss;
             Assert.AreEqual("The Librarian", librarian.displayName);
+            Assert.IsFalse(Weapons.Unlocked(WeaponKind.SprayBottle), "the Spray Bottle is issued before the Librarian is beaten");
             Assert.IsTrue(librarian.canShush);
             var hud = Object.FindAnyObjectByType<Hud>();
             Time.timeScale = 3f;
@@ -161,6 +162,11 @@ namespace Shrunk.Tests
             yield return WaitUntil(() => _floors.ExtractPortal != null, 6f, "the portals");
             Time.timeScale = 1f;
             Assert.IsTrue(Specimens.Has("TheLibrarian"));
+            // And what the lab issues for it: a fourth weapon, twice as quick and half as far.
+            Assert.IsTrue(Weapons.Unlocked(WeaponKind.SprayBottle), "beating the Librarian issued nothing");
+            WeaponInfo spray = Weapons.Info(WeaponKind.SprayBottle);
+            Assert.Less(spray.intervalMultiplier, 0.6f);
+            Assert.Less(spray.rangeMultiplier, 0.6f);
             Assert.AreEqual(0, MachineParts.Count);
         }
     }

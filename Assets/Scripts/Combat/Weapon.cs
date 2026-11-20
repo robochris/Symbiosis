@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Shrunk
 {
     /// <summary>The weapons the lab issues. Chosen at the equipment cupboard and kept between runs.</summary>
-    public enum WeaponKind { Pipette, Sprinkler, Syringe }
+    public enum WeaponKind { Pipette, Sprinkler, Syringe, SprayBottle }
 
     /// <summary>What the cupboard says about a weapon, and how it differs from the plain one.</summary>
     public class WeaponInfo
@@ -31,6 +31,8 @@ namespace Shrunk
                 needs = "Issued once the Brood Mother has been dealt with.", pellets = 3, spread = 11f, shotSize = 0.75f, intervalMultiplier = 2.1f, rangeMultiplier = 0.55f },
             new WeaponInfo { kind = WeaponKind.Syringe, name = "Syringe", does = "One slow, heavy shot: triple damage, goes through the first thing it hits, and reaches further.",
                 needs = "Issued once the Ant Queen has been dealt with.", intervalMultiplier = 3f, rangeMultiplier = 1.35f, speedMultiplier = 1.6f, damageMultiplier = 3, pierce = 1, shotSize = 1.15f, shotLength = 2.6f },
+            new WeaponInfo { kind = WeaponKind.SprayBottle, name = "Spray Bottle", does = "Nearly twice as fast, and it gives out at half the distance. For people who would rather not aim.",
+                needs = "Issued once the Librarian has been dealt with.", intervalMultiplier = 0.55f, rangeMultiplier = 0.5f, speedMultiplier = 0.85f, shotSize = 0.8f },
         };
 
         public static WeaponInfo Info(WeaponKind kind)
@@ -46,6 +48,7 @@ namespace Shrunk
             {
                 case WeaponKind.Sprinkler: return Achievements.Has(AchievementId.MothersDay);
                 case WeaponKind.Syringe: return Achievements.Has(AchievementId.Regicide);
+                case WeaponKind.SprayBottle: return Specimens.Has("TheLibrarian");
                 default: return true;
             }
         }
