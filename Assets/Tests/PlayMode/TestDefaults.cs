@@ -13,6 +13,9 @@ namespace Shrunk.Tests
         [OneTimeSetUp]
         public void NoSurprises()
         {
+            // The tests were written for worlds of ten floors (mini boss on 5, boss on 10) and still run that way.
+            // What a six-floor world changes has tests of its own.
+            FloorLayout.FloorsPerBiome = 10;
             FloorManager.TwistChanceForAll = 0f;
             FloorManager.ExchangeChanceForAll = 0f;
         }
@@ -20,6 +23,7 @@ namespace Shrunk.Tests
         [OneTimeTearDown]
         public void Restore()
         {
+            FloorLayout.FloorsPerBiome = 6;
             FloorManager.TwistChanceForAll = null;
             FloorManager.ExchangeChanceForAll = null;
         }

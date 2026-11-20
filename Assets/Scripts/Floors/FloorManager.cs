@@ -35,7 +35,7 @@ namespace Shrunk
             if (bottomBiome == null) return;
             biome = machine && machineBiome != null ? machineBiome : bottomBiome;
             depth = 1;
-            BuildFloor(10);
+            BuildFloor(FloorLayout.FloorsPerBiome);
         }
 
         /// <summary>One way onward in the portal room: a gate, and the biome it leads to.</summary>

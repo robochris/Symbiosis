@@ -88,6 +88,75 @@ namespace Shrunk.Tests
             Assert.IsFalse(_floors.IsLocked, "the room would not clear");
         }
 
+        [UnityTest]
+        public IEnumerator A_world_is_six_floors_with_its_bosses_on_the_third_and_sixth()
+        {
+            Assert.AreEqual(10, FloorLayout.FloorsPerBiome, "the tests are not running at ten floors a world");
+            FloorLayout.FloorsPerBiome = 6;
+            try
+            {
+                // The six floors stand for the first, third, fifth, seventh, ninth and tenth of the old ten.
+                int[] stages = { 1, 3, 5, 7, 9, 10 };
+                for (int floor = 1; floor <= 18; floor++)
+                {
+                    Assert.AreEqual((floor - 1) % 6 + 1, FloorLayout.FloorOfBiome(floor));
+                    Assert.AreEqual(stages[(floor - 1) % 6], FloorLayout.FloorInBiome(floor));
+                    Assert.AreEqual(floor % 3 == 0, FloorLayout.IsBossFloor(floor), "floor " + floor);
+                }
+                Assert.AreEqual(5, FloorLayout.RoomCountForFloor(3), "boss floors are short");
+                Assert.Greater(FloorLayout.RoomCountForFloor(5), FloorLayout.RoomCountForFloor(1));
+
+                // Everything a world has turns up before its boss: the last enemy to join is there on floor five.
+                int latest = 0;
+                foreach (var entry in _floors.biome.spawnTable) latest = Mathf.Max(latest, entry.minFloor);
+                Assert.LessOrEqual(latest, FloorLayout.FloorInBiome(5), "an enemy of this world never gets a floor to appear on");
+
+                // Third floor: the mini boss. Sixth: the world's boss, and the portals. Seventh: the next world's first.
+                _floors.BuildFloor(2);
+                yield return null;
+                Assert.AreEqual("FLOOR 2", ScreenCards.Instance.LastHeading);
+                _floors.BuildFloor(3);
+                yield return null;
+                _player.Teleport(_floors.ArenaCentre + new Vector3(0f, 0.05f, -8f));
+                yield return WaitUntil(() => _floors.Boss != null, 3f, "the mini boss");
+                Assert.AreEqual(_floors.biome.miniBoss.displayName, _floors.Boss.displayName);
+                for (float t = 0f; t < 8f && Time.timeScale <= 0f; t += Time.unscaledDeltaTime) yield return null;
+
+                _floors.BuildFloor(6);
+                yield return null;
+                _player.Teleport(_floors.ArenaCentre + new Vector3(0f, 0.05f, -8f));
+                yield return WaitUntil(() => _floors.Boss != null, 3f, "the boss");
+                Assert.AreEqual(_floors.biome.boss.displayName, _floors.Boss.displayName);
+                for (float t = 0f; t < 8f && Time.timeScale <= 0f; t += Time.unscaledDeltaTime) yield return null;
+                _floors.Boss.Health.Kill();
+                for (float t = 0f; t < 5f && _floors.ExtractPortal == null; t += Time.unscaledDeltaTime) yield return null;
+                Assert.IsNotNull(_floors.ExtractPortal, "no way home after the sixth floor's boss");
+                Assert.IsNotNull(_floors.DeeperPortal, "no way on after the sixth floor's boss");
+                Assert.AreEqual(1, MachineParts.Count, "the world's boss kept its part");
+
+                _floors.BuildFloor(7);
+                yield return null;
+                Assert.AreEqual(1, _floors.FloorInBiome);
+                Assert.IsFalse(FloorLayout.IsBossFloor(7));
+
+                // The two places with no floors on the way still open straight onto their boss.
+                _floors.BuildBottom();
+                yield return null;
+                _player.Teleport(_floors.ArenaCentre + new Vector3(0f, 0.05f, -8f));
+                yield return WaitUntil(() => _floors.Boss is CatBoss, 3f, "the cat");
+                for (float t = 0f; t < 8f && Time.timeScale <= 0f; t += Time.unscaledDeltaTime) yield return null;
+                _floors.BuildBottom(true);
+                yield return null;
+                _player.Teleport(_floors.ArenaCentre + new Vector3(0f, 0.05f, -12f));
+                yield return WaitUntil(() => _floors.Boss is MachineBoss, 3f, "the machine");
+                for (float t = 0f; t < 8f && Time.timeScale <= 0f; t += Time.unscaledDeltaTime) yield return null;
+            }
+            finally
+            {
+                FloorLayout.FloorsPerBiome = 10;
+            }
+        }
+
         [Test]
         public void Enough_floors_have_a_dare_room()
         {

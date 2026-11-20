@@ -147,10 +147,31 @@ namespace Shrunk
             return outside.type != RoomType.Normal;
         }
 
-        /// <summary>A biome is 10 floors. Floor 11 of a run is floor 1 of the next biome.</summary>
-        public static int FloorInBiome(int floorNumber) => (Mathf.Max(1, floorNumber) - 1) % 10 + 1;
+        /// <summary>
+        /// How many floors a world has: six, with the mini boss on the third and the world's boss on the sixth.
+        /// The game was first built and tuned at ten (mini boss on the fifth, boss on the tenth), and the tests still
+        /// run at ten; only six and ten are supported.
+        /// </summary>
+        public static int FloorsPerBiome = 6;
 
-        /// <summary>Floor 5 of a biome has the mini boss, floor 10 the biome boss.</summary>
+        // A six-floor world plays the first, third, fifth, seventh, ninth and tenth floors of the ten-floor one, so
+        // everything tuned by floor (enemy counts, which enemies turn up, mutations, room counts) keeps its meaning.
+        static readonly int[] SixStages = { 1, 3, 5, 7, 9, 10 };
+
+        /// <summary>Which floor of its world this is, counting from 1, as the player counts them.</summary>
+        public static int FloorOfBiome(int floorNumber) => (Mathf.Max(1, floorNumber) - 1) % Mathf.Max(1, FloorsPerBiome) + 1;
+
+        /// <summary>
+        /// How far through its world this floor is, on the scale of 1 to 10 everything is tuned by: 5 has the mini
+        /// boss and 10 the boss. The floor after a world's last is 1 of the next world.
+        /// </summary>
+        public static int FloorInBiome(int floorNumber)
+        {
+            int floor = FloorOfBiome(floorNumber);
+            return FloorsPerBiome == 6 ? SixStages[floor - 1] : floor;
+        }
+
+        /// <summary>Half way through a world is the mini boss, the end of it the world's boss.</summary>
         public static bool IsBossFloor(int floorNumber) => FloorInBiome(floorNumber) % 5 == 0;
 
         /// <summary>About 8 rooms on floor 1, growing to about 15 by floor 9. Boss floors are short: the boss is the point.</summary>

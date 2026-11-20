@@ -463,11 +463,11 @@ namespace Shrunk
             // A floor with a twist says what it is instead of passing the time of day.
             if (floors.Twist != FloorTwist.None)
             {
-                ShowCard("FLOOR " + floors.FloorInBiome, FloorTwists.Name(floors.Twist) + ": " + FloorTwists.Line(floors.Twist), 3.2f);
+                ShowCard("FLOOR " + FloorLayout.FloorOfBiome(floors.FloorNumber), FloorTwists.Name(floors.Twist) + ": " + FloorTwists.Line(floors.Twist), 3.2f);
                 return;
             }
             string tip = TipFor(floors.biome.id, floors.Layout.seed);
-            ShowCard("FLOOR " + floors.FloorInBiome, tip, 2.2f);
+            ShowCard("FLOOR " + FloorLayout.FloorOfBiome(floors.FloorNumber), tip, 2.2f);
         }
 
         void OnRoomChanged(FloorManager floors)
