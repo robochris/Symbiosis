@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
@@ -224,7 +224,7 @@ namespace Shrunk.Tests
             Assert.AreEqual(21, _floors.FloorsBuilt);
         }
 
-        // A clear spot in the room that is well off the exit hole: the corner of the 3×3 clear middle.
+        // A clear spot in the room that is well off the exit hole: the corner of the 3Ã—3 clear middle.
         static Vector3 OffTheHole(Room room) => room.Centre + new Vector3(RoomShape.TileSize, 0f, RoomShape.TileSize);
 
         [UnityTest]
@@ -501,7 +501,8 @@ namespace Shrunk.Tests
                 _floors.BuildFloor(floor);
                 yield return null;
                 var layout = _floors.Layout;
-                Assert.LessOrEqual(layout.rooms.Count, 10, "boss floors should be short");
+                // Five rooms, up to three dead ends added for the treasure, shop and dare rooms, and three more squares of arena.
+                Assert.LessOrEqual(layout.rooms.Count, 11, "boss floors should be short");
 
                 Room arena = _floors.RoomAt(layout.exit.cell);
                 Assert.IsTrue(arena.Shape.isArena, "the boss room should be a wide-open arena");
