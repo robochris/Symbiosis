@@ -629,6 +629,30 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_bad_memo_turns_the_room_on_itself_and_is_earned_at_the_noticeboard()
+        {
+            Assert.IsFalse(HeroPower.Unlocked(PowerKind.BadMemo), "the Bad Memo is issued before any job is done");
+            SaveSystem.Data.meta.jobsDone = 3;
+            Assert.IsTrue(HeroPower.Unlocked(PowerKind.BadMemo));
+            Assert.That(HeroPower.Info(PowerKind.BadMemo).needs, Does.Contain("noticeboard"));
+
+            var first = Dummy(new Vector3(6f, 0f, 6f));
+            var second = Dummy(new Vector3(8f, 0f, 6f));
+            yield return null;
+            Assert.IsFalse(first.IsConfused || second.IsConfused);
+
+            _player.Power.SetKind(PowerKind.BadMemo);
+            _player.Power.SetMeter(1f);
+            Assert.IsTrue(_player.Power.TryActivate());
+            Assert.AreEqual(2, _player.Power.LastMemoRead);
+            Assert.IsTrue(first.IsConfused && second.IsConfused, "nobody read the memo");
+            // Nobody is hurt by reading it: it is what they do next that hurts.
+            Assert.AreEqual(first.Health.maxHealth, first.Health.Current);
+            yield return new WaitForSeconds(HeroPower.Info(PowerKind.BadMemo).duration + 0.5f);
+            Assert.IsFalse(first.IsConfused, "the memo never wore off");
+        }
+
+        [UnityTest]
         public IEnumerator Quick_kills_build_a_streak_that_pays_and_lapses()
         {
             Assert.IsNotNull(Object.FindAnyObjectByType<KillStreak>(), "nobody is counting streaks");

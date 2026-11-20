@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
@@ -29,6 +29,7 @@ namespace Shrunk
             meta.runsStarted = Mathf.Max(meta.runsStarted, 1);
             meta.extractions = Mathf.Max(meta.extractions, 1);
             meta.deaths = Mathf.Max(meta.deaths, 3);
+            meta.jobsDone = Mathf.Max(meta.jobsDone, 3);
             meta.bossesBeaten = Mathf.Max(meta.bossesBeaten, Specimens.All.Length);
             SaveSystem.Save();
         }

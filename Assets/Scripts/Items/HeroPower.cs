@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Shrunk
 {
     /// <summary>Which active ability the Void carries. Chosen at the rack in the lab.</summary>
-    public enum PowerKind { Overcharge, FreezeFrame, SecondWind }
+    public enum PowerKind { Overcharge, FreezeFrame, SecondWind, BadMemo }
 
     /// <summary>What the lab's rack says about a power, and what it takes to be issued one.</summary>
     public class PowerInfo
@@ -32,6 +32,7 @@ namespace Shrunk
             new PowerInfo { kind = PowerKind.Overcharge, name = "Overcharge", does = "A surge that throws everything back, then double damage and piercing shots for 15 seconds.", needs = "", killsToFill = 25f, duration = 15f },
             new PowerInfo { kind = PowerKind.FreezeFrame, name = "Freeze Frame", does = "For 6 seconds every enemy and every enemy shot crawls. You don't.", needs = "Issued after your first extraction.", killsToFill = 20f, duration = 6f },
             new PowerInfo { kind = PowerKind.SecondWind, name = "Second Wind", does = "One health back, every enemy shot swept away, and 4 seconds in which nothing can hurt you.", needs = "Issued to interns who have fallen three times.", killsToFill = 18f, duration = 4f },
+            new PowerInfo { kind = PowerKind.BadMemo, name = "Bad Memo", does = "A memo goes round. For 6 seconds everything in the room that is not a boss turns on its neighbours.", needs = "Issued to interns who have done three jobs off the noticeboard.", killsToFill = 22f, duration = 6f },
         };
 
         public const float FreezeSlow = 0.3f;
@@ -51,6 +52,7 @@ namespace Shrunk
             {
                 case PowerKind.FreezeFrame: return meta.extractions >= 1;
                 case PowerKind.SecondWind: return meta.deaths >= 3;
+                case PowerKind.BadMemo: return meta.jobsDone >= 3;
                 default: return true;
             }
         }
@@ -200,12 +202,28 @@ namespace Shrunk
                     Surge();
                     break;
 
+                case PowerKind.BadMemo:
+                    // Everybody but the boss reads it, and takes it out on whoever is nearest.
+                    LastMemoRead = 0;
+                    foreach (var enemy in Enemy.Active.ToArray())
+                    {
+                        if (enemy.Health.IsDead || enemy is BossEnemy) continue;
+                        enemy.Confuse(duration);
+                        LastMemoRead++;
+                    }
+                    if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.2f);
+                    Fx.Burst(transform.position + Vector3.up * 0.9f, new Color(1f, 0.96f, 0.8f), 40, 10f, 0.2f, 0.7f);
+                    break;
+
                 default:
                     Surge();
                     break;
             }
             return true;
         }
+
+        /// <summary>How many read the last Bad Memo.</summary>
+        public int LastMemoRead { get; private set; }
 
         /// <summary>Enemy shots the last Second Wind swept away.</summary>
         public int LastShotsCleared { get; private set; }

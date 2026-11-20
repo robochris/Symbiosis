@@ -176,12 +176,12 @@ namespace Shrunk.EditorTools
             rack.transform.position = new Vector3(5.5f, 0f, -5.4f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Rack", rack.transform, new Vector3(0f, 0.6f, -2.2f), new Vector3(3.4f, 1.2f, 0.7f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", rack.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("PowerMat", new Color(1f, 0.82f, 0.2f)), false);
-            Color[] powerColours = { new Color(0.45f, 0.95f, 1f), new Color(0.6f, 0.75f, 1f), new Color(0.5f, 1f, 0.55f) };
+            Color[] powerColours = { new Color(0.45f, 0.95f, 1f), new Color(0.6f, 0.75f, 1f), new Color(0.5f, 1f, 0.55f), new Color(1f, 0.96f, 0.8f) };
             var canisters = new Transform[HeroPower.All.Length];
             for (int i = 0; i < canisters.Length; i++)
             {
                 var canister = ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, HeroPower.All[i].name, rack.transform,
-                    new Vector3(-1.1f + i * 1.1f, 1.6f, -2.2f), new Vector3(0.5f, 0.4f, 0.5f), ArenaSceneBuilder.Unlit("Power" + HeroPower.All[i].kind, powerColours[i % powerColours.Length]), false);
+                    new Vector3(-1.35f + i * 0.9f, 1.6f, -2.2f), new Vector3(0.5f, 0.4f, 0.5f), ArenaSceneBuilder.Unlit("Power" + HeroPower.All[i].kind, powerColours[i % powerColours.Length]), false);
                 canisters[i] = canister.transform;
             }
             rack.AddComponent<PowerRack>().canisters = canisters;
