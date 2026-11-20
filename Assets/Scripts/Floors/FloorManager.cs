@@ -571,6 +571,11 @@ namespace Shrunk
             RoomChanged?.Invoke(this);
         }
 
+        // A tile the layout calls free can still have the edge of a neighbouring pebble or crumb lying over it. An
+        // enemy put down there starts inside it. Walkable ground at floor level, right here, is the test.
+        static bool OpenFloor(Vector3 point) =>
+            UnityEngine.AI.NavMesh.SamplePosition(point, out var hit, 0.5f, UnityEngine.AI.NavMesh.AllAreas) && hit.position.y < 0.3f;
+
         // One room's worth of enemies, put down away from the player.
         void SpawnWave(Room room, Vector3 playerPosition, int extra, bool forceElite, int extraBudget)
         {
@@ -582,12 +587,13 @@ namespace Shrunk
             foreach (var tile in room.Shape.free)
             {
                 Vector3 point = room.TileWorld(tile);
+                if (!OpenFloor(point)) continue;
                 if ((point - playerPosition).sqrMagnitude >= minSpawnDistance * minSpawnDistance) points.Add(point);
             }
             if (points.Count < count)
             {
                 points.Clear();
-                foreach (var tile in room.Shape.free) points.Add(room.TileWorld(tile));
+                foreach (var tile in room.Shape.free) if (OpenFloor(room.TileWorld(tile))) points.Add(room.TileWorld(tile));
                 points.Sort((a, b) => (b - playerPosition).sqrMagnitude.CompareTo((a - playerPosition).sqrMagnitude));
                 if (points.Count > count) points.RemoveRange(count, points.Count - count);
             }
