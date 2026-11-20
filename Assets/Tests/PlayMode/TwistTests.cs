@@ -500,6 +500,14 @@ namespace Shrunk.Tests
             Assert.AreEqual(1, crumbs);
             Assert.AreEqual(ClawPrize.Crumb, claw.Last);
 
+            // Dropping it ten times is its own reward, of a kind.
+            Assert.IsFalse(Achievements.Has(AchievementId.HouseWins));
+            SaveSystem.Data.meta.clawLosses = Achievements.ClawLossesNeeded - 1;
+            RunState.AddCoins(500);
+            claw.rigged = ClawPrize.Nothing;
+            claw.Play();
+            Assert.IsTrue(Achievements.Has(AchievementId.HouseWins));
+
             // Left to itself it mostly loses: over a lot of goes, it takes more than it gives.
             Assert.Less(ClawMachine.ItemOdds + ClawMachine.JackpotOdds + ClawMachine.CrumbOdds, 0.8f);
         }
@@ -533,6 +541,8 @@ namespace Shrunk.Tests
             int after = RunState.Coins;
             foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Coin) after += pickup.amount;
             Assert.GreaterOrEqual(after - before, GoldBug.Coins, "the gold bug was not worth catching");
+            Assert.AreEqual(1, SaveSystem.Data.meta.goldBugsCaught);
+            SaveSystem.Data.meta.goldBugsCaught = Achievements.GoldBugsNeeded - 1;
             yield return KillAll();
 
             // Not caught: when the rest of the room is dead it goes, and the room opens without it.
@@ -544,6 +554,15 @@ namespace Shrunk.Tests
             for (float t = 0f; t < 6f && _floors.IsLocked; t += Time.deltaTime) yield return null;
             Assert.IsFalse(_floors.IsLocked, "the room waited for the gold bug");
             Assert.IsTrue(bug.Escaped);
+            Assert.IsFalse(Achievements.Has(AchievementId.GoldDigger), "one that got away counted as caught");
+
+            // The fifth one caught.
+            yield return EnterFight(FightRoom());
+            foreach (var enemy in _floors.LiveEnemies) if (enemy is GoldBug found) bug = found;
+            bug.Health.Kill();
+            yield return null;
+            Assert.IsTrue(Achievements.Has(AchievementId.GoldDigger));
+            Assert.IsTrue(Achievements.StyleUnlocked("Beetle"));
         }
 
         [UnityTest]

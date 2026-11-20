@@ -98,6 +98,26 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Keeping_quiet_all_fight_is_noticed()
+        {
+            Assert.IsTrue(_floors.SetBiome("library"));
+            yield return MeetBoss(10);
+            var librarian = (LibrarianBoss)_floors.Boss;
+            Assert.AreEqual(0, librarian.Punished);
+            librarian.Health.Kill();
+            yield return null;
+            Assert.IsTrue(Achievements.Has(AchievementId.QuietPlease));
+            Assert.IsTrue(Achievements.StyleUnlocked("Ink"));
+
+            // And the trainee, who cannot shush, earns nobody anything for it.
+            SaveSystem.Data.meta.achievements.Remove((int)AchievementId.QuietPlease);
+            yield return MeetBoss(5);
+            _floors.Boss.Health.Kill();
+            yield return null;
+            Assert.IsFalse(Achievements.Has(AchievementId.QuietPlease));
+        }
+
+        [UnityTest]
         public IEnumerator The_trainee_throws_books_and_never_shushes()
         {
             Assert.IsTrue(_floors.SetBiome("library"));
@@ -162,6 +182,8 @@ namespace Shrunk.Tests
             yield return WaitUntil(() => _floors.ExtractPortal != null, 6f, "the portals");
             Time.timeScale = 1f;
             Assert.IsTrue(Specimens.Has("TheLibrarian"));
+            // This fight broke the quiet, so no prize for manners.
+            Assert.IsFalse(Achievements.Has(AchievementId.QuietPlease));
             // And what the lab issues for it: a fourth weapon, twice as quick and half as far.
             Assert.IsTrue(Weapons.Unlocked(WeaponKind.SprayBottle), "beating the Librarian issued nothing");
             WeaponInfo spray = Weapons.Info(WeaponKind.SprayBottle);

@@ -8,7 +8,7 @@ namespace Shrunk
         FirstSteps, MothersDay, Regicide, Untouchable, Omelette, HandsOff,
         Deeper, Hoarder, ShellShock, BubbleWrap, SweetTooth, FullPockets,
         PaperTrail, PerformanceReview, SpringClean, Unplugged, Defrosted,
-        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot, CleanSweep
+        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot, CleanSweep, GoldDigger, QuietPlease, OnARoll, HouseWins
     }
 
     /// <summary>One achievement: what to do, and what doing it gives.</summary>
@@ -63,9 +63,13 @@ namespace Shrunk
             new Achievement { id = AchievementId.AskedForIt, name = "Asked For It", how = "Ring 5 dare bells and live.", reward = "the Brass style", style = "Brass" },
             new Achievement { id = AchievementId.Reboot, name = "Off and On Again", how = "Bring the machine its four parts, switch it on, and beat it.", reward = "the next cycle. It is like this one, with fewer excuses" },
             new Achievement { id = AchievementId.CleanSweep, name = "Clean Sweep", how = "Have every target on the range down at the same moment.", reward = "nothing. It was noticed, though" },
+            new Achievement { id = AchievementId.GoldDigger, name = "Gold Digger", how = "Catch 5 gold bugs before they leave.", reward = "the Beetle style", style = "Beetle" },
+            new Achievement { id = AchievementId.QuietPlease, name = "Quiet, Please", how = "Beat the Librarian without once making a noise in the quiet.", reward = "the Ink style", style = "Ink" },
+            new Achievement { id = AchievementId.OnARoll, name = "On a Roll", how = "Put down 15 in a row without a pause.", reward = "nothing but momentum" },
+            new Achievement { id = AchievementId.HouseWins, name = "The House Wins", how = "Have the claw machine drop it 10 times.", reward = "the machine's respect. It has none" },
         };
 
-        public const int ShellsNeeded = 20, PodsNeeded = 50, ItemsNeeded = 6, SamplesNeeded = 300, MimicsNeeded = 10, DaresNeeded = 5;
+        public const int ShellsNeeded = 20, PodsNeeded = 50, ItemsNeeded = 6, SamplesNeeded = 300, MimicsNeeded = 10, DaresNeeded = 5, GoldBugsNeeded = 5, StreakNeeded = 15, ClawLossesNeeded = 10;
 
         public static Achievement Get(AchievementId id)
         {

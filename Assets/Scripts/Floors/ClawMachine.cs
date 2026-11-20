@@ -13,6 +13,8 @@ namespace Shrunk
     {
         public const int FirstPrice = 6, PriceStep = 3;
         public const float HoldTime = 1.1f;
+        /// <summary>Somebody has had a go, and this is what came of it.</summary>
+        public static event System.Action<ClawPrize> Played;
         /// <summary>The odds, in order: an item, a jackpot, a crumb. Whatever is left is nothing.</summary>
         public const float ItemOdds = 0.15f, JackpotOdds = 0.2f, CrumbOdds = 0.3f;
 
@@ -116,6 +118,7 @@ namespace Shrunk
             }
             Last = prize;
             if (prize != ClawPrize.Nothing) Jobs.Count(JobKind.ClawWins);
+            Played?.Invoke(prize);
             var hud = FindAnyObjectByType<Hud>();
             if (hud != null) hud.Toast(said, 3f);
             Sfx.Play(prize == ClawPrize.Nothing ? SfxId.Blocked : SfxId.Item);

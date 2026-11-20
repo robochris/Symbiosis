@@ -47,6 +47,8 @@ namespace Shrunk
         /// <summary>Fortunes read at the machine so far, and coins a lucky one has put by for the next run.</summary>
         public int fortunesRead;
         public int luckyCoins;
+        public int goldBugsCaught;
+        public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>
         public int labSeen;
         /// <summary>Pages of Dr. Finch's notebook found, by id.</summary>

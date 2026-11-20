@@ -24,6 +24,7 @@ namespace Shrunk
             RunDirector.Extracted += OnExtracted;
             FinchNotes.Found += OnNote;
             FloorManager.DareWon += OnDare;
+            ClawMachine.Played += OnClaw;
         }
 
         void OnDisable()
@@ -38,6 +39,7 @@ namespace Shrunk
             RunDirector.Extracted -= OnExtracted;
             FinchNotes.Found -= OnNote;
             FloorManager.DareWon -= OnDare;
+            ClawMachine.Played -= OnClaw;
             if (_watched != null) _watched.Health.Damaged -= OnHit;
         }
 
@@ -90,6 +92,16 @@ namespace Shrunk
 
             if (enemy is MachineBoss) Achievements.Unlock(AchievementId.Reboot);
 
+            if (enemy is GoldBug)
+            {
+                var meta = SaveSystem.Data.meta;
+                meta.goldBugsCaught++;
+                if (meta.goldBugsCaught >= Achievements.GoldBugsNeeded) Achievements.Unlock(AchievementId.GoldDigger);
+            }
+            // The streak counter may hear of this kill a moment after this does: one over the line is near enough.
+            if (KillStreak.Live >= Achievements.StreakNeeded) Achievements.Unlock(AchievementId.OnARoll);
+            if (enemy is LibrarianBoss librarian && librarian.canShush && librarian.Punished == 0) Achievements.Unlock(AchievementId.QuietPlease);
+
             if (enemy is CatBoss)
             {
                 Achievements.Unlock(AchievementId.PerformanceReview);
@@ -125,6 +137,14 @@ namespace Shrunk
             if (player != null && player.Items != null && player.Items.Collected.Count >= Achievements.ItemsNeeded) Achievements.Unlock(AchievementId.Hoarder);
             var library = GameAssets.Instance != null ? GameAssets.Instance.items : null;
             if (library != null && library.items != null && FilingCabinet.Filed >= library.items.Length) Achievements.Unlock(AchievementId.FiledAway);
+        }
+
+        void OnClaw(ClawPrize prize)
+        {
+            if (prize != ClawPrize.Nothing) return;
+            var meta = SaveSystem.Data.meta;
+            meta.clawLosses++;
+            if (meta.clawLosses >= Achievements.ClawLossesNeeded) Achievements.Unlock(AchievementId.HouseWins);
         }
 
         void OnDare(FloorManager floors)
