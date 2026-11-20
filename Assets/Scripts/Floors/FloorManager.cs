@@ -642,12 +642,12 @@ namespace Shrunk
             }
 
             // Now and then, a gold bug in among them. It is not there to fight.
-            float bugChance = goldBugChanceOverride >= 0f ? goldBugChanceOverride : GoldBugChanceForAll ?? goldBugChance;
+            float bugChance = Twist == FloorTwist.GoldRush ? 1f : goldBugChanceOverride >= 0f ? goldBugChanceOverride : GoldBugChanceForAll ?? goldBugChance;
             if (goldBug != null && FloorNumber >= 2 && points.Count > 0 && UnityEngine.Random.value < bugChance)
             {
                 Spawn(goldBug, points[UnityEngine.Random.Range(0, points.Count)], playerPosition);
                 var hud = FindAnyObjectByType<Hud>();
-                if (hud != null) hud.Toast("A gold bug. It will not stay long.", 3f);
+                if (hud != null && Twist != FloorTwist.GoldRush) hud.Toast("A gold bug. It will not stay long.", 3f);
             }
         }
 

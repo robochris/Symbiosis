@@ -115,6 +115,7 @@ namespace Shrunk
                     break;
             }
             Last = prize;
+            if (prize != ClawPrize.Nothing) Jobs.Count(JobKind.ClawWins);
             var hud = FindAnyObjectByType<Hud>();
             if (hud != null) hud.Toast(said, 3f);
             Sfx.Play(prize == ClawPrize.Nothing ? SfxId.Blocked : SfxId.Item);

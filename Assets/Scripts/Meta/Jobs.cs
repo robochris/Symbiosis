@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Shrunk
 {
-    public enum JobKind { Kills, Elites, Mimics, Bosses, Dares, Extractions, Floors, Items }
+    public enum JobKind { Kills, Elites, Mimics, Bosses, Dares, Extractions, Floors, Items, Streaks, GoldBugs, ClawWins }
 
     /// <summary>One job off the lab's noticeboard: something to do a number of times, and what the lab pays for it.</summary>
     public class Job
@@ -35,6 +35,9 @@ namespace Shrunk
             new Job { id = 7, kind = JobKind.Mimics, needed = 3, pay = 35, what = "Put down 3 mimics." },
             new Job { id = 8, kind = JobKind.Kills, needed = 100, pay = 60, what = "Put down 100 of anything." },
             new Job { id = 9, kind = JobKind.Floors, needed = 12, pay = 70, what = "Go down 12 floors." },
+            new Job { id = 10, kind = JobKind.Streaks, needed = 2, pay = 40, what = "Put down 10 in a row without a pause, twice." },
+            new Job { id = 11, kind = JobKind.GoldBugs, needed = 2, pay = 45, what = "Catch 2 gold bugs before they leave." },
+            new Job { id = 12, kind = JobKind.ClawWins, needed = 3, pay = 35, what = "Get anything at all out of a claw machine, 3 times." },
         };
 
         /// <summary>A job has just been finished and paid.</summary>

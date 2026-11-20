@@ -13,7 +13,9 @@ namespace Shrunk
         /// <summary>Every fight room has an elite in it.</summary>
         Promotions,
         /// <summary>Everything in the shop is half price.</summary>
-        Sale
+        Sale,
+        /// <summary>A gold bug in every fight room.</summary>
+        GoldRush
     }
 
     /// <summary>What each twist is called, what it does, and which floors get one.</summary>
@@ -23,7 +25,7 @@ namespace Shrunk
         /// <summary>How much of the light is left in a power cut.</summary>
         public const float PowerCutAmbient = 0.45f, PowerCutSun = 0.3f;
 
-        public static readonly FloorTwist[] All = { FloorTwist.Crowded, FloorTwist.PowerCut, FloorTwist.Promotions, FloorTwist.Sale };
+        public static readonly FloorTwist[] All = { FloorTwist.Crowded, FloorTwist.PowerCut, FloorTwist.Promotions, FloorTwist.Sale, FloorTwist.GoldRush };
 
         public static string Name(FloorTwist twist)
         {
@@ -33,6 +35,7 @@ namespace Shrunk
                 case FloorTwist.PowerCut: return "Power cut";
                 case FloorTwist.Promotions: return "Promotions";
                 case FloorTwist.Sale: return "Closing-down sale";
+                case FloorTwist.GoldRush: return "Gold rush";
                 default: return "";
             }
         }
@@ -46,6 +49,7 @@ namespace Shrunk
                 case FloorTwist.PowerCut: return "somebody has turned the light off. Samples are worth more in the dark.";
                 case FloorTwist.Promotions: return "there is a manager in every room.";
                 case FloorTwist.Sale: return "everything in the shop is half price.";
+                case FloorTwist.GoldRush: return "a gold bug in every room. They do not wait about.";
                 default: return "";
             }
         }

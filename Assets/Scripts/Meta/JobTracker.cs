@@ -35,6 +35,7 @@ namespace Shrunk
             if (enemy.IsElite) Jobs.Count(JobKind.Elites);
             if (enemy is MimicEnemy) Jobs.Count(JobKind.Mimics);
             if (enemy is BossEnemy) Jobs.Count(JobKind.Bosses);
+            if (enemy is GoldBug) Jobs.Count(JobKind.GoldBugs);
         }
 
         // Arriving on a floor past the first one of the scene is having gone down one.

@@ -200,7 +200,7 @@ namespace Shrunk.Tests
                 if (twist != FloorTwist.None) twisted++;
                 seen.Add(twist);
             }
-            Assert.AreEqual(5, seen.Count, "some twist never turns up");
+            Assert.AreEqual(FloorTwists.All.Length + 1, seen.Count, "some twist never turns up");
             Assert.That(twisted, Is.InRange(220, 380), "about three floors in ten should have one");
             foreach (var twist in FloorTwists.All)
             {
@@ -544,6 +544,63 @@ namespace Shrunk.Tests
             for (float t = 0f; t < 6f && _floors.IsLocked; t += Time.deltaTime) yield return null;
             Assert.IsFalse(_floors.IsLocked, "the room waited for the gold bug");
             Assert.IsTrue(bug.Escaped);
+        }
+
+        [UnityTest]
+        public IEnumerator A_gold_rush_puts_a_bug_in_every_room_and_the_new_jobs_count()
+        {
+            _floors.twistOverride = FloorTwist.GoldRush;
+            _floors.BuildFloor(4);
+            yield return null;
+            Assert.That(ScreenCards.Instance.LastLine, Does.StartWith("Gold rush: "));
+
+            // The noticeboard is asking for gold bugs.
+            SaveSystem.Data.meta.jobs.Clear();
+            SaveSystem.Data.meta.jobProgress.Clear();
+            SaveSystem.Data.meta.jobs.AddRange(new[] { 10, 11, 12 });
+            Assert.AreEqual(3, Jobs.Current.Count);
+
+            for (int room = 0; room < 2; room++)
+            {
+                yield return EnterFight(FightRoom());
+                GoldBug bug = null;
+                foreach (var enemy in _floors.LiveEnemies) if (enemy is GoldBug found) bug = found;
+                Assert.IsNotNull(bug, "a room of the gold rush with no gold bug in it");
+                bug.Health.Kill();
+                yield return null;
+                if (room == 0) Assert.AreEqual(1, Jobs.Progress(1), "catching a gold bug did not count toward the job");
+                yield return KillAll();
+            }
+            Assert.IsFalse(SaveSystem.Data.meta.jobs.Contains(11), "the gold bug job was done and is still pinned up");
+            Assert.GreaterOrEqual(SaveSystem.Data.meta.jobsDone, 1);
+
+            // A win at the claw machine counts; a go that drops it does not.
+            int slot = SaveSystem.Data.meta.jobs.IndexOf(12);
+            var claw = ClawMachine.Create(_floors.CurrentRoom, _floors.CurrentRoom.Centre, null, null, null);
+            RunState.AddCoins(200);
+            claw.rigged = ClawPrize.Nothing;
+            claw.Play();
+            Assert.AreEqual(0, Jobs.Progress(slot));
+            claw.rigged = ClawPrize.Crumb;
+            claw.Play();
+            Assert.AreEqual(1, Jobs.Progress(slot));
+
+            // Ten in a row counts once for the streak job.
+            // (The rooms cleared above may have run up a streak of their own: let it lapse and start from nothing.)
+            yield return new WaitForSeconds(KillStreak.Window + 0.3f);
+            slot = SaveSystem.Data.meta.jobs.IndexOf(10);
+            SaveSystem.Data.meta.jobProgress[slot] = 0;
+            int was = 0;
+            yield return EnterFight(FightRoom());
+            Enemy template = null;
+            foreach (var enemy in _floors.LiveEnemies) if (!(enemy is GoldBug)) template = enemy;
+            for (int i = 0; i < KillStreak.JobAt + 2; i++)
+            {
+                Enemy extra = _floors.AddToFight(null, template.transform.position, false);
+                if (extra != null) extra.Health.Kill();
+            }
+            yield return null;
+            Assert.AreEqual(was + 1, Jobs.Progress(slot), "ten in a row did not count toward the streak job");
         }
 
         [UnityTest]

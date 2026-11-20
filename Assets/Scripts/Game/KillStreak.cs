@@ -12,6 +12,8 @@ namespace Shrunk
         /// <summary>Seconds after a kill in which the next one still counts.</summary>
         public const float Window = 2.5f;
         public const int PaysEvery = 5, Pays = 3;
+        /// <summary>The streak the noticeboard's job asks for.</summary>
+        public const int JobAt = 10;
 
         static int _count;
         static float _last = -100f;
@@ -37,6 +39,7 @@ namespace Shrunk
             _count = Live + 1;
             _last = Time.time;
             Best = Mathf.Max(Best, _count);
+            if (_count == JobAt) Jobs.Count(JobKind.Streaks);
             if (_count % PaysEvery != 0) return;
 
             for (int i = 0; i < Pays; i++)
