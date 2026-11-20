@@ -239,6 +239,9 @@ namespace Shrunk
             image.color = colour;
             image.raycastTarget = false;
             label = Label("Label", rect, textSize, Vector2.zero, FontStyle.Bold);
+            // A button's label is short and stays on one line.
+            label.rectTransform.sizeDelta = Vector2.zero;
+            label.horizontalOverflow = HorizontalWrapMode.Overflow;
             return rect;
         }
 
@@ -250,6 +253,8 @@ namespace Shrunk
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.offsetMin = rect.offsetMax = Vector2.zero;
+            // A margin either side, and long lines wrap inside it instead of running off the screen.
+            rect.sizeDelta = new Vector2(-140f, 0f);
             rect.anchoredPosition = position;
             var text = go.GetComponent<Text>();
             text.font = _font;
@@ -258,7 +263,7 @@ namespace Shrunk
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;
             text.raycastTarget = false;
-            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
             text.verticalOverflow = VerticalWrapMode.Overflow;
             return text;
         }

@@ -120,10 +120,15 @@ namespace Shrunk.Tests
             UseRow("Look speed");
             Assert.AreEqual(1.5f, GameSettings.LookSpeed, 0.001f);
 
-            UseRow("Sound");
-            Assert.AreEqual(0f, AudioListener.volume, "Full should wrap round to Off");
+            // Sound starts off while the sounds are placeholders: Off, Quiet, Full, and round to Off.
+            Assert.AreEqual(0f, AudioListener.volume, "the game did not start muted");
+            Assert.That(Row("Sound"), Does.Contain("Off"));
             UseRow("Sound");
             Assert.AreEqual(0.5f, AudioListener.volume, 0.001f);
+            UseRow("Sound");
+            Assert.AreEqual(1f, AudioListener.volume, 0.001f);
+            UseRow("Sound");
+            Assert.AreEqual(0f, AudioListener.volume, "Full should wrap round to Off");
         }
 
         [UnityTest]

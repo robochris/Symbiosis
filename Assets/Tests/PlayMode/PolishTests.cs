@@ -94,6 +94,50 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_camera_looks_past_what_is_in_the_way_and_long_text_wraps()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            var follow = CameraFollow.Instance;
+            follow.SetMode(CameraMode.Shoulder);
+            follow.Snap();
+            yield return null;
+            yield return null;
+            float clear = (follow.transform.position - player.transform.position).magnitude;
+
+            // A crate dropped between the two: it is not drawn, and the view does not jump forward past it.
+            var crate = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            crate.transform.localScale = Vector3.one * 0.8f;
+            crate.transform.position = Vector3.Lerp(player.transform.position + Vector3.up * 1.2f, follow.transform.position, 0.6f);
+            Physics.SyncTransforms();
+            yield return null;
+            yield return null;
+            var drawn = crate.GetComponent<Renderer>();
+            Assert.IsTrue(drawn.forceRenderingOff, "the crate in front of the camera is still drawn");
+            Assert.Greater(follow.HiddenBlockers, 0);
+            Assert.AreEqual(clear, (follow.transform.position - player.transform.position).magnitude, 0.3f, "the view jumped in front of the crate");
+
+            // Out of the way again: back on screen.
+            crate.transform.position += Vector3.up * 40f;
+            Physics.SyncTransforms();
+            yield return null;
+            yield return null;
+            Assert.IsFalse(drawn.forceRenderingOff, "the crate stayed hidden after it moved away");
+            Assert.AreEqual(0, follow.HiddenBlockers);
+            Object.Destroy(crate);
+
+            // The line of text at the bottom wraps inside the screen whatever its length.
+            var prompt = Object.FindAnyObjectByType<Hud>().promptText;
+            Assert.AreEqual(HorizontalWrapMode.Wrap, prompt.horizontalOverflow);
+            Assert.Greater(prompt.rectTransform.anchorMin.x, 0f);
+            Assert.Less(prompt.rectTransform.anchorMax.x, 1f);
+            Assert.Greater(prompt.rectTransform.rect.width, 600f);
+        }
+
+        [UnityTest]
         public IEnumerator The_cupboard_issues_three_weapons_that_shoot_differently()
         {
             SaveSystem.Data.meta.runsStarted = 2;

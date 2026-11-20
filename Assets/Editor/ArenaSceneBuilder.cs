@@ -208,6 +208,7 @@ namespace Shrunk.EditorTools
 
             var kills = UiText("Kills", parent, font, "Kills: 0", 44, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-260f, -80f), new Vector2(400f, 60f));
             var hint = UiText("Desktop Hint", parent, font, "WASD move  ·  mouse aim  ·  hold click to fire  ·  Space dodge", 30, TextAnchor.LowerCenter, new Vector2(0.5f, 0f), new Vector2(0f, 50f), new Vector2(1700f, 50f));
+            FitAcross(hint, 18f);
             hint.color = new Color(1f, 1f, 1f, 0.6f);
 
             var crosshair = UiImage("Crosshair", parent, knob, new Color(1f, 1f, 1f, 0.9f), new Vector2(0.5f, 0.5f), Vector2.zero, 14f).GetComponent<Image>();
@@ -218,6 +219,8 @@ namespace Shrunk.EditorTools
 
             var resources = UiText("Resources", parent, font, "Coins 0   ·   Samples 0", 34, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(255f, -140f), new Vector2(400f, 50f));
             var prompt = UiText("Prompt", parent, font, "", 34, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0f, 130f), new Vector2(1700f, 60f));
+            // Above the hint, and growing upward: a long prompt wraps onto a second line inside the screen.
+            FitAcross(prompt, 104f);
             prompt.color = new Color(1f, 0.95f, 0.7f);
 
             // Hero power: above the right thumb. On PC it stays on screen as the meter.
@@ -284,6 +287,20 @@ namespace Shrunk.EditorTools
             image.color = color;
             image.raycastTarget = false;
             return rect;
+        }
+
+        // Stretches a line of text across the bottom of the screen with a margin either side, whatever shape the
+        // screen is, and lets it wrap upward instead of running off the edges.
+        static void FitAcross(Text text, float fromBottom)
+        {
+            RectTransform rect = text.rectTransform;
+            rect.anchorMin = new Vector2(0.05f, 0f);
+            rect.anchorMax = new Vector2(0.95f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, fromBottom);
+            rect.sizeDelta = new Vector2(0f, 60f);
+            text.alignment = TextAnchor.LowerCenter;
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
         }
 
         internal static Text UiText(string name, Transform parent, Font font, string content, int size, TextAnchor alignment, Vector2 anchor, Vector2 position, Vector2 box)

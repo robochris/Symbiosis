@@ -268,6 +268,7 @@ namespace Shrunk
                     float wide = Mathf.Clamp01(Pull), boss = Mathf.Clamp01(Pull - 1f);
                     rotation = Quaternion.Euler(LookPitch + (widePitch - startPitch) * wide + autoBossPitch * boss, LookYaw, 0f);
                     Vector3 pivot = _focus + Vector3.up * Mathf.Lerp(shoulderHeight, wideHeight, wide);
+                    _pivot = pivot;
                     Vector3 offset = rotation * new Vector3(shoulderSide * (1f - wide), 0f,
                         -(Mathf.Lerp(shoulderDistance, wideDistance, wide) + autoBossDistance * boss));
                     // In past a wall at once, so the view never ends up inside it; back out gently, so it doesn't lurch.
@@ -295,6 +296,56 @@ namespace Shrunk
 
             if (_shake > 0.001f) position += rotation * (Vector3)UnityEngine.Random.insideUnitCircle * _shake;
             transform.SetPositionAndRotation(position, rotation);
+            HideBlockers(IsBehind ? _pivot : position, position);
+        }
+
+        static bool InRun => FloorManager.Instance != null;
+
+        Vector3 _pivot;
+        static readonly RaycastHit[] Blockers = new RaycastHit[24];
+        readonly System.Collections.Generic.List<Renderer> _hidden = new System.Collections.Generic.List<Renderer>();
+        readonly System.Collections.Generic.HashSet<Renderer> _blocking = new System.Collections.Generic.HashSet<Renderer>();
+
+        /// <summary>How many things are hidden right now because they are between the camera and the character.</summary>
+        public int HiddenBlockers => _hidden.Count;
+
+        // Anything solid between the character and the camera, other than the room itself and other characters, is
+        // not drawn while it is there, and comes back the moment it is not.
+        void HideBlockers(Vector3 from, Vector3 to)
+        {
+            _blocking.Clear();
+            Vector3 line = to - from;
+            float length = line.magnitude;
+            if (seeThroughWalls && InRun && length > 0.6f)
+            {
+                int count = Physics.SphereCastNonAlloc(from, 0.45f, line / length, Blockers, length, ~0, QueryTriggerInteraction.Ignore);
+                for (int i = 0; i < count; i++)
+                {
+                    Collider blocker = Blockers[i].collider;
+                    if (blocker.GetComponent<Room>() != null || blocker.GetComponentInParent<Health>() != null) continue;
+                    foreach (var shown in blocker.GetComponentsInChildren<Renderer>()) _blocking.Add(shown);
+                }
+            }
+
+            for (int i = _hidden.Count - 1; i >= 0; i--)
+            {
+                Renderer was = _hidden[i];
+                if (was != null && _blocking.Contains(was)) continue;
+                if (was != null) was.forceRenderingOff = false;
+                _hidden.RemoveAt(i);
+            }
+            foreach (var blocker in _blocking)
+            {
+                if (blocker.forceRenderingOff) continue;
+                blocker.forceRenderingOff = true;
+                _hidden.Add(blocker);
+            }
+        }
+
+        void OnDisable()
+        {
+            foreach (var was in _hidden) if (was != null) was.forceRenderingOff = false;
+            _hidden.Clear();
         }
 
         [Tooltip("On, the camera backs through a room's walls and ceiling and looks in from behind them: they only show from inside, so the view stays put. Off, it jumps in front of them.")]
@@ -310,7 +361,9 @@ namespace Shrunk
             {
                 if (Hits[i].distance >= nearest) continue;
                 if (Hits[i].collider.GetComponentInParent<Health>() != null) continue; // characters don't block the camera
-                if (seeThroughWalls && Hits[i].collider.GetComponent<Room>() != null) continue;
+                // In a run nothing pushes the view about: walls are looked through, and whatever else is in the way
+                // (a pebble, a root, a shut door) is hidden while it is (see HideBlockers).
+                if (seeThroughWalls && (InRun || Hits[i].collider.GetComponent<Room>() != null)) continue;
                 nearest = Hits[i].distance;
             }
             return Mathf.Max(nearest, 0.4f);
