@@ -439,23 +439,23 @@ namespace Shrunk.Tests
             for (float t = 0f; t < 6f && floors.Boss == null; t += Time.unscaledDeltaTime) yield return null;
             Assert.IsNotNull(floors.Boss);
             yield return new WaitForSecondsRealtime(1.2f);
-            yield return Screen(Path.Combine(folder, "finch-card.png"));
+            yield return Screen(Path.Combine(folder, "cat-card.png"));
             for (float t = 0f; t < 8f && Time.timeScale <= 0f; t += Time.unscaledDeltaTime) yield return null;
-            var finch = (FinchBoss)floors.Boss;
-            for (float t = 0f; t < 8f && finch.Bursts == 0; t += Time.deltaTime) yield return null;
+            var cat = (CatBoss)floors.Boss;
+            for (float t = 0f; t < 8f && cat.Swipes == 0; t += Time.deltaTime) yield return null;
             yield return new WaitForSeconds(0.25f);
-            player.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(finch.transform.position - player.transform.position, Vector3.up));
+            player.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(cat.transform.position - player.transform.position, Vector3.up));
             CameraFollow.Instance.Snap();
             yield return null;
-            yield return Screen(Path.Combine(folder, "finch-fight.png"));
+            yield return Screen(Path.Combine(folder, "cat-fight.png"));
 
-            finch.Health.TakeDamage(Mathf.CeilToInt(finch.Health.maxHealth * 0.7f), Vector3.forward);
-            for (float t = 0f; t < 12f && finch.FlasksThrown == 0; t += Time.deltaTime) yield return null;
-            yield return new WaitForSeconds(0.4f);
-            player.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(finch.transform.position - player.transform.position, Vector3.up));
+            cat.Health.TakeDamage(Mathf.CeilToInt(cat.Health.maxHealth * 0.4f), Vector3.forward);
+            for (float t = 0f; t < 12f && cat.Current != CatBoss.State.Groom; t += Time.deltaTime) yield return null;
+            yield return new WaitForSeconds(0.6f);
+            player.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(cat.transform.position - player.transform.position, Vector3.up));
             CameraFollow.Instance.Snap();
             yield return null;
-            yield return Screen(Path.Combine(folder, "finch-small.png"));
+            yield return Screen(Path.Combine(folder, "cat-washing.png"));
             SaveSystem.Wipe();
         }
 

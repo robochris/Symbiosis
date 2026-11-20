@@ -88,7 +88,7 @@ namespace Shrunk
                 if (meta.mimicsKilled >= Achievements.MimicsNeeded) Achievements.Unlock(AchievementId.LooseChange);
             }
 
-            if (enemy is FinchBoss)
+            if (enemy is CatBoss)
             {
                 Achievements.Unlock(AchievementId.PerformanceReview);
             }

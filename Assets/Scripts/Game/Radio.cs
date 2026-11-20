@@ -65,7 +65,7 @@ namespace Shrunk
             Pickup.ItemCollected += OnItem;
             RunDirector.Extracted += OnExtracted;
             FinchNotes.Found += OnNote;
-            FinchBoss.Dosed += OnDose;
+            CatBoss.Bored += OnWash;
         }
 
         void OnDisable()
@@ -77,7 +77,7 @@ namespace Shrunk
             Pickup.ItemCollected -= OnItem;
             RunDirector.Extracted -= OnExtracted;
             FinchNotes.Found -= OnNote;
-            FinchBoss.Dosed -= OnDose;
+            CatBoss.Bored -= OnWash;
             if (_watched != null)
             {
                 _watched.Health.Damaged -= OnHit;
@@ -274,13 +274,13 @@ namespace Shrunk
             if (floors.Boss == null || floors.Boss == _announced || floors.Boss.Health.IsDead) return;
             _announced = floors.Boss;
             // After its title card.
-            if (floors.Boss is FinchBoss) Say(RadioMoment.FinchFight, null, 2.6f);
+            if (floors.Boss is CatBoss) Say(RadioMoment.FinchFight, null, 2.6f);
             else Say(RadioMoment.Boss, floors.Boss.displayName, 2.6f);
         }
 
         void OnKilled(Enemy enemy)
         {
-            if (enemy is FinchBoss)
+            if (enemy is CatBoss)
             {
                 Say(RadioMoment.FinchDown, null, 1f);
                 _finchDown = true;
@@ -288,7 +288,7 @@ namespace Shrunk
             else if (enemy is BossEnemy) Say(RadioMoment.BossDown, null, 1f);
         }
 
-        void OnDose(FinchBoss finch) => Say(RadioMoment.FinchDose);
+        void OnWash(CatBoss cat) => Say(RadioMoment.FinchDose);
 
         void OnDare(FloorManager floors) => Say(RadioMoment.Dare, null, 0.6f);
 

@@ -305,11 +305,11 @@ namespace Shrunk.Tests
             End();
         }
 
-        /// <summary>The secret ending: Dr. Finch at the bottom, through both doses.</summary>
+        /// <summary>The ending: the cat at the bottom, through both washes, until it leaves.</summary>
         [UnityTest, Explicit]
-        public IEnumerator Capture_clip_finch()
+        public IEnumerator Capture_clip_cat()
         {
-            yield return Begin("finch", true);
+            yield return Begin("cat", true);
             yield return null;
             Assert.IsTrue(_floors.biome.isBottom);
             yield return BossClip(55f);

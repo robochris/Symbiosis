@@ -28,7 +28,7 @@ namespace Shrunk
         {
             if (pad.Distance(transform.position, playerPosition) > 3.5f) return null;
             return SaveSystem.Data.meta.finchBeaten > 0
-                ? "The door. Dr. Finch is still down there, only smaller. Step in to go again."
+                ? "The door. The cat comes back; cats do. Step in to go again."
                 : "A door. It is not on the floor plan. Step in to go all the way down.";
         }
     }

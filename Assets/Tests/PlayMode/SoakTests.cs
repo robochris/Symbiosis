@@ -291,7 +291,7 @@ namespace Shrunk.Tests
             yield return MeasureBoss(5, 502, "Grandmother Dust");
             yield return MeasureBoss(10, 902, "Robot Vacuum");
             _floors.biome = _floors.bottomBiome;
-            yield return MeasureBoss(10, 903, "Dr. Finch");
+            yield return MeasureBoss(10, 903, "The Cat");
         }
 
         // Plays one whole floor with nothing protecting the bot, and says how long it took and how often it was hit.
@@ -372,7 +372,7 @@ namespace Shrunk.Tests
             Assert.IsTrue(_floors.SetBiome("sofa"));
             yield return MeasureBoss(5, 502, "Grandmother Dust");
             _floors.biome = _floors.bottomBiome;
-            yield return MeasureBoss(10, 903, "Dr. Finch");
+            yield return MeasureBoss(10, 903, "The Cat");
         }
 
         /// <summary>Under the Sofa, on a floor late enough to have its lobbers and supports, and its mini boss.</summary>

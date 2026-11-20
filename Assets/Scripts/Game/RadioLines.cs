@@ -27,7 +27,7 @@ namespace Shrunk
         Bottom,
         /// <summary>The fight with Finch starts.</summary>
         FinchFight,
-        /// <summary>Finch takes another dose mid-fight.</summary>
+        /// <summary>The cat sits down to wash mid-fight: the moment to hurt it.</summary>
         FinchDose,
         FinchDown,
         /// <summary>Back in the lab having beaten Finch.</summary>
@@ -176,43 +176,43 @@ namespace Shrunk
             },
             [RadioMoment.Bottom] = new[]
             {
-                "Ah. You came down. I did ask you not to, in my own way, by never mentioning it.",
-                "Welcome to the bottom. I built it to look like the lab. One gets homesick.",
-                "There you are. Good. No, not good. I meant the other one.",
+                "Ah. You came down. Keep your voice low. It can hear a crumb land.",
+                "Welcome to the bottom. I built it to look like the lab. Then something moved in.",
+                "There you are. I'm in the wall. No, the other wall. Don't wave.",
             },
             [RadioMoment.FinchFight] = new[]
             {
-                "Here I am. Smaller than you expected, I imagine. Everyone is, down here.",
-                "I needed somebody to keep the way open. I did not need them to use it.",
-                "Nothing personal. You've been an excellent intern. That is rather the problem.",
+                "That's the cat. I'd have mentioned the cat, but I've been busy hiding from the cat.",
+                "Don't try to kill it. You can't, and I'd feel bad. Just be less interesting than it hoped.",
+                "It isn't angry with you. It isn't anything with you. That's what makes it a cat.",
             },
             [RadioMoment.FinchDose] = new[]
             {
-                "One moment. Another dose. You'll find me harder to hit; that's only optics.",
-                "Smaller again. I've brought friends. We have an understanding.",
-                "Do stop. There is very little of me left to shoot at.",
-                "Another dose. I had been saving that one for a celebration.",
+                "It's washing. It does that when it's losing interest. Now would be the time.",
+                "Look, it's stopped to wash. It wants you to think it meant to do that.",
+                "It's sitting down. Hit it while it's pretending not to care.",
+                "Washing again. Good sign. Bad sign afterwards, in my experience.",
             },
             [RadioMoment.FinchDown] = new[]
             {
-                "You haven't won. I'm still talking. I am only very difficult to see.",
-                "Ow. Well. That was the last dose, and not on purpose.",
+                "It's leaving. It's decided you were a waste of its afternoon. Well done.",
+                "It's gone? It's gone. I'm coming out of the wall. Give me a week.",
             },
             [RadioMoment.FinchHome] = new[]
             {
-                "I'm fine, since you didn't ask. Smaller than a full stop, but fine.",
-                "You're home. So am I, in a sense. I think I'm somewhere on your boot.",
+                "You bored a cat into leaving. I'd put that on your review, if I could reach the form.",
+                "You're home. I'm out of the wall. I'd like it noted that I was never technically stuck.",
             },
             [RadioMoment.After] = new[]
             {
-                "Good morning. I'm still down here. Don't look for me; you'd need a better microscope.",
+                "Good morning. The cat hasn't been back. I've stopped holding my breath, mostly.",
                 "The portal's open. So is the door. I've stopped pretending about the door.",
-                "I've had time to think. I'm told that is what the bottom is for.",
+                "I had time to think, in the wall. I'm told that is what walls are for.",
                 "You're still my intern, technically. I checked. Nobody else did.",
             },
             [RadioMoment.Dose] = new[]
             {
-                "That was mine. It was also the last of it. Do enjoy being shorter.",
+                "That was mine. I pushed it out of the wall as a thank-you. Do enjoy being shorter.",
                 "You drank it. Of course you did. Welcome to the size I was last month.",
                 "Smaller, are we? It doesn't suit you. It didn't suit me either.",
             },

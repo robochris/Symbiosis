@@ -440,7 +440,7 @@ namespace Shrunk.Tests
             Assert.AreEqual(1, Specimens.Count, "the same boss should fill one jar, however often it is beaten");
             Assert.IsTrue(Specimens.Has("BroodMother"));
             Assert.AreEqual(2, SaveSystem.Data.meta.bossesBeaten);
-            SaveSystem.Data.meta.specimens.Add("DrFinch");
+            SaveSystem.Data.meta.specimens.Add("TheCat");
             SaveSystem.Save();
 
             SceneManager.LoadScene("Lab");

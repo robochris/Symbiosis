@@ -82,7 +82,7 @@ namespace Shrunk
 
         void OnKilled(Enemy enemy)
         {
-            if (!(enemy is FinchBoss)) return;
+            if (!(enemy is CatBoss)) return;
             SaveSystem.Data.meta.finchBeaten++;
             SaveSystem.Save();
         }

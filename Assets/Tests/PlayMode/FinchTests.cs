@@ -6,7 +6,7 @@ using UnityEngine.TestTools;
 
 namespace Shrunk.Tests
 {
-    /// <summary>The secret ending: the door that turns up with the last page, the bottom, and Dr. Finch.</summary>
+    /// <summary>The ending: the door that turns up with the last page, the bottom, and the cat Dr. Finch is hiding from.</summary>
     public class FinchTests
     {
         [SetUp]
@@ -61,7 +61,7 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
-        public IEnumerator The_door_leads_to_Finch_and_beating_them_leads_home()
+        public IEnumerator The_door_leads_to_the_cat_and_boring_it_leads_home()
         {
             // A run is saved part-way: the trip down must leave it exactly as it is.
             foreach (var note in FinchNotes.All) FinchNotes.Collect(note);
@@ -103,36 +103,52 @@ namespace Shrunk.Tests
 
             // The end of the floor: Finch, and nobody else.
             player.Teleport(floors.ArenaCentre + Vector3.up * 0.05f);
-            yield return WaitUntil(() => floors.Boss != null, 5f, "Finch");
-            Assert.IsInstanceOf<FinchBoss>(floors.Boss);
-            var finch = (FinchBoss)floors.Boss;
+            yield return WaitUntil(() => floors.Boss != null, 5f, "the cat");
+            Assert.IsInstanceOf<CatBoss>(floors.Boss);
+            var cat = (CatBoss)floors.Boss;
+            Assert.AreEqual("The Cat", cat.displayName);
             Assert.AreEqual(1, floors.LiveEnemies.Count);
+            Assert.AreEqual(RadioMoment.FinchFight, Radio.Instance.LastMoment, "Finch said nothing about the cat");
             yield return WaitUntil(() => Time.timeScale > 0f, 8f, "the title card to pass");
             Time.timeScale = 3f;
 
-            // They shoot in bursts.
-            yield return WaitUntil(() => finch.Bursts > 0, 8f, "a burst");
+            // It bats at where the player stands, and now and then pounces. Both are warned of on the floor.
+            player.Teleport(cat.transform.position + new Vector3(0f, 0.05f, -5f));
+            yield return WaitUntil(() => cat.Swipes > 0, 10f, "a paw");
+            Assert.Greater(GroundHazard.All.Count, 0, "the paw came with no warning");
+            yield return WaitUntil(() => cat.Pounces > 0, 20f, "a pounce");
 
-            // First dose: stands still and shrinks, then comes out smaller with company.
-            finch.Health.TakeDamage(Mathf.CeilToInt(finch.Health.maxHealth * 0.36f), Vector3.forward);
-            yield return WaitUntil(() => finch.Current == FinchBoss.State.Dose, 2f, "the first dose");
-            Assert.AreEqual(2, finch.Phase);
+            // First wash: it sits still, and gets up quicker and starts knocking things off shelves.
+            yield return WaitUntil(() => cat.Current == CatBoss.State.Stalk || cat.Current == CatBoss.State.Swipe, 5f, "it to land");
+            cat.Health.TakeDamage(Mathf.CeilToInt(cat.Health.maxHealth * 0.36f), Vector3.forward);
+            yield return WaitUntil(() => cat.Current == CatBoss.State.Groom, 4f, "the first wash");
+            Assert.AreEqual(2, cat.Phase);
             Assert.AreEqual(RadioMoment.FinchDose, Radio.Instance.LastMoment);
-            yield return WaitUntil(() => finch.Current != FinchBoss.State.Dose, 6f, "the dose to finish");
-            Assert.Less(finch.BaseScale, 0.75f, "no smaller after a dose");
-            Assert.Greater(floors.LiveEnemies.Count, 1, "nobody came to help");
+            Vector3 sat = cat.transform.position;
+            yield return new WaitForSeconds(1f);
+            Assert.Less((cat.transform.position - sat).magnitude, 0.3f, "it wandered off while washing");
+            yield return WaitUntil(() => cat.Current != CatBoss.State.Groom, 8f, "the wash to finish");
+            Assert.Greater(cat.SpeedMultiplier, 1f, "no quicker after a wash");
+            yield return WaitUntil(() => cat.ThingsKnockedOff > 0, 12f, "something off a shelf");
 
-            // Flasks after the first dose.
-            yield return WaitUntil(() => finch.FlasksThrown > 0, 10f, "a flask");
+            // Second wash.
+            yield return WaitUntil(() => cat.Current == CatBoss.State.Stalk || cat.Current == CatBoss.State.Swipe, 5f, "it to land");
+            cat.Health.TakeDamage(Mathf.CeilToInt(cat.Health.maxHealth * 0.33f), Vector3.forward);
+            yield return WaitUntil(() => cat.Washes == 2 && cat.Current != CatBoss.State.Groom, 12f, "the second wash");
+            Assert.AreEqual(3, cat.Phase);
 
-            // Second dose.
-            finch.Health.TakeDamage(Mathf.CeilToInt(finch.Health.maxHealth * 0.33f), Vector3.forward);
-            yield return WaitUntil(() => finch.Doses == 2 && finch.Current != FinchBoss.State.Dose, 8f, "the second dose");
-            Assert.AreEqual(3, finch.Phase);
-            Assert.Less(finch.BaseScale, 0.5f);
-
-            // Beaten: it is written down, the company leaves, and the only way on is up.
-            finch.Health.Kill();
+            // Out of interest: it is not killed. It turns its back and walks off, and the only way on is up.
+            Vector3 lost = cat.transform.position;
+            cat.Health.Kill();
+            yield return null;
+            yield return null;
+            CatLeaving leaving = CatBoss.LastSeen;
+            Assert.IsNotNull(leaving, "the cat fell over instead of leaving");
+            float start = (leaving.transform.position - player.transform.position).magnitude;
+            yield return new WaitForSeconds(1.5f);
+            Assert.IsTrue(leaving != null, "it vanished on the spot");
+            Assert.Greater(leaving.Walked, 2f, "it did not walk away");
+            Assert.Greater((leaving.transform.position - player.transform.position).magnitude, start, "it left toward the player");
             yield return WaitUntil(() => floors.ExtractPortal != null, 6f, "the way back up");
             Assert.AreEqual(1, SaveSystem.Data.meta.finchBeaten);
             Assert.IsTrue(Achievements.Has(AchievementId.PerformanceReview));
@@ -140,7 +156,7 @@ namespace Shrunk.Tests
             Assert.IsNull(floors.DeeperPortal, "there is something under the bottom");
             bool dose = false;
             foreach (var pickup in Object.FindObjectsByType<Pickup>(FindObjectsSortMode.None)) dose |= pickup.kind == PickupKind.Item && pickup.item.type == ItemType.FinchsDose;
-            Assert.IsTrue(dose, "Finch left nothing in the flask");
+            Assert.IsTrue(dose, "Finch pushed nothing out of the wall");
             Assert.AreEqual("BACK UP", floors.ExtractPortal.GetComponentInChildren<PortalTag>().Shown);
             // Finch has the last word on being beaten, unless the flask has already been picked up, which gets one too.
             Assert.That(Radio.Instance.LastMoment, Is.EqualTo(RadioMoment.FinchDown).Or.EqualTo(RadioMoment.Dose));
@@ -162,7 +178,7 @@ namespace Shrunk.Tests
             Assert.IsTrue(SaveSystem.Data.run.active, "the saved run was thrown away");
             Assert.AreEqual(4, SaveSystem.Data.run.floorNumber);
             var again = Object.FindAnyObjectByType<HiddenDoor>();
-            Assert.That(WorldPrompt.For(again.transform.position), Does.Contain("only smaller"));
+            Assert.That(WorldPrompt.For(again.transform.position), Does.Contain("cats do"));
 
             // The time clock is there now. Clocked in, the next run starts a depth down and is worth more.
             var clock = Object.FindAnyObjectByType<TimeClock>();

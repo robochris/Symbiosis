@@ -5,7 +5,7 @@ namespace Shrunk.EditorTools
 {
     /// <summary>
     /// The bottom: where the lab's hidden door leads. One quiet floor that looks like a copy of the lab, because
-    /// Dr. Finch built it from memory, and Dr. Finch at the end of it.
+    /// Dr. Finch built it from memory, and at the end of it the cat that has kept him in the wall ever since.
     /// </summary>
     public static partial class ContentBuilder
     {
@@ -21,48 +21,47 @@ namespace Shrunk.EditorTools
             var dose = ArenaSceneBuilder.Unlit("FinchDose", new Color(0.45f, 1f, 0.6f));
             var telegraph = ArenaSceneBuilder.Unlit("Telegraph", new Color(1f, 0.25f, 0.2f));
 
-            // ----- the shot: the same thing the intern was issued, in the colour of the dose -----
-            var shot = new GameObject("FinchShot");
-            Decor(PrimitiveType.Sphere, "Visual", shot.transform, Vector3.zero, new Vector3(0.26f, 0.26f, 0.55f), dose);
-            shot.AddComponent<Bullet>().radius = 0.22f;
-            var shotPrefab = ArenaSceneBuilder.SavePrefab(shot, "Enemies/FinchShot").GetComponent<Bullet>();
-
-            // ----- Dr. Finch: a person in a lab coat, 1.8 m tall at the start of the fight -----
-            var finch = Creature<FinchBoss>("DrFinch", 0.5f, 1.8f, 150, 1f, 2.6f, out var model);
-            Decor(PrimitiveType.Cube, "Leg L", model, new Vector3(-0.16f, 0.35f, 0f), new Vector3(0.2f, 0.7f, 0.22f), dark);
-            Decor(PrimitiveType.Cube, "Leg R", model, new Vector3(0.16f, 0.35f, 0f), new Vector3(0.2f, 0.7f, 0.22f), dark);
-            Decor(PrimitiveType.Cube, "Coat", model, new Vector3(0f, 0.95f, 0f), new Vector3(0.7f, 0.95f, 0.42f), coat);
-            Decor(PrimitiveType.Cube, "Coat Tail", model, new Vector3(0f, 0.5f, -0.12f), new Vector3(0.66f, 0.35f, 0.2f), coat);
-            Decor(PrimitiveType.Cube, "Tie", model, new Vector3(0f, 1.1f, 0.22f), new Vector3(0.1f, 0.45f, 0.02f), dark);
-            Decor(PrimitiveType.Cube, "Arm L", model, new Vector3(-0.45f, 1f, 0.05f), new Vector3(0.18f, 0.7f, 0.2f), coat);
-            Decor(PrimitiveType.Cube, "Arm R", model, new Vector3(0.45f, 1.15f, 0.3f), new Vector3(0.18f, 0.2f, 0.7f), coat);
-            Decor(PrimitiveType.Sphere, "Head", model, new Vector3(0f, 1.62f, 0f), Vector3.one * 0.42f, skin);
-            Decor(PrimitiveType.Sphere, "Hair", model, new Vector3(0f, 1.74f, -0.05f), new Vector3(0.44f, 0.26f, 0.42f), hair);
-            Decor(PrimitiveType.Cube, "Glasses", model, new Vector3(0f, 1.65f, 0.2f), new Vector3(0.36f, 0.09f, 0.04f), glass);
-            // The flask in the raised hand: what is left of the dose.
-            Decor(PrimitiveType.Cylinder, "Flask Neck", model, new Vector3(0.45f, 1.32f, 0.62f), new Vector3(0.07f, 0.08f, 0.07f), glass);
-            Decor(PrimitiveType.Sphere, "Flask", model, new Vector3(0.45f, 1.2f, 0.62f), Vector3.one * 0.2f, dose);
-
-            var muzzle = new GameObject("Muzzle").transform;
-            muzzle.SetParent(finch.transform, false);
-            muzzle.localPosition = new Vector3(0.3f, 0.9f, 0.8f);
-            finch.muzzle = muzzle;
-            finch.projectilePrefab = shotPrefab;
-            finch.displayName = "Dr. Finch";
-            finch.subtitle = "Your boss. Technically still on the clock.";
-            finch.telegraphMaterial = telegraph;
-            finch.sampleReward = 60;
-            finch.knockbackOnHit = 1.5f;
-            var friends = new System.Collections.Generic.List<Enemy>();
-            foreach (string name in new[] { "WorkerAnt", "SpitterAnt" })
+            // ----- the cat: far too big for the room, and not much interested in it -----
+            var fur = ArenaSceneBuilder.Lit("CatFur", new Color(0.9f, 0.55f, 0.2f), 0.15f);
+            var cream = ArenaSceneBuilder.Lit("CatCream", new Color(0.97f, 0.9f, 0.78f), 0.15f);
+            var stripe = ArenaSceneBuilder.Lit("CatStripe", new Color(0.6f, 0.32f, 0.1f), 0.15f);
+            var eye = ArenaSceneBuilder.Unlit("CatEye", new Color(0.55f, 1f, 0.35f));
+            var pink = ArenaSceneBuilder.Unlit("CatNose", new Color(1f, 0.6f, 0.65f));
+            var cat = Creature<CatBoss>("TheCat", 1.7f, 3.6f, 750, 1f, 5.6f, out var model);
+            Decor(PrimitiveType.Sphere, "Body", model, new Vector3(0f, 2.1f, -0.9f), new Vector3(2.5f, 2.3f, 4.6f), fur);
+            Decor(PrimitiveType.Sphere, "Belly", model, new Vector3(0f, 1.75f, -0.7f), new Vector3(2.1f, 1.7f, 3.8f), cream);
+            Decor(PrimitiveType.Sphere, "Chest", model, new Vector3(0f, 2.3f, 0.9f), new Vector3(2.1f, 2.2f, 1.9f), cream);
+            for (int i = 0; i < 3; i++)
             {
-                Enemy friend = ants.EnemyNamed(name);
-                if (friend != null) friends.Add(friend);
+                Decor(PrimitiveType.Cube, "Stripe " + i, model, new Vector3(0f, 3.12f - i * 0.03f, -0.4f - i * 0.8f), new Vector3(1.6f, 0.25f, 0.28f), stripe);
             }
-            finch.friends = friends.ToArray();
-            // Nothing about Finch is an accident of the biome: no mutations.
-            Object.DestroyImmediate(finch.GetComponent<EnemyMutations>());
-            var finchPrefab = (BossEnemy)SaveEnemy(finch);
+            Decor(PrimitiveType.Sphere, "Head", model, new Vector3(0f, 3.5f, 1.9f), new Vector3(2.1f, 1.85f, 1.9f), fur);
+            Decor(PrimitiveType.Sphere, "Muzzle", model, new Vector3(0f, 3.2f, 2.7f), new Vector3(1f, 0.7f, 0.6f), cream);
+            Decor(PrimitiveType.Sphere, "Nose", model, new Vector3(0f, 3.38f, 2.98f), new Vector3(0.24f, 0.18f, 0.14f), pink);
+            Decor(PrimitiveType.Sphere, "Eye L", model, new Vector3(-0.5f, 3.75f, 2.68f), new Vector3(0.42f, 0.5f, 0.16f), eye);
+            Decor(PrimitiveType.Sphere, "Eye R", model, new Vector3(0.5f, 3.75f, 2.68f), new Vector3(0.42f, 0.5f, 0.16f), eye);
+            Decor(PrimitiveType.Cube, "Pupil L", model, new Vector3(-0.5f, 3.75f, 2.77f), new Vector3(0.08f, 0.42f, 0.04f), stripe);
+            Decor(PrimitiveType.Cube, "Pupil R", model, new Vector3(0.5f, 3.75f, 2.77f), new Vector3(0.08f, 0.42f, 0.04f), stripe);
+            Decor(PrimitiveType.Cube, "Ear L", model, new Vector3(-0.68f, 4.45f, 1.8f), new Vector3(0.6f, 0.75f, 0.2f), fur).transform.localRotation = Quaternion.Euler(0f, 0f, 22f);
+            Decor(PrimitiveType.Cube, "Ear R", model, new Vector3(0.68f, 4.45f, 1.8f), new Vector3(0.6f, 0.75f, 0.2f), fur).transform.localRotation = Quaternion.Euler(0f, 0f, -22f);
+            Decor(PrimitiveType.Cube, "Whiskers", model, new Vector3(0f, 3.22f, 2.9f), new Vector3(2.4f, 0.03f, 0.03f), cream);
+            Decor(PrimitiveType.Cube, "Whiskers Low", model, new Vector3(0f, 3.1f, 2.88f), new Vector3(2.1f, 0.03f, 0.03f), cream).transform.localRotation = Quaternion.Euler(0f, 0f, 6f);
+            foreach (var leg in new[] { new Vector3(-0.8f, 0.7f, 1f), new Vector3(0.8f, 0.7f, 1f), new Vector3(-0.85f, 0.7f, -2.3f), new Vector3(0.85f, 0.7f, -2.3f) })
+            {
+                Decor(PrimitiveType.Cylinder, "Leg", model, leg, new Vector3(0.62f, 0.7f, 0.62f), fur);
+                Decor(PrimitiveType.Sphere, "Paw", model, new Vector3(leg.x, 0.16f, leg.z + 0.18f), new Vector3(0.8f, 0.32f, 0.95f), cream);
+            }
+            Decor(PrimitiveType.Cylinder, "Tail", model, new Vector3(0f, 3.4f, -3.3f), new Vector3(0.36f, 1.5f, 0.36f), fur).transform.localRotation = Quaternion.Euler(-18f, 0f, 0f);
+            Decor(PrimitiveType.Sphere, "Tail Tip", model, new Vector3(0f, 4.9f, -3.78f), Vector3.one * 0.5f, cream);
+
+            cat.displayName = "The Cat";
+            cat.subtitle = "Not angry. Not anything. You cannot win. You can only bore it.";
+            cat.telegraphMaterial = telegraph;
+            cat.sampleReward = 60;
+            cat.knockbackOnHit = 0.2f;
+            // Nothing about the cat is an accident of the biome: no mutations.
+            Object.DestroyImmediate(cat.GetComponent<EnemyMutations>());
+            var finchPrefab = (BossEnemy)SaveEnemy(cat);
 
             // ----- the biome -----
             var biome = AssetDatabase.LoadAssetAtPath<BiomeDefinition>(BottomPath);

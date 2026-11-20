@@ -323,6 +323,12 @@ namespace Shrunk
         void OnDied()
         {
             Killed?.Invoke(this);
+            OnDeath();
+        }
+
+        /// <summary>What it looks and sounds like when this enemy is beaten. Most burst and are gone.</summary>
+        protected virtual void OnDeath()
+        {
             Sfx.Play(SfxId.EnemyDie);
             float size = Controller != null ? Controller.radius / 0.55f : 1f;
             Fx.Burst(transform.position + Vector3.up * (0.6f * size), Fx.ColourOf(visual), Mathf.Min(40, Mathf.RoundToInt(12 * size)), 5f + size, 0.22f * Mathf.Sqrt(size), 0.55f);
