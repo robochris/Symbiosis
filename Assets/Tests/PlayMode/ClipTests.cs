@@ -305,6 +305,29 @@ namespace Shrunk.Tests
             End();
         }
 
+        /// <summary>The Library: a room of it, then the Librarian.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_library()
+        {
+            yield return Begin("library");
+            Achievements.EverythingUnlocked = true;
+            Assert.IsTrue(_floors.SetBiome("library"));
+            _floors.BuildFloor(8, 4711);
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+            RoomNode fight = NearestFightRoom();
+            Room room = _floors.RoomAt(fight.cell);
+            yield return Stand(1.5f);
+            yield return Walk(OnNavMesh(room.Centre), 25f, () => _floors.IsLocked);
+            yield return Fight(25f);
+            yield return Stand(1f);
+
+            _floors.BuildFloor(10, 906);
+            yield return null;
+            Achievements.EverythingUnlocked = false;
+            yield return BossClip(50f);
+        }
+
         /// <summary>The machine, switched on with all four parts in.</summary>
         [UnityTest, Explicit]
         public IEnumerator Capture_clip_machine()

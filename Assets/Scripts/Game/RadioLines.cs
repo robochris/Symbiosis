@@ -345,6 +345,19 @@ namespace Shrunk
             ["restart three"] = new[] { "Something large lives here. It has a bell it doesn't wear. I listen for it anyway." },
             ["restart four"] = new[] { "I kept notes. They got away from me, a page at a time. You may have trodden on some." },
             ["restart five"] = new[] { "If you ever find all of my notebook, don't come looking. That is not reverse psychology." },
+            ["library"] = new[]
+            {
+                "A library. That isn't in the house. That isn't in any house I know of. Interesting.",
+                "Books, the size of buildings. Somebody is going to want those back.",
+            },
+            ["librarian"] = new[]
+            {
+                "The Librarian. When they say quiet, be quiet. I never managed it myself.",
+            },
+            ["trainee"] = new[]
+            {
+                "A trainee. Be kind. No, don't be kind, they're throwing books.",
+            },
             ["machine"] = new[]
             {
                 "That's my machine. Be gentle. No, be thorough. I can't decide.",

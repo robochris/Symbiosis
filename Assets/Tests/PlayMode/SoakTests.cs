@@ -340,6 +340,18 @@ namespace Shrunk.Tests
             }
         }
 
+        /// <summary>Not a test: the library's two, and one of its floors. Read the log.</summary>
+        [UnityTest, Explicit, Timeout(3600000)]
+        public IEnumerator Measure_library()
+        {
+            Achievements.EverythingUnlocked = true;
+            Assert.IsTrue(_floors.SetBiome("library"));
+            yield return MeasureBoss(5, 506, "The Trainee");
+            yield return MeasureBoss(10, 906, "The Librarian");
+            Time.timeScale = 3f;
+            yield return MeasureFloor("library", 8, 7108);
+        }
+
         /// <summary>Not a test: the machine, for a bot that strafes and never dodges. Read the log.</summary>
         [UnityTest, Explicit, Timeout(1800000)]
         public IEnumerator Measure_machine()

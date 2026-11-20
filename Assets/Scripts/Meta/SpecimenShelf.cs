@@ -25,6 +25,8 @@ namespace Shrunk
             new Specimen { key = "RobotVacuum", title = "The Robot Vacuum", label = "The battery is in a separate jar. I am not an amateur." },
             new Specimen { key = "Leftovers", title = "The Leftovers", label = "Do not open. I mean it more for this one than for the others." },
             new Specimen { key = "IceMaker", title = "The Ice Maker", label = "Unplugged. It is still cold to the touch, which I put down to spite." },
+            new Specimen { key = "TheTrainee", title = "The Trainee", label = "Handed in their notice from inside the jar. I have not accepted it." },
+            new Specimen { key = "TheLibrarian", title = "The Librarian", label = "Silence, at last. The label is in pencil, at their request." },
             new Specimen { key = "TheCat", title = "The Cat", label = "An empty jar. It would not get in. Dr. Finch asks that you do not tap the glass anyway." },
         };
 
