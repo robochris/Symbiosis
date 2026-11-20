@@ -405,6 +405,8 @@ namespace Shrunk.Tests
             GameSettings.Reset();
             SaveSystem.Data.meta.runsStarted = 3;
             foreach (var note in FinchNotes.All) FinchNotes.Collect(note);
+            foreach (var piece in Collar.Pieces) SaveSystem.Data.meta.specimens.Add(piece.boss);
+            SaveSystem.Data.meta.bossesBeaten = 4;
             string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
             Directory.CreateDirectory(folder);
 

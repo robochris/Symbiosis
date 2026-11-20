@@ -347,7 +347,7 @@ namespace Shrunk.Tests
             stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<SpecimenShelf>(), "The specimen shelf"));
             stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<PowerRack>(), "The power rack"));
             stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<FilingCabinet>(), "The filing cabinet"));
-            stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<HiddenDoor>(), "door"));
+            stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<HiddenDoor>(), "cat flap"));
             stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<TimeClock>(), "The time clock"));
             stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<WeaponRack>(), "The equipment cupboard"));
             Assert.AreEqual(System.Enum.GetValues(typeof(UpgradeType)).Length + 10, stations.Count);

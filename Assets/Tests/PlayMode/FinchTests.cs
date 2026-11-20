@@ -39,32 +39,99 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
-        public IEnumerator The_door_is_not_there_until_every_page_is_found()
+        public IEnumerator The_door_turns_up_with_a_piece_and_opens_for_the_whole_collar()
         {
+            // Every page of the notebook, and no pieces: the pages are the story, not the key.
             SaveSystem.Data.meta.runsStarted = 5;
-            for (int i = 0; i < FinchNotes.All.Length - 1; i++) FinchNotes.Collect(FinchNotes.All[i]);
+            foreach (var note in FinchNotes.All) FinchNotes.Collect(note);
             SceneManager.LoadScene("Lab");
             yield return null;
             yield return null;
             var door = Object.FindAnyObjectByType<HiddenDoor>(FindObjectsInactive.Include);
             Assert.IsNotNull(door, "the lab has no hidden door");
-            Assert.IsFalse(door.gameObject.activeInHierarchy, "the door is there with a page still missing");
+            Assert.IsFalse(door.gameObject.activeInHierarchy, "the door is there with no piece of the collar found");
 
-            FinchNotes.Collect(FinchNotes.All[FinchNotes.All.Length - 1]);
+            // Three of the four: it is there, it says what is missing, and it does not open.
+            Assert.AreEqual(4, Collar.Pieces.Length);
+            for (int i = 0; i < 3; i++) SaveSystem.Data.meta.specimens.Add(Collar.Pieces[i].boss);
+            SaveSystem.Data.meta.bossesBeaten = 3;
             SceneManager.LoadScene("Lab");
             yield return null;
             yield return null;
             door = Object.FindAnyObjectByType<HiddenDoor>(FindObjectsInactive.Include);
-            Assert.IsTrue(door.gameObject.activeInHierarchy);
+            Assert.IsTrue(door.gameObject.activeInHierarchy, "no door after the first piece");
+            Assert.AreNotEqual(RadioMoment.Door, Radio.Instance.LastMoment);
+            Assert.That(WorldPrompt.For(door.transform.position), Does.Contain("3 of 4").And.Contain("the bell").And.Contain("Still out there").And.Contain("the strap"));
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            yield return null;
+            player.Teleport(door.transform.position + Vector3.up * 0.05f);
+            yield return new WaitForSeconds(0.6f);
+            Assert.AreEqual("Lab", SceneManager.GetActiveScene().name, "the flap opened for three quarters of a collar");
+            Assert.IsFalse(RunDirector.Descent);
+
+            // All four.
+            SaveSystem.Data.meta.specimens.Add(Collar.Pieces[3].boss);
+            Assert.IsTrue(Collar.Complete);
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            door = Object.FindAnyObjectByType<HiddenDoor>(FindObjectsInactive.Include);
             Assert.AreEqual(RadioMoment.Door, Radio.Instance.LastMoment, "Finch did not deny the door");
-            Assert.That(WorldPrompt.For(door.transform.position), Does.Contain("not on the floor plan"));
+            Assert.That(WorldPrompt.For(door.transform.position), Does.Contain("not on the floor plan").And.Contain("opens for the collar"));
+        }
+
+        [UnityTest]
+        public IEnumerator A_biome_boss_gives_up_its_piece_once()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            int found = 0;
+            System.Action<CollarPiece> count = piece => found++;
+            GameLoop.PieceFound += count;
+
+            for (int round = 0; round < 2; round++)
+            {
+                floors.BuildFloor(10);
+                yield return null;
+                player.Teleport(floors.ArenaCentre + new Vector3(0f, 0.05f, -8f));
+                yield return WaitUntil(() => floors.Boss != null, 5f, "the Queen");
+                yield return WaitUntil(() => Time.timeScale > 0f, 8f, "the title card to pass");
+                floors.Boss.Health.Kill();
+                yield return null;
+                Assert.AreEqual(1, Collar.Count);
+                Assert.AreEqual(1, found, "the same piece was handed over twice");
+                if (round == 0)
+                {
+                    Assert.AreEqual(GameLoop.PieceHeading, ScreenCards.Instance.LastHeading);
+                    Assert.That(ScreenCards.Instance.LastLine, Does.StartWith("The bell. 1 of 4."));
+                }
+                yield return WaitUntil(() => floors.ExtractPortal != null, 5f, "the portals");
+            }
+            GameLoop.PieceFound -= count;
+
+            // The mini-boss half way down has no piece.
+            floors.BuildFloor(5);
+            yield return null;
+            player.Teleport(floors.ArenaCentre + new Vector3(0f, 0.05f, -8f));
+            yield return WaitUntil(() => floors.Boss != null, 5f, "the Brood Mother");
+            yield return WaitUntil(() => Time.timeScale > 0f, 8f, "the title card to pass");
+            floors.Boss.Health.Kill();
+            yield return null;
+            Assert.AreEqual(1, Collar.Count);
         }
 
         [UnityTest]
         public IEnumerator The_door_leads_to_the_cat_and_boring_it_leads_home()
         {
             // A run is saved part-way: the trip down must leave it exactly as it is.
-            foreach (var note in FinchNotes.All) FinchNotes.Collect(note);
+            foreach (var piece in Collar.Pieces) SaveSystem.Data.meta.specimens.Add(piece.boss);
+            SaveSystem.Data.meta.bossesBeaten = 4;
             SaveSystem.Data.meta.runsStarted = 4;
             SaveSystem.Data.run.active = true;
             SaveSystem.Data.run.floorNumber = 4;

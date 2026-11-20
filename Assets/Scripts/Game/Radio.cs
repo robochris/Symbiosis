@@ -92,7 +92,7 @@ namespace Shrunk
             if (_carried.HasValue) Say(_carried.Value, null, 1.2f);
             else if (SaveSystem.Data.meta.runsStarted == 0) Say(RadioMoment.Hello, null, 0.8f);
             else if (SaveSystem.Data.meta.finchBeaten > 0) Say(RadioMoment.After, null, 0.8f);
-            else if (LabGrowth.Met(LabGrowth.Needs.AllNotesFound)) Say(RadioMoment.Door, null, 0.8f);
+            else if (Collar.Complete) Say(RadioMoment.Door, null, 0.8f);
             else if (!SaveSystem.Data.run.active) Say(RadioMoment.Lab, null, 0.8f);
             _carried = null;
         }
