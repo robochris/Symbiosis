@@ -53,6 +53,7 @@ namespace Shrunk
             MetaSave meta = SaveSystem.Data.meta;
             Last = Fortunes[Mathf.Abs(meta.fortunesRead) % Fortunes.Length];
             meta.fortunesRead++;
+            Jobs.Count(JobKind.Fortunes);
             bool lucky = rigged ?? Random.value < 0.34f;
             if (lucky) meta.luckyCoins = LuckyCoins;
             SaveSystem.Save();

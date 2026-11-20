@@ -13,6 +13,8 @@ namespace Shrunk
         [Tooltip("Where the score is written up.")]
         public TextMesh board;
         public float roundSeconds = 20f;
+        /// <summary>The round the noticeboard's job asks for.</summary>
+        public const int JobScore = 8;
         [Tooltip("The player is in the range once they are south of this.")]
         public float roomStartsAtZ = -9f;
 
@@ -64,6 +66,7 @@ namespace Shrunk
         {
             Running = false;
             MetaSave meta = SaveSystem.Data.meta;
+            if (RoundHits >= JobScore) Jobs.Count(JobKind.RangeRounds);
             bool record = RoundHits > meta.rangeBest;
             if (record)
             {

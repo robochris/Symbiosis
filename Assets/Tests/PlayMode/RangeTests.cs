@@ -148,6 +148,11 @@ namespace Shrunk.Tests
             yield return null;
             var machine = Object.FindAnyObjectByType<FortuneMachine>();
             Assert.IsNotNull(machine, "no fortune machine");
+            // The noticeboard happens to be asking for the two lab jobs.
+            SaveSystem.Data.meta.jobs.Clear();
+            SaveSystem.Data.meta.jobProgress.Clear();
+            SaveSystem.Data.meta.jobs.AddRange(new[] { 13, 14, 0 });
+            Assert.AreEqual(3, Jobs.Current.Count);
             var player = PlayerController.Instance;
             player.Input.overrideFrame = new InputFrame();
             Assert.That(WorldPrompt.For(machine.transform.position), Does.Contain("fortune machine"));
@@ -161,6 +166,7 @@ namespace Shrunk.Tests
             yield return new WaitForSeconds(0.3f);
             Assert.IsTrue(machine.Used);
             Assert.AreEqual(FortuneMachine.Fortunes[0], machine.Last);
+            Assert.AreEqual(1, Jobs.Progress(SaveSystem.Data.meta.jobs.IndexOf(14)), "reading a fortune did not count toward the job");
             Assert.That(Object.FindAnyObjectByType<Hud>().LastToast, Does.Contain(machine.Last).And.Contain("lucky"));
             Assert.AreEqual(FortuneMachine.LuckyCoins, SaveSystem.Data.meta.luckyCoins);
             Assert.IsFalse(machine.Read());
