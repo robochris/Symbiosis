@@ -14,7 +14,34 @@ namespace Shrunk.EditorTools
         public const string Folder = "Builds/Windows";
 
         [MenuItem("Shrunk/Build Windows Game", priority = 40)]
-        public static void BuildWindows()
+        public static void BuildWindows() => Build(BuildTarget.StandaloneWindows64, Folder + "/Shrunk.exe");
+
+        public const string AndroidFolder = "Builds/Android";
+
+        /// <summary>
+        /// Builds an .apk to copy onto an Android phone and install by tapping it. Menu: Shrunk > Build Android Game.
+        /// From a terminal, with Unity closed: build-android.ps1. The result is Builds\Android\Shrunk.apk.
+        /// </summary>
+        [MenuItem("Shrunk/Build Android Game", priority = 41)]
+        public static void BuildAndroid()
+        {
+            // Who the game is, as far as the phone is concerned, and what phones it will run on.
+            PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Android, "com.shrunkgame.shrunk");
+            PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
+            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+            PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
+            // Held sideways, either way round.
+            PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
+            PlayerSettings.allowedAutorotateToPortrait = false;
+            PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+            PlayerSettings.allowedAutorotateToLandscapeLeft = true;
+            PlayerSettings.allowedAutorotateToLandscapeRight = true;
+            if (string.IsNullOrEmpty(PlayerSettings.bundleVersion)) PlayerSettings.bundleVersion = "0.1";
+            EditorUserBuildSettings.buildAppBundle = false;
+            Build(BuildTarget.Android, AndroidFolder + "/Shrunk.apk");
+        }
+
+        static void Build(BuildTarget target, string path)
         {
             RunSceneBuilder.UpdateBuildScenes();
             var scenes = new System.Collections.Generic.List<string>();
@@ -26,12 +53,12 @@ namespace Shrunk.EditorTools
                 return;
             }
 
-            Directory.CreateDirectory(Folder);
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
             var options = new BuildPlayerOptions
             {
                 scenes = scenes.ToArray(),
-                locationPathName = Folder + "/Shrunk.exe",
-                target = BuildTarget.StandaloneWindows64,
+                locationPathName = path,
+                target = target,
                 options = BuildOptions.None
             };
             BuildReport report = BuildPipeline.BuildPlayer(options);
