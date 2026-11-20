@@ -648,6 +648,7 @@ namespace Shrunk
                 Spawn(goldBug, points[UnityEngine.Random.Range(0, points.Count)], playerPosition);
                 var hud = FindAnyObjectByType<Hud>();
                 if (hud != null && Twist != FloorTwist.GoldRush) hud.Toast("A gold bug. It will not stay long.", 3f);
+                if (Radio.Instance != null) Radio.Instance.Say(RadioMoment.GoldBug, null, 0.5f, 0.6f);
             }
         }
 

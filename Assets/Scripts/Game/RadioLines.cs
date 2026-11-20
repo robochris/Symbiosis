@@ -57,7 +57,11 @@ namespace Shrunk
         Item,
         Floor,
         /// <summary>A new floor at depth 2 or more. The jokes get thinner the further in you are.</summary>
-        Deep
+        Deep,
+        /// <summary>A gold bug has turned up in a fight.</summary>
+        GoldBug,
+        /// <summary>The claw machine has dropped it again.</summary>
+        ClawLost
     }
 
     /// <summary>
@@ -315,6 +319,18 @@ namespace Shrunk
                 "The warning marks on the floor are real. I used to think they were decorative.",
                 "Chin up. Or whatever it is you have.",
                 "If one of them hangs back and hums, shoot that one first. Trust me.",
+            },
+            [RadioMoment.GoldBug] = new[]
+            {
+                "That's a gold bug. Catch it. I'd explain why, but it will have gone.",
+                "Gold bug. It owes me money. Long story. Shoot it.",
+                "There, the shiny one. It leaves when it's bored, like everybody.",
+            },
+            [RadioMoment.ClawLost] = new[]
+            {
+                "It dropped it. It's meant to. I designed it. I'm not proud.",
+                "The claw has never held anything in its life. Nor have I, professionally.",
+                "Keep feeding it. It's the only thing down there on a salary.",
             },
             [RadioMoment.Deep] = new[]
             {

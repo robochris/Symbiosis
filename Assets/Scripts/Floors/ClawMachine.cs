@@ -119,6 +119,7 @@ namespace Shrunk
             var hud = FindAnyObjectByType<Hud>();
             if (hud != null) hud.Toast(said, 3f);
             Sfx.Play(prize == ClawPrize.Nothing ? SfxId.Blocked : SfxId.Item);
+            if (prize == ClawPrize.Nothing && Radio.Instance != null) Radio.Instance.Say(RadioMoment.ClawLost, null, 0.4f, 0.5f);
             return true;
         }
 
