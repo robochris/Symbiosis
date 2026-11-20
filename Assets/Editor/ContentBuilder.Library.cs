@@ -218,6 +218,7 @@ namespace Shrunk.EditorTools
             };
             var borrowed = AssetDatabase.LoadAssetAtPath<MutationDefinition>("Assets/Data/Mutations/" + MutationType.Static + ".asset");
             if (borrowed != null) mutations.Add(borrowed);
+            mutations.Add(Mutation(MutationType.Sequel, "Sequel", 2, "Put it down and two silverfish turn up in its place.", new Color(0.93f, 0.88f, 0.74f)));
             mutations.RemoveAll(mutation => mutation == null);
             biome.mutations = mutations.ToArray();
 

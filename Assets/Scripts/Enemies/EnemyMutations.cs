@@ -28,6 +28,7 @@ namespace Shrunk
         public IReadOnlyList<MutationDefinition> Active => _active;
         public const float SugarRushSpeed = 1.8f;
         public const float AcidBloodTime = 3.2f;
+        public const int SequelCount = 2;
         public const float StaticInterval = 4f, StaticRadius = 2.7f, StaticFuse = 0.9f;
         /// <summary>How many times a Static enemy has gone off.</summary>
         public int Discharges { get; private set; }
@@ -384,6 +385,9 @@ namespace Shrunk
             // A shorter-lived pool than a boss leaves: measured with a bot, these were most of what made the ants'
             // late floors twice as punishing as any other biome's.
             if (acid != null) GroundHazard.SpawnAcidPool(transform.position, acid.effectMaterial).lifetime = AcidBloodTime;
+
+            // A sequel: two more of the world's swarm, where this one fell. They are plain, so it ends there.
+            if (Has(MutationType.Sequel)) _enemy.RequestSummon(SequelCount);
 
             var sticky = Find(MutationType.Sticky);
             if (sticky != null) GroundHazard.SpawnStickyPatch(transform.position, sticky.effectMaterial);

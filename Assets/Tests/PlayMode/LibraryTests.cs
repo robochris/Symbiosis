@@ -74,8 +74,23 @@ namespace Shrunk.Tests
             foreach (var node in _floors.Layout.ordered) if (node.type == RoomType.Normal && fight == null) fight = node;
             _player.Teleport(_floors.RoomAt(fight.cell).Centre + new Vector3(RoomShape.TileSize, 0.05f, 0f));
             yield return WaitUntil(() => _floors.IsLocked && _floors.LiveEnemies.Count > 0, 3f, "a fight");
+            // One with a sequel: put down, two silverfish turn up where it fell, and they have no sequel of their own.
+            MutationDefinition sequel = library.Mutation(MutationType.Sequel);
+            Assert.IsNotNull(sequel, "the library has no Sequel mutation");
+            Enemy author = _floors.LiveEnemies[0];
+            author.Mutations.Apply(new System.Collections.Generic.List<MutationDefinition> { sequel });
+            int alive = 0;
+            foreach (var enemy in _floors.LiveEnemies) if (enemy.gameObject.activeSelf && !enemy.Health.IsDead) alive++;
+            author.Health.Kill();
+            yield return null;
+            int after = 0;
+            foreach (var enemy in _floors.LiveEnemies) if (enemy.gameObject.activeSelf && !enemy.Health.IsDead) after++;
+            Assert.AreEqual(alive - 1 + EnemyMutations.SequelCount, after, "the sequel never came out");
+            Assert.IsTrue(_floors.IsLocked, "the room opened with the sequel still in it");
+
             foreach (var enemy in _floors.LiveEnemies)
             {
+                if (enemy.Health.IsDead) continue;
                 bool local = false;
                 foreach (var entry in library.spawnTable) local |= enemy.name.StartsWith(entry.prefab.name);
                 Assert.IsTrue(local, enemy.name + " does not live in the library");

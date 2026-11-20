@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
@@ -335,7 +335,7 @@ namespace Shrunk.Tests
             var rng = new System.Random(3);
             var seen = new HashSet<ItemType>();
             for (int i = 0; i < 300; i++) foreach (var item in library.RandomCommon(rng, 3)) seen.Add(item.type);
-            Assert.AreEqual(16, seen.Count, "a new player should find 16 common items (20, less the 4 behind achievements)");
+            Assert.AreEqual(19, seen.Count, "a new player should find 19 common items (23, less the 4 behind achievements)");
             Assert.IsFalse(seen.Contains(ItemType.LarvaBuddy));
             style.Next();
             Assert.AreEqual(0, style.Current, "a locked style was put on");

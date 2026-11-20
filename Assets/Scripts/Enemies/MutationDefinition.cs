@@ -18,7 +18,9 @@ namespace Shrunk
         /// <summary>Birthday Cake: below half health it moves and attacks much faster.</summary>
         SugarRush,
         /// <summary>Under the Sofa: every few seconds it discharges, shocking anything standing close.</summary>
-        Static
+        Static,
+        /// <summary>The Library: it has a sequel. When it is put down, two of the world's smallest turn up in its place.</summary>
+        Sequel
     }
 
     /// <summary>A mutation as data: what it is, what it costs from the point budget, and the colour players read it by.</summary>
