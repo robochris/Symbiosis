@@ -323,7 +323,12 @@ namespace Shrunk
                 {
                     Collider blocker = Blockers[i].collider;
                     if (blocker.GetComponent<Room>() != null || blocker.GetComponentInParent<Health>() != null) continue;
-                    foreach (var shown in blocker.GetComponentsInChildren<Renderer>()) _blocking.Add(shown);
+                    foreach (var shown in blocker.GetComponentsInChildren<Renderer>())
+                    {
+                        // The gate left standing in a hidden door's place is there to be seen.
+                        if (shown.transform.parent != null && shown.transform.parent.name == GateName) continue;
+                        _blocking.Add(shown);
+                    }
                 }
             }
 
@@ -331,20 +336,69 @@ namespace Shrunk
             {
                 Renderer was = _hidden[i];
                 if (was != null && _blocking.Contains(was)) continue;
-                if (was != null) was.forceRenderingOff = false;
+                if (was != null)
+                {
+                    was.forceRenderingOff = false;
+                    ShowGate(was, false);
+                }
                 _hidden.RemoveAt(i);
             }
             foreach (var blocker in _blocking)
             {
                 if (blocker.forceRenderingOff) continue;
                 blocker.forceRenderingOff = true;
+                ShowGate(blocker, true);
                 _hidden.Add(blocker);
             }
         }
 
+        const string GateName = "Shut Gate";
+
+        // A shut door that is looked through still has to read as shut. While it is hidden, a low sill and a few thin
+        // bars stand in the doorway in its colour: enough to see that the way is closed, not enough to hide the room.
+        static void ShowGate(Renderer door, bool show)
+        {
+            if (!door.name.EndsWith(" Door") || door.GetComponentInParent<Room>() == null) return;
+            Transform gate = door.transform.Find(GateName);
+            if (gate == null)
+            {
+                if (!show) return;
+                gate = new GameObject(GateName).transform;
+                gate.SetParent(door.transform, false);
+                // The door is a stretched cube: work in metres, then undo its stretch.
+                Vector3 size = door.transform.lossyScale;
+                bool alongX = size.x >= size.z;
+                float width = alongX ? size.x : size.z, thick = alongX ? size.z : size.x;
+                void Piece(float along, float bottom, float w, float h)
+                {
+                    var piece = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    var solid = piece.GetComponent<Collider>();
+                    solid.enabled = false;
+                    Destroy(solid);
+                    piece.transform.SetParent(gate, false);
+                    Vector3 at = alongX ? new Vector3(along, 0f, 0f) : new Vector3(0f, 0f, along);
+                    piece.transform.localPosition = new Vector3(at.x / size.x, (bottom + h * 0.5f) / size.y - 0.5f, at.z / size.z);
+                    Vector3 scale = alongX ? new Vector3(w, h, thick * 0.5f) : new Vector3(thick * 0.5f, h, w);
+                    piece.transform.localScale = new Vector3(scale.x / size.x, scale.y / size.y, scale.z / size.z);
+                    var drawn = piece.GetComponent<Renderer>();
+                    drawn.sharedMaterial = door.sharedMaterial;
+                    drawn.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                }
+                Piece(0f, 0f, width, 0.45f);
+                int bars = Mathf.Max(2, Mathf.RoundToInt(width / 1.4f));
+                for (int i = 0; i <= bars; i++) Piece(Mathf.Lerp(-width * 0.5f + 0.1f, width * 0.5f - 0.1f, i / (float)bars), 0.45f, 0.14f, 2.2f);
+            }
+            gate.gameObject.SetActive(show);
+        }
+
         void OnDisable()
         {
-            foreach (var was in _hidden) if (was != null) was.forceRenderingOff = false;
+            foreach (var was in _hidden)
+            {
+                if (was == null) continue;
+                was.forceRenderingOff = false;
+                ShowGate(was, false);
+            }
             _hidden.Clear();
         }
 

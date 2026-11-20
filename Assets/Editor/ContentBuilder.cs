@@ -467,6 +467,28 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Cube, "Handle", look.transform, new Vector3(0f, -0.03f, -0.45f), new Vector3(0.22f, 0.05f, 0.05f), silver);
             items.Add(Item(ItemType.Lunchbox, "Lunchbox", "Enemies leave crumbs twice as often when you are hurt.", ItemSlot.Back, false, 20, new Color(0.3f, 0.65f, 0.85f), look));
 
+            // Paper Hat: folded from a page, worn at an angle.
+            look = new GameObject("PaperHat");
+            var hatPaper = ArenaSceneBuilder.Lit("ItemPaperHat", new Color(0.95f, 0.93f, 0.85f), 0.05f);
+            Decor(PrimitiveType.Cube, "Crown", look.transform, new Vector3(0f, 1.12f, 0f), new Vector3(0.5f, 0.3f, 0.06f), hatPaper).transform.localRotation = Quaternion.Euler(0f, 0f, 8f);
+            Decor(PrimitiveType.Cube, "Brim", look.transform, new Vector3(0f, 0.98f, 0f), new Vector3(0.7f, 0.06f, 0.3f), hatPaper).transform.localRotation = Quaternion.Euler(0f, 0f, 8f);
+            items.Add(Item(ItemType.PaperHat, "Paper Hat", "Shots hit harder. Costs a point of health, for good.", ItemSlot.Head, false, 15, new Color(0.95f, 0.93f, 0.85f), look));
+
+            // Piggy Bank: on the back, slot upward.
+            look = new GameObject("PiggyBank");
+            var piggyPink = ArenaSceneBuilder.Lit("ItemPiggy", new Color(1f, 0.6f, 0.7f), 0.5f);
+            Decor(PrimitiveType.Sphere, "Pig", look.transform, new Vector3(0f, 0.3f, -0.42f), new Vector3(0.42f, 0.36f, 0.5f), piggyPink);
+            Decor(PrimitiveType.Sphere, "Snout", look.transform, new Vector3(0f, 0.3f, -0.7f), Vector3.one * 0.16f, piggyPink);
+            Decor(PrimitiveType.Cube, "Slot", look.transform, new Vector3(0f, 0.49f, -0.42f), new Vector3(0.04f, 0.02f, 0.2f), ArenaSceneBuilder.Unlit("ExitHole", new Color(0.01f, 0.01f, 0.02f)));
+            items.Add(Item(ItemType.PiggyBank, "Piggy Bank", "Everything you put down drops one more coin.", ItemSlot.Back, false, 20, new Color(1f, 0.6f, 0.7f), look));
+
+            // Cold Coffee: a paper cup in the hand, long since given up on.
+            look = new GameObject("ColdCoffee");
+            var cup = ArenaSceneBuilder.Lit("ItemCup", new Color(0.9f, 0.88f, 0.82f), 0.2f);
+            Decor(PrimitiveType.Cylinder, "Cup", look.transform, new Vector3(-0.45f, 0.05f, 0.25f), new Vector3(0.2f, 0.14f, 0.2f), cup);
+            Decor(PrimitiveType.Cylinder, "Coffee", look.transform, new Vector3(-0.45f, 0.19f, 0.25f), new Vector3(0.17f, 0.01f, 0.17f), ArenaSceneBuilder.Lit("ItemCoffee", new Color(0.25f, 0.15f, 0.08f), 0.6f));
+            items.Add(Item(ItemType.ColdCoffee, "Cold Coffee", "Faster on your feet and the trigger. The dodge takes longer to come back.", ItemSlot.Hands, false, 20, new Color(0.45f, 0.28f, 0.15f), look));
+
             const string libraryPath = "Assets/Data/Items/ItemLibrary.asset";
             var library = AssetDatabase.LoadAssetAtPath<ItemLibrary>(libraryPath);
             if (library == null)
@@ -528,6 +550,9 @@ namespace Shrunk.EditorTools
                 case ItemType.FridgeMagnet: return "Says 'World's Best Intern'. Somebody had it made as a joke.";
                 case ItemType.SpareBattery: return "Found down the back of something. Still has a bit in it.";
                 case ItemType.Lunchbox: return "Packed by somebody who assumed you would be back for tea.";
+                case ItemType.PaperHat: return "Makes you look like you mean it. That costs something.";
+                case ItemType.PiggyBank: return "It was full when you found it. It is yours now, which is different.";
+                case ItemType.ColdCoffee: return "Somebody made this on Tuesday. It still works.";
                 default: return "";
             }
         }

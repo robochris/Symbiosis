@@ -25,7 +25,13 @@ namespace Shrunk
         IceCube,
         FridgeMagnet,
         SpareBattery,
-        Lunchbox
+        Lunchbox,
+        /// <summary>Hits harder, at the cost of a point of health for good.</summary>
+        PaperHat,
+        /// <summary>Everything drops one more coin.</summary>
+        PiggyBank,
+        /// <summary>Quicker on the feet and the trigger; the dodge takes longer to come back.</summary>
+        ColdCoffee
     }
 
     /// <summary>Where an item shows on the character. Two items in one slot: the newer one shows.</summary>

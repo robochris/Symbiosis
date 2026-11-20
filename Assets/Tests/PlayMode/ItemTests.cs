@@ -629,10 +629,52 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_hat_the_pig_and_the_coffee_each_cost_or_pay_something()
+        {
+            var library = GameAssets.Instance.items;
+            PlayerStats plain = _items.Stats;
+            int health = _player.Health.maxHealth;
+
+            // Paper Hat: one more damage, one less health, and never the last point of it.
+            _items.Add(library.Get(ItemType.PaperHat));
+            Assert.AreEqual(plain.damageBonus + 1, _items.Stats.damageBonus);
+            Assert.AreEqual(health - 1, _player.Health.maxHealth);
+            for (int i = 0; i < 6; i++) _items.Add(library.Get(ItemType.PaperHat));
+            Assert.AreEqual(1, _player.Health.maxHealth, "the hat took the last point of health");
+
+            // Cold Coffee: quicker to walk and to shoot, slower to dodge again.
+            _items.Add(library.Get(ItemType.ColdCoffee));
+            Assert.Greater(_items.Stats.moveSpeedMultiplier, plain.moveSpeedMultiplier);
+            Assert.Less(_items.Stats.fireIntervalMultiplier, plain.fireIntervalMultiplier);
+            Assert.Greater(_items.Stats.dodgeCooldownMultiplier, plain.dodgeCooldownMultiplier);
+
+            // Piggy Bank: one more coin from whatever is put down.
+            var ant = _spawner.SpawnAt(_biome.EnemyNamed("WorkerAnt"), _player.transform.position + new Vector3(6f, 0f, 0f), null);
+            yield return null;
+            int before = 0;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Coin) before += pickup.amount;
+            ant.Health.Kill();
+            yield return null;
+            int without = -before;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Coin) without += pickup.amount;
+            Pickup.ClearAll();
+
+            _items.Add(library.Get(ItemType.PiggyBank));
+            Assert.AreEqual(1, _items.Stats.coinBonus);
+            ant = _spawner.SpawnAt(_biome.EnemyNamed("WorkerAnt"), _player.transform.position + new Vector3(6f, 0f, 0f), null);
+            yield return null;
+            ant.Health.Kill();
+            yield return null;
+            int with = 0;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Coin) with += pickup.amount;
+            Assert.AreEqual(without + 1, with, "the pig did not pay");
+        }
+
+        [UnityTest]
         public IEnumerator Every_item_has_a_name_a_description_and_a_look()
         {
             var library = GameAssets.Instance.items;
-            Assert.AreEqual(22, library.items.Length);
+            Assert.AreEqual(25, library.items.Length);
             foreach (var item in library.items)
             {
                 Assert.IsNotEmpty(item.displayName);
@@ -642,7 +684,7 @@ namespace Shrunk.Tests
                 _items.Add(item); // must not throw
             }
             yield return null;
-            Assert.AreEqual(22, _items.Collected.Count);
+            Assert.AreEqual(25, _items.Collected.Count);
         }
 
         // ---------- hero power ----------

@@ -129,6 +129,33 @@ namespace Shrunk.Tests
             Assert.AreEqual(0, follow.HiddenBlockers);
             Object.Destroy(crate);
 
+            // A shut door that is in the way is looked through too, but leaves a gate standing so it still reads as shut.
+            var floors = FloorManager.Instance;
+            var roomObject = floors.CurrentRoom.gameObject;
+            Transform door = null;
+            foreach (Transform child in roomObject.transform) if (child.name.EndsWith(" Door")) door = child;
+            Assert.IsNotNull(door, "the start room has no door to test with");
+            Vector3 home = door.position;
+            door.gameObject.SetActive(true);
+            door.position = Vector3.Lerp(player.transform.position + Vector3.up * 1.2f, follow.transform.position, 0.6f) + Vector3.up * 1.5f;
+            Physics.SyncTransforms();
+            yield return null;
+            yield return null;
+            Assert.IsTrue(door.GetComponent<Renderer>().forceRenderingOff, "the shut door in front of the camera is still drawn");
+            Transform gate = door.Find("Shut Gate");
+            Assert.IsNotNull(gate, "nothing shows that the doorway is shut");
+            Assert.IsTrue(gate.gameObject.activeSelf);
+            foreach (var bar in gate.GetComponentsInChildren<Renderer>()) Assert.IsFalse(bar.forceRenderingOff, "the gate was hidden along with the door");
+            Assert.IsNull(gate.GetComponentInChildren<Collider>(), "the gate is solid: it is only there to be seen");
+            door.position = home + Vector3.up * 60f;
+            Physics.SyncTransforms();
+            yield return null;
+            yield return null;
+            Assert.IsFalse(door.GetComponent<Renderer>().forceRenderingOff);
+            Assert.IsFalse(gate.gameObject.activeSelf, "the gate stayed up after the door came back");
+            door.position = home;
+            door.gameObject.SetActive(false);
+
             // The line of text at the bottom wraps inside the screen whatever its length.
             var prompt = Object.FindAnyObjectByType<Hud>().promptText;
             Assert.AreEqual(HorizontalWrapMode.Wrap, prompt.horizontalOverflow);

@@ -218,7 +218,9 @@ namespace Shrunk
 
             if (enemy is BossEnemy boss) boss.DropRewards();
             // A first playtest could buy the whole shop on every floor: this is half what it was.
-            int coins = Mathf.Min(4, 1 + enemy.Health.maxHealth / 8) + (enemy is BossEnemy ? 0 : CoinBonus);
+            var banker = PlayerController.Instance;
+            int piggy = banker != null && banker.Items != null ? banker.Items.Stats.coinBonus : 0;
+            int coins = Mathf.Min(4, 1 + enemy.Health.maxHealth / 8) + (enemy is BossEnemy ? 0 : CoinBonus + piggy);
             for (int i = 0; i < coins; i++) Pickup.Coin(origin + Scatter(), 1);
 
             Pickup.Sample(origin + Scatter(), SamplesPerEnemy + points + SampleBonus);
