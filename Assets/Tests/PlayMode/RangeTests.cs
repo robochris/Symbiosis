@@ -32,10 +32,14 @@ namespace Shrunk.Tests
             var everything = Object.FindObjectsByType<RangeTarget>(FindObjectsSortMode.None);
             var list = new System.Collections.Generic.List<RangeTarget>();
             RangeTarget radio = null;
-            foreach (var each in everything) { if (each.isRadio) radio = each; else list.Add(each); }
+            RangeTarget gold = null;
+            foreach (var each in everything) { if (each.isRadio) radio = each; else if (each.appearsEvery > 0f) gold = each; else list.Add(each); }
             var targets = list.ToArray();
             Assert.AreEqual(5, targets.Length);
             Assert.IsNotNull(radio, "Finch's radio set is missing");
+            Assert.IsNotNull(gold, "the range has no gold target");
+            yield return null;
+            Assert.IsTrue(gold.IsHidden, "the gold target is up from the start");
             var player = PlayerController.Instance;
             player.Input.overrideFrame = new InputFrame();
 
@@ -113,6 +117,18 @@ namespace Shrunk.Tests
             foreach (var target in targets) target.GetComponent<Health>().Kill();
             yield return null;
             Assert.IsTrue(Achievements.Has(AchievementId.CleanSweep));
+
+            // The gold one: out of sight most of the time, up for a few seconds, and worth three.
+            gold.appearsEvery = 0.5f;
+            for (float t = 0f; t < 12f && gold.IsHidden; t += Time.deltaTime) yield return null;
+            Assert.IsFalse(gold.IsHidden, "the gold target never came up");
+            Assert.IsTrue(gold.face.activeSelf);
+            int beforeGold = range.Hits;
+            gold.GetComponent<Health>().Kill();
+            yield return null;
+            Assert.AreEqual(beforeGold + 3, range.Hits, "the gold target was not worth three");
+            yield return new WaitForSeconds(gold.standsUpAfter + 0.2f);
+            Assert.IsTrue(gold.IsHidden, "the gold target stood straight back up");
 
             // The radio set is not a target: shooting it scores nothing, and Finch has something to say.
             int hits = range.Hits;

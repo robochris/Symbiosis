@@ -306,6 +306,29 @@ namespace Shrunk.EditorTools
                 rangeTarget.slideSeconds = 3f + i * 0.4f;
             }
 
+            // A sixth, gold, at the very back: up for a few seconds every so often, and worth three.
+            {
+                var rangeGold = ArenaSceneBuilder.Unlit("Gold", new Color(1f, 0.82f, 0.2f));
+                var golden = new GameObject("Target Gold");
+                golden.transform.position = new Vector3(11f, 0f, -19.5f);
+                ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Post", golden.transform, new Vector3(0f, 0.3f, 0f), new Vector3(0.12f, 0.6f, 0.12f), benchMat, false);
+                var goldFace = new GameObject("Face");
+                goldFace.transform.SetParent(golden.transform, false);
+                ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Disc", goldFace.transform, new Vector3(0f, 1.1f, 0f), new Vector3(0.8f, 0.05f, 0.8f), rangeGold, false).transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Bull", goldFace.transform, new Vector3(-0.04f, 1.1f, 0f), new Vector3(0.25f, 0.05f, 0.25f), paper, false).transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                var goldHit = golden.AddComponent<SphereCollider>();
+                goldHit.center = new Vector3(0f, 1.1f, 0f);
+                goldHit.radius = 0.45f;
+                var goldHealth = golden.AddComponent<Health>();
+                goldHealth.team = Team.Enemy;
+                goldHealth.maxHealth = 1;
+                var goldTarget = golden.AddComponent<RangeTarget>();
+                goldTarget.face = goldFace;
+                goldTarget.appearsEvery = 8f;
+                goldTarget.staysFor = 3.5f;
+                goldTarget.worth = 3;
+            }
+
             // The board on the far wall.
             var rangeBoard = new GameObject("Range Board");
             rangeBoard.transform.position = new Vector3(rangeRight - 0.15f, 3.9f, -15f);

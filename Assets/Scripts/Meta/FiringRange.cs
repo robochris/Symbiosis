@@ -80,8 +80,8 @@ namespace Shrunk
 
         void OnPopped(RangeTarget target)
         {
-            Hits++;
-            if (Running) RoundHits++;
+            Hits += target.worth;
+            if (Running) RoundHits += target.worth;
             Write();
 
             // All of them down at the same moment: quick hands, and somebody noticed.
@@ -89,7 +89,8 @@ namespace Shrunk
             int standing = 0, real = 0;
             foreach (var each in _targets)
             {
-                if (each == null || each.isRadio) continue;
+                // The gold one comes and goes: the sweep is of the ones that stand there.
+                if (each == null || each.isRadio || each.appearsEvery > 0f) continue;
                 real++;
                 if (!each.IsDown) standing++;
             }

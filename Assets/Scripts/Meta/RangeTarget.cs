@@ -22,6 +22,16 @@ namespace Shrunk
         public float standsUpAfter = 1.2f;
         [Tooltip("This one is Dr. Finch's radio set, not a target: shooting it counts for nothing and he says so.")]
         public bool isRadio;
+        [Tooltip("Above zero, this one is only up now and then: the seconds between its appearances.")]
+        public float appearsEvery;
+        [Tooltip("How long it stays up when it does appear.")]
+        public float staysFor = 3.5f;
+        [Tooltip("What knocking it down counts for on the range.")]
+        public int worth = 1;
+
+        /// <summary>True while a now-and-then target is out of sight, waiting for its next appearance.</summary>
+        public bool IsHidden { get; private set; }
+        float _nextChange;
 
         public bool IsDown { get; private set; }
 
@@ -38,11 +48,25 @@ namespace Shrunk
             _phase = UnityEngine.Random.value * Mathf.PI * 2f;
         }
 
+        void Start()
+        {
+            if (appearsEvery > 0f) Hide(true);
+        }
+
+        void Hide(bool hide)
+        {
+            IsHidden = hide;
+            if (face != null) face.SetActive(!hide);
+            if (_collider != null) _collider.enabled = !hide;
+            _nextChange = Time.time + (hide ? appearsEvery : staysFor);
+        }
+
         void OnEnable() => _health.Died += OnDied;
         void OnDisable() => _health.Died -= OnDied;
 
         void Update()
         {
+            if (appearsEvery > 0f && !IsDown && Time.time >= _nextChange) Hide(!IsHidden);
             if (slide.sqrMagnitude < 0.0001f || slideSeconds <= 0f) return;
             transform.position = _home + slide * Mathf.Sin(_phase + Time.time * (Mathf.PI * 2f / slideSeconds));
         }
@@ -68,6 +92,11 @@ namespace Shrunk
             yield return new WaitForSeconds(standsUpAfter);
             _health.Restore(_health.maxHealth);
             IsDown = false;
+            if (appearsEvery > 0f)
+            {
+                Hide(true);
+                yield break;
+            }
             if (face != null) face.SetActive(true);
             if (_collider != null) _collider.enabled = true;
         }
