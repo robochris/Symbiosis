@@ -117,6 +117,21 @@ namespace Shrunk.EditorTools
             mark.favouredDrops = new[] { ItemType.PheromoneCloud, ItemType.LostMarble };
             var markPrefab = SaveEnemy(mark);
 
+            // Fountain pen: the Sniper. It rules a line to you first, and then signs it.
+            var pen = Creature<SniperEnemy>("FountainPen", 0.45f, 1.4f, 5, 0.9f, 2.2f, out var penModel);
+            Decor(PrimitiveType.Cylinder, "Barrel", penModel, new Vector3(0f, 0.75f, -0.1f), new Vector3(0.28f, 0.7f, 0.28f), ink).transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            Decor(PrimitiveType.Cylinder, "Band", penModel, new Vector3(0f, 0.75f, 0.35f), new Vector3(0.3f, 0.05f, 0.3f), gilt).transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            Decor(PrimitiveType.Cube, "Nib", penModel, new Vector3(0f, 0.75f, 0.8f), new Vector3(0.12f, 0.04f, 0.4f), gilt);
+            Decor(PrimitiveType.Cube, "Foot", penModel, new Vector3(0f, 0.2f, -0.1f), new Vector3(0.3f, 0.4f, 0.5f), steel);
+            var penMuzzle = new GameObject("Muzzle").transform;
+            penMuzzle.SetParent(pen.transform, false);
+            penMuzzle.localPosition = new Vector3(0f, 0.75f, 1.1f);
+            pen.muzzle = penMuzzle;
+            pen.projectilePrefab = blotPrefab;
+            pen.telegraphMaterial = telegraph;
+            pen.favouredDrops = new[] { ItemType.NeedleTip, ItemType.CompoundEye };
+            var penPrefab = SaveEnemy(pen);
+
             // Bookworm: grows into a silverfish if it is left. (What the pods hatch.)
             var worm = Creature<LarvaEnemy>("Bookworm", 0.4f, 0.7f, 2, 0.6f, 1.3f, out var wormModel);
             Decor(PrimitiveType.Sphere, "Body", wormModel, new Vector3(0f, 0.25f, 0f), new Vector3(0.4f, 0.35f, 0.9f), paper);
@@ -209,6 +224,7 @@ namespace Shrunk.EditorTools
                 new EnemySpawnEntry { prefab = planePrefab, weight = 2, minFloor = 4 },
                 new EnemySpawnEntry { prefab = staplerPrefab, weight = 2, minFloor = 5 },
                 new EnemySpawnEntry { prefab = markPrefab, weight = 1, minFloor = 6 },
+                new EnemySpawnEntry { prefab = penPrefab, weight = 1, minFloor = 5 },
                 new EnemySpawnEntry { prefab = ants.EnemyNamed("Mimic"), weight = 1, minFloor = 4 },
             };
             var mutations = new System.Collections.Generic.List<MutationDefinition>

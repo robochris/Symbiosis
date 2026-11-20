@@ -406,6 +406,36 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator A_marksman_shows_its_line_holds_it_and_then_fires_along_it()
+        {
+            var marksman = (SniperEnemy)Spawn("MarksmanAnt", _player.transform.position + new Vector3(0f, 0f, 11f));
+            Assert.IsNotNull(marksman.projectilePrefab);
+            _player.Health.SetInvulnerable(60f);
+
+            // It settles, and a strip grows on the floor toward the player before anything is fired.
+            for (float t = 0f; t < 6f && marksman.Current != SniperEnemy.State.Aim; t += Time.deltaTime) yield return null;
+            Assert.AreEqual(SniperEnemy.State.Aim, marksman.Current, "the marksman never took aim");
+            yield return new WaitForSeconds(marksman.aimTime * 0.5f);
+            Assert.IsTrue(marksman.ChargeLineShowing, "no line on the floor while it aims");
+            Assert.AreEqual(0, marksman.Shots, "it fired before the line was finished");
+            Vector3 stood = marksman.transform.position;
+
+            // Stepping aside during the hold: it does not follow, and the shot goes where the line was.
+            yield return new WaitForSeconds(marksman.aimTime * 0.5f - marksman.holdTime * 0.8f);
+            Quaternion held = marksman.transform.rotation;
+            _player.Teleport(_player.transform.position + new Vector3(4f, 0.05f, 0f));
+            _player.Health.ClearInvulnerability();
+            int health = _player.Health.Current;
+            for (float t = 0f; t < 2f && marksman.Shots == 0; t += Time.deltaTime) yield return null;
+            Assert.AreEqual(1, marksman.Shots);
+            Assert.Less(Quaternion.Angle(held, marksman.transform.rotation), 12f, "it swung round after the player in the hold");
+            Assert.Less((marksman.transform.position - stood).magnitude, 0.3f, "it walked while aiming");
+            yield return new WaitForSeconds(0.6f);
+            Assert.AreEqual(health, _player.Health.Current, "stepping off the line did not save the player");
+            Assert.IsFalse(marksman.ChargeLineShowing, "the line stayed after the shot");
+        }
+
+        [UnityTest]
         public IEnumerator Exploding_ants_burst_after_a_fuse()
         {
             var ant = Spawn("WorkerAnt", _player.transform.position + new Vector3(1.5f, 0f, 0f), MutationType.ExplodesOnDeath);

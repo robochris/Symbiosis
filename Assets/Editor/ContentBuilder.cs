@@ -60,6 +60,19 @@ namespace Shrunk.EditorTools
             spitter.favouredDrops = new[] { ItemType.AcidGland, ItemType.CompoundEye };
             var spitterPrefab = SaveEnemy(spitter);
 
+            // The marksman: a spitter that has learned patience. One shot, along a line it shows you first.
+            var marksmanBody = ArenaSceneBuilder.Lit("MarksmanBody", new Color(0.3f, 0.2f, 0.4f), 0.5f);
+            var marksman = Ant<SniperEnemy>("MarksmanAnt", 0.9f, 5, marksmanBody, antDark, false, out var marksmanModel);
+            Decor(PrimitiveType.Cube, "Barrel", marksmanModel, new Vector3(0f, 0.75f, 0.9f), new Vector3(0.12f, 0.12f, 1.4f), antDark);
+            var marksmanMuzzle = new GameObject("Muzzle").transform;
+            marksmanMuzzle.SetParent(marksman.transform, false);
+            marksmanMuzzle.localPosition = new Vector3(0f, 0.75f, 1.7f);
+            marksman.muzzle = marksmanMuzzle;
+            marksman.projectilePrefab = spitPrefab;
+            marksman.telegraphMaterial = ArenaSceneBuilder.Unlit("Telegraph", new Color(1f, 0.25f, 0.2f));
+            marksman.favouredDrops = new[] { ItemType.NeedleTip, ItemType.CompoundEye };
+            var marksmanPrefab = SaveEnemy(marksman);
+
             var winged = Ant<FlyerEnemy>("WingedAnt", 0.8f, 3, wingedBody, antDark, true, out var wingedModel);
             var wingLeft = Decor(PrimitiveType.Cube, "Wing L", wingedModel, new Vector3(-0.7f, 0.95f, -0.15f), new Vector3(1.2f, 0.04f, 0.55f), wing).transform;
             wingLeft.localRotation = Quaternion.Euler(0f, 0f, -18f);
@@ -244,6 +257,7 @@ namespace Shrunk.EditorTools
                 new EnemySpawnEntry { prefab = bombardierPrefab, weight = 2, minFloor = 5 },
                 new EnemySpawnEntry { prefab = heraldPrefab, weight = 1, minFloor = 6 },
                 new EnemySpawnEntry { prefab = mimicPrefab, weight = 1, minFloor = 4 },
+                new EnemySpawnEntry { prefab = marksmanPrefab, weight = 1, minFloor = 5 },
             };
             biome.mutations = new[]
             {

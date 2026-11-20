@@ -62,7 +62,7 @@ namespace Shrunk.Tests
             Assert.IsTrue(Achievements.BiomeUnlocked("library"));
 
             Assert.IsTrue(_floors.SetBiome("library"));
-            Assert.AreEqual(7, library.spawnTable.Length);
+            Assert.AreEqual(8, library.spawnTable.Length);
             foreach (var entry in library.spawnTable) Assert.IsNotNull(entry.prefab, "the library has an empty place at the table");
             Assert.IsNotNull(library.portalProp);
             Assert.That(ScreenCards.LibraryLines, Does.Contain(ScreenCards.TipFor("library", 4)));
