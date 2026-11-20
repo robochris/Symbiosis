@@ -629,6 +629,42 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Quick_kills_build_a_streak_that_pays_and_lapses()
+        {
+            Assert.IsNotNull(Object.FindAnyObjectByType<KillStreak>(), "nobody is counting streaks");
+            var hud = Object.FindAnyObjectByType<Hud>();
+            Assert.AreEqual(0, KillStreak.Live);
+            int coinsBefore = 0;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Coin) coinsBefore += pickup.amount;
+
+            // Four in a row: a streak, shown beside the kills, and no bonus yet.
+            for (int i = 0; i < 4; i++) _spawner.SpawnAt(_biome.EnemyNamed("WorkerAnt"), new Vector3(12f, 0f, 12f + i), null).Health.Kill();
+            yield return null;
+            yield return null;
+            Assert.AreEqual(4, KillStreak.Live);
+            Assert.That(hud.killsText.text, Does.Contain("×4"));
+            int coinsAtFour = -coinsBefore;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Coin) coinsAtFour += pickup.amount;
+
+            // The fifth pays extra.
+            _spawner.SpawnAt(_biome.EnemyNamed("WorkerAnt"), new Vector3(12f, 0f, 17f), null).Health.Kill();
+            yield return null;
+            int coinsAtFive = -coinsBefore;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Coin) coinsAtFive += pickup.amount;
+            Assert.AreEqual(5, KillStreak.Live);
+            Assert.GreaterOrEqual(coinsAtFive - coinsAtFour, 1 + KillStreak.Pays, "the fifth in a row paid nothing extra");
+
+            // Left alone, it lapses, and the next kill starts again from one.
+            yield return new WaitForSeconds(KillStreak.Window + 0.3f);
+            Assert.AreEqual(0, KillStreak.Live);
+            Assert.That(hud.killsText.text, Does.Not.Contain("×"));
+            _spawner.SpawnAt(_biome.EnemyNamed("WorkerAnt"), new Vector3(12f, 0f, 12f), null).Health.Kill();
+            yield return null;
+            Assert.AreEqual(1, KillStreak.Live);
+            Assert.AreEqual(5, KillStreak.Best);
+        }
+
+        [UnityTest]
         public IEnumerator The_hat_the_pig_and_the_coffee_each_cost_or_pay_something()
         {
             var library = GameAssets.Instance.items;

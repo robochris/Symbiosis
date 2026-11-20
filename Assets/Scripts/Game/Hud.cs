@@ -37,6 +37,7 @@ namespace Shrunk
         readonly List<Image> _pips = new List<Image>();
         int _shownKills = -1;
         int _shownFloor = -1;
+        int _shownStreak;
         int _shownMode = -1;
         int _shownCoins = -1, _shownSamples = -1, _shownDepth = -1;
         Text _hintText;
@@ -161,10 +162,13 @@ namespace Shrunk
                 if (floors.Twist != FloorTwist.None) floorText.text += "  ·  " + FloorTwists.Name(floors.Twist);
             }
 
-            if (killsText != null && _shownKills != RunState.Kills)
+            // Kills, and beside them the streak once it is worth mentioning.
+            int streak = KillStreak.Live >= 3 ? KillStreak.Live : 0;
+            if (killsText != null && (_shownKills != RunState.Kills || _shownStreak != streak))
             {
                 _shownKills = RunState.Kills;
-                killsText.text = "Kills: " + _shownKills;
+                _shownStreak = streak;
+                killsText.text = streak > 0 ? $"Kills: {_shownKills}   ×{streak}" : "Kills: " + _shownKills;
             }
 
             if (resourcesText != null && lab)
