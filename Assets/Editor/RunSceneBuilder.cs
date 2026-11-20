@@ -48,6 +48,7 @@ namespace Shrunk.EditorTools
             floors.biome = biome;
             floors.otherBiomes = new[] { ContentBuilder.BuildCake(biome), ContentBuilder.BuildSofa(biome), ContentBuilder.BuildFridge(biome), ContentBuilder.BuildLibrary(biome) };
             floors.bottomBiome = ContentBuilder.BuildBottom(biome);
+            floors.goldBug = ContentBuilder.BuildGoldBug();
             var worlds = new System.Collections.Generic.List<BiomeDefinition> { biome };
             worlds.AddRange(floors.otherBiomes);
             floors.machineBiome = ContentBuilder.BuildMachineRoom(floors.bottomBiome, worlds.ToArray());

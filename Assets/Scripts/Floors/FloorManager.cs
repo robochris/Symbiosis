@@ -268,7 +268,13 @@ namespace Shrunk
         [System.NonSerialized] public FloorTwist? twistOverride;
 
         /// <summary>Set by the tests, for every floor manager: the chance of a twist, a dare and an exchange where a test has not asked for one.</summary>
-        public static float? TwistChanceForAll, ExchangeChanceForAll, ClawChanceForAll;
+        public static float? TwistChanceForAll, ExchangeChanceForAll, ClawChanceForAll, GoldBugChanceForAll;
+
+        [Tooltip("The one that runs away. Now and then one joins a room's fight, from the second floor on.")]
+        public Enemy goldBug;
+        public float goldBugChance = 0.07f;
+        /// <summary>Tests set this to make the roll certain (1) or impossible (0).</summary>
+        [System.NonSerialized] public float goldBugChanceOverride = -1f;
 
         /// <summary>The claw machine in this floor's first room, if it has one.</summary>
         public ClawMachine Claw { get; private set; }
@@ -633,6 +639,15 @@ namespace Shrunk
                     enemy.Mutations.Apply(MutationBudget.Roll(rng, biome.mutations, budget));
                 }
                 points.RemoveAt(pick);
+            }
+
+            // Now and then, a gold bug in among them. It is not there to fight.
+            float bugChance = goldBugChanceOverride >= 0f ? goldBugChanceOverride : GoldBugChanceForAll ?? goldBugChance;
+            if (goldBug != null && FloorNumber >= 2 && points.Count > 0 && UnityEngine.Random.value < bugChance)
+            {
+                Spawn(goldBug, points[UnityEngine.Random.Range(0, points.Count)], playerPosition);
+                var hud = FindAnyObjectByType<Hud>();
+                if (hud != null) hud.Toast("A gold bug. It will not stay long.", 3f);
             }
         }
 

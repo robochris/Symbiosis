@@ -505,6 +505,48 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator A_gold_bug_runs_pays_if_caught_and_leaves_if_not()
+        {
+            Assert.AreEqual(0f, FloorManager.GoldBugChanceForAll, "the tests are running with random gold bugs on");
+            Assert.IsNotNull(_floors.goldBug, "the floor has no gold bug to send");
+            _floors.goldBugChanceOverride = 1f;
+            _floors.twistOverride = FloorTwist.None;
+            _floors.BuildFloor(3);
+            yield return null;
+
+            // One in the room. It keeps away from the player.
+            RoomNode node = FightRoom();
+            yield return EnterFight(node);
+            GoldBug bug = null;
+            foreach (var enemy in _floors.LiveEnemies) if (enemy is GoldBug found) bug = found;
+            Assert.IsNotNull(bug, "no gold bug turned up");
+            float start = (bug.transform.position - _player.transform.position).magnitude;
+            _player.Teleport(bug.transform.position + new Vector3(2.5f, 0.05f, 0f));
+            yield return new WaitForSeconds(1.2f);
+            Assert.Greater((bug.transform.position - _player.transform.position).magnitude, 3.5f, "the gold bug stood its ground");
+
+            // Caught: a lot of coins.
+            int before = RunState.Coins;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Coin) before += pickup.amount;
+            bug.Health.Kill();
+            yield return null;
+            int after = RunState.Coins;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Coin) after += pickup.amount;
+            Assert.GreaterOrEqual(after - before, GoldBug.Coins, "the gold bug was not worth catching");
+            yield return KillAll();
+
+            // Not caught: when the rest of the room is dead it goes, and the room opens without it.
+            yield return EnterFight(FightRoom());
+            bug = null;
+            foreach (var enemy in _floors.LiveEnemies) if (enemy is GoldBug found) bug = found;
+            Assert.IsNotNull(bug);
+            foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) if (!(enemy is GoldBug) && !enemy.Health.IsDead) enemy.Health.Kill();
+            for (float t = 0f; t < 6f && _floors.IsLocked; t += Time.deltaTime) yield return null;
+            Assert.IsFalse(_floors.IsLocked, "the room waited for the gold bug");
+            Assert.IsTrue(bug.Escaped);
+        }
+
+        [UnityTest]
         public IEnumerator The_first_floor_never_dares_anybody()
         {
             for (int seed = 1; seed <= 40; seed++)

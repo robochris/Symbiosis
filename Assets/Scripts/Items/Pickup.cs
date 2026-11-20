@@ -220,7 +220,7 @@ namespace Shrunk
             // A first playtest could buy the whole shop on every floor: this is half what it was.
             var banker = PlayerController.Instance;
             int piggy = banker != null && banker.Items != null ? banker.Items.Stats.coinBonus : 0;
-            int coins = Mathf.Min(4, 1 + enemy.Health.maxHealth / 8) + (enemy is BossEnemy ? 0 : CoinBonus + piggy);
+            int coins = Mathf.Min(4, 1 + enemy.Health.maxHealth / 8) + (enemy is BossEnemy ? 0 : CoinBonus + piggy) + (enemy is GoldBug ? GoldBug.Coins : 0);
             for (int i = 0; i < coins; i++) Pickup.Coin(origin + Scatter(), 1);
 
             Pickup.Sample(origin + Scatter(), SamplesPerEnemy + points + SampleBonus);

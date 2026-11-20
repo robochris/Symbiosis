@@ -19,6 +19,7 @@ namespace Shrunk.Tests
             FloorManager.TwistChanceForAll = 0f;
             FloorManager.ExchangeChanceForAll = 0f;
             FloorManager.ClawChanceForAll = 0f;
+            FloorManager.GoldBugChanceForAll = 0f;
         }
 
         [OneTimeTearDown]
@@ -28,6 +29,7 @@ namespace Shrunk.Tests
             FloorManager.TwistChanceForAll = null;
             FloorManager.ExchangeChanceForAll = null;
             FloorManager.ClawChanceForAll = null;
+            FloorManager.GoldBugChanceForAll = null;
         }
     }
 }
