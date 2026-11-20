@@ -414,6 +414,43 @@ namespace Shrunk.Tests
             for (int floor = 1; floor <= 10; floor++) yield return PlayFloor(floor, Random.Range(1, int.MaxValue));
         }
 
+        /// <summary>
+        /// By name only: the game as it ships. Six floors to a world, twists and exchanges rolling as they do for a
+        /// player, and a bot on foot through every floor of all four worlds. Read the log for the WORLD lines.
+        /// </summary>
+        [UnityTest, Explicit, Timeout(7200000)]
+        public IEnumerator A_bot_plays_all_four_six_floor_worlds()
+        {
+            FloorLayout.FloorsPerBiome = 6;
+            FloorManager.TwistChanceForAll = null;
+            FloorManager.ExchangeChanceForAll = null;
+            try
+            {
+                foreach (string biome in new[] { "ants", "cake", "sofa", "fridge" })
+                {
+                    Achievements.EverythingUnlocked = true;
+                    Assert.IsTrue(_floors.SetBiome(biome));
+                    float started = Time.time;
+                    Time.timeScale = 4f;
+                    string twists = "";
+                    for (int floor = 1; floor <= 6; floor++)
+                    {
+                        yield return PlayFloor(floor, Random.Range(1, int.MaxValue));
+                        if (_floors.Twist != FloorTwist.None) twists += $" floor {floor} {FloorTwists.Name(_floors.Twist)};";
+                        Assert.AreEqual(floor % 3 == 0, _floors.Layout.hasArena || FloorLayout.IsBossFloor(floor), "a boss floor in the wrong place");
+                    }
+                    Debug.Log($"[Shrunk] WORLD {biome}: six floors in {(Time.time - started) / 60f:F1} minutes of game time. Twists:{(twists.Length > 0 ? twists : " none")}");
+                }
+            }
+            finally
+            {
+                FloorLayout.FloorsPerBiome = 10;
+                FloorManager.TwistChanceForAll = 0f;
+                FloorManager.ExchangeChanceForAll = 0f;
+                Time.timeScale = 1f;
+            }
+        }
+
         /// <summary>The same in the Birthday Cake.</summary>
         [UnityTest, Explicit, Timeout(3600000)]
         public IEnumerator A_bot_clears_a_whole_cake_biome_on_foot()
