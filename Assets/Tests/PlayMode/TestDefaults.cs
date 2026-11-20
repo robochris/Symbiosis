@@ -18,6 +18,7 @@ namespace Shrunk.Tests
             FloorLayout.FloorsPerBiome = 10;
             FloorManager.TwistChanceForAll = 0f;
             FloorManager.ExchangeChanceForAll = 0f;
+            FloorManager.ClawChanceForAll = 0f;
         }
 
         [OneTimeTearDown]
@@ -26,6 +27,7 @@ namespace Shrunk.Tests
             FloorLayout.FloorsPerBiome = 6;
             FloorManager.TwistChanceForAll = null;
             FloorManager.ExchangeChanceForAll = null;
+            FloorManager.ClawChanceForAll = null;
         }
     }
 }

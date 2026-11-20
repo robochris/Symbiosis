@@ -442,6 +442,69 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_claw_machine_takes_coins_and_usually_drops_it()
+        {
+            Assert.AreEqual(0f, FloorManager.ClawChanceForAll, "the tests are running with random claw machines on");
+            _floors.clawChanceOverride = 1f;
+            _floors.exchangeChanceOverride = 1f;
+            _floors.BuildFloor(1);
+            yield return null;
+            Assert.IsTrue(_floors.Claw == null, "a claw machine on the first floor");
+            _floors.BuildFloor(2);
+            yield return null;
+            ClawMachine claw = _floors.Claw;
+            Assert.IsNotNull(claw, "no claw machine");
+            Assert.Greater((claw.transform.position - _floors.Exchange.transform.position).magnitude, 3f, "the claw machine is on top of the exchange");
+            Vector3 mat = claw.transform.position + Vector3.up * 0.05f;
+            Assert.IsTrue(NavMesh.SamplePosition(mat, out var hit, 0.5f, NavMesh.AllAreas) && hit.position.y < 0.5f, "the claw machine is not on open floor");
+
+            // No coins, no go.
+            Assert.IsFalse(claw.Play());
+            Assert.That(WorldPrompt.For(mat), Does.Contain("claw machine").And.Contain("You have 0"));
+
+            // Standing on the mat with coins plays; every go costs more.
+            RunState.AddCoins(100);
+            claw.rigged = ClawPrize.Nothing;
+            _player.Teleport(mat + new Vector3(4f, 0f, 0f));
+            yield return null;
+            _player.Teleport(mat);
+            yield return new WaitForSeconds(ClawMachine.HoldTime + 0.3f);
+            Assert.AreEqual(1, claw.Goes);
+            Assert.AreEqual(100 - ClawMachine.FirstPrice, RunState.Coins);
+            Assert.AreEqual(ClawMachine.FirstPrice + ClawMachine.PriceStep, claw.price);
+            _player.Teleport(mat + new Vector3(4f, 0f, 0f));
+            yield return null;
+
+            // A jackpot pays more than the go cost; an item and a crumb come out of the chute.
+            int coinsOut = 0;
+            claw.rigged = ClawPrize.Jackpot;
+            int paid = claw.price;
+            Assert.IsTrue(claw.Play());
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Coin) coinsOut += pickup.amount;
+            Assert.Greater(coinsOut, paid, "the jackpot paid less than the go cost");
+            claw.rigged = ClawPrize.Item;
+            claw.Play();
+            claw.rigged = ClawPrize.Crumb;
+            claw.Play();
+            int items = 0, crumbs = 0;
+            foreach (var pickup in Pickup.All)
+            {
+                // Only what came out of this machine: the shop and the treasure room have their own.
+                Vector3 from = pickup.transform.position - claw.transform.position;
+                from.y = 0f;
+                if (from.magnitude > 3f) continue;
+                if (pickup.kind == PickupKind.Item && pickup.price == 0) items++;
+                if (pickup.kind == PickupKind.Health) crumbs++;
+            }
+            Assert.AreEqual(1, items);
+            Assert.AreEqual(1, crumbs);
+            Assert.AreEqual(ClawPrize.Crumb, claw.Last);
+
+            // Left to itself it mostly loses: over a lot of goes, it takes more than it gives.
+            Assert.Less(ClawMachine.ItemOdds + ClawMachine.JackpotOdds + ClawMachine.CrumbOdds, 0.8f);
+        }
+
+        [UnityTest]
         public IEnumerator The_first_floor_never_dares_anybody()
         {
             for (int seed = 1; seed <= 40; seed++)

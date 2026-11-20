@@ -268,7 +268,14 @@ namespace Shrunk
         [System.NonSerialized] public FloorTwist? twistOverride;
 
         /// <summary>Set by the tests, for every floor manager: the chance of a twist, a dare and an exchange where a test has not asked for one.</summary>
-        public static float? TwistChanceForAll, ExchangeChanceForAll;
+        public static float? TwistChanceForAll, ExchangeChanceForAll, ClawChanceForAll;
+
+        /// <summary>The claw machine in this floor's first room, if it has one.</summary>
+        public ClawMachine Claw { get; private set; }
+        [Tooltip("Chance that a floor's first room has a claw machine in it. Never on floor 1 or at the bottom.")]
+        public float clawChance = 0.3f;
+        /// <summary>Tests set this to make the roll certain (1) or impossible (0).</summary>
+        [System.NonSerialized] public float clawChanceOverride = -1f;
 
         /// <summary>The sample exchange in this floor's first room, if it has one.</summary>
         public SampleExchange Exchange { get; private set; }
@@ -329,6 +336,14 @@ namespace Shrunk
             {
                 Room first = _rooms[Layout.start.cell];
                 Exchange = SampleExchange.Create(first, first.Centre + new Vector3(2f, 0f, 1.2f), assets.sample, assets.coin);
+            }
+
+            // And some, on the other side of the room, with the claw machine.
+            float claw = clawChanceOverride >= 0f ? clawChanceOverride : ClawChanceForAll ?? clawChance;
+            if (FloorNumber >= 2 && !biome.isBottom && new System.Random(seed ^ 0x0C1A3BAD).NextDouble() < claw)
+            {
+                Room first = _rooms[Layout.start.cell];
+                Claw = ClawMachine.Create(first, first.Centre + new Vector3(-2f, 0f, 1.2f), assets.coin, biome.doorMaterial, assets.sample);
             }
 
             foreach (var node in Layout.ordered)
@@ -427,6 +442,7 @@ namespace Shrunk
             Boss = null;
             Dare = null;
             Exchange = null;
+            Claw = null;
             DareFight = false;
             ExtractPortal = null;
             _portals.Clear();
