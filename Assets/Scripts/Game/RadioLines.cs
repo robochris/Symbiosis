@@ -339,6 +339,12 @@ namespace Shrunk
                 "Under the sofa. Everything anybody ever lost is here. Including, for a while, me.",
                 "Dark, dusty, and the coins are the size of dinner tables. Don't get attached to one.",
             },
+            // What Finch lets slip after each restart of the machine, in order: the story, a cycle at a time.
+            ["restart one"] = new[] { "Between us: I'm not in the building, exactly. I'm near it. Let's leave it at near." },
+            ["restart two"] = new[] { "I built that machine to make things smaller. It worked once. I was standing too close." },
+            ["restart three"] = new[] { "Something large lives here. It has a bell it doesn't wear. I listen for it anyway." },
+            ["restart four"] = new[] { "I kept notes. They got away from me, a page at a time. You may have trodden on some." },
+            ["restart five"] = new[] { "If you ever find all of my notebook, don't come looking. That is not reverse psychology." },
             ["machine"] = new[]
             {
                 "That's my machine. Be gentle. No, be thorough. I can't decide.",
@@ -392,6 +398,11 @@ namespace Shrunk
             foreach (var pool in Pools.Values) foreach (string line in pool) yield return line;
             foreach (var pool in Particular.Values) foreach (string line in pool) yield return line;
         }
+
+        static readonly string[] RestartWords = { "one", "two", "three", "four", "five" };
+
+        /// <summary>What to ask about after the machine's nth restart, so that restart's part of the story is told. Null once it is all out.</summary>
+        public static string RestartKey(int cycle) => cycle >= 1 && cycle <= RestartWords.Length ? "restart " + RestartWords[cycle - 1] : null;
 
         /// <summary>
         /// The next thing to say: a line about this particular place or boss if there is one not yet heard, otherwise

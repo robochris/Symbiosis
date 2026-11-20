@@ -94,6 +94,78 @@ namespace Shrunk.Tests
             Assert.AreEqual(1, MachineParts.Count);
         }
 
+        [Test]
+        public void Each_restart_tells_one_more_piece_of_the_story()
+        {
+            var told = new System.Collections.Generic.HashSet<string>();
+            for (int cycle = 1; cycle <= 5; cycle++)
+            {
+                string key = RadioLines.RestartKey(cycle);
+                Assert.IsNotNull(key);
+                string line = RadioLines.Pick(RadioMoment.Cycle, key, new System.Random(1));
+                Assert.IsTrue(told.Add(line), "cycle " + cycle + " repeated an earlier one: " + line);
+                // Asked again, that part has been told: the ordinary remarks take over.
+                Assert.AreNotEqual(line, RadioLines.Pick(RadioMoment.Cycle, key, new System.Random(1)));
+            }
+            Assert.IsNull(RadioLines.RestartKey(6));
+            Assert.IsNull(RadioLines.RestartKey(0));
+        }
+
+        [UnityTest]
+        public IEnumerator The_noticeboard_pins_three_jobs_pays_for_them_and_deals_the_next()
+        {
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var board = Object.FindAnyObjectByType<JobBoard>();
+            Assert.IsNotNull(board, "the lab has no noticeboard");
+            Assert.IsNotNull(Object.FindAnyObjectByType<JobTracker>(), "nobody is counting in the lab");
+            Assert.AreEqual(3, Jobs.Current.Count);
+            string read = WorldPrompt.For(board.transform.position);
+            Assert.That(read, Does.Contain("noticeboard").And.Contain("0 of 40").And.Contain("crowned").And.Contain("5 floors"));
+
+            // Every job has a different number, and the pile has more than the board holds.
+            var ids = new System.Collections.Generic.HashSet<int>();
+            foreach (var job in Jobs.All) Assert.IsTrue(ids.Add(job.id), "two jobs share a number");
+            Assert.Greater(Jobs.All.Length, Jobs.Pinned);
+
+            // In a run: kills count, and the fortieth pays and pins up the next job.
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            Assert.IsNotNull(Object.FindAnyObjectByType<JobTracker>(), "nobody is counting in the run");
+            int banked = SaveSystem.Data.meta.samples;
+            Jobs.Count(JobKind.Kills, 39);
+            Assert.AreEqual(39, Jobs.Progress(0));
+            Assert.AreEqual(banked, SaveSystem.Data.meta.samples);
+            var floors = FloorManager.Instance;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            RoomNode fight = null;
+            foreach (var node in floors.Layout.ordered) if (node.type == RoomType.Normal && fight == null) fight = node;
+            player.Teleport(floors.RoomAt(fight.cell).Centre + new Vector3(RoomShape.TileSize, 0.05f, 0f));
+            yield return WaitUntil(() => floors.IsLocked && floors.LiveEnemies.Count > 0, 3f, "a fight");
+            floors.LiveEnemies[0].Health.Kill();
+            yield return null;
+            Assert.AreEqual(banked + 25, SaveSystem.Data.meta.samples, "the job did not pay");
+            Assert.AreEqual(1, SaveSystem.Data.meta.jobsDone);
+            Assert.That(Object.FindAnyObjectByType<Hud>().LastToast, Does.Contain("Job done"));
+            Assert.AreEqual(3, Jobs.Current.Count);
+            Assert.AreEqual(0, Jobs.Progress(0));
+            Assert.AreNotEqual(0, Jobs.Current[0], "the finished job was pinned straight back up");
+            Assert.AreEqual(3, new System.Collections.Generic.HashSet<int>(Jobs.Current).Count, "the same job is pinned up twice");
+
+            // It goes round: thirty jobs later there are still three, all different.
+            for (int i = 0; i < 30; i++)
+            {
+                Job first = Jobs.Get(Jobs.Current[0]);
+                Jobs.Count(first.kind, first.needed);
+                Assert.AreEqual(3, new System.Collections.Generic.HashSet<int>(Jobs.Current).Count);
+            }
+            Assert.GreaterOrEqual(SaveSystem.Data.meta.jobsDone, 31);
+        }
+
         [UnityTest]
         public IEnumerator The_panel_is_there_from_the_first_day_and_needs_all_four_parts()
         {
@@ -204,6 +276,7 @@ namespace Shrunk.Tests
             yield return null;
 
             Assert.AreEqual(RadioMoment.Cycle, Radio.Instance.LastMoment);
+            Assert.That(Radio.Instance.LastLine, Does.Contain("Let's leave it at near"), "the first restart did not shake the first of the story out of Finch");
             Assert.AreEqual("CYCLE 2", ScreenCards.Instance.LastHeading);
             Assert.That(Object.FindAnyObjectByType<Hud>().LastToast, Does.Contain("Cycle 2"));
             Assert.IsTrue(SaveSystem.Data.run.active, "the saved run was thrown away");

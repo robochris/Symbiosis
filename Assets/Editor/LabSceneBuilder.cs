@@ -237,6 +237,20 @@ namespace Shrunk.EditorTools
             }
             panel.AddComponent<MachinePanel>().lamps = lamps;
 
+            // ----- the noticeboard: three jobs at a time. Free-standing, west of where the day starts. -----
+            var notices = new GameObject("Noticeboard");
+            notices.transform.position = new Vector3(-4.2f, 0f, 1.6f);
+            var corkBoard = ArenaSceneBuilder.Lit("Cork", new Color(0.55f, 0.38f, 0.22f), 0.1f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Post L", notices.transform, new Vector3(-1.5f, 0.9f, -0.9f), new Vector3(0.12f, 1.8f, 0.12f), benchMat, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Post R", notices.transform, new Vector3(-1.5f, 0.9f, 0.9f), new Vector3(0.12f, 1.8f, 0.12f), benchMat, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Board", notices.transform, new Vector3(-1.5f, 1.9f, 0f), new Vector3(0.12f, 1.4f, 2.2f), corkBoard, false);
+            for (int i = 0; i < Jobs.Pinned; i++)
+            {
+                var slip = ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Job " + (i + 1), notices.transform, new Vector3(-1.42f, 1.95f, -0.65f + i * 0.65f), new Vector3(0.03f, 0.75f, 0.5f), paper, false);
+                slip.transform.localRotation = Quaternion.Euler((i * 5) - 5f, 0f, 0f);
+            }
+            notices.AddComponent<JobBoard>();
+
             // ----- the hidden door: turns up with the last page, on the wall the radio never mentions -----
             var door = new GameObject("Hidden Door");
             door.transform.position = new Vector3(-8.2f, 0f, 0.8f);

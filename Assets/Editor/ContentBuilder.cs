@@ -270,6 +270,7 @@ namespace Shrunk.EditorTools
             var assets = game.AddComponent<GameAssets>();
             game.AddComponent<ScreenCards>();
             game.AddComponent<AchievementTracker>();
+            game.AddComponent<JobTracker>();
             game.AddComponent<Radio>();
             game.AddComponent<DamageNumbers>();
             game.AddComponent<Fx>().material = ArenaSceneBuilder.LoadOrCreate("Particle", "Universal Render Pipeline/Particles/Unlit");

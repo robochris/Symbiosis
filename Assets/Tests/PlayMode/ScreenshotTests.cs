@@ -669,6 +669,39 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_first_day()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            SaveSystem.Data.meta.runsStarted = 1;
+            MachineParts.Take(MachineParts.All[0]);
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+
+            var board = Object.FindAnyObjectByType<JobBoard>();
+            player.Teleport(board.transform.position + new Vector3(1.2f, 0.05f, 0f));
+            player.transform.rotation = Quaternion.Euler(0f, 270f, 0f);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.6f);
+            yield return Screen(Path.Combine(folder, "noticeboard.png"));
+
+            var panel = Object.FindAnyObjectByType<MachinePanel>();
+            player.Teleport(panel.transform.position + new Vector3(-1.4f, 0.05f, 0f));
+            player.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.6f);
+            yield return Screen(Path.Combine(folder, "machine-panel.png"));
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_evidence()
         {
             SaveSystem.Profile = "tests";

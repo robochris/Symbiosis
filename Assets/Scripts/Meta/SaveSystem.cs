@@ -36,6 +36,11 @@ namespace Shrunk
         public List<string> parts = new List<string>();
         /// <summary>Times the machine has been beaten and has restarted. Every run starts this much deeper.</summary>
         public int cycle;
+        /// <summary>The jobs pinned to the noticeboard, how far along each is, how many have been done, and where the pile is up to.</summary>
+        public List<int> jobs = new List<int>();
+        public List<int> jobProgress = new List<int>();
+        public int jobsDone;
+        public int jobsDealt;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>
         public int labSeen;
         /// <summary>Pages of Dr. Finch's notebook found, by id.</summary>

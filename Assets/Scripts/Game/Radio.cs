@@ -92,7 +92,8 @@ namespace Shrunk
             if (RunDirector.CycleRadio)
             {
                 RunDirector.CycleRadio = false;
-                Say(RadioMoment.Cycle, null, 1.2f);
+                // Each restart shakes one more thing out of him, in order, once. After that, the usual remarks.
+                Say(RadioMoment.Cycle, RadioLines.RestartKey(MachineParts.Cycle), 1.2f);
             }
             else if (_carried.HasValue) Say(_carried.Value, null, 1.2f);
             else if (SaveSystem.Data.meta.runsStarted == 0) Say(RadioMoment.Hello, null, 0.8f);
