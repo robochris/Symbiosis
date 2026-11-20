@@ -25,7 +25,7 @@ namespace Shrunk
             AnItemFound,
             /// <summary>The time clock: once Dr. Finch has been beaten.</summary>
             FinchBeaten,
-            /// <summary>The door: once a piece of the collar has been taken from a boss.</summary>
+            /// <summary>Once a part of the machine has been brought home.</summary>
             APieceFound
         }
 
@@ -50,7 +50,7 @@ namespace Shrunk
                 case Needs.AllNotesFound: return meta.notes.Count >= FinchNotes.All.Length;
                 case Needs.AnItemFound: return meta.itemsFound.Count > 0;
                 case Needs.FinchBeaten: return meta.finchBeaten > 0;
-                case Needs.APieceFound: return Collar.Count > 0;
+                case Needs.APieceFound: return MachineParts.Count > 0;
                 default:
                     if (Achievements.EverythingUnlocked) return true;
                     foreach (var achievement in Achievements.All)

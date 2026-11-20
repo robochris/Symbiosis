@@ -305,6 +305,17 @@ namespace Shrunk.Tests
             End();
         }
 
+        /// <summary>The machine, switched on with all four parts in.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_machine()
+        {
+            RunDirector.ToMachine = true;
+            yield return Begin("machine", true);
+            yield return null;
+            Assert.AreEqual("machine", _floors.biome.id);
+            yield return BossClip(45f);
+        }
+
         /// <summary>The ending: the cat at the bottom, through both washes, until it leaves.</summary>
         [UnityTest, Explicit]
         public IEnumerator Capture_clip_cat()

@@ -8,7 +8,7 @@ namespace Shrunk
         FirstSteps, MothersDay, Regicide, Untouchable, Omelette, HandsOff,
         Deeper, Hoarder, ShellShock, BubbleWrap, SweetTooth, FullPockets,
         PaperTrail, PerformanceReview, SpringClean, Unplugged, Defrosted,
-        LooseChange, FiledAway, TimeAndAHalf, AskedForIt
+        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot
     }
 
     /// <summary>One achievement: what to do, and what doing it gives.</summary>
@@ -52,7 +52,7 @@ namespace Shrunk
             new Achievement { id = AchievementId.BubbleWrap, name = "Bubble Wrap", how = "Pop 50 larva pods.", reward = "Wing Buds can now drop", item = ItemType.WingBuds },
             new Achievement { id = AchievementId.SweetTooth, name = "Sweet Tooth", how = "Blow out the Trick Candle for good.", reward = "the Gold style, and a portal under the sofa", style = "Gold", biome = "sofa" },
             new Achievement { id = AchievementId.FullPockets, name = "Full Pockets", how = "Extract with 300 samples or more.", reward = "bragging rights, and a peg on the board" },
-            new Achievement { id = AchievementId.PaperTrail, name = "Paper Trail", how = "Find every page of the notebook.", reward = "the whole story, such as it is" },
+            new Achievement { id = AchievementId.PaperTrail, name = "Paper Trail", how = "Find every page of the notebook.", reward = "a door the radio would rather you had not" },
             new Achievement { id = AchievementId.PerformanceReview, name = "Performance Review", how = "Reach the bottom, and bore the cat into leaving.", reward = "the Lab Coat style", style = "Lab Coat" },
             new Achievement { id = AchievementId.SpringClean, name = "Spring Clean", how = "Switch off the Robot Vacuum.", reward = "the Lint style, and a portal into the fridge", style = "Lint", biome = "fridge" },
             new Achievement { id = AchievementId.Unplugged, name = "Unplugged", how = "Make the Robot Vacuum's recharge fail.", reward = "nothing but the look on its face, and it hasn't got one" },
@@ -61,6 +61,7 @@ namespace Shrunk
             new Achievement { id = AchievementId.FiledAway, name = "Filed Away", how = "Get every kind of item on file in the cabinet.", reward = "the Paper style", style = "Paper" },
             new Achievement { id = AchievementId.TimeAndAHalf, name = "Time and a Half", how = "Extract from a run on overtime.", reward = "nothing extra. Read your contract" },
             new Achievement { id = AchievementId.AskedForIt, name = "Asked For It", how = "Ring 5 dare bells and live.", reward = "the Brass style", style = "Brass" },
+            new Achievement { id = AchievementId.Reboot, name = "Off and On Again", how = "Bring the machine its four parts, switch it on, and beat it.", reward = "the next cycle. It is like this one, with fewer excuses" },
         };
 
         public const int ShellsNeeded = 20, PodsNeeded = 50, ItemsNeeded = 6, SamplesNeeded = 300, MimicsNeeded = 10, DaresNeeded = 5;

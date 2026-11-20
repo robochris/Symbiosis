@@ -18,6 +18,12 @@ namespace Shrunk
 
         /// <summary>Set by the lab's hidden door: the next run is not a run but the trip to the bottom.</summary>
         public static bool Descent;
+        /// <summary>Set with Descent by the machine's panel: the trip is to the machine room, not the bottom.</summary>
+        public static bool ToMachine;
+        /// <summary>True for a run that is only the fight with the machine.</summary>
+        public bool IsMachine { get; private set; }
+        /// <summary>The machine has just been beaten: the lab has a card to show and the radio a word to say.</summary>
+        public static bool CycleCard, CycleRadio;
 
         public string labScene = "Lab";
         [Tooltip("Items handed over at the top of the way down, so the last fight is not fought bare.")]
@@ -82,6 +88,13 @@ namespace Shrunk
 
         void OnKilled(Enemy enemy)
         {
+            if (enemy is MachineBoss)
+            {
+                // Beaten, it restarts: the next cycle, with its parts out in the worlds again.
+                MachineParts.Restart();
+                CycleCard = CycleRadio = true;
+                return;
+            }
             if (!(enemy is CatBoss)) return;
             SaveSystem.Data.meta.finchBeaten++;
             SaveSystem.Save();
@@ -96,7 +109,9 @@ namespace Shrunk
             ApplyUpgrades();
 
             IsDescent = Descent && _floors.bottomBiome != null;
+            IsMachine = IsDescent && ToMachine && _floors.machineBiome != null;
             Descent = false;
+            ToMachine = false;
 
             RunSave run = SaveSystem.Data.run;
             if (IsDescent) BeginDescent();
@@ -113,7 +128,7 @@ namespace Shrunk
                 var picks = assets.items.RandomCommon(new System.Random(Random.Range(0, int.MaxValue)), descentItems);
                 foreach (var pick in picks) _player.Items.Add(pick);
             }
-            _floors.BuildBottom();
+            _floors.BuildBottom(IsMachine);
         }
 
         void ApplyUpgrades()
@@ -202,7 +217,9 @@ namespace Shrunk
                 // Back up from the bottom: what was picked up comes home, and any saved run is where it was left.
                 SaveSystem.Data.meta.samples += RunState.Samples;
                 SaveSystem.Save();
-                LastRunMessage = $"You came back up from the bottom with {RunState.Samples} samples. Dr. Finch is, on paper, still employed.";
+                LastRunMessage = IsMachine
+                    ? $"The machine has restarted. Cycle {MachineParts.Cycle + 1}: every run starts a depth harder, and the four parts are out there again."
+                    : $"You came back up from the bottom with {RunState.Samples} samples. Dr. Finch is, on paper, still employed.";
                 Fade.LoadScene(labScene);
                 return;
             }
@@ -242,7 +259,7 @@ namespace Shrunk
             SaveSystem.Save();
 
             LastRunMessage = IsDescent
-                ? "You fell at the bottom. The door is still there, whatever the radio says."
+                ? (IsMachine ? "The machine won that one. Its parts are still in. Step on the mat to go again." : "You fell at the bottom. The door is still there, whatever the radio says.")
                 : $"You fell on floor {floor}. {Mathf.RoundToInt(share * 100f)}% of your samples made it home: {kept}." + Tally();
             StartCoroutine(GoHome());
         }

@@ -89,10 +89,15 @@ namespace Shrunk
         {
             // In the lab (no floors): remark on how the last run ended, or say hello.
             if (FloorManager.Instance != null) return;
-            if (_carried.HasValue) Say(_carried.Value, null, 1.2f);
+            if (RunDirector.CycleRadio)
+            {
+                RunDirector.CycleRadio = false;
+                Say(RadioMoment.Cycle, null, 1.2f);
+            }
+            else if (_carried.HasValue) Say(_carried.Value, null, 1.2f);
             else if (SaveSystem.Data.meta.runsStarted == 0) Say(RadioMoment.Hello, null, 0.8f);
             else if (SaveSystem.Data.meta.finchBeaten > 0) Say(RadioMoment.After, null, 0.8f);
-            else if (Collar.Complete) Say(RadioMoment.Door, null, 0.8f);
+            else if (LabGrowth.Met(LabGrowth.Needs.AllNotesFound)) Say(RadioMoment.Door, null, 0.8f);
             else if (!SaveSystem.Data.run.active) Say(RadioMoment.Lab, null, 0.8f);
             _carried = null;
         }
@@ -243,7 +248,7 @@ namespace Shrunk
 
             if (floors.biome != null && floors.biome.isBottom)
             {
-                Say(RadioMoment.Bottom, null, 3.2f);
+                Say(floors.biome.id == "machine" ? RadioMoment.MachineRoom : RadioMoment.Bottom, null, 3.2f);
             }
             else if (first)
             {

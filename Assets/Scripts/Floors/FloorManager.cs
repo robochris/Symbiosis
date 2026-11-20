@@ -26,12 +26,14 @@ namespace Shrunk
         public int otherPortals = 2;
         [Tooltip("Where the lab's hidden door leads: one floor, and Dr. Finch. Never offered by a portal.")]
         public BiomeDefinition bottomBiome;
+        [Tooltip("Where the machine's panel leads once its parts are in: one floor, and the machine. Never offered by a portal.")]
+        public BiomeDefinition machineBiome;
 
-        /// <summary>Builds the bottom: the one floor behind the lab's hidden door.</summary>
-        public void BuildBottom()
+        /// <summary>Builds the bottom (the one floor behind the lab's hidden door) or the machine room.</summary>
+        public void BuildBottom(bool machine = false)
         {
             if (bottomBiome == null) return;
-            biome = bottomBiome;
+            biome = machine && machineBiome != null ? machineBiome : bottomBiome;
             depth = 1;
             BuildFloor(10);
         }

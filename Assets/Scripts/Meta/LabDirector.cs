@@ -7,6 +7,8 @@ namespace Shrunk
     /// <summary>Greets the player in the lab with how the last run went.</summary>
     public class LabDirector : MonoBehaviour
     {
+        public const string CycleLine = "The machine has restarted. Everything out there is a depth harder, and worth more. The parts are gone again.";
+        public static string CycleHeading(int cycle) => "CYCLE " + (cycle + 1);
         public const string EndingHeading = "END OF PROBATION";
         public const string EndingLine = "You are now permanent staff. Dr. Finch remains, technically, your manager.";
 
@@ -19,6 +21,13 @@ namespace Shrunk
                 meta.endingSeen = true;
                 SaveSystem.Save();
                 if (ScreenCards.Instance != null) ScreenCards.Instance.ShowCard(EndingHeading, EndingLine, 7f);
+            }
+
+            // Home from the machine: it has restarted, and so has everything else.
+            if (RunDirector.CycleCard)
+            {
+                RunDirector.CycleCard = false;
+                if (ScreenCards.Instance != null) ScreenCards.Instance.ShowCard(CycleHeading(MachineParts.Cycle), CycleLine, 6f);
             }
 
             var hud = FindAnyObjectByType<Hud>();

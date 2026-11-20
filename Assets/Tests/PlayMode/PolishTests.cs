@@ -350,7 +350,8 @@ namespace Shrunk.Tests
             stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<HiddenDoor>(), "cat flap"));
             stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<TimeClock>(), "The time clock"));
             stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<WeaponRack>(), "The equipment cupboard"));
-            Assert.AreEqual(System.Enum.GetValues(typeof(UpgradeType)).Length + 10, stations.Count);
+            stations.Add(new KeyValuePair<Component, string>(Object.FindAnyObjectByType<MachinePanel>(), "The machine"));
+            Assert.AreEqual(System.Enum.GetValues(typeof(UpgradeType)).Length + 11, stations.Count);
 
             foreach (var station in stations)
             {
@@ -451,7 +452,7 @@ namespace Shrunk.Tests
             Assert.IsTrue(shelf.jars[0].activeSelf && !shelf.jars[1].activeSelf && shelf.jars[shelf.jars.Length - 1].activeSelf);
             Vector3 at = shelf.transform.position + Vector3.up * 0.05f;
             Assert.That(WorldPrompt.For(at), Does.Contain("2 of " + Specimens.All.Length + " jars").And.Contain("Dr. Finch").And.Contain("do not tap the glass"));
-            Assert.IsNull(WorldPrompt.For(at + Vector3.right * 9f + Vector3.forward * 3f));
+            Assert.IsNull(WorldPrompt.For(at + Vector3.right * 5.5f + Vector3.forward * 6f));
             Assert.That(WorldPrompt.For(at), Does.Contain("Brood Mother"));
         }
 

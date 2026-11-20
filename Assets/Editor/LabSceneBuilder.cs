@@ -222,6 +222,21 @@ namespace Shrunk.EditorTools
             }
             cupboard.AddComponent<WeaponRack>().pieces = pieces;
 
+            // ----- the machine's panel: there from the first day, with a socket for each missing part. East of the middle. -----
+            var panel = new GameObject("Machine Panel");
+            panel.transform.position = new Vector3(4.2f, 0f, -1.2f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Console", panel.transform, new Vector3(1.9f, 0.7f, 0f), new Vector3(0.8f, 1.4f, 3.2f), benchMat, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", panel.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("MachineGlow", new Color(0.45f, 0.95f, 1f)), false);
+            var partGlow = ArenaSceneBuilder.Unlit("MachineShot", new Color(1f, 0.5f, 0.9f));
+            var lamps = new GameObject[MachineParts.All.Length];
+            for (int i = 0; i < lamps.Length; i++)
+            {
+                float z = -1.05f + i * 0.7f;
+                ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Socket " + (i + 1), panel.transform, new Vector3(1.9f, 1.45f, z), new Vector3(0.5f, 0.12f, 0.5f), black, false);
+                lamps[i] = ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Part " + (i + 1), panel.transform, new Vector3(1.9f, 1.7f, z), Vector3.one * 0.36f, partGlow, false);
+            }
+            panel.AddComponent<MachinePanel>().lamps = lamps;
+
             // ----- the hidden door: turns up with the last page, on the wall the radio never mentions -----
             var door = new GameObject("Hidden Door");
             door.transform.position = new Vector3(-8.2f, 0f, 0.8f);
@@ -256,7 +271,7 @@ namespace Shrunk.EditorTools
                 new LabGrowth.Station { name = "the record board", thing = board, needs = LabGrowth.Needs.ARunStarted },
                 new LabGrowth.Station { name = "the mirror", thing = mirror, needs = LabGrowth.Needs.AStyleUnlocked },
                 new LabGrowth.Station { name = "the evidence board", thing = evidence, needs = LabGrowth.Needs.ANoteFound },
-                new LabGrowth.Station { name = "a door that was not there before", thing = door, needs = LabGrowth.Needs.APieceFound },
+                new LabGrowth.Station { name = "a door that was not there before", thing = door, needs = LabGrowth.Needs.AllNotesFound },
                 // New stations go on the end: the save remembers which ones the player has been told about by position.
                 new LabGrowth.Station { name = "the specimen shelf", thing = shelf, needs = LabGrowth.Needs.ABossBeaten },
                 new LabGrowth.Station { name = "the power rack", thing = rack, needs = LabGrowth.Needs.ARunStarted },

@@ -157,7 +157,7 @@ namespace Shrunk
             if (floorText != null && floors != null && _shownFloor != floors.FloorNumber)
             {
                 _shownFloor = floors.FloorNumber;
-                floorText.text = floors.biome != null && floors.biome.isBottom ? "The bottom" : "Floor " + _shownFloor;
+                floorText.text = floors.biome != null && floors.biome.isBottom ? (floors.biome.id == "machine" ? "The machine room" : "The bottom") : "Floor " + _shownFloor;
                 if (floors.Twist != FloorTwist.None) floorText.text += "  ·  " + FloorTwists.Name(floors.Twist);
             }
 

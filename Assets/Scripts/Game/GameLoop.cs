@@ -18,9 +18,9 @@ namespace Shrunk
 
         /// <summary>Tests set this to turn the slow motion on or off; left alone, it is on except in headless runs.</summary>
         public static bool? SlowMotionOverride;
-        /// <summary>A boss has given up a piece of the collar for the first time.</summary>
-        public static event System.Action<CollarPiece> PieceFound;
-        public const string PieceHeading = "A PIECE OF A COLLAR";
+        /// <summary>A boss has given up its part of the machine.</summary>
+        public static event System.Action<MachinePart> PieceFound;
+        public const string PieceHeading = "A PART OF THE MACHINE";
         /// <summary>True while a boss's death is playing out slowly.</summary>
         public static bool InSlowMotion { get; private set; }
         float _speedBefore = 1f;
@@ -82,21 +82,21 @@ namespace Shrunk
             if (enemy is BossEnemy)
             {
                 SaveSystem.Data.meta.bossesBeaten++;
-                bool first = Specimens.Keep(enemy);
-                // The last boss of each biome has been carrying a piece of the cat's collar about.
-                CollarPiece piece = Collar.From(enemy);
-                if (first && piece != null)
+                Specimens.Keep(enemy);
+                // The last boss of each world has one of the machine's parts. Once a cycle, it gives it up.
+                MachinePart part = MachineParts.From(enemy);
+                if (MachineParts.Take(part))
                 {
                     // On a card of its own: the line of text under it is busy with achievements at a moment like this.
-                    string rest = Collar.Complete ? "That is all of it. Something in the lab will open now." : "The rest is with the others.";
-                    string line = $"{char.ToUpper(piece.name[0])}{piece.name.Substring(1)}. {Collar.Count} of {Collar.Pieces.Length}. {rest}";
+                    string rest = MachineParts.Complete ? "That is all four. The panel in the lab will take them." : "The rest are with the others.";
+                    string line = $"{char.ToUpper(part.name[0])}{part.name.Substring(1)}. {MachineParts.Count} of {MachineParts.All.Length}. {rest}";
                     if (ScreenCards.Instance != null) ScreenCards.Instance.ShowCard(PieceHeading, line, 4.5f);
                     else
                     {
                         var hud = FindAnyObjectByType<Hud>();
                         if (hud != null) hud.Toast(PieceHeading + ": " + line, 6f);
                     }
-                    PieceFound?.Invoke(piece);
+                    PieceFound?.Invoke(part);
                 }
                 StartCoroutine(BossDeath(enemy));
             }

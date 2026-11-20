@@ -46,6 +46,10 @@ namespace Shrunk
         Weapon,
         /// <summary>Samples traded at the exchange.</summary>
         Exchange,
+        /// <summary>Arriving in the machine room, with all four parts in.</summary>
+        MachineRoom,
+        /// <summary>Home after beating the machine: it has restarted, and a new cycle has begun.</summary>
+        Cycle,
         // From here down is chatter: said only now and then, and not at all on the Less setting.
         LowHealth,
         Item,
@@ -172,7 +176,7 @@ namespace Shrunk
                 "There is no door. If there were one, it would be locked. It isn't locked. There is no door.",
                 "I see you've found the door there isn't. Do leave it alone.",
                 "That door goes nowhere you're paid to go.",
-                "That collar isn't yours. It isn't mine either. That is rather the problem.",
+                "You read every page. I had hoped you would skim.",
             },
             [RadioMoment.Bottom] = new[]
             {
@@ -245,6 +249,18 @@ namespace Shrunk
                 "You've sold my samples. To a hatch. I'd be angrier, but it's the most business we've done all year.",
                 "Those samples were for science. Now they're for whatever that is. Carry on.",
                 "A fair trade, says the hatch. The hatch would say that.",
+            },
+            [RadioMoment.MachineRoom] = new[]
+            {
+                "You've switched it on. I'd have advised against it, which is why you didn't ask.",
+                "That's the machine with everything plugged back in. It was quieter in pieces.",
+                "All four parts. It hasn't run like this since the day I got smaller.",
+            },
+            [RadioMoment.Cycle] = new[]
+            {
+                "It's restarted. Everything out there has too. The parts are gone again; don't look at me.",
+                "You turned it off and on again. That's all anybody has ever managed with it.",
+                "Good news: it works. Bad news: it works. The worlds are a size harder now.",
             },
             [RadioMoment.LowHealth] = new[]
             {
@@ -322,6 +338,11 @@ namespace Shrunk
             {
                 "Under the sofa. Everything anybody ever lost is here. Including, for a while, me.",
                 "Dark, dusty, and the coins are the size of dinner tables. Don't get attached to one.",
+            },
+            ["machine"] = new[]
+            {
+                "That's my machine. Be gentle. No, be thorough. I can't decide.",
+                "It pulls. Walk the other way. I learned that one in person.",
             },
             ["vacuum"] = new[]
             {

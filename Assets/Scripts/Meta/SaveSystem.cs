@@ -32,6 +32,10 @@ namespace Shrunk
         public int daresWon;
         /// <summary>The weapon chosen at the equipment cupboard.</summary>
         public int weapon;
+        /// <summary>Parts of the machine brought home this cycle, by the name of the boss each came from.</summary>
+        public List<string> parts = new List<string>();
+        /// <summary>Times the machine has been beaten and has restarted. Every run starts this much deeper.</summary>
+        public int cycle;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>
         public int labSeen;
         /// <summary>Pages of Dr. Finch's notebook found, by id.</summary>

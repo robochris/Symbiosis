@@ -88,6 +88,8 @@ namespace Shrunk
                 if (meta.mimicsKilled >= Achievements.MimicsNeeded) Achievements.Unlock(AchievementId.LooseChange);
             }
 
+            if (enemy is MachineBoss) Achievements.Unlock(AchievementId.Reboot);
+
             if (enemy is CatBoss)
             {
                 Achievements.Unlock(AchievementId.PerformanceReview);

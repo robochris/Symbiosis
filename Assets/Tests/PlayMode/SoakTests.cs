@@ -340,6 +340,14 @@ namespace Shrunk.Tests
             }
         }
 
+        /// <summary>Not a test: the machine, for a bot that strafes and never dodges. Read the log.</summary>
+        [UnityTest, Explicit, Timeout(1800000)]
+        public IEnumerator Measure_machine()
+        {
+            _floors.biome = _floors.machineBiome;
+            yield return MeasureBoss(10, 905, "The Machine");
+        }
+
         /// <summary>Not a test: three late floors of the ants and of the cake, to tell a hard biome from an unlucky floor.</summary>
         [UnityTest, Explicit, Timeout(3600000)]
         public IEnumerator Measure_late_floors()

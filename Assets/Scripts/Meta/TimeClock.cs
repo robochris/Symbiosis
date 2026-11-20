@@ -21,7 +21,7 @@ namespace Shrunk
         public static bool On => SaveSystem.Data.meta.overtime && SaveSystem.Data.meta.finchBeaten > 0;
 
         /// <summary>The depth a new run starts at.</summary>
-        public static int StartDepth => On ? OvertimeDepth : 1;
+        public static int StartDepth => 1 + MachineParts.Cycle + (On ? OvertimeDepth - 1 : 0);
 
         void OnEnable()
         {
@@ -58,10 +58,11 @@ namespace Shrunk
         string Prompt(Vector3 playerPosition)
         {
             if (pad.Distance(transform.position, playerPosition) > 2.4f) return null;
-            float worth = RunDirector.RewardMultiplier(OvertimeDepth);
+            int depth = MachineParts.Cycle + OvertimeDepth;
+            float worth = RunDirector.RewardMultiplier(depth);
             return On
-                ? $"The time clock: you are on overtime. Runs start at depth {OvertimeDepth}: tougher from the first floor, samples worth ×{worth:0.#}. Step on to clock out."
-                : $"The time clock: you are on ordinary hours. Step on to clock in for overtime: runs start at depth {OvertimeDepth}, samples worth ×{worth:0.#}.";
+                ? $"The time clock: you are on overtime. Runs start at depth {depth}: tougher from the first floor, samples worth ×{worth:0.#}. Step on to clock out."
+                : $"The time clock: you are on ordinary hours. Step on to clock in for overtime: runs start at depth {depth}, samples worth ×{worth:0.#}.";
         }
     }
 }
