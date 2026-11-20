@@ -100,6 +100,20 @@ namespace Shrunk.EditorTools
             var mothPrefab = SaveEnemy(moth);
 
             // ----- two more, from floor 5 on -----
+            // Laser pointer: the Sniper. It was bought for the cat. It has found something better.
+            var pointer = Creature<SniperEnemy>("LaserPointer", 0.45f, 1.4f, 5, 0.9f, 2.2f, out var pointerModel);
+            Decor(PrimitiveType.Cylinder, "Barrel", pointerModel, new Vector3(0f, 0.75f, 0f), new Vector3(0.24f, 0.6f, 0.24f), dark).transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            Decor(PrimitiveType.Sphere, "Lens", pointerModel, new Vector3(0f, 0.75f, 0.62f), Vector3.one * 0.2f, telegraph);
+            Decor(PrimitiveType.Cube, "Foot", pointerModel, new Vector3(0f, 0.25f, 0f), new Vector3(0.3f, 0.5f, 0.4f), dark);
+            var pointerMuzzle = new GameObject("Muzzle").transform;
+            pointerMuzzle.SetParent(pointer.transform, false);
+            pointerMuzzle.localPosition = new Vector3(0f, 0.75f, 1.1f);
+            pointer.muzzle = pointerMuzzle;
+            pointer.projectilePrefab = pelletPrefab;
+            pointer.telegraphMaterial = telegraph;
+            pointer.favouredDrops = new[] { ItemType.NeedleTip, ItemType.SpareBattery };
+            var pointerPrefab = SaveEnemy(pointer);
+
             // Popcorn: the Lobber. One piece that got away, and has been throwing kernels since.
             var kernel = ArenaSceneBuilder.Unlit("PopcornKernel", new Color(1f, 0.85f, 0.35f));
             var popcorn = Creature<LobberEnemy>("Popcorn", 0.5f, 1.4f, 6, 1f, 2.3f, out var popcornModel);
@@ -257,6 +271,7 @@ namespace Shrunk.EditorTools
                 new EnemySpawnEntry { prefab = mothPrefab, weight = 2, minFloor = 4 },
                 new EnemySpawnEntry { prefab = popcornPrefab, weight = 2, minFloor = 5 },
                 new EnemySpawnEntry { prefab = remotePrefab, weight = 1, minFloor = 6 },
+                new EnemySpawnEntry { prefab = pointerPrefab, weight = 1, minFloor = 5 },
                 // The mimic is the ants' own prefab: coins are coins everywhere.
                 new EnemySpawnEntry { prefab = ants.EnemyNamed("Mimic"), weight = 1, minFloor = 4 },
             };

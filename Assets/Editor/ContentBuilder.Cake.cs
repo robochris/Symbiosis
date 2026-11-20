@@ -100,6 +100,21 @@ namespace Shrunk.EditorTools
             var flyPrefab = SaveEnemy(fly);
 
             // ----- two more, from floor 5 on -----
+            // Piping bag: the Sniper. It writes your name first, and then underlines it.
+            var piping = Creature<SniperEnemy>("PipingBag", 0.45f, 1.4f, 5, 0.9f, 2.2f, out var pipingModel);
+            Decor(PrimitiveType.Sphere, "Bag", pipingModel, new Vector3(0f, 0.75f, -0.2f), new Vector3(0.6f, 0.6f, 0.9f), white);
+            Decor(PrimitiveType.Cylinder, "Nozzle", pipingModel, new Vector3(0f, 0.75f, 0.55f), new Vector3(0.16f, 0.3f, 0.16f), ArenaSceneBuilder.Lit("PipingNozzle", new Color(0.75f, 0.77f, 0.8f), 0.9f)).transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            Decor(PrimitiveType.Sphere, "Eye L", pipingModel, new Vector3(-0.15f, 0.95f, 0.15f), Vector3.one * 0.12f, dark);
+            Decor(PrimitiveType.Sphere, "Eye R", pipingModel, new Vector3(0.15f, 0.95f, 0.15f), Vector3.one * 0.12f, dark);
+            var pipingMuzzle = new GameObject("Muzzle").transform;
+            pipingMuzzle.SetParent(piping.transform, false);
+            pipingMuzzle.localPosition = new Vector3(0f, 0.75f, 1.1f);
+            piping.muzzle = pipingMuzzle;
+            piping.projectilePrefab = sprinklePrefab;
+            piping.telegraphMaterial = telegraph;
+            piping.favouredDrops = new[] { ItemType.NeedleTip, ItemType.Sprinkles };
+            var pipingPrefab = SaveEnemy(piping);
+
             // Soda bottle: the Lobber. Shaken, and it knows it.
             var glassBrown = ArenaSceneBuilder.Lit("SodaGlass", new Color(0.3f, 0.16f, 0.08f), 0.95f);
             var fizz = ArenaSceneBuilder.Unlit("SodaFizz", new Color(0.85f, 0.6f, 0.35f));
@@ -243,6 +258,7 @@ namespace Shrunk.EditorTools
                 new EnemySpawnEntry { prefab = flyPrefab, weight = 2, minFloor = 4 },
                 new EnemySpawnEntry { prefab = sodaPrefab, weight = 2, minFloor = 5 },
                 new EnemySpawnEntry { prefab = hornPrefab, weight = 1, minFloor = 6 },
+                new EnemySpawnEntry { prefab = pipingPrefab, weight = 1, minFloor = 5 },
                 // The mimic is the ants' own prefab: coins are coins everywhere.
                 new EnemySpawnEntry { prefab = ants.EnemyNamed("Mimic"), weight = 1, minFloor = 4 },
             };

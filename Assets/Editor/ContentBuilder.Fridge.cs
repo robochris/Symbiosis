@@ -106,6 +106,21 @@ namespace Shrunk.EditorTools
             fruitFly.favouredDrops = new[] { ItemType.WingBuds, ItemType.Sprinkles };
             var fruitFlyPrefab = SaveEnemy(fruitFly);
 
+            // Cocktail stick: the Sniper. It has been through an olive and would like to go through you.
+            var stick = Creature<SniperEnemy>("CocktailStick", 0.45f, 1.4f, 5, 0.9f, 2.2f, out var stickModel);
+            Decor(PrimitiveType.Cylinder, "Stick", stickModel, new Vector3(0f, 0.75f, 0.1f), new Vector3(0.07f, 0.9f, 0.07f), ArenaSceneBuilder.Lit("CocktailStick", new Color(0.85f, 0.7f, 0.45f), 0.2f)).transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            Decor(PrimitiveType.Sphere, "Olive", stickModel, new Vector3(0f, 0.75f, -0.3f), Vector3.one * 0.5f, pea);
+            Decor(PrimitiveType.Sphere, "Pimento", stickModel, new Vector3(0f, 0.75f, -0.08f), Vector3.one * 0.2f, ketchup);
+            Decor(PrimitiveType.Cube, "Foot", stickModel, new Vector3(0f, 0.25f, -0.3f), new Vector3(0.25f, 0.5f, 0.25f), dark);
+            var stickMuzzle = new GameObject("Muzzle").transform;
+            stickMuzzle.SetParent(stick.transform, false);
+            stickMuzzle.localPosition = new Vector3(0f, 0.75f, 1.1f);
+            stick.muzzle = stickMuzzle;
+            stick.projectilePrefab = squirtPrefab;
+            stick.telegraphMaterial = telegraph;
+            stick.favouredDrops = new[] { ItemType.NeedleTip, ItemType.IceCube };
+            var stickPrefab = SaveEnemy(stick);
+
             // Yogurt pot: the Lobber. Best before a date nobody can read any more.
             var pot = Creature<LobberEnemy>("YogurtPot", 0.5f, 1.3f, 6, 1f, 2.2f, out var potModel);
             Decor(PrimitiveType.Cylinder, "Pot", potModel, new Vector3(0f, 0.5f, 0f), new Vector3(0.85f, 0.5f, 0.85f), white);
@@ -240,6 +255,7 @@ namespace Shrunk.EditorTools
                 new EnemySpawnEntry { prefab = fruitFlyPrefab, weight = 2, minFloor = 4 },
                 new EnemySpawnEntry { prefab = potPrefab, weight = 2, minFloor = 5 },
                 new EnemySpawnEntry { prefab = sodaPrefab, weight = 1, minFloor = 6 },
+                new EnemySpawnEntry { prefab = stickPrefab, weight = 1, minFloor = 5 },
                 // The mimic is the ants' own prefab: coins are coins everywhere.
                 new EnemySpawnEntry { prefab = ants.EnemyNamed("Mimic"), weight = 1, minFloor = 4 },
             };
