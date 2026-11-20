@@ -44,6 +44,9 @@ namespace Shrunk
         /// <summary>The best timed round on the lab's firing range, and whether the vent behind it has been emptied.</summary>
         public int rangeBest;
         public bool rangeSecret;
+        /// <summary>Fortunes read at the machine so far, and coins a lucky one has put by for the next run.</summary>
+        public int fortunesRead;
+        public int luckyCoins;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>
         public int labSeen;
         /// <summary>Pages of Dr. Finch's notebook found, by id.</summary>

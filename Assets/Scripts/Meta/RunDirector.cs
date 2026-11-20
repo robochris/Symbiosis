@@ -144,6 +144,12 @@ namespace Shrunk
         {
             SaveSystem.Data.meta.runsStarted++;
             if (Upgrades.StartCoins > 0) RunState.AddCoins(Upgrades.StartCoins);
+            // A lucky fortune, read in the lab before setting out.
+            if (SaveSystem.Data.meta.luckyCoins > 0)
+            {
+                RunState.AddCoins(SaveSystem.Data.meta.luckyCoins);
+                SaveSystem.Data.meta.luckyCoins = 0;
+            }
 
             var assets = GameAssets.Instance;
             if (Upgrades.StartsWithItem && assets != null && assets.items != null && _player.Items != null)

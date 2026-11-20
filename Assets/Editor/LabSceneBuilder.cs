@@ -345,6 +345,15 @@ namespace Shrunk.EditorTools
             boardText.text = "BEST 0";
             range.AddComponent<FiringRange>().board = boardText;
 
+            // The fortune machine, against the west wall of the range, by the door.
+            var fortune = new GameObject("Fortune Machine");
+            fortune.transform.position = new Vector3(-6.2f, 0f, -11f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Cabinet", fortune.transform, new Vector3(-1.4f, 1.1f, 0f), new Vector3(0.9f, 2.2f, 1.2f), cork, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Window", fortune.transform, new Vector3(-0.94f, 1.5f, 0f), new Vector3(0.04f, 0.8f, 0.9f), paper, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Sphere, "Ball", fortune.transform, new Vector3(-1.4f, 2.45f, 0f), Vector3.one * 0.55f, ArenaSceneBuilder.Unlit("MachineShot", new Color(1f, 0.5f, 0.9f)), false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", fortune.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), paper, false);
+            fortune.AddComponent<FortuneMachine>();
+
             // Crates in the far corner, and behind them, out of sight of the firing line, the vent.
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Crate A", rangeRoom, new Vector3(9.6f, 0.9f, -10.6f), new Vector3(1.8f, 1.8f, 1.8f), benchMat, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Crate B", rangeRoom, new Vector3(9.3f, 2.3f, -10.4f), new Vector3(1.2f, 1f, 1.2f), cork, true);

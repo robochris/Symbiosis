@@ -141,6 +141,50 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_fortune_machine_reads_one_a_visit_and_a_lucky_one_pays()
+        {
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var machine = Object.FindAnyObjectByType<FortuneMachine>();
+            Assert.IsNotNull(machine, "no fortune machine");
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            Assert.That(WorldPrompt.For(machine.transform.position), Does.Contain("fortune machine"));
+            foreach (string fortune in FortuneMachine.Fortunes) Assert.LessOrEqual(fortune.Length, 110, "too long to read: " + fortune);
+
+            // Stepping on the mat reads one; a second step this visit reads nothing.
+            machine.rigged = true;
+            player.Teleport(machine.transform.position + new Vector3(3f, 0.05f, 0f));
+            yield return null;
+            player.Teleport(machine.transform.position + Vector3.up * 0.05f);
+            yield return new WaitForSeconds(0.3f);
+            Assert.IsTrue(machine.Used);
+            Assert.AreEqual(FortuneMachine.Fortunes[0], machine.Last);
+            Assert.That(Object.FindAnyObjectByType<Hud>().LastToast, Does.Contain(machine.Last).And.Contain("lucky"));
+            Assert.AreEqual(FortuneMachine.LuckyCoins, SaveSystem.Data.meta.luckyCoins);
+            Assert.IsFalse(machine.Read());
+            Assert.That(WorldPrompt.For(machine.transform.position), Does.Contain("one a visit"));
+
+            // The lucky coins are in hand at the start of the next run, once.
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            Assert.AreEqual(FortuneMachine.LuckyCoins, RunState.Coins, "the lucky fortune paid nothing");
+            Assert.AreEqual(0, SaveSystem.Data.meta.luckyCoins);
+
+            // Next visit: a different fortune.
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            machine = Object.FindAnyObjectByType<FortuneMachine>();
+            machine.rigged = false;
+            Assert.IsTrue(machine.Read());
+            Assert.AreEqual(FortuneMachine.Fortunes[1], machine.Last);
+            Assert.AreEqual(0, SaveSystem.Data.meta.luckyCoins, "an ordinary fortune paid");
+        }
+
+        [UnityTest]
         public IEnumerator The_vent_behind_the_crates_pays_out_once()
         {
             SceneManager.LoadScene("Lab");
