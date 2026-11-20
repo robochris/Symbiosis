@@ -41,6 +41,9 @@ namespace Shrunk
         public List<int> jobProgress = new List<int>();
         public int jobsDone;
         public int jobsDealt;
+        /// <summary>The best timed round on the lab's firing range, and whether the vent behind it has been emptied.</summary>
+        public int rangeBest;
+        public bool rangeSecret;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>
         public int labSeen;
         /// <summary>Pages of Dr. Finch's notebook found, by id.</summary>

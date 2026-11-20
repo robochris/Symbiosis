@@ -702,6 +702,39 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_range()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            SaveSystem.Data.meta.runsStarted = 2;
+            SaveSystem.Data.meta.labSeen = ~0;
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            var range = Object.FindAnyObjectByType<FiringRange>();
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            CameraFollow.Instance.SetMode(CameraMode.Shoulder);
+
+            player.Teleport(range.transform.position + new Vector3(-1.5f, 0.05f, 0f));
+            CameraFollow.Instance.AddLook(Mathf.DeltaAngle(CameraFollow.Instance.LookYaw, 90f), 0f);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.8f);
+            yield return Screen(Path.Combine(folder, "range.png"));
+
+            // From the lab, looking at the doorway.
+            player.Teleport(new Vector3(2.6f, 0.05f, -3.5f));
+            CameraFollow.Instance.AddLook(Mathf.DeltaAngle(CameraFollow.Instance.LookYaw, 180f), 0f);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.8f);
+            yield return Screen(Path.Combine(folder, "range-door.png"));
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_evidence()
         {
             SaveSystem.Profile = "tests";

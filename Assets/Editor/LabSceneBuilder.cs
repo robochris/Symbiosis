@@ -35,7 +35,12 @@ namespace Shrunk.EditorTools
             var room = new GameObject("Lab Room").transform;
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Floor", room, new Vector3(0f, -0.5f, 0f), new Vector3(halfWidth * 2f, 1f, halfDepth * 2f), floorMat, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall North", room, new Vector3(0f, height * 0.5f, halfDepth + 0.5f), new Vector3(halfWidth * 2f + 2f, height, 1f), wallMat, true);
-            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall South", room, new Vector3(0f, height * 0.5f, -halfDepth - 0.5f), new Vector3(halfWidth * 2f + 2f, height, 1f), wallMat, true);
+            // The south wall has a doorway in it, between the portal and the power rack: the way to the firing range.
+            const float doorLeft = 1.6f, doorRight = 3.6f, doorHeight = 3.2f;
+            float southZ = -halfDepth - 0.5f, wallLeft = -halfWidth - 1f, wallRight = halfWidth + 1f;
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall South W", room, new Vector3((wallLeft + doorLeft) * 0.5f, height * 0.5f, southZ), new Vector3(doorLeft - wallLeft, height, 1f), wallMat, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall South E", room, new Vector3((doorRight + wallRight) * 0.5f, height * 0.5f, southZ), new Vector3(wallRight - doorRight, height, 1f), wallMat, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall South Lintel", room, new Vector3((doorLeft + doorRight) * 0.5f, (doorHeight + height) * 0.5f, southZ), new Vector3(doorRight - doorLeft, height - doorHeight, 1f), wallMat, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall East", room, new Vector3(halfWidth + 0.5f, height * 0.5f, 0f), new Vector3(1f, height, halfDepth * 2f), wallMat, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall West", room, new Vector3(-halfWidth - 0.5f, height * 0.5f, 0f), new Vector3(1f, height, halfDepth * 2f), wallMat, true);
 
@@ -250,6 +255,80 @@ namespace Shrunk.EditorTools
                 slip.transform.localRotation = Quaternion.Euler((i * 5) - 5f, 0f, 0f);
             }
             notices.AddComponent<JobBoard>();
+
+            // ----- the firing range: its own room, through the doorway in the south wall -----
+            // Twenty metres by twelve. The firing line is at the west end; the targets stand toward the east.
+            const float rangeLeft = -8f, rangeRight = 12f, rangeNear = -9f, rangeFar = -21f;
+            float rangeX = (rangeLeft + rangeRight) * 0.5f, rangeZ = (rangeNear + rangeFar) * 0.5f;
+            var rangeRoom = new GameObject("Range Room").transform;
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Floor", rangeRoom, new Vector3(rangeX, -0.5f, rangeZ), new Vector3(rangeRight - rangeLeft, 1f, rangeNear - rangeFar), floorMat, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall South", rangeRoom, new Vector3(rangeX, height * 0.5f, rangeFar - 0.5f), new Vector3(rangeRight - rangeLeft + 2f, height, 1f), wallMat, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall East", rangeRoom, new Vector3(rangeRight + 0.5f, height * 0.5f, rangeZ), new Vector3(1f, height, rangeNear - rangeFar), wallMat, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall West", rangeRoom, new Vector3(rangeLeft - 0.5f, height * 0.5f, rangeZ), new Vector3(1f, height, rangeNear - rangeFar), wallMat, true);
+            var rangeRoof = ArenaSceneBuilder.Primitive(PrimitiveType.Quad, "Ceiling", rangeRoom, new Vector3(rangeX, height, rangeZ), new Vector3(rangeRight - rangeLeft + 2f, rangeNear - rangeFar + 2f, 1f), wallMat, true);
+            rangeRoof.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
+            // A sign over the doorway, on the lab's side.
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Range Sign", rangeRoom, new Vector3(2.6f, 3.7f, -7.95f), new Vector3(1.8f, 0.5f, 0.08f), paper, false);
+
+            var rangeRed = ArenaSceneBuilder.Unlit("Telegraph", new Color(1f, 0.25f, 0.2f));
+            var range = new GameObject("Firing Range");
+            range.transform.position = new Vector3(-5.5f, 0f, -15f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", range.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), rangeRed, false);
+            // The firing line, painted on the floor.
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Line", range.transform, new Vector3(2.2f, 0.01f, 0f), new Vector3(0.2f, 0.02f, 11f), paper, false);
+
+            // Five targets: three standing at different distances, two sliding across.
+            var targetSpots = new[] { new Vector3(3f, 0f, -12f), new Vector3(6f, 0f, -18.5f), new Vector3(8.5f, 0f, -13.5f), new Vector3(5f, 0f, -15.5f), new Vector3(10f, 0f, -16.5f) };
+            var targetSlides = new[] { Vector3.zero, Vector3.zero, Vector3.zero, new Vector3(0f, 0f, 2.2f), new Vector3(0f, 0f, 3f) };
+            for (int i = 0; i < targetSpots.Length; i++)
+            {
+                var target = new GameObject("Target " + (i + 1));
+                target.transform.position = targetSpots[i];
+                ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Post", target.transform, new Vector3(0f, 0.3f, 0f), new Vector3(0.12f, 0.6f, 0.12f), benchMat, false);
+                var face = new GameObject("Face");
+                face.transform.SetParent(target.transform, false);
+                // Discs on edge, facing the firing line: red, white, red.
+                var outer = ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Outer", face.transform, new Vector3(0f, 1.1f, 0f), new Vector3(1.1f, 0.05f, 1.1f), rangeRed, false);
+                var middle = ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Middle", face.transform, new Vector3(-0.03f, 1.1f, 0f), new Vector3(0.72f, 0.05f, 0.72f), paper, false);
+                var bull = ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Bull", face.transform, new Vector3(-0.06f, 1.1f, 0f), new Vector3(0.3f, 0.05f, 0.3f), rangeRed, false);
+                foreach (var disc in new[] { outer, middle, bull }) disc.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                var hit = target.AddComponent<SphereCollider>();
+                hit.center = new Vector3(0f, 1.1f, 0f);
+                hit.radius = 0.6f;
+                var targetHealth = target.AddComponent<Health>();
+                targetHealth.team = Team.Enemy;
+                targetHealth.maxHealth = 1;
+                var rangeTarget = target.AddComponent<RangeTarget>();
+                rangeTarget.face = face;
+                rangeTarget.slide = targetSlides[i];
+                rangeTarget.slideSeconds = 3f + i * 0.4f;
+            }
+
+            // The board on the far wall.
+            var rangeBoard = new GameObject("Range Board");
+            rangeBoard.transform.position = new Vector3(rangeRight - 0.15f, 3.9f, -15f);
+            rangeBoard.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+            var boardText = rangeBoard.AddComponent<TextMesh>();
+            Font rangeFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            boardText.font = rangeFont;
+            rangeBoard.GetComponent<MeshRenderer>().sharedMaterial = rangeFont.material;
+            boardText.fontSize = 96;
+            boardText.characterSize = 0.11f;
+            boardText.anchor = TextAnchor.MiddleCenter;
+            boardText.alignment = TextAlignment.Center;
+            boardText.color = new Color(1f, 0.95f, 0.7f);
+            boardText.text = "BEST 0";
+            range.AddComponent<FiringRange>().board = boardText;
+
+            // Crates in the far corner, and behind them, out of sight of the firing line, the vent.
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Crate A", rangeRoom, new Vector3(9.6f, 0.9f, -10.6f), new Vector3(1.8f, 1.8f, 1.8f), benchMat, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Crate B", rangeRoom, new Vector3(9.3f, 2.3f, -10.4f), new Vector3(1.2f, 1f, 1.2f), cork, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Crate C", rangeRoom, new Vector3(8f, 0.6f, -10f), new Vector3(1.2f, 1.2f, 1.2f), cork, true);
+            var vent = new GameObject("Range Vent");
+            vent.transform.position = new Vector3(11.2f, 0f, -9.9f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Vent", vent.transform, new Vector3(0.72f, 0.5f, 0f), new Vector3(0.08f, 0.8f, 1f), black, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Cover", vent.transform, new Vector3(0.3f, 0.05f, 0.9f), new Vector3(0.9f, 0.06f, 1.1f), benchMat, false);
+            vent.AddComponent<RangeVent>();
 
             // ----- the hidden door: turns up with the last page, on the wall the radio never mentions -----
             var door = new GameObject("Hidden Door");
