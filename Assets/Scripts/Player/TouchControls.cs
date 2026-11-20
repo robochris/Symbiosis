@@ -6,7 +6,8 @@ using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 namespace Shrunk
 {
     /// <summary>
-    /// Twin floating joysticks: a thumb anywhere on one half of the screen moves, the other half aims and fires.
+    /// Twin sticks. The move stick stays where it is drawn: a thumb anywhere on its half of the screen is read from the
+    /// stick's own centre. The look stick floats: it starts wherever the thumb lands on the other half.
     /// Hidden on PC. Lives on the HUD canvas, which must be Screen Space - Overlay.
     /// </summary>
     public class TouchControls : MonoBehaviour
@@ -140,14 +141,15 @@ namespace Shrunk
                     }
 
                     bool onMoveSide = (position.x < Screen.width * 0.5f) != leftHanded;
-                    if (onMoveSide && _moveId < 0) { _moveId = touch.touchId; _moveOrigin = position; }
+                    // The move stick does not come to the thumb: its centre is where it is drawn.
+                    if (onMoveSide && _moveId < 0) { _moveId = touch.touchId; _moveOrigin = _moveRest; }
                     else if (!onMoveSide && _aimId < 0) { _aimId = touch.touchId; _aimOrigin = position; }
                 }
 
                 if (touch.touchId == _moveId)
                 {
                     if (ended) _moveId = -1;
-                    else { moveSeen = true; Move = ReadStick(position, ref _moveOrigin, radius); }
+                    else { moveSeen = true; Move = ReadFixedStick(position, _moveOrigin, radius); }
                 }
                 else if (touch.touchId == _aimId)
                 {
@@ -162,6 +164,9 @@ namespace Shrunk
             Draw(moveBase, moveKnob, moveSeen, _moveOrigin, Move, radius, _moveRest);
             Draw(aimBase, aimKnob, aimSeen, _aimOrigin, Aim, radius, _aimRest);
         }
+
+        // A stick that stays put: past full tilt it is simply full tilt.
+        static Vector2 ReadFixedStick(Vector2 position, Vector2 origin, float radius) => Vector2.ClampMagnitude((position - origin) / radius, 1f);
 
         // The stick's centre follows the thumb once it is dragged past full tilt, so the thumb never "falls off" the stick.
         static Vector2 ReadStick(Vector2 position, ref Vector2 origin, float radius)

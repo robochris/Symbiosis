@@ -77,7 +77,7 @@ namespace Shrunk
             Add("Resume", null, Close);
             Add("Camera", () => CameraName(GameSettings.Camera), () => GameSettings.Camera = CameraFollow.After(GameSettings.Camera));
             Add("Aim assist", () => Level(GameSettings.AimAssist, "Off", "Low", "Medium", "Full"), () => GameSettings.AimAssist = Next(GameSettings.AimAssist, 0f, 0.35f, 0.7f, 1f));
-            Add("Look speed", () => Level((GameSettings.LookSpeed - 0.6f) / 0.9f, "Slow", "Normal", "Fast"), () => GameSettings.LookSpeed = Next(GameSettings.LookSpeed, 0.6f, 1f, 1.5f));
+            Add("Look speed", () => Level((GameSettings.LookSpeed - 0.4f) / 1.1f, "Slowest", "Slow", "Normal", "Fast"), () => GameSettings.LookSpeed = Next(GameSettings.LookSpeed, 0.4f, 0.6f, 1f, 1.5f));
             Add("Looking up and down", () => GameSettings.LockVertical ? "Locked" : "Free", () => GameSettings.LockVertical = !GameSettings.LockVertical);
             Add("Touch controls", () => GameSettings.LeftHanded ? "Left-handed" : "Right-handed", () => GameSettings.LeftHanded = !GameSettings.LeftHanded);
             Add("Enemy arrows", () => GameSettings.EnemyArrows ? "On" : "Off", () => GameSettings.EnemyArrows = !GameSettings.EnemyArrows);

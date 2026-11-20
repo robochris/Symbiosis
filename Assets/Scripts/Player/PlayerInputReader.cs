@@ -35,6 +35,8 @@ namespace Shrunk
         public float mouseSensitivity = 0.12f;
         [Tooltip("Degrees per second at full tilt of the right stick or right thumb.")]
         public float stickLookSpeed = 200f;
+        [Tooltip("Degrees a second at full tilt of the on-screen look stick. Lower than a pad's: the first phone test found 200 far too quick.")]
+        public float touchLookSpeed = 120f;
         public float aimPointRange = 40f;
 
         /// <summary>When set, replaces real input. Used by tests.</summary>
@@ -92,8 +94,9 @@ namespace Shrunk
             if (usingTouch)
             {
                 // Right thumb turns the view. Shots fire by themselves when an enemy is in the sights.
+                // Gentler than a pad's stick, and gentlest near the middle: a small nudge of the thumb is a small turn.
                 Vector2 stick = touch.Aim;
-                float lookSpeed = stickLookSpeed * GameSettings.LookSpeed;
+                float lookSpeed = touchLookSpeed * GameSettings.LookSpeed * stick.magnitude;
                 if (stick.magnitude > aimDeadzone) follow.AddLook(stick.x * lookSpeed * Time.deltaTime, stick.y * lookSpeed * 0.5f * Time.deltaTime);
                 move = touch.Move;
             }
