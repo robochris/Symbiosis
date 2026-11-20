@@ -40,6 +40,8 @@ namespace Shrunk.EditorTools
             float southZ = -halfDepth - 0.5f, wallLeft = -halfWidth - 1f, wallRight = halfWidth + 1f;
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall South W", room, new Vector3((wallLeft + doorLeft) * 0.5f, height * 0.5f, southZ), new Vector3(doorLeft - wallLeft, height, 1f), wallMat, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall South E", room, new Vector3((doorRight + wallRight) * 0.5f, height * 0.5f, southZ), new Vector3(wallRight - doorRight, height, 1f), wallMat, true);
+            // The floor under the doorway: the wall is a metre thick, and the two rooms' floors stop either side of it.
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Threshold", room, new Vector3((doorLeft + doorRight) * 0.5f, -0.5f, southZ), new Vector3(doorRight - doorLeft + 0.4f, 1f, 1.4f), floorMat, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall South Lintel", room, new Vector3((doorLeft + doorRight) * 0.5f, (doorHeight + height) * 0.5f, southZ), new Vector3(doorRight - doorLeft, height - doorHeight, 1f), wallMat, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall East", room, new Vector3(halfWidth + 0.5f, height * 0.5f, 0f), new Vector3(1f, height, halfDepth * 2f), wallMat, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall West", room, new Vector3(-halfWidth - 0.5f, height * 0.5f, 0f), new Vector3(1f, height, halfDepth * 2f), wallMat, true);
@@ -329,6 +331,27 @@ namespace Shrunk.EditorTools
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Vent", vent.transform, new Vector3(0.72f, 0.5f, 0f), new Vector3(0.08f, 0.8f, 1f), black, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Cover", vent.transform, new Vector3(0.3f, 0.05f, 0.9f), new Vector3(0.9f, 0.06f, 1.1f), benchMat, false);
             vent.AddComponent<RangeVent>();
+
+            // ----- Dr. Finch's radio set, on a stand by the west wall. It can be shot. He would rather it were not. -----
+            var radioSet = new GameObject("Finch's Radio");
+            radioSet.transform.position = new Vector3(-10.2f, 0f, 2.7f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Stand", radioSet.transform, new Vector3(0f, 0.4f, 0f), new Vector3(0.7f, 0.8f, 0.7f), benchMat, false);
+            var radioFace = new GameObject("Face");
+            radioFace.transform.SetParent(radioSet.transform, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Set", radioFace.transform, new Vector3(0f, 1.1f, 0f), new Vector3(0.6f, 0.6f, 0.9f), cork, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Speaker", radioFace.transform, new Vector3(0.31f, 1.1f, -0.15f), new Vector3(0.4f, 0.02f, 0.4f), black, false).transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Dial", radioFace.transform, new Vector3(0.31f, 1.2f, 0.28f), new Vector3(0.02f, 0.12f, 0.2f), paper, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Aerial", radioFace.transform, new Vector3(-0.15f, 1.9f, 0.3f), new Vector3(0.03f, 1f, 0.03f), benchMat, false);
+            var radioHit = radioSet.AddComponent<SphereCollider>();
+            radioHit.center = new Vector3(0f, 1.1f, 0f);
+            radioHit.radius = 0.55f;
+            var radioHealth = radioSet.AddComponent<Health>();
+            radioHealth.team = Team.Enemy;
+            radioHealth.maxHealth = 1;
+            var radioTarget = radioSet.AddComponent<RangeTarget>();
+            radioTarget.face = radioFace;
+            radioTarget.isRadio = true;
+            radioTarget.standsUpAfter = 2.5f;
 
             // ----- the hidden door: turns up with the last page, on the wall the radio never mentions -----
             var door = new GameObject("Hidden Door");

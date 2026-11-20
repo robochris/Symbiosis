@@ -200,6 +200,8 @@ namespace Shrunk
         {
             // The run was saved at the start of this floor; it carries on from there next time.
             SaveSystem.Save();
+            RunSave run = SaveSystem.Data.run;
+            if (run.active) RunDirector.LastRunMessage = $"Run saved at the start of floor {run.floorNumber}. The portal will take you back to it.";
             Close();
             Fade.LoadScene(labScene);
         }

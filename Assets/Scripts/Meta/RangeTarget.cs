@@ -20,6 +20,8 @@ namespace Shrunk
         public Vector3 slide;
         public float slideSeconds = 3f;
         public float standsUpAfter = 1.2f;
+        [Tooltip("This one is Dr. Finch's radio set, not a target: shooting it counts for nothing and he says so.")]
+        public bool isRadio;
 
         public bool IsDown { get; private set; }
 
@@ -53,7 +55,11 @@ namespace Shrunk
             if (_collider != null) _collider.enabled = false;
             Fx.Burst(transform.position + Vector3.up, new Color(1f, 0.35f, 0.3f), 14, 5f, 0.16f, 0.4f);
             Sfx.Play(SfxId.Hit);
-            Popped?.Invoke(this);
+            if (isRadio)
+            {
+                if (Radio.Instance != null) Radio.Instance.Say(RadioMoment.ShotRadio);
+            }
+            else Popped?.Invoke(this);
             StartCoroutine(StandUp());
         }
 

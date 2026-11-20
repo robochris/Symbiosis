@@ -50,6 +50,8 @@ namespace Shrunk
         MachineRoom,
         /// <summary>Home after beating the machine: it has restarted, and a new cycle has begun.</summary>
         Cycle,
+        /// <summary>The player has shot the radio set in the lab.</summary>
+        ShotRadio,
         // From here down is chatter: said only now and then, and not at all on the Less setting.
         LowHealth,
         Item,
@@ -261,6 +263,14 @@ namespace Shrunk
                 "It's restarted. Everything out there has too. The parts are gone again; don't look at me.",
                 "You turned it off and on again. That's all anybody has ever managed with it.",
                 "Good news: it works. Bad news: it works. The worlds are a size harder now.",
+            },
+            [RadioMoment.ShotRadio] = new[]
+            {
+                "Ow. That's the radio. I'm not in the radio. It still stings, somehow.",
+                "You've shot the radio. It was a gift. From me, to me.",
+                "Please stop shooting the radio. It's the only thing in there that agrees with me.",
+                "That's coming out of your samples. Everything is. This too.",
+                "I felt that. I shouldn't have. We'll both pretend I didn't.",
             },
             [RadioMoment.LowHealth] = new[]
             {

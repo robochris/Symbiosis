@@ -76,11 +76,24 @@ namespace Shrunk
             Write();
         }
 
+        RangeTarget[] _targets;
+
         void OnPopped(RangeTarget target)
         {
             Hits++;
             if (Running) RoundHits++;
             Write();
+
+            // All of them down at the same moment: quick hands, and somebody noticed.
+            if (_targets == null) _targets = FindObjectsByType<RangeTarget>(FindObjectsSortMode.None);
+            int standing = 0, real = 0;
+            foreach (var each in _targets)
+            {
+                if (each == null || each.isRadio) continue;
+                real++;
+                if (!each.IsDown) standing++;
+            }
+            if (real > 1 && standing == 0) Achievements.Unlock(AchievementId.CleanSweep);
         }
 
         void Write()

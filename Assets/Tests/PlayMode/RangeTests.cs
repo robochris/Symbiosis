@@ -29,8 +29,13 @@ namespace Shrunk.Tests
             yield return null;
             var range = Object.FindAnyObjectByType<FiringRange>();
             Assert.IsNotNull(range, "the lab has no firing range");
-            var targets = Object.FindObjectsByType<RangeTarget>(FindObjectsSortMode.None);
+            var everything = Object.FindObjectsByType<RangeTarget>(FindObjectsSortMode.None);
+            var list = new System.Collections.Generic.List<RangeTarget>();
+            RangeTarget radio = null;
+            foreach (var each in everything) { if (each.isRadio) radio = each; else list.Add(each); }
+            var targets = list.ToArray();
             Assert.AreEqual(5, targets.Length);
+            Assert.IsNotNull(radio, "Finch's radio set is missing");
             var player = PlayerController.Instance;
             player.Input.overrideFrame = new InputFrame();
 
@@ -38,6 +43,21 @@ namespace Shrunk.Tests
             Assert.IsTrue(Physics.CheckSphere(new Vector3(-4f, 1f, -8.5f), 0.3f), "no south wall");
             Assert.IsTrue(Physics.CheckSphere(new Vector3(7f, 1f, -8.5f), 0.3f), "no south wall east of the doorway");
             Assert.IsFalse(Physics.CheckSphere(new Vector3(2.6f, 1f, -8.5f), 0.6f), "the doorway to the range is blocked");
+
+            // There is floor all the way through it: under the doorway itself, and a step either side.
+            foreach (float z in new[] { -7.6f, -8.1f, -8.5f, -8.9f, -9.4f })
+            {
+                foreach (float x in new[] { 1.9f, 2.6f, 3.3f })
+                {
+                    Assert.IsTrue(Physics.Raycast(new Vector3(x, 1f, z), Vector3.down, out var ground, 1.5f), $"no floor in the doorway at {x}, {z}");
+                    Assert.AreEqual(0f, ground.point.y, 0.02f, $"a step or a hole in the doorway at {x}, {z}");
+                }
+            }
+
+            // Stood still in the doorway, the player stays there.
+            player.Teleport(new Vector3(2.6f, 0.05f, -8.5f));
+            yield return new WaitForSeconds(0.6f);
+            Assert.Greater(player.transform.position.y, -0.1f, "the player fell through the doorway");
 
             // Walk through it, the way a person would.
             player.Teleport(new Vector3(2.6f, 0.05f, -6.5f));
@@ -86,6 +106,22 @@ namespace Shrunk.Tests
             Assert.AreEqual(2, FiringRange.Best);
             Assert.That(range.board.text, Does.Contain("BEST 2"));
             Assert.That(Object.FindAnyObjectByType<Hud>().LastToast, Does.Contain("new best"));
+
+            // Every target down at the same moment.
+            yield return new WaitForSeconds(1.6f);
+            Assert.IsFalse(Achievements.Has(AchievementId.CleanSweep));
+            foreach (var target in targets) target.GetComponent<Health>().Kill();
+            yield return null;
+            Assert.IsTrue(Achievements.Has(AchievementId.CleanSweep));
+
+            // The radio set is not a target: shooting it scores nothing, and Finch has something to say.
+            int hits = range.Hits;
+            Radio.Forget();
+            radio.GetComponent<Health>().Kill();
+            yield return null;
+            Assert.IsTrue(radio.IsDown);
+            Assert.AreEqual(hits, range.Hits, "shooting the radio scored on the range");
+            Assert.AreEqual(RadioMoment.ShotRadio, Radio.Instance.LastMoment, "Finch let that pass");
         }
 
         [UnityTest]

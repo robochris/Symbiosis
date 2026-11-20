@@ -8,7 +8,7 @@ namespace Shrunk
         FirstSteps, MothersDay, Regicide, Untouchable, Omelette, HandsOff,
         Deeper, Hoarder, ShellShock, BubbleWrap, SweetTooth, FullPockets,
         PaperTrail, PerformanceReview, SpringClean, Unplugged, Defrosted,
-        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot
+        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot, CleanSweep
     }
 
     /// <summary>One achievement: what to do, and what doing it gives.</summary>
@@ -62,6 +62,7 @@ namespace Shrunk
             new Achievement { id = AchievementId.TimeAndAHalf, name = "Time and a Half", how = "Extract from a run on overtime.", reward = "nothing extra. Read your contract" },
             new Achievement { id = AchievementId.AskedForIt, name = "Asked For It", how = "Ring 5 dare bells and live.", reward = "the Brass style", style = "Brass" },
             new Achievement { id = AchievementId.Reboot, name = "Off and On Again", how = "Bring the machine its four parts, switch it on, and beat it.", reward = "the next cycle. It is like this one, with fewer excuses" },
+            new Achievement { id = AchievementId.CleanSweep, name = "Clean Sweep", how = "Have every target on the range down at the same moment.", reward = "nothing. It was noticed, though" },
         };
 
         public const int ShellsNeeded = 20, PodsNeeded = 50, ItemsNeeded = 6, SamplesNeeded = 300, MimicsNeeded = 10, DaresNeeded = 5;
