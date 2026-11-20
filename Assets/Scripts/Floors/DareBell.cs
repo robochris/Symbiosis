@@ -3,9 +3,10 @@ using UnityEngine;
 namespace Shrunk
 {
     /// <summary>
-    /// A dare: a bell left in the middle of a room that has just been cleared. Stand on its mat for a moment and the
-    /// doors shut again on a second, worse wave with an elite in it; beat that and an item is left where the bell
-    /// was. It is never rung by walking past: it takes standing still. One a floor at most. Made by the floor.
+    /// A dare: the bell in the middle of the dare room, a quiet dead end marked in red on the map. Stand on its mat
+    /// for a moment and the doors shut on a wave bigger than an ordinary room's, with an elite in it; beat that and
+    /// an item is left where the bell was. It is never rung by walking past: it takes standing still. Nothing is
+    /// asked of the player first: any health, any time, or never. Made by the floor.
     /// </summary>
     public class DareBell : MonoBehaviour
     {
@@ -84,7 +85,7 @@ namespace Shrunk
             Vector3 to = playerPosition - transform.position;
             to.y = 0f;
             if (to.magnitude > 3.2f) return null;
-            return "A dare: ring it and the doors shut on something worse.\nBeat that and there is a prize. Stand still on the mat to ring it.";
+            return "A dare: ring it and the doors shut on a fight worse than most.\nBeat that and there is a prize. Stand still on the mat to ring it.";
         }
     }
 }

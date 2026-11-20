@@ -151,9 +151,10 @@ namespace Shrunk.Tests
                     foreach (var node in plain.ordered)
                     {
                         // An ordinary room may be swallowed by the arena; nothing else changes.
-                        if (layout.rooms[node.cell].type == RoomType.Arena) Assert.AreEqual(RoomType.Normal, node.type);
-                        else Assert.AreEqual(node.type, layout.rooms[node.cell].type);
-                        if (node.type != RoomType.Normal && node.type != RoomType.Exit) Assert.AreEqual(node.doors, layout.rooms[node.cell].doors, "the arena gave a " + node.type + " room a new doorway");
+                        if (layout.rooms[node.cell].type == RoomType.Arena) Assert.That(node.type, Is.EqualTo(RoomType.Normal).Or.EqualTo(RoomType.Dare));
+                        // A boss's floor has no dare room: that dead end is an ordinary room there.
+                        else Assert.AreEqual(node.type == RoomType.Dare ? RoomType.Normal : node.type, layout.rooms[node.cell].type);
+                        if (node.type != RoomType.Normal && node.type != RoomType.Exit && node.type != RoomType.Dare) Assert.AreEqual(node.doors, layout.rooms[node.cell].doors, "the arena gave a " + node.type + " room a new doorway");
                     }
                     if (!layout.hasArena) continue;
                     withArena++;

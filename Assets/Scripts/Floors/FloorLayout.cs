@@ -9,7 +9,9 @@ namespace Shrunk
     {
         Start, Normal, Exit, Treasure, Shop,
         /// <summary>One of the other three squares of a boss arena. The arena is the exit room and these three, as one big room.</summary>
-        Arena
+        Arena,
+        /// <summary>A dead end with a dare bell in it: nothing happens there unless the player rings it.</summary>
+        Dare
     }
 
     [Flags]
@@ -184,7 +186,8 @@ namespace Shrunk
                 if (taken.Add(to)) cells.Add(to);
             }
 
-            // Treasure and shop need a dead end each. If the growth didn't leave two, add them.
+            // Treasure, shop and the dare room need a dead end each. If the growth didn't leave three, add them.
+            // Boss floors ask for the same three, so a floor is laid out the same way with or without its arena.
             Dictionary<Vector2Int, int> distance;
             Vector2Int exitCell;
             List<Vector2Int> deadEnds;
@@ -193,7 +196,7 @@ namespace Shrunk
                 distance = Distances(cells, taken);
                 exitCell = Farthest(cells, distance);
                 deadEnds = DeadEnds(cells, taken, exitCell);
-                if (deadEnds.Count >= 2 || guard >= 32) break;
+                if (deadEnds.Count >= 3 || guard >= 32) break;
                 if (!TryAddDeadEnd(cells, taken, distance, rng)) break;
             }
 
@@ -222,6 +225,8 @@ namespace Shrunk
             }
             if (deadEnds.Count > 0) layout.rooms[deadEnds[0]].type = RoomType.Treasure;
             if (deadEnds.Count > 1) layout.rooms[deadEnds[1]].type = RoomType.Shop;
+            // A third dead end, where the floor happens to have one, is the dare room. Never on a boss's floor.
+            if (!bossArena && deadEnds.Count > 2) layout.rooms[deadEnds[2]].type = RoomType.Dare;
 
             if (bossArena) layout.TryAddArena();
             return layout;
@@ -335,7 +340,7 @@ namespace Shrunk
                     if (hasNeighbour && !otherHasDoor) problems.Add($"{node.cell}: neighbour {other.cell} has no door back");
                 }
 
-                if ((node.type == RoomType.Treasure || node.type == RoomType.Shop) && node.DoorCount != 1)
+                if ((node.type == RoomType.Treasure || node.type == RoomType.Shop || node.type == RoomType.Dare) && node.DoorCount != 1)
                     problems.Add($"{node.type} at {node.cell} is not a dead end");
             }
 
@@ -343,6 +348,8 @@ namespace Shrunk
             if (count[RoomType.Exit] != 1) problems.Add($"{count[RoomType.Exit]} exit rooms");
             if (count[RoomType.Treasure] != 1) problems.Add($"{count[RoomType.Treasure]} treasure rooms");
             if (count[RoomType.Shop] != 1) problems.Add($"{count[RoomType.Shop]} shop rooms");
+            if (count[RoomType.Dare] > 1) problems.Add($"{count[RoomType.Dare]} dare rooms");
+            if (count[RoomType.Dare] > 0 && hasArena) problems.Add("a dare room on a boss's floor");
             if (count[RoomType.Arena] != (hasArena ? 3 : 0)) problems.Add($"{count[RoomType.Arena]} arena squares");
             if (hasArena && (exit == null || !InArena(exit.cell))) problems.Add("the arena does not include the exit room");
             if (exit != null && exit.distance != maxDistance) problems.Add("exit is not the farthest room from the start");
@@ -392,6 +399,7 @@ namespace Shrunk
                             case RoomType.Treasure: symbol = 'T'; break;
                             case RoomType.Shop: symbol = '$'; break;
                             case RoomType.Arena: symbol = 'A'; break;
+                            case RoomType.Dare: symbol = 'D'; break;
                             default: symbol = 'o'; break;
                         }
                     }

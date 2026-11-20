@@ -27,7 +27,6 @@ namespace Shrunk.Tests
             _floors = FloorManager.Instance;
             _player.Input.overrideFrame = new InputFrame();
             _player.Health.SetInvulnerable(600f);
-            _floors.dareChanceOverride = 0f;
         }
 
         [TearDown]
@@ -50,6 +49,18 @@ namespace Shrunk.Tests
             }
             Assert.Fail("no fight room on this floor");
             return null;
+        }
+
+        // Builds floors until one has a dare room: not every layout has a third dead end to put it in.
+        IEnumerator BuildFloorWithDare(int floor)
+        {
+            for (int seed = 1; seed <= 60; seed++)
+            {
+                _floors.BuildFloor(floor, seed);
+                yield return null;
+                if (_floors.Dare != null) yield break;
+            }
+            Assert.Fail("sixty floors and not one dare room");
         }
 
         IEnumerator WaitUntil(System.Func<bool> condition, float timeout, string what)
@@ -78,10 +89,26 @@ namespace Shrunk.Tests
         }
 
         [Test]
+        public void Enough_floors_have_a_dare_room()
+        {
+            foreach (int floor in new[] { 2, 4, 8 })
+            {
+                int with = 0;
+                for (int seed = 1; seed <= 1000; seed++)
+                {
+                    var layout = FloorLayout.Generate(seed * 31 + floor, FloorLayout.RoomCountForFloor(floor), false);
+                    Assert.IsEmpty(layout.Validate(), "seed " + seed);
+                    foreach (var node in layout.ordered) if (node.type == RoomType.Dare) with++;
+                }
+                Debug.Log($"[Shrunk] DARE ROOMS floor {floor}: {with / 10f:F0}% of floors have one");
+                Assert.Greater(with, 900, $"too few floors at floor {floor} have a dare room");
+            }
+        }
+
+        [Test]
         public void Twists_only_turn_up_where_they_are_allowed()
         {
             Assert.AreEqual(0f, FloorManager.TwistChanceForAll, "the tests are running with random twists on");
-            Assert.AreEqual(0f, FloorManager.DareChanceForAll, "the tests are running with random dares on");
             Assert.AreEqual(0f, FloorManager.ExchangeChanceForAll, "the tests are running with random exchanges on");
             var biome = _floors.biome;
             for (int seed = 1; seed < 200; seed++)
@@ -234,19 +261,23 @@ namespace Shrunk.Tests
         [UnityTest]
         public IEnumerator Ringing_the_dare_brings_a_worse_wave_and_a_prize()
         {
-            _floors.dareChanceOverride = 1f;
             _floors.eliteChanceOverride = 0f;
             _floors.twistOverride = FloorTwist.None;
             SaveSystem.Data.meta.daresWon = Achievements.DaresNeeded - 1;
-            _floors.BuildFloor(3);
-            yield return null;
+            yield return BuildFloorWithDare(3);
 
-            RoomNode node = FightRoom();
+            // The dare room: a dead end, marked, quiet until asked.
+            RoomNode node = null;
+            int dareRooms = 0;
+            foreach (var each in _floors.Layout.ordered) if (each.type == RoomType.Dare) { node = each; dareRooms++; }
+            Assert.AreEqual(1, dareRooms);
+            Assert.AreEqual(1, node.DoorCount, "the dare room is not a dead end");
             Room room = _floors.RoomAt(node.cell);
-            yield return EnterFight(node);
-            Assert.IsNull(_floors.Dare, "a dare before the room was cleared");
-            yield return KillAll();
-            Assert.IsNotNull(_floors.Dare, "no dare was left");
+            Assert.AreEqual(room, _floors.Dare.room);
+            Assert.AreNotEqual(Object.FindAnyObjectByType<Minimap>().normalColor, Object.FindAnyObjectByType<Minimap>().dareColor);
+            _player.Teleport(Beside(node));
+            yield return new WaitForSeconds(0.5f);
+            Assert.IsFalse(_floors.IsLocked, "the dare room started a fight nobody asked for");
             Assert.That(WorldPrompt.For(room.Centre), Does.Contain("dare").IgnoreCase);
 
             // Crossing the mat does not ring it.
@@ -290,10 +321,8 @@ namespace Shrunk.Tests
             Assert.IsTrue(Achievements.Has(AchievementId.AskedForIt));
             Assert.IsTrue(Achievements.StyleUnlocked("Brass"));
 
-            // One a floor.
-            yield return EnterFight(FightRoom());
-            yield return KillAll();
-            Assert.IsTrue(_floors.Dare == null, "a second dare on the same floor");
+            // Hurt and nearly dead is allowed too: nothing is asked of the player before ringing.
+            Assert.IsTrue(_floors.Dare == null, "the bell came back");
         }
 
         [UnityTest]
@@ -346,12 +375,16 @@ namespace Shrunk.Tests
         [UnityTest]
         public IEnumerator The_first_floor_never_dares_anybody()
         {
-            _floors.dareChanceOverride = 1f;
-            _floors.BuildFloor(1);
-            yield return null;
-            yield return EnterFight(FightRoom());
-            yield return KillAll();
-            Assert.IsTrue(_floors.Dare == null);
+            for (int seed = 1; seed <= 40; seed++)
+            {
+                _floors.BuildFloor(1, seed);
+                yield return null;
+                Assert.IsTrue(_floors.Dare == null, "a dare on the first floor");
+                foreach (var node in _floors.Layout.ordered) Assert.AreNotEqual(RoomType.Dare, node.type);
+                _floors.BuildFloor(10, seed);
+                yield return null;
+                Assert.IsTrue(_floors.Dare == null, "a dare on a boss's floor");
+            }
         }
     }
 }

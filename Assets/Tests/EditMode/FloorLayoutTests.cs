@@ -46,11 +46,11 @@ namespace Shrunk.Tests
             Assert.IsTrue(FloorLayout.IsBossFloor(5) && FloorLayout.IsBossFloor(10) && FloorLayout.IsBossFloor(15));
             Assert.IsFalse(FloorLayout.IsBossFloor(4) || FloorLayout.IsBossFloor(11));
 
-            // Extra dead ends for treasure and shop may add a room or two, never more.
+            // Extra dead ends for treasure, shop and the dare room may add up to three rooms, never more.
             for (int seed = 1; seed <= 500; seed++)
             {
                 var layout = FloorLayout.Generate(seed, 8);
-                Assert.That(layout.rooms.Count, Is.InRange(8, 10), $"seed {seed}");
+                Assert.That(layout.rooms.Count, Is.InRange(8, 11), $"seed {seed}");
             }
         }
 

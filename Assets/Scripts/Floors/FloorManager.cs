@@ -178,6 +178,11 @@ namespace Shrunk
             Loot.SampleBonus = Twist == FloorTwist.PowerCut ? FloorTwists.PowerCutSamples : 0;
             ApplyLook();
             Layout = FloorLayout.Generate(seed, FloorLayout.RoomCountForFloor(number), FloorLayout.IsBossFloor(number));
+            // Nobody is dared on the first floor, or at the bottom: there the room is just a room.
+            if (number < 2 || biome.isBottom)
+            {
+                foreach (var node in Layout.ordered) if (node.type == RoomType.Dare) node.type = RoomType.Normal;
+            }
 
             foreach (var node in Layout.ordered)
             {
@@ -261,7 +266,7 @@ namespace Shrunk
         [System.NonSerialized] public FloorTwist? twistOverride;
 
         /// <summary>Set by the tests, for every floor manager: the chance of a twist, a dare and an exchange where a test has not asked for one.</summary>
-        public static float? TwistChanceForAll, DareChanceForAll, ExchangeChanceForAll;
+        public static float? TwistChanceForAll, ExchangeChanceForAll;
 
         /// <summary>The sample exchange in this floor's first room, if it has one.</summary>
         public SampleExchange Exchange { get; private set; }
@@ -270,17 +275,12 @@ namespace Shrunk
         /// <summary>Tests set this to make the roll certain (1) or impossible (0).</summary>
         [System.NonSerialized] public float exchangeChanceOverride = -1f;
 
-        /// <summary>The dare left in a cleared room on this floor, until it is rung.</summary>
+        /// <summary>The bell in this floor's dare room, until it is rung. Not every floor has a dare room.</summary>
         public DareBell Dare { get; private set; }
-        [Tooltip("Chance that clearing an ordinary room leaves a dare behind. One a floor at most, and never on floor 1.")]
-        public float dareChance = 0.25f;
-        /// <summary>Tests set this to make the roll certain (1) or impossible (0).</summary>
-        [System.NonSerialized] public float dareChanceOverride = -1f;
         /// <summary>How many more enemies a dare brings than the room had the first time.</summary>
         public const int DareExtra = 3, DareCoins = 5;
         /// <summary>True while the fight going on is one the player asked for.</summary>
         public bool DareFight { get; private set; }
-        bool _dareOffered;
 
         public static event Action<FloorManager> DareRung;
         public static event Action<FloorManager> DareWon;
@@ -332,7 +332,11 @@ namespace Shrunk
             foreach (var node in Layout.ordered)
             {
                 Room room = _rooms[node.cell];
-                if (node.type == RoomType.Treasure)
+                if (node.type == RoomType.Dare)
+                {
+                    Dare = DareBell.Create(room, room.Centre, biome.eliteMaterial != null ? biome.eliteMaterial : assets.coin, assets.coin);
+                }
+                else if (node.type == RoomType.Treasure)
                 {
                     var picks = assets.items.RandomCommon(rng, Mathf.Max(1, treasureChoices));
                     for (int i = 0; i < picks.Count; i++)
@@ -422,7 +426,6 @@ namespace Shrunk
             Dare = null;
             Exchange = null;
             DareFight = false;
-            _dareOffered = false;
             ExtractPortal = null;
             _portals.Clear();
             IsLocked = false;
@@ -759,12 +762,6 @@ namespace Shrunk
                     Pickup.Coin(room.Centre + new Vector3(offset.x, 0f, offset.y), 1);
                 }
                 DareWon?.Invoke(this);
-            }
-            else if (node.type == RoomType.Normal && !_dareOffered && FloorNumber >= 2 && !room.Shape.isArenaPart && assets != null
-                     && UnityEngine.Random.value < (dareChanceOverride >= 0f ? dareChanceOverride : DareChanceForAll ?? dareChance))
-            {
-                _dareOffered = true;
-                Dare = DareBell.Create(room, room.Centre, biome.eliteMaterial != null ? biome.eliteMaterial : assets.coin, assets.coin);
             }
 
             if (node.type == RoomType.Exit)

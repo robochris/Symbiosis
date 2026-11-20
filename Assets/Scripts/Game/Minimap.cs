@@ -21,6 +21,7 @@ namespace Shrunk
         public Color exitColor = new Color(0.35f, 0.9f, 0.4f);
         public Color treasureColor = new Color(1f, 0.82f, 0.2f);
         public Color shopColor = new Color(0.45f, 0.55f, 1f);
+        public Color dareColor = new Color(1f, 0.4f, 0.3f);
         public Color lockedColor = new Color(1f, 0.35f, 0.25f);
         public Color pointerColor = new Color(0.05f, 0.05f, 0.08f);
 
@@ -156,6 +157,7 @@ namespace Shrunk
                 case RoomType.Arena: return exitColor;
                 case RoomType.Treasure: return treasureColor;
                 case RoomType.Shop: return shopColor;
+                case RoomType.Dare: return dareColor;
                 default: return normalColor;
             }
         }

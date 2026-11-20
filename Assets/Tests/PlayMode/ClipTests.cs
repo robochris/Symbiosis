@@ -217,21 +217,26 @@ namespace Shrunk.Tests
         public IEnumerator Capture_clip_dare()
         {
             yield return Begin("dare");
-            _floors.twistOverride = FloorTwist.Crowded;
-            _floors.dareChanceOverride = 1f;
-            _floors.BuildFloor(4, 31337);
-            yield return null;
+            _floors.twistOverride = FloorTwist.None;
+            for (int seed = 31337; seed < 31400 && _floors.Dare == null; seed++)
+            {
+                _floors.BuildFloor(4, seed);
+                yield return null;
+            }
+            Assert.IsNotNull(_floors.Dare, "no floor with a dare room");
             _player.Health.SetInvulnerable(600f);
 
-            RoomNode fight = NearestFightRoom();
-            Room room = _floors.RoomAt(fight.cell);
-            yield return Stand(2f);
-            yield return Walk(OnNavMesh(room.Centre), 25f, () => _floors.IsLocked);
-            yield return Fight(40f);
-            foreach (var enemy in new List<Enemy>(_floors.LiveEnemies)) if (!enemy.Health.IsDead) enemy.Health.Kill();
-            yield return Stand(1f);
-            Assert.IsNotNull(_floors.Dare, "no dare to ring");
-            yield return Walk(_floors.Dare.transform.position, 12f, () => false);
+            // Start in the room next door, so the clip is the walk in, the bell and the fight.
+            Room room = _floors.Dare.room;
+            RoomNode dare = null;
+            foreach (var node in _floors.Layout.ordered) if (node.type == RoomType.Dare) dare = node;
+            Vector2Int beside = dare.cell;
+            for (int side = 0; side < 4; side++) if ((dare.doors & (Doors)(1 << side)) != 0) beside = dare.cell + FloorLayout.Directions[side];
+            _floors.Layout.rooms[beside].cleared = true;
+            _player.Teleport(OnNavMesh(_floors.RoomAt(beside).Centre) + Vector3.up * 0.05f);
+            LookAt(room.Centre, 100000f);
+            yield return Stand(1.5f);
+            yield return Walk(_floors.Dare.transform.position, 25f, () => false);
             for (float t = 0f; t < 3f && !_floors.IsLocked; t += Time.deltaTime)
             {
                 Steer(Vector3.zero, false);
@@ -252,7 +257,6 @@ namespace Shrunk.Tests
         {
             yield return Begin("powercut");
             _floors.twistOverride = FloorTwist.PowerCut;
-            _floors.dareChanceOverride = 0f;
             _floors.BuildFloor(4, 4711);
             yield return null;
             _player.Health.SetInvulnerable(600f);
