@@ -230,6 +230,7 @@ namespace Shrunk
 
         public void Shake(float amount)
         {
+            if (!GameSettings.ScreenShake) return;
             _shake = Mathf.Max(_shake, amount);
         }
 

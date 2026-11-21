@@ -167,10 +167,12 @@ namespace Shrunk.Tests
             Assert.IsTrue(director.IsDaily);
             Assert.AreEqual(DailyExperiment.SeedFor(DailyExperiment.Today), floors.fixedSeed);
             Assert.AreEqual(floors.fixedSeed + 1, floors.Layout.seed, "floor 1 is not on the day's seed");
-            Assert.AreEqual(floors.fixedSeed, SaveSystem.Data.run.dailySeed, "a resumed daily would lose its seed");
-            floors.BuildFloor(2);
+            Assert.AreEqual(FloorTwists.ForDay(floors.fixedSeed), floors.dailyTwist, "no twist of the day");
+            floors.BuildFloor(4);
             yield return null;
-            Assert.AreEqual(2, SaveSystem.Data.meta.dailyFloor);
+            Assert.AreEqual(floors.dailyTwist, floors.Twist, "floor 4 of a daily does not have the day's twist");
+            Assert.AreEqual(floors.fixedSeed, SaveSystem.Data.run.dailySeed, "a resumed daily would lose its seed");
+            Assert.AreEqual(4, SaveSystem.Data.meta.dailyFloor);
 
             // Back in the lab: no second go today, whatever happens.
             SaveSystem.Data.run = new RunSave();
@@ -179,7 +181,7 @@ namespace Shrunk.Tests
             yield return null;
             daily = Object.FindAnyObjectByType<DailyExperiment>();
             Assert.IsFalse(daily.Begin(), "a second go on the same day");
-            Assert.That(WorldPrompt.For(daily.transform.position), Does.Contain("floor 2").And.Contain("tomorrow"));
+            Assert.That(WorldPrompt.For(daily.transform.position), Does.Contain("floor 4").And.Contain("tomorrow"));
 
             // Skip a day and the streak starts again.
             DailyExperiment.TodayOverride = new System.DateTime(2026, 11, 23);

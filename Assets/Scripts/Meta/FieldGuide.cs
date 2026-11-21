@@ -22,6 +22,7 @@ namespace Shrunk
             ["HeraldAnt"] = "Announces you. Then everyone else is in a hurry.",
             ["MarksmanAnt"] = "It lines you up. Respect the line.",
             ["Mimic"] = "A coin with teeth. I have stopped picking up coins.",
+            ["Antlion"] = "Lives under the floor. Comes up where you were standing. Stand elsewhere.",
             ["GoldBug"] = "Pure profit, with legs. Catch it before it goes.",
             // The cake
             ["GummyBear"] = "Cheerful. Determined. Mostly sugar.",
@@ -129,6 +130,7 @@ namespace Shrunk
             switch (enemy)
             {
                 case MimicEnemy _: return "looks like a coin. It is not.";
+                case BurrowerEnemy _: return "sinks, then comes up under you from a marked circle. Shoot it as it surfaces.";
                 case GoldBug _: return "runs off with money. Catch it first.";
                 case ChargerEnemy _: return "winds up, then charges in a straight line. Step aside.";
                 case ShooterEnemy _: return "keeps its distance and shoots.";

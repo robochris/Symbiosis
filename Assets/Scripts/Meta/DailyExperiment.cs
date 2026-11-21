@@ -88,7 +88,8 @@ namespace Shrunk
                 return $"The Daily Experiment: today's got to floor {meta.dailyFloor}. A new one tomorrow. Streak: {meta.dailyStreak} day{(meta.dailyStreak == 1 ? "" : "s")}.";
             if (SaveSystem.Data.run.active)
                 return "The Daily Experiment: you have a run on the go. Finish it, or lose it, first.";
-            return $"The Daily Experiment: one run on today's floors, the same for everybody, one try. {Interact.Verb} to start.";
+            var twist = FloorTwists.ForDay(SeedFor(Today));
+            return $"The Daily Experiment: one run on today's floors, the same for everybody, one try. Today: {FloorTwists.Name(twist)} on every floor it can be. {Interact.Verb} to start.";
         }
     }
 }

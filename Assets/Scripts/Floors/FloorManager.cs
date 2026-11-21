@@ -252,7 +252,7 @@ namespace Shrunk
 
             FloorNumber = number;
             int seed = seedOverride != 0 ? seedOverride : fixedSeed != 0 ? fixedSeed + number : UnityEngine.Random.Range(1, int.MaxValue);
-            Twist = twistOverride ?? FloorTwists.Roll(seed, number, biome, TwistChanceForAll ?? twistChance);
+            Twist = twistOverride ?? FloorTwists.Roll(seed, number, biome, TwistChanceForAll ?? twistChance, dailyTwist);
             Loot.CoinBonus = Twist == FloorTwist.Crowded ? FloorTwists.CrowdedCoins : Twist == FloorTwist.RushHour ? FloorTwists.RushCoins : 0;
             Loot.SampleBonus = Twist == FloorTwist.PowerCut ? FloorTwists.PowerCutSamples : Twist == FloorTwist.Mist ? FloorTwists.MistSamples : 0;
             Enemy.WorldRush = Twist == FloorTwist.RushHour ? FloorTwists.RushSpeed : 1f;
@@ -364,6 +364,8 @@ namespace Shrunk
         public float twistChance = 0.3f;
         /// <summary>Tests and clips set this to get one particular twist (or none) on the next floor built.</summary>
         [System.NonSerialized] public FloorTwist? twistOverride;
+        /// <summary>Set for a Daily Experiment: the day's twist, on every floor that can have one.</summary>
+        [System.NonSerialized] public FloorTwist? dailyTwist;
 
         /// <summary>Set by the tests, for every floor manager: the chance of a twist, a dare and an exchange where a test has not asked for one.</summary>
         public static float? TwistChanceForAll, ExchangeChanceForAll, ClawChanceForAll, GoldBugChanceForAll;

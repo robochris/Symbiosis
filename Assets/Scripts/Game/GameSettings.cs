@@ -53,6 +53,20 @@ namespace Shrunk
             set => SetInt("floatingAim", value ? 1 : 0);
         }
 
+        /// <summary>How big the writing on screen is: 0.85 smaller, 1 as built, 1.15 larger.</summary>
+        public static float TextSize
+        {
+            get => Mathf.Clamp(PlayerPrefs.GetFloat(Prefix + "textSize", 1f), 0.7f, 1.3f);
+            set => Set("textSize", value);
+        }
+
+        /// <summary>Off: the camera never shakes.</summary>
+        public static bool ScreenShake
+        {
+            get => PlayerPrefs.GetInt(Prefix + "screenShake", 1) == 1;
+            set => SetInt("screenShake", value ? 1 : 0);
+        }
+
         /// <summary>On: the view only turns left and right.</summary>
         public static bool LockVertical
         {
@@ -112,7 +126,7 @@ namespace Shrunk
         /// <summary>Back to the defaults.</summary>
         public static void Reset()
         {
-            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "sound", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed", "damageNumbers", "floatingAim" })
+            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "sound", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed", "damageNumbers", "floatingAim", "textSize", "screenShake" })
             {
                 PlayerPrefs.DeleteKey(Prefix + key);
             }

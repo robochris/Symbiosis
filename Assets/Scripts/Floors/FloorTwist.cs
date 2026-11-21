@@ -68,14 +68,18 @@ namespace Shrunk
         /// The twist for one floor, decided by its seed so a saved floor comes back the same. Never on the first two
         /// floors of a run, on the first floor of a biome (it has its own card), on a boss's floor, or at the bottom.
         /// </summary>
-        public static FloorTwist Roll(int seed, int floorNumber, BiomeDefinition biome, float chance)
+        public static FloorTwist Roll(int seed, int floorNumber, BiomeDefinition biome, float chance, FloorTwist? always = null)
         {
             if (floorNumber < 3 || FloorLayout.IsBossFloor(floorNumber) || FloorLayout.FloorInBiome(floorNumber) == 1) return FloorTwist.None;
             if (biome != null && biome.isBottom) return FloorTwist.None;
+            if (always.HasValue) return always.Value;
             var rng = new System.Random(seed ^ 0x7A11C0DE);
             if (rng.NextDouble() >= chance) return FloorTwist.None;
             return All[rng.Next(All.Length)];
         }
+
+        /// <summary>The Daily Experiment's twist: the same for everybody on the day, on every floor that can have one.</summary>
+        public static FloorTwist ForDay(int daySeed) => All[(daySeed & 0x7fffffff) % All.Length];
 
         public static int Discount(int price) => price <= 0 ? price : Mathf.Max(1, Mathf.CeilToInt(price * 0.5f));
     }

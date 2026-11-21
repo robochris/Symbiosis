@@ -8,7 +8,7 @@ namespace Shrunk
         FirstSteps, MothersDay, Regicide, Untouchable, Omelette, HandsOff,
         Deeper, Hoarder, ShellShock, BubbleWrap, SweetTooth, FullPockets,
         PaperTrail, PerformanceReview, SpringClean, Unplugged, Defrosted,
-        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot, CleanSweep, GoldDigger, QuietPlease, OnARoll, HouseWins, CheckedOut, TongueTied, Croaked, SilverLining, ClearSkies, Patched, NosyParker, FishedOut
+        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot, CleanSweep, GoldDigger, QuietPlease, OnARoll, HouseWins, CheckedOut, TongueTied, Croaked, SilverLining, ClearSkies, Patched, NosyParker, FishedOut, Champion
     }
 
     /// <summary>One achievement: what to do, and what doing it gives.</summary>
@@ -74,6 +74,7 @@ namespace Shrunk
             new Achievement { id = AchievementId.Patched, name = "Patched", how = "Beat the Glitch.", reward = "the Pixel style, and a portal into a fish tank", style = "Pixel", biome = "aquarium" },
             new Achievement { id = AchievementId.FishedOut, name = "Fished Out", how = "Beat the Goldfish without once being caught by its dash.", reward = "the Scales style", style = "Scales" },
             new Achievement { id = AchievementId.NosyParker, name = "Nosy Parker", how = "Break into 5 secret rooms.", reward = "the Plaster style", style = "Plaster" },
+            new Achievement { id = AchievementId.Champion, name = "Champion", how = "Beat every boss in one Gauntlet, with at least 6 in it.", reward = "the Champion style", style = "Champion" },
             new Achievement { id = AchievementId.HouseWins, name = "The House Wins", how = "Have the claw machine drop it 10 times.", reward = "the machine's respect. It has none" },
         };
 

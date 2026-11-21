@@ -248,8 +248,18 @@ namespace Shrunk.EditorTools
             biome.swarmEnemy = workerPrefab;
             biome.miniBoss = motherPrefab;
             biome.boss = queenPrefab;
+            // Antlion: the Burrower. Sinks, then comes up under you from a marked circle.
+            var antlionBody = ArenaSceneBuilder.Lit("AntlionBody", new Color(0.55f, 0.45f, 0.3f), 0.3f);
+            var antlion = Ant<BurrowerEnemy>("Antlion", 1.15f, 6, antlionBody, antDark, false, out var antlionModel);
+            Decor(PrimitiveType.Cube, "Jaw L", antlionModel, new Vector3(-0.2f, 0.45f, 0.75f), new Vector3(0.08f, 0.08f, 0.5f), antDark).transform.localRotation = Quaternion.Euler(0f, 20f, 0f);
+            Decor(PrimitiveType.Cube, "Jaw R", antlionModel, new Vector3(0.2f, 0.45f, 0.75f), new Vector3(0.08f, 0.08f, 0.5f), antDark).transform.localRotation = Quaternion.Euler(0f, -20f, 0f);
+            antlion.telegraphMaterial = telegraph;
+            antlion.favouredDrops = new[] { ItemType.ChitinPlate, ItemType.ExtraLegs };
+            var antlionPrefab = SaveEnemy(antlion);
+
             biome.spawnTable = new[]
             {
+                new EnemySpawnEntry { prefab = antlionPrefab, weight = 1, minFloor = 3 },
                 new EnemySpawnEntry { prefab = workerPrefab, weight = 5, minFloor = 1 },
                 new EnemySpawnEntry { prefab = spitterPrefab, weight = 2, minFloor = 2 },
                 new EnemySpawnEntry { prefab = soldierPrefab, weight = 2, minFloor = 3 },

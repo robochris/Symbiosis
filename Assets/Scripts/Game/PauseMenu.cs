@@ -20,6 +20,8 @@ namespace Shrunk
 
         class Row
         {
+            /// <summary>0 the first page, 1 "More options".</summary>
+            public int page;
             public string label;
             public Func<string> value;
             public Action use;
@@ -45,6 +47,7 @@ namespace Shrunk
             Build();
             Close();
             Apply();
+            StartCoroutine(FitTextSoon());
         }
 
         void OnEnable() => GameSettings.Changed += Apply;
@@ -80,18 +83,27 @@ namespace Shrunk
             _carrying.horizontalOverflow = HorizontalWrapMode.Wrap;
             _carrying.verticalOverflow = VerticalWrapMode.Truncate;
 
+            // The first page: what gets changed mid-run.
             Add("Resume", null, Close);
             Add("Camera", () => CameraName(GameSettings.Camera), () => GameSettings.Camera = CameraFollow.After(GameSettings.Camera));
             Add("Aim assist", () => Level(GameSettings.AimAssist, "Off", "Low", "Medium", "Full"), () => GameSettings.AimAssist = Next(GameSettings.AimAssist, 0f, 0.35f, 0.7f, 1f));
             Add("Look speed", () => Level((GameSettings.LookSpeed - 0.4f) / 1.1f, "Slowest", "Slow", "Normal", "Fast"), () => GameSettings.LookSpeed = Next(GameSettings.LookSpeed, 0.4f, 0.6f, 1f, 1.5f));
             Add("Looking up and down", () => GameSettings.LockVertical ? "Locked" : "Free", () => GameSettings.LockVertical = !GameSettings.LockVertical);
-            Add("Touch controls", () => GameSettings.LeftHanded ? "Left-handed" : "Right-handed", () => GameSettings.LeftHanded = !GameSettings.LeftHanded);
             Add("Aim stick", () => GameSettings.FloatingAim ? "Follows your thumb" : "Stays put", () => GameSettings.FloatingAim = !GameSettings.FloatingAim);
+            Add("Difficulty", () => GameSettings.Relaxed ? "Relaxed (+2 health)" : "As intended", () => GameSettings.Relaxed = !GameSettings.Relaxed);
+            Add("Sound", () => Level(GameSettings.Volume, "Off", "Quiet", "Full"), () => GameSettings.Volume = Next(GameSettings.Volume, 0f, 0.5f, 1f));
+            Add("More options", null, () => ShowPage(1));
+
+            // The second page: set once and left.
+            _adding = 1;
+            Add("Back", null, () => ShowPage(0));
+            Add("Text size", () => Level((GameSettings.TextSize - 0.85f) / 0.3f, "Smaller", "Normal", "Larger"), () => GameSettings.TextSize = Next(GameSettings.TextSize, 0.85f, 1f, 1.15f));
+            Add("Screen shake", () => GameSettings.ScreenShake ? "On" : "Off", () => GameSettings.ScreenShake = !GameSettings.ScreenShake);
+            Add("Touch controls", () => GameSettings.LeftHanded ? "Left-handed" : "Right-handed", () => GameSettings.LeftHanded = !GameSettings.LeftHanded);
             Add("Enemy arrows", () => GameSettings.EnemyArrows ? "On" : "Off", () => GameSettings.EnemyArrows = !GameSettings.EnemyArrows);
             Add("Damage numbers", () => GameSettings.DamageNumbers ? "On" : "Off", () => GameSettings.DamageNumbers = !GameSettings.DamageNumbers);
-            Add("Difficulty", () => GameSettings.Relaxed ? "Relaxed (+2 health)" : "As intended", () => GameSettings.Relaxed = !GameSettings.Relaxed);
             Add("Radio chatter", () => new[] { "Off", "Less", "Normal" }[GameSettings.Radio], () => GameSettings.Radio = (GameSettings.Radio + 1) % 3);
-            Add("Sound", () => Level(GameSettings.Volume, "Off", "Quiet", "Full"), () => GameSettings.Volume = Next(GameSettings.Volume, 0f, 0.5f, 1f));
+            _adding = 0;
 
             // In a run: leave without losing it. In the lab: close the game.
             if (FloorManager.Instance != null || FindAnyObjectByType<RunDirector>() != null)
@@ -103,15 +115,17 @@ namespace Shrunk
                 Add("Quit game", null, Application.Quit);
             }
 
+            var onPage = new int[2];
             for (int i = 0; i < _rows.Count; i++)
             {
                 Row row = _rows[i];
+                int slot = onPage[row.page]++;
                 var go = new GameObject(row.label, typeof(RectTransform), typeof(Image));
                 row.rect = (RectTransform)go.transform;
                 row.rect.SetParent(panel, false);
                 row.rect.anchorMin = row.rect.anchorMax = row.rect.pivot = new Vector2(0.5f, 0.5f);
                 // Fourteen rows and the heading, inside the 1080 the canvas is laid out for.
-                row.rect.anchoredPosition = new Vector2(0f, 370f - i * 63f);
+                row.rect.anchoredPosition = new Vector2(0f, 370f - slot * 63f);
                 row.rect.sizeDelta = new Vector2(900f, 57f);
                 row.background = go.GetComponent<Image>();
                 row.text = MakeText(row.rect, "", 33, Vector2.zero, new Vector2(860f, 55f));
@@ -129,9 +143,26 @@ namespace Shrunk
             MakeText(_pauseButton, "II", 40, Vector2.zero, new Vector2(70f, 70f));
         }
 
+        int _adding, _page;
+
         void Add(string label, Func<string> value, Action use)
         {
-            _rows.Add(new Row { label = label, value = value, use = use });
+            _rows.Add(new Row { page = _adding, label = label, value = value, use = use });
+        }
+
+        /// <summary>Which page of options is showing: 0 the first, 1 "More options".</summary>
+        public int Page => _page;
+
+        public void ShowPage(int page)
+        {
+            _page = page;
+            for (int i = 0; i < _rows.Count; i++)
+            {
+                if (_rows[i].page != page) continue;
+                _selected = i;
+                break;
+            }
+            Refresh();
         }
 
         Text MakeText(Transform parent, string content, int size, Vector2 position, Vector2 box)
@@ -175,6 +206,7 @@ namespace Shrunk
         public void Open()
         {
             _open = true;
+            _page = 0;
             _selected = 0;
             _panel.SetActive(true);
             _panel.transform.SetAsLastSibling();
@@ -243,15 +275,43 @@ namespace Shrunk
             for (int i = 0; i < _rows.Count; i++)
             {
                 Row row = _rows[i];
+                if (row.rect != null && row.rect.gameObject.activeSelf != (row.page == _page)) row.rect.gameObject.SetActive(row.page == _page);
                 row.text.text = row.value != null ? $"{row.label}:  {row.value()}" : row.label;
                 row.background.color = i == _selected ? new Color(0.45f, 0.95f, 1f, 0.35f) : new Color(1f, 1f, 1f, 0.1f);
             }
         }
 
         // Pushes the options onto the things they control. Runs at start and whenever one changes.
+        // Each scaler's own size as built, so the text size setting always works from the same starting point.
+        static readonly Dictionary<CanvasScaler, Vector2> BuiltSizes = new Dictionary<CanvasScaler, Vector2>();
+
+        /// <summary>Applies the text size to every canvas on screen.</summary>
+        public static void FitText()
+        {
+            float size = GameSettings.TextSize;
+            foreach (var scaler in FindObjectsByType<CanvasScaler>(FindObjectsSortMode.None))
+            {
+                if (scaler.uiScaleMode != CanvasScaler.ScaleMode.ScaleWithScreenSize) continue;
+                if (!BuiltSizes.TryGetValue(scaler, out var built))
+                {
+                    built = scaler.referenceResolution;
+                    BuiltSizes[scaler] = built;
+                }
+                scaler.referenceResolution = built / size;
+            }
+        }
+
+        System.Collections.IEnumerator FitTextSoon()
+        {
+            // The radio and the cards build their own canvases as the scene starts.
+            yield return new WaitForSecondsRealtime(0.5f);
+            FitText();
+        }
+
         void Apply()
         {
             AudioListener.volume = GameSettings.Volume;
+            FitText();
 
             var follow = CameraFollow.Instance != null ? CameraFollow.Instance : FindAnyObjectByType<CameraFollow>();
             if (follow != null)
@@ -299,6 +359,7 @@ namespace Shrunk
             {
                 for (int i = 0; i < _rows.Count; i++)
                 {
+                    if (_rows[i].page != _page) continue;
                     if (RectTransformUtility.RectangleContainsScreenPoint(_rows[i].rect, press.Value, null))
                     {
                         _selected = i;
@@ -322,7 +383,12 @@ namespace Shrunk
             }
             if (move != 0)
             {
-                _selected = (_selected + move + _rows.Count) % _rows.Count;
+                // Round the rows of the page that is showing.
+                for (int step = 0; step < _rows.Count; step++)
+                {
+                    _selected = (_selected + move + _rows.Count) % _rows.Count;
+                    if (_rows[_selected].page == _page) break;
+                }
                 Refresh();
             }
 

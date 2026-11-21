@@ -158,8 +158,10 @@ namespace Shrunk.Tests
                     Assert.IsNotNull(entry.prefab.GetComponent<EnemyMutations>(), entry.prefab.name + " cannot carry mutations");
                     kinds.Add(entry.prefab.GetType());
                 }
-                // Seven everywhere; some worlds also have the eighth, the one that paints a line and fires along it.
+                // Seven everywhere; some worlds also have the sniper, which paints a line and fires along it, and the
+                // antlion, which comes up from under the floor.
                 kinds.Remove(typeof(SniperEnemy));
+                kinds.Remove(typeof(BurrowerEnemy));
                 Assert.AreEqual(7, kinds.Count, biome.displayName + " should have a chaser, a charger, a shooter, a flyer, a lobber, a support and a mimic");
             }
             Assert.GreaterOrEqual(ids.Count, 2);

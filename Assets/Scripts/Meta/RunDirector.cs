@@ -174,7 +174,11 @@ namespace Shrunk
             }
 
             _floors.depth = TimeClock.StartDepth;
-            if (IsDaily) _floors.fixedSeed = DailyExperiment.SeedFor(DailyExperiment.Today);
+            if (IsDaily)
+            {
+                _floors.fixedSeed = DailyExperiment.SeedFor(DailyExperiment.Today);
+                _floors.dailyTwist = FloorTwists.ForDay(_floors.fixedSeed);
+            }
             _floors.BuildFloor(1);
         }
 
@@ -217,6 +221,7 @@ namespace Shrunk
             {
                 IsDaily = true;
                 _floors.fixedSeed = run.dailySeed;
+                _floors.dailyTwist = FloorTwists.ForDay(run.dailySeed);
             }
             if (!string.IsNullOrEmpty(run.biome)) _floors.SetBiome(run.biome);
             _floors.BuildFloor(Mathf.Max(1, run.floorNumber), run.seed);
