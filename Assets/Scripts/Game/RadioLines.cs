@@ -376,6 +376,19 @@ namespace Shrunk
                 "A library. That isn't in the house. That isn't in any house I know of. Interesting.",
                 "Books, the size of buildings. Somebody is going to want those back.",
             },
+            ["shed"] = new[]
+            {
+                "The garden shed. Tools, pots, and a smell of creosote. Mind the blades.",
+                "It is outside the house, technically. You are going places.",
+            },
+            ["hedge trimmer"] = new[]
+            {
+                "A hedge trimmer. It shows you its line. Off the line.",
+            },
+            ["lawnmower"] = new[]
+            {
+                "The Lawnmower. When the band of marks comes, find the gap. There is always a gap.",
+            },
             ["attic"] = new[]
             {
                 "The attic. Dust, boxes, and a lot of legs in the corners.",

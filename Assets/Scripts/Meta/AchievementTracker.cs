@@ -128,6 +128,7 @@ namespace Shrunk
                 if (bath.Rings > 0 && bath.RingHits == 0) Achievements.Unlock(AchievementId.RubberDucky);
             }
             if (enemy is SpiderBoss) Achievements.Unlock(AchievementId.Cobwebs);
+            if (enemy is MowerBoss mower && mower.canSweep) Achievements.Unlock(AchievementId.LawnOrder);
 
             if (enemy is CatBoss)
             {

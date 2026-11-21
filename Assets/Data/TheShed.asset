@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 461a3036bed823b4caa1f39f91d27ca0, type: 3}
+  m_Name: TheShed
+  m_EditorClassIdentifier: Shrunk::Shrunk.BiomeDefinition
+  displayName: The Garden Shed
+  id: shed
+  mutationTheme: shells, speed, things with blades
+  isBottom: 0
+  skyColor: {r: 0.12, g: 0.1, b: 0.08, a: 1}
+  ambientColor: {r: 0.55, g: 0.52, b: 0.46, a: 1}
+  sunIntensity: 0.75
+  fog: 1
+  fogColor: {r: 0.18, g: 0.15, b: 0.12, a: 1}
+  fogStart: 20
+  fogEnd: 70
+  roomCastsShadows: 0
+  floorMaterial: {fileID: 2100000, guid: b4ca58365194d2347b99397ec8f88c8b, type: 2}
+  wallMaterial: {fileID: 2100000, guid: 720cee7caa9286643a827c815a30fbef, type: 2}
+  doorMaterial: {fileID: 2100000, guid: 70245deff51b21046bebba00e9397d1a, type: 2}
+  wallHeight: 5
+  ceiling: 1
+  ceilingMaterial: {fileID: 2100000, guid: 720cee7caa9286643a827c815a30fbef, type: 2}
+  coverMaterial: {fileID: 2100000, guid: 70245deff51b21046bebba00e9397d1a, type: 2}
+  crumbMaterial: {fileID: 2100000, guid: a23cce4c9f369824f849526165febda3, type: 2}
+  sugarMaterial: {fileID: 2100000, guid: e4f504bc2cb595548ac5fc8da76dc433, type: 2}
+  rootMaterial: {fileID: 2100000, guid: aaf1cc71cbef1e9448d435a84da9dac9, type: 2}
+  podMaterial: {fileID: 2100000, guid: a23cce4c9f369824f849526165febda3, type: 2}
+  podHatchling: {fileID: 4024413970547313528, guid: e8f6c09bdefef034ca44dcfd5d3d3c77, type: 3}
+  dewMaterial: {fileID: 2100000, guid: c9425d51bd76cdb42bc4d1c74e6927e6, type: 2}
+  startProp: {fileID: 695972606233312100, guid: e74553cbdcf1d0943b81f0ca983e9c61, type: 3}
+  exitProp: {fileID: 1403081933625777294, guid: 204faba197fa9854a966e5a107a9b9e1, type: 3}
+  treasureProp: {fileID: 1235595317397215819, guid: 62bb75bdd9d1be5489564243f71fe3d0, type: 3}
+  shopProp: {fileID: 4783187061587282082, guid: 4163612879fcbbc4590053e60f9712e7, type: 3}
+  extractPortalProp: {fileID: 8790912101371346294, guid: 029f146fe3856f64aa9f0a31bbad23f4, type: 3}
+  deeperPortalProp: {fileID: 225578734325243452, guid: 8f92f7658899bc24693ba020fbb53396, type: 3}
+  portalProp: {fileID: 728030997805974069, guid: 39bfa98eaa1ffca4aafe31cc29dea5fe, type: 3}
+  spawnTable:
+  - prefab: {fileID: 3379364291755246691, guid: cc6677a37c38ad84fbc2f7a5a6e15a1d, type: 3}
+    weight: 5
+    minFloor: 1
+  - prefab: {fileID: 5345373954811956104, guid: e8789e70fce2d614cac5dbebe7510ed9, type: 3}
+    weight: 2
+    minFloor: 2
+  - prefab: {fileID: 3881825583999629981, guid: 15223d1f78bd94140862e46b76d10412, type: 3}
+    weight: 2
+    minFloor: 3
+  - prefab: {fileID: 4616276435571227969, guid: fcd6cf81730d09e4a840ad8456cacb5f, type: 3}
+    weight: 2
+    minFloor: 4
+  - prefab: {fileID: 4633746655284136005, guid: 0d30ac8181c57914f9529b61f3ed7d21, type: 3}
+    weight: 2
+    minFloor: 5
+  - prefab: {fileID: 5029861744108438327, guid: 5da86e62172f31442bc261e418e68870, type: 3}
+    weight: 1
+    minFloor: 6
+  - prefab: {fileID: 8303047615205202209, guid: 3e10a21a9a1441541b95c871d6015a26, type: 3}
+    weight: 1
+    minFloor: 5
+  - prefab: {fileID: 9023410577572562770, guid: fad2f574531e8744f9a4d9a7cdecddb4, type: 3}
+    weight: 1
+    minFloor: 4
+  miniBoss: {fileID: 6110555829182588703, guid: 6eb5b7584fbf997448a73ca402140f8f, type: 3}
+  boss: {fileID: 8805025375466344009, guid: c95bdbed7675b734d832c411dc83a330, type: 3}
+  swarmEnemy: {fileID: 3379364291755246691, guid: cc6677a37c38ad84fbc2f7a5a6e15a1d, type: 3}
+  baseEnemiesPerRoom: 2
+  floorsPerExtraEnemy: 3
+  tilesPerExtraEnemy: 60
+  maxExtraEnemiesForSize: 4
+  glowMaterial: {fileID: 2100000, guid: 9f72083c27996d540a14813b5df98d4d, type: 2}
+  glowStemMaterial: {fileID: 2100000, guid: 86216a3c43b8e394387f34fa81de1738, type: 2}
+  glowLightRange: 11
+  glowLightIntensity: 2
+  eliteMaterial: {fileID: 2100000, guid: 05c381c34670aa9479243acbba8883aa, type: 2}
+  mutations:
+  - {fileID: 11400000, guid: 1a8a5af7fbefee247845ee27987d9a52, type: 2}
+  - {fileID: 11400000, guid: 090677eaf5b9b0f4489da51d0d120134, type: 2}
+  - {fileID: 11400000, guid: f9867f3f1696f9f4184512eb7f32400c, type: 2}
+  - {fileID: 11400000, guid: 2611cb811d215f848bc53ba5848175a6, type: 2}
+  - {fileID: 11400000, guid: fe3ff2e68b234d44898c9de09e882be5, type: 2}
+  - {fileID: 11400000, guid: 0e8c54c9ecfaa4949ae02420ccdd2908, type: 2}

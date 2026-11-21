@@ -126,6 +126,15 @@ namespace Shrunk
             ["Gramophone"] = "Plays something old and fast. Everybody near it hurries.",
             ["Telescope"] = "Lines you up from the far end of the attic.",
             ["SpiderEgg"] = "Grows into a spiderling. Of course it does.",
+            // The shed
+            ["Earwig"] = "Pincers at the back. Somehow that is worse.",
+            ["FlowerPot"] = "Empty, heavy, and coming at you.",
+            ["WateringCan"] = "Waters you. Hard.",
+            ["Dragonfly"] = "Older than the dinosaurs, and not about to change for you.",
+            ["GardenGnome"] = "Smiles, and throws things. Both at once.",
+            ["WindChime"] = "Rings, and everybody near it hurries.",
+            ["Hosepipe"] = "Drips a line first. Then the rest of the reservoir.",
+            ["Seedling"] = "Grows into an earwig. Not how seeds work. Here, it is.",
         };
 
         static MetaSave Meta => SaveSystem.Data.meta;

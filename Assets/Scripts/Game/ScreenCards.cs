@@ -114,6 +114,18 @@ namespace Shrunk
             "Quiet, please. It will not be.",
         };
 
+        /// <summary>The shed's own lines.</summary>
+        public static readonly string[] ShedLines =
+        {
+            "Tip: when a band of marks crosses the room, find a gap in it and stand there.",
+            "Tip: the Hedge Trimmer marks its line before it runs it. Off the line.",
+            "Tip: the wind chime makes the others quicker. Silence it.",
+            "Tip: a garden gnome throws at where you will be. Be somewhere else.",
+            "Reminder: everything in here is sharp, or stacked, or both.",
+            "Fact: nobody has ever found the right key for that padlock.",
+            "It gets darker further in. Somebody put the light on a timer.",
+        };
+
         /// <summary>The attic's own lines.</summary>
         public static readonly string[] AtticLines =
         {
@@ -217,7 +229,7 @@ namespace Shrunk
         /// <summary>The line under "Floor N" for a biome: its own if it has any, otherwise the ants'. The floor's seed picks it.</summary>
         public static string TipFor(string biomeId, int seed)
         {
-            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : biomeId == "fridge" ? FridgeLines : biomeId == "library" ? LibraryLines : biomeId == "forest" ? ForestLines : biomeId == "clouds" ? CloudLines : biomeId == "console" ? ConsoleLines : biomeId == "aquarium" ? AquariumLines : biomeId == "toybox" ? ToyBoxLines : biomeId == "bathroom" ? BathroomLines : biomeId == "attic" ? AtticLines : FloorLines;
+            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : biomeId == "fridge" ? FridgeLines : biomeId == "library" ? LibraryLines : biomeId == "forest" ? ForestLines : biomeId == "clouds" ? CloudLines : biomeId == "console" ? ConsoleLines : biomeId == "aquarium" ? AquariumLines : biomeId == "toybox" ? ToyBoxLines : biomeId == "bathroom" ? BathroomLines : biomeId == "attic" ? AtticLines : biomeId == "shed" ? ShedLines : FloorLines;
             return lines[Mathf.Abs(seed) % lines.Length];
         }
 
