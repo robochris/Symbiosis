@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Shrunk
 {
     /// <summary>Which active ability the Void carries. Chosen at the rack in the lab.</summary>
-    public enum PowerKind { Overcharge, FreezeFrame, SecondWind, BadMemo }
+    public enum PowerKind { Overcharge, FreezeFrame, SecondWind, BadMemo, Decoy }
 
     /// <summary>What the lab's rack says about a power, and what it takes to be issued one.</summary>
     public class PowerInfo
@@ -33,6 +33,7 @@ namespace Shrunk
             new PowerInfo { kind = PowerKind.FreezeFrame, name = "Freeze Frame", does = "For 6 seconds every enemy and every enemy shot crawls. You don't.", needs = "Issued after your first extraction.", killsToFill = 20f, duration = 6f },
             new PowerInfo { kind = PowerKind.SecondWind, name = "Second Wind", does = "One health back, every enemy shot swept away, and 4 seconds in which nothing can hurt you.", needs = "Issued to interns who have fallen three times.", killsToFill = 18f, duration = 4f },
             new PowerInfo { kind = PowerKind.BadMemo, name = "Bad Memo", does = "A memo goes round. For 6 seconds everything in the room that is not a boss turns on its neighbours.", needs = "Issued to interns who have done three jobs off the noticeboard.", killsToFill = 22f, duration = 6f },
+            new PowerInfo { kind = PowerKind.Decoy, name = "Decoy", does = "A cardboard you, left where you stand. For 7 seconds everything goes for it instead, bosses included, until it falls over.", needs = "Issued to interns who keep a Daily Experiment streak of 3 days.", killsToFill = 20f, duration = 7f },
         };
 
         public const float FreezeSlow = 0.3f;
@@ -53,6 +54,7 @@ namespace Shrunk
                 case PowerKind.FreezeFrame: return meta.extractions >= 1;
                 case PowerKind.SecondWind: return meta.deaths >= 3;
                 case PowerKind.BadMemo: return meta.jobsDone >= 3;
+                case PowerKind.Decoy: return meta.dailyBestStreak >= 3;
                 default: return true;
             }
         }
@@ -202,6 +204,11 @@ namespace Shrunk
                     }
                     LastShotsCleared = Bullet.ClearEnemyShots();
                     Surge();
+                    break;
+
+                case PowerKind.Decoy:
+                    Decoy.Place(transform.position, transform.rotation, duration);
+                    Fx.Burst(transform.position + Vector3.up * 0.9f, new Color(0.85f, 0.7f, 0.45f), 24, 6f, 0.2f, 0.5f);
                     break;
 
                 case PowerKind.BadMemo:

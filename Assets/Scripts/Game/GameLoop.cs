@@ -34,6 +34,7 @@ namespace Shrunk
         void OnEnable()
         {
             Enemy.Killed += OnEnemyKilled;
+            if (GetComponent<FieldGuideWatcher>() == null) gameObject.AddComponent<FieldGuideWatcher>();
         }
 
         void OnDisable()

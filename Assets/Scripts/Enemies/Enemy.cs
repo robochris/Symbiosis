@@ -16,6 +16,8 @@ namespace Shrunk
         /// <summary>Every enemy currently in play. Used by aim assist and the spawner.</summary>
         public static readonly List<Enemy> Active = new List<Enemy>();
         public static event Action<Enemy> Killed;
+        /// <summary>Raised whenever an enemy is switched on: spawned, or taken out of a pool.</summary>
+        public static event Action<Enemy> Appeared;
         /// <summary>An enemy has lost health: (which one, how much).</summary>
         public static event Action<Enemy, int> Hurt;
         /// <summary>An enemy is calling for help: spawn this many of the biome's swarm enemy next to it.</summary>
@@ -160,6 +162,7 @@ namespace Shrunk
             Targetable = true;
             SetVisualScale(1f);
             HideChargeLine();
+            Appeared?.Invoke(this);
         }
 
         protected virtual void OnDisable()
@@ -241,6 +244,15 @@ namespace Shrunk
                     health = nearest.Health;
                     return true;
                 }
+            }
+
+            // A decoy standing: everybody goes for that.
+            var decoy = Decoy.Current;
+            if (decoy != null && decoy.Health != null && !decoy.Health.IsDead)
+            {
+                position = decoy.transform.position;
+                health = decoy.Health;
+                return true;
             }
 
             var player = PlayerController.Instance;

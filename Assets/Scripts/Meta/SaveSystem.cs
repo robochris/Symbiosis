@@ -31,6 +31,8 @@ namespace Shrunk
         public int dailyFloor, dailyBestFloor, dailyStreak, dailyBestStreak;
         /// <summary>Secret rooms broken into, ever.</summary>
         public int secretsFound;
+        /// <summary>Every kind of creature met, by name, for the field guide.</summary>
+        public List<string> creaturesSeen = new List<string>();
         /// <summary>Clocked in at the lab's time clock: new runs start a depth further down.</summary>
         public bool overtime;
         /// <summary>Achievements earned, as AchievementId numbers.</summary>

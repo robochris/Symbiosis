@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
@@ -32,6 +32,7 @@ namespace Shrunk
             meta.jobsDone = Mathf.Max(meta.jobsDone, 3);
             meta.bossesBeaten = Mathf.Max(meta.bossesBeaten, Specimens.All.Length);
             meta.xp = Mathf.Max(meta.xp, Progress.XpFor(Progress.TopLevel));
+            meta.dailyBestStreak = Mathf.Max(meta.dailyBestStreak, 3);
             SaveSystem.Save();
         }
 

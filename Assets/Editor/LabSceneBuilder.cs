@@ -253,12 +253,12 @@ namespace Shrunk.EditorTools
             rack.transform.position = new Vector3(WorkshopX + 4f, 0f, -4.2f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Rack", rack.transform, new Vector3(0f, 0.6f, -2.2f), new Vector3(3.4f, 1.2f, 0.7f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", rack.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("PowerMat", new Color(1f, 0.82f, 0.2f)), false);
-            Color[] powerColours = { new Color(0.45f, 0.95f, 1f), new Color(0.6f, 0.75f, 1f), new Color(0.5f, 1f, 0.55f), new Color(1f, 0.96f, 0.8f) };
+            Color[] powerColours = { new Color(0.45f, 0.95f, 1f), new Color(0.6f, 0.75f, 1f), new Color(0.5f, 1f, 0.55f), new Color(1f, 0.96f, 0.8f), new Color(0.85f, 0.7f, 0.45f) };
             var canisters = new Transform[HeroPower.All.Length];
             for (int i = 0; i < canisters.Length; i++)
             {
                 var canister = ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, HeroPower.All[i].name, rack.transform,
-                    new Vector3(-1.35f + i * 0.9f, 1.6f, -2.2f), new Vector3(0.5f, 0.4f, 0.5f), ArenaSceneBuilder.Unlit("Power" + HeroPower.All[i].kind, powerColours[i % powerColours.Length]), false);
+                    new Vector3(-1.4f + i * (2.8f / Mathf.Max(1, HeroPower.All.Length - 1)), 1.6f, -2.2f), new Vector3(0.5f, 0.4f, 0.5f), ArenaSceneBuilder.Unlit("Power" + HeroPower.All[i].kind, powerColours[i % powerColours.Length]), false);
                 canisters[i] = canister.transform;
             }
             rack.AddComponent<PowerRack>().canisters = canisters;
@@ -320,6 +320,15 @@ namespace Shrunk.EditorTools
                 lamps[i] = ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Part " + (i + 1), panel.transform, new Vector3(1.9f, 1.7f, z), Vector3.one * 0.36f, partGlow, false);
             }
             panel.AddComponent<MachinePanel>().lamps = lamps;
+
+            // ----- the field guide: a book on a lectern, every creature met so far -----
+            var guide = new GameObject("Field Guide");
+            guide.transform.position = new Vector3(-WorkshopX - 2.5f, 0f, 4.6f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Lectern", guide.transform, new Vector3(0f, 0.55f, 1.1f), new Vector3(0.6f, 1.1f, 0.5f), benchMat, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Book", guide.transform, new Vector3(0f, 1.15f, 1.05f), new Vector3(0.75f, 0.08f, 0.55f), ArenaSceneBuilder.Lit("LeatherGreen", new Color(0.15f, 0.36f, 0.24f), 0.35f), false).transform.localRotation = Quaternion.Euler(-20f, 0f, 0f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Pages", guide.transform, new Vector3(0f, 1.2f, 1.04f), new Vector3(0.68f, 0.03f, 0.5f), paper, false).transform.localRotation = Quaternion.Euler(-20f, 0f, 0f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", guide.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("GuideMat", new Color(0.55f, 0.85f, 0.6f)), false);
+            guide.AddComponent<FieldGuideBook>();
 
             // ----- the noticeboard: three jobs at a time. Free-standing, west of where the day starts. -----
             var notices = new GameObject("Noticeboard");

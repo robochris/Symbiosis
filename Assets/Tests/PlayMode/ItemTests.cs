@@ -807,6 +807,35 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_decoy_draws_everything_off_the_player_until_it_falls_over()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            Assert.IsFalse(HeroPower.Unlocked(PowerKind.Decoy), "the decoy is issued before any streak");
+            SaveSystem.Data.meta.dailyBestStreak = 3;
+            Assert.IsTrue(HeroPower.Unlocked(PowerKind.Decoy));
+
+            var power = _player.Power;
+            power.SetKind(PowerKind.Decoy);
+            var chaser = _spawner.SpawnAt(_biome.EnemyNamed("WorkerAnt"), new Vector3(6f, 0f, 6f), null);
+            yield return null;
+            power.SetMeter(1f);
+            Assert.IsTrue(power.TryActivate());
+            Assert.IsNotNull(Decoy.Current, "no decoy");
+            Vector3 decoyAt = Decoy.Current.transform.position;
+            // Walk away: the ant goes for the cardboard, not the player.
+            _player.Teleport(new Vector3(-12f, 0.05f, -12f));
+            yield return new WaitForSeconds(2f);
+            float toDecoy = Vector3.Distance(chaser.transform.position, decoyAt);
+            float toPlayer = Vector3.Distance(chaser.transform.position, _player.transform.position);
+            Assert.Less(toDecoy, toPlayer, "the ant went for the player, not the decoy");
+            yield return new WaitForSeconds(HeroPower.Info(PowerKind.Decoy).duration);
+            Assert.IsNull(Decoy.Current, "the decoy never fell over");
+            power.SetKind(PowerKind.Overcharge);
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest]
         public IEnumerator The_staple_gun_fires_three_in_a_burst_down_one_line()
         {
             Assert.IsFalse(Weapons.Unlocked(WeaponKind.StapleGun), "the staple gun is issued before the Glitch");
