@@ -129,7 +129,7 @@ namespace Shrunk
 
                 bool discovered = node.visited;
                 // The machine's room is not on the map until somebody walks into it.
-                if (!discovered && node.type != RoomType.Machine)
+                if (!discovered && node.type != RoomType.Machine && node.type != RoomType.Secret)
                 {
                     foreach (var neighbour in floors.Layout.Neighbours(node))
                     {
@@ -161,6 +161,7 @@ namespace Shrunk
                 case RoomType.Shop: return shopColor;
                 case RoomType.Dare: return dareColor;
                 case RoomType.Machine: return new Color(0.45f, 1f, 0.6f);
+                case RoomType.Secret: return new Color(0.85f, 0.75f, 0.55f);
                 default: return normalColor;
             }
         }

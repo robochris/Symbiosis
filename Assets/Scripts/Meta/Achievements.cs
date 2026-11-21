@@ -8,7 +8,7 @@ namespace Shrunk
         FirstSteps, MothersDay, Regicide, Untouchable, Omelette, HandsOff,
         Deeper, Hoarder, ShellShock, BubbleWrap, SweetTooth, FullPockets,
         PaperTrail, PerformanceReview, SpringClean, Unplugged, Defrosted,
-        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot, CleanSweep, GoldDigger, QuietPlease, OnARoll, HouseWins, CheckedOut, TongueTied, Croaked, SilverLining, ClearSkies, Patched
+        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot, CleanSweep, GoldDigger, QuietPlease, OnARoll, HouseWins, CheckedOut, TongueTied, Croaked, SilverLining, ClearSkies, Patched, NosyParker
     }
 
     /// <summary>One achievement: what to do, and what doing it gives.</summary>
@@ -72,10 +72,11 @@ namespace Shrunk
             new Achievement { id = AchievementId.SilverLining, name = "Silver Lining", how = "Beat the Thundercloud without once being struck by its lightning.", reward = "the Storm style", style = "Storm" },
             new Achievement { id = AchievementId.ClearSkies, name = "Clear Skies", how = "Beat the Thundercloud.", reward = "a portal into somewhere with a power switch", biome = "console" },
             new Achievement { id = AchievementId.Patched, name = "Patched", how = "Beat the Glitch.", reward = "the Pixel style", style = "Pixel" },
+            new Achievement { id = AchievementId.NosyParker, name = "Nosy Parker", how = "Break into 5 secret rooms.", reward = "the Plaster style", style = "Plaster" },
             new Achievement { id = AchievementId.HouseWins, name = "The House Wins", how = "Have the claw machine drop it 10 times.", reward = "the machine's respect. It has none" },
         };
 
-        public const int ShellsNeeded = 20, PodsNeeded = 50, ItemsNeeded = 6, SamplesNeeded = 300, MimicsNeeded = 10, DaresNeeded = 5, GoldBugsNeeded = 5, StreakNeeded = 15, ClawLossesNeeded = 10;
+        public const int ShellsNeeded = 20, PodsNeeded = 50, ItemsNeeded = 6, SamplesNeeded = 300, MimicsNeeded = 10, DaresNeeded = 5, GoldBugsNeeded = 5, StreakNeeded = 15, ClawLossesNeeded = 10, SecretsNeeded = 5;
 
         public static Achievement Get(AchievementId id)
         {

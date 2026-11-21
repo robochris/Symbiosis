@@ -29,6 +29,8 @@ namespace Shrunk
         /// <summary>The Daily Experiment: the day last played ("yyyy-MM-dd"), how far it got, and the streak.</summary>
         public string dailyDate = "";
         public int dailyFloor, dailyBestFloor, dailyStreak, dailyBestStreak;
+        /// <summary>Secret rooms broken into, ever.</summary>
+        public int secretsFound;
         /// <summary>Clocked in at the lab's time clock: new runs start a depth further down.</summary>
         public bool overtime;
         /// <summary>Achievements earned, as AchievementId numbers.</summary>

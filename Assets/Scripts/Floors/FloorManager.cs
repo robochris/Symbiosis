@@ -53,6 +53,8 @@ namespace Shrunk
         /// <summary>True on the machine's floor or the cat's, entered from a run: the way back to the run is open after.</summary>
         public bool InSpecial => _returnBiome != null;
         public CatFlap CatFlap { get; private set; }
+        /// <summary>The cracked wall in front of this floor's secret room, if it has one.</summary>
+        public SecretWall Secret { get; private set; }
         /// <summary>The forest floor's pond, if it has one.</summary>
         public ForestPond Pond { get; private set; }
         public MachineRoom MachineRoom { get; private set; }
@@ -221,7 +223,10 @@ namespace Shrunk
             Loot.CoinBonus = Twist == FloorTwist.Crowded ? FloorTwists.CrowdedCoins : 0;
             Loot.SampleBonus = Twist == FloorTwist.PowerCut ? FloorTwists.PowerCutSamples : 0;
             ApplyLook();
-            Layout = FloorLayout.Generate(seed, FloorLayout.RoomCountForFloor(number), FloorLayout.IsBossFloor(number));
+            // Now and then a floor has a dead end to spare, walled up with something in it.
+            bool secret = FloorLayout.FloorInBiome(number) >= 2 && !InSpecial && !biome.isBottom
+                          && new System.Random(seed ^ 0x5EC2E7).NextDouble() < (SecretWall.ChanceForAll ?? SecretWall.Chance);
+            Layout = FloorLayout.Generate(seed, FloorLayout.RoomCountForFloor(number), FloorLayout.IsBossFloor(number), secret);
             // Nobody is dared on the first floor, or at the bottom: there the room is just a room.
             if (number < 2 || biome.isBottom || InSpecial)
             {
@@ -415,6 +420,10 @@ namespace Shrunk
                 {
                     MachineRoom = MachineRoom.Create(room, room.Centre);
                 }
+                else if (node.type == RoomType.Secret)
+                {
+                    Secret = SecretWall.Seal(room, node, MachineRoom.Unlit(new Color(0.06f, 0.05f, 0.05f)));
+                }
                 else if (node.type == RoomType.Normal && Pond == null && biome.id == "forest" && FloorInBiome >= 2 && !InSpecial
                          && rng.NextDouble() < (ForestPond.ChanceForAll ?? ForestPond.Chance))
                 {
@@ -525,6 +534,7 @@ namespace Shrunk
             ExtractPortal = null;
             CatFlap = null;
             MachineRoom = null;
+            Secret = null;
             Pond = null;
             _portals.Clear();
             IsLocked = false;

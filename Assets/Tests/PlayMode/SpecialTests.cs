@@ -58,6 +58,43 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator A_cracked_wall_hides_a_secret_room_with_loot_behind_it()
+        {
+            SecretWall.ChanceForAll = 1f;
+            try
+            {
+                // Never on the first floor of a world.
+                _floors.BuildFloor(1);
+                yield return null;
+                Assert.IsNull(_floors.Secret, "a secret room on floor 1");
+
+                _floors.BuildFloor(3);
+                yield return null;
+                var wall = _floors.Secret;
+                Assert.IsNotNull(wall, "no secret room");
+                Assert.IsTrue(wall.gameObject.activeSelf, "the doorway is open");
+                Assert.AreEqual(1, wall.node.DoorCount);
+                Assert.IsFalse(wall.node.visited, "the secret room is on the map already");
+
+                SaveSystem.Data.meta.secretsFound = Achievements.SecretsNeeded - 1;
+                wall.GetComponent<Health>().Kill();
+                yield return null;
+                Assert.IsTrue(wall.Broken);
+                Assert.IsFalse(wall.gameObject.activeSelf, "the wall is still standing");
+                Assert.IsTrue(wall.node.visited, "not on the map once found");
+                bool item = false;
+                foreach (var pickup in Pickup.All) item |= pickup.kind == PickupKind.Item && Vector3.Distance(pickup.transform.position, wall.room.Centre) < 3f;
+                Assert.IsTrue(item, "nothing in the secret room");
+                Assert.IsTrue(Achievements.Has(AchievementId.NosyParker));
+                Assert.IsTrue(Achievements.StyleUnlocked("Plaster"));
+            }
+            finally
+            {
+                SecretWall.ChanceForAll = 0f;
+            }
+        }
+
+        [UnityTest]
         public IEnumerator The_cat_keeps_a_rare_box_in_the_shop_and_the_run_goes_on_after()
         {
             // Not before the notebook is complete, however many shops.

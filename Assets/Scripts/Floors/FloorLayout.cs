@@ -13,7 +13,9 @@ namespace Shrunk
         /// <summary>A dead end with a dare bell in it: nothing happens there unless the player rings it.</summary>
         Dare,
         /// <summary>Off the map on a boss floor: the machine, built from its four parts. Only once a run has come far enough.</summary>
-        Machine
+        Machine,
+        /// <summary>A dead end walled off behind a cracked wall: shoot it down for free loot. Not on the map until found.</summary>
+        Secret
     }
 
     [Flags]
@@ -194,7 +196,8 @@ namespace Shrunk
 
         /// <summary>The same seed and room count always give the same floor.</summary>
         /// <param name="bossArena">Boss floors: the exit room becomes a 2 by 2 arena where there is space for one.</param>
-        public static FloorLayout Generate(int seed, int targetRooms, bool bossArena = false)
+        /// <param name="secret">Ask for a fourth dead end, walled up as a secret room.</param>
+        public static FloorLayout Generate(int seed, int targetRooms, bool bossArena = false, bool secret = false)
         {
             targetRooms = Mathf.Max(4, targetRooms);
             var rng = new System.Random(seed);
@@ -219,7 +222,7 @@ namespace Shrunk
                 distance = Distances(cells, taken);
                 exitCell = Farthest(cells, distance);
                 deadEnds = DeadEnds(cells, taken, exitCell);
-                if (deadEnds.Count >= 3 || guard >= 32) break;
+                if (deadEnds.Count >= (secret ? 4 : 3) || guard >= 32) break;
                 if (!TryAddDeadEnd(cells, taken, distance, rng)) break;
             }
 
@@ -250,6 +253,8 @@ namespace Shrunk
             if (deadEnds.Count > 1) layout.rooms[deadEnds[1]].type = RoomType.Shop;
             // A third dead end, where the floor happens to have one, is the dare room. Never on a boss's floor.
             if (!bossArena && deadEnds.Count > 2) layout.rooms[deadEnds[2]].type = RoomType.Dare;
+            // A fourth, if one was asked for, is walled up.
+            if (secret && deadEnds.Count > 3) layout.rooms[deadEnds[3]].type = RoomType.Secret;
 
             if (bossArena) layout.TryAddArena();
             return layout;
@@ -363,7 +368,7 @@ namespace Shrunk
                     if (hasNeighbour && !otherHasDoor) problems.Add($"{node.cell}: neighbour {other.cell} has no door back");
                 }
 
-                if ((node.type == RoomType.Treasure || node.type == RoomType.Shop || node.type == RoomType.Dare) && node.DoorCount != 1)
+                if ((node.type == RoomType.Treasure || node.type == RoomType.Shop || node.type == RoomType.Dare || node.type == RoomType.Secret) && node.DoorCount != 1)
                     problems.Add($"{node.type} at {node.cell} is not a dead end");
             }
 
