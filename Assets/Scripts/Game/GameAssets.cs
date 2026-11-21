@@ -15,6 +15,8 @@ namespace Shrunk
         public Material fire;
         public Material confused;
         public Material chilled;
+        [Tooltip("See-through: what the camera draws things with while they are in its way.")]
+        public Material faded;
 
         [Header("Pickup materials")]
         public Material coin;

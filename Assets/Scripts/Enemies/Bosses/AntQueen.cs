@@ -284,14 +284,11 @@ namespace Shrunk
             }
         }
 
-        public override void DropRewards()
+        // Sometimes the item is the royal jelly.
+        protected override ItemDefinition RewardItem(ItemLibrary items)
         {
-            base.DropRewards();
-
-            var assets = GameAssets.Instance;
-            if (assets == null || assets.items == null || !Chance(jellyChance)) return;
-            var jelly = assets.items.Get(ItemType.QueensJelly);
-            if (jelly != null) Pickup.Item(jelly, transform.position + Vector3.forward * 2f, 0);
+            var jelly = Chance(jellyChance) ? items.Get(ItemType.QueensJelly) : null;
+            return jelly != null ? jelly : base.RewardItem(items);
         }
     }
 }

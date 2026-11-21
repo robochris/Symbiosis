@@ -88,9 +88,9 @@ namespace Shrunk.Tests
             Assert.IsFalse(still.IsDown, "the target stayed down");
             Assert.IsTrue(still.face.activeSelf);
 
-            // Nothing aims itself at a target: it is not an enemy.
+            // A standing target counts for aim assist, so on a phone (which only fires at something) the range works.
             Assert.AreEqual(0, Enemy.Active.Count);
-            Assert.IsFalse(player.weapon.HasTarget(Vector3.right));
+            Assert.IsTrue(player.weapon.HasTarget(Vector3.right), "nothing to aim at on the range");
 
             // A timed round: only what falls on the clock counts, and the best is kept.
             Assert.That(WorldPrompt.For(range.transform.position), Does.Contain("The range").And.Contain("best is 0"));

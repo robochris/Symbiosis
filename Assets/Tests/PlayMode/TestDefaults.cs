@@ -20,6 +20,8 @@ namespace Shrunk.Tests
             FloorManager.ExchangeChanceForAll = 0f;
             FloorManager.ClawChanceForAll = 0f;
             FloorManager.GoldBugChanceForAll = 0f;
+            // Every enemy pays, so tests that count coins are not a coin flip.
+            Loot.CoinChanceOverride = 1f;
         }
 
         [OneTimeTearDown]
@@ -30,6 +32,7 @@ namespace Shrunk.Tests
             FloorManager.ExchangeChanceForAll = null;
             FloorManager.ClawChanceForAll = null;
             FloorManager.GoldBugChanceForAll = null;
+            Loot.CoinChanceOverride = null;
         }
     }
 }

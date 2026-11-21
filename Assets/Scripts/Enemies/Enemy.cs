@@ -28,7 +28,7 @@ namespace Shrunk
 
         [Tooltip("The body; scaled for telegraphs and the death pop.")]
         public Transform visual;
-        public float knockbackOnHit = 5f;
+        public float knockbackOnHit = 2.5f;
         public float knockbackDecay = 14f;
         [Tooltip("Stands still and never attacks, but can still be hit, burned and killed. For target practice and tests.")]
         public bool frozen;
@@ -52,7 +52,9 @@ namespace Shrunk
         /// <summary>Confused enemies attack the nearest other enemy instead of the player.</summary>
         public bool IsConfused => Time.time < _confusedUntil;
         /// <summary>Airborne enemies are not hurt by puddles on the floor.</summary>
-        public virtual bool IgnoresGroundHazards => false;
+        [Tooltip("It has wings and keeps off the floor: puddles and floor fire never reach it.")]
+        public bool flies;
+        public virtual bool IgnoresGroundHazards => flies;
         /// <summary>Everything that changes how fast this enemy moves and attacks, multiplied together.</summary>
         public float SpeedScale => SpeedMultiplier * (IsBuffed ? 1.4f : 1f) * (IsChilled ? ChilledSpeed : 1f) * WorldSlow;
         /// <summary>Chilled by an Ice Cube shot: slower in everything it does until it thaws.</summary>
@@ -310,6 +312,13 @@ namespace Shrunk
         public void RequestSummon(int count)
         {
             SummonRequested?.Invoke(this, count);
+        }
+
+        /// <summary>A hard shove, harder than a shot's: for blasts that are meant to throw things back.</summary>
+        public void Shove(Vector3 velocity)
+        {
+            velocity.y = 0f;
+            if (knockbackOnHit > 0f) Knockback = velocity;
         }
 
         void OnDamaged(int amount, Vector3 direction)

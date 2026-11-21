@@ -197,12 +197,13 @@ namespace Shrunk
     /// <summary>What enemies leave behind. Tougher and more mutated enemies leave more.</summary>
     public static class Loot
     {
-        /// <summary>Chance of an item from an unmutated enemy; each mutation point adds this much again.</summary>
-        public const float ItemChance = 0.02f;
         /// <summary>Samples from an unmutated enemy; each mutation point adds one more.</summary>
         public const int SamplesPerEnemy = 1;
+        /// <summary>Chance an ordinary enemy drops any coins at all.</summary>
+        public const float CoinChance = 0.5f;
+        /// <summary>Tests set this to make coin drops certain (1) or impossible (0).</summary>
+        public static float? CoinChanceOverride;
         public const int EliteSamples = 3;
-        public const float EliteItemChance = 0.3f;
         /// <summary>Chance an enemy leaves a crumb when the player is hurt. Never when they are not.</summary>
         public const float CrumbChance = 0.05f;
         /// <summary>Tests set this to make the roll certain (1) or impossible (0).</summary>
@@ -220,7 +221,10 @@ namespace Shrunk
             // A first playtest could buy the whole shop on every floor: this is half what it was.
             var banker = PlayerController.Instance;
             int piggy = banker != null && banker.Items != null ? banker.Items.Stats.coinBonus : 0;
-            int coins = Mathf.Min(4, 1 + enemy.Health.maxHealth / 8) + (enemy is BossEnemy ? 0 : CoinBonus + piggy) + (enemy is GoldBug ? GoldBug.Coins : 0);
+            // Not everything carries money: about half do, and bosses, gold bugs and mimics always.
+            bool pays = enemy is BossEnemy || enemy is GoldBug || enemy is MimicEnemy || enemy.IsElite
+                        || UnityEngine.Random.value < (CoinChanceOverride ?? CoinChance);
+            int coins = !pays ? 0 : Mathf.Min(3, 1 + enemy.Health.maxHealth / 10) + (enemy is BossEnemy ? 0 : CoinBonus + piggy) + (enemy is GoldBug ? GoldBug.Coins : 0);
             for (int i = 0; i < coins; i++) Pickup.Coin(origin + Scatter(), 1);
 
             Pickup.Sample(origin + Scatter(), SamplesPerEnemy + points + SampleBonus);
@@ -233,16 +237,8 @@ namespace Shrunk
             {
                 Pickup.Health(origin + Scatter());
             }
-            // An elite is worth hunting: a second lump of samples, and a real chance of an item.
+            // An elite is worth hunting: a second lump of samples. Items come from bosses, treasure, dares and the shop.
             if (enemy.IsElite) Pickup.Sample(origin + Scatter(), EliteSamples);
-
-            var assets = GameAssets.Instance;
-            // Bosses have their own item rewards.
-            if (!(enemy is BossEnemy) && assets != null && assets.items != null && UnityEngine.Random.value < (enemy.IsElite ? EliteItemChance : ItemChance * (1 + points)))
-            {
-                ItemDefinition item = PickFor(enemy, assets.items, new System.Random(UnityEngine.Random.Range(0, int.MaxValue)));
-                if (item != null) Pickup.Item(item, origin, 0);
-            }
         }
 
         /// <summary>How often a dropped item is one of the enemy's favoured ones rather than anything at all.</summary>

@@ -158,7 +158,7 @@ namespace Shrunk
             if (aimDirection.sqrMagnitude < 0.001f) return false;
             Vector3 origin = muzzle != null ? muzzle.position : transform.position;
             float range = Reach;
-            if (FindTarget(origin, aimDirection.normalized, aimAssistAngle + Stats.aimAssistBonusAngle, out _) != null) return true;
+            if (FindTarget(origin, aimDirection.normalized, aimAssistAngle + Stats.aimAssistBonusAngle, out _)) return true;
 
             // Larva pods count too, but only when aimed at squarely: shots are never bent toward them.
             foreach (var pod in LarvaPod.All)
@@ -186,36 +186,42 @@ namespace Shrunk
         Vector3 ApplyAimAssist(Vector3 origin, Vector3 direction, float coneAngle)
         {
             if (aimAssistStrength <= 0f) return direction;
-            return FindTarget(origin, direction, coneAngle, out Vector3 toTarget) == null
+            return !FindTarget(origin, direction, coneAngle, out Vector3 toTarget)
                 ? direction
                 : Vector3.Slerp(direction, toTarget, aimAssistStrength).normalized;
         }
 
-        // The enemy closest to the centre of the aim cone, if any.
-        Enemy FindTarget(Vector3 origin, Vector3 direction, float coneAngle, out Vector3 bestDirection)
+        // Whatever is closest to the centre of the aim cone, if anything: an enemy, or a target on the range.
+        bool FindTarget(Vector3 origin, Vector3 direction, float coneAngle, out Vector3 bestDirection)
         {
-            Enemy best = null;
+            bool found = false;
             float bestAngle = coneAngle;
-            bestDirection = direction;
+            Vector3 best = direction;
 
             foreach (var enemy in Enemy.Active)
             {
                 if (enemy.Health.IsDead || !enemy.Targetable) continue;
-                Vector3 to = enemy.transform.position - origin;
+                Consider(enemy.transform.position);
+            }
+            foreach (var target in RangeTarget.All)
+            {
+                if (target.Aimable) Consider(target.transform.position);
+            }
+            bestDirection = best;
+            return found;
+
+            void Consider(Vector3 position)
+            {
+                Vector3 to = position - origin;
                 to.y = 0f;
                 float distance = to.magnitude;
-                if (distance > Reach || distance < 0.01f) continue;
-
+                if (distance > Reach || distance < 0.01f) return;
                 float angle = Vector3.Angle(direction, to);
-                if (angle < bestAngle)
-                {
-                    bestAngle = angle;
-                    best = enemy;
-                    bestDirection = to / distance;
-                }
+                if (angle >= bestAngle) return;
+                bestAngle = angle;
+                found = true;
+                best = to / distance;
             }
-
-            return best;
         }
     }
 }

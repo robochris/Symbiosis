@@ -411,6 +411,30 @@ namespace Shrunk.EditorTools
             return material;
         }
 
+        // See-through Lit, for whatever is between the camera and the character. Its colour comes from the thing it
+        // stands in for, alpha and all, so one material does for everything.
+        internal static Material Faded()
+        {
+            var material = LoadOrCreate("Faded", "Universal Render Pipeline/Lit");
+            material.SetFloat("_Surface", 1f);
+            material.SetFloat("_Blend", 0f);
+            material.SetFloat("_AlphaClip", 0f);
+            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_SrcBlendAlpha", (float)UnityEngine.Rendering.BlendMode.One);
+            material.SetFloat("_DstBlendAlpha", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_ZWrite", 0f);
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.DisableKeyword("_ALPHATEST_ON");
+            material.SetShaderPassEnabled("ShadowCaster", false);
+            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            material.SetColor("_BaseColor", new Color(1f, 1f, 1f, 0.3f));
+            material.SetFloat("_Smoothness", 0.2f);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
         // Reuses the existing asset so hand-tuned references to it survive a rebuild.
         internal static Material LoadOrCreate(string name, string shaderName)
         {

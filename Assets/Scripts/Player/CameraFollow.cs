@@ -303,20 +303,49 @@ namespace Shrunk
 
         Vector3 _pivot;
         static readonly RaycastHit[] Blockers = new RaycastHit[24];
-        readonly System.Collections.Generic.List<Renderer> _hidden = new System.Collections.Generic.List<Renderer>();
         readonly System.Collections.Generic.HashSet<Renderer> _blocking = new System.Collections.Generic.HashSet<Renderer>();
 
-        /// <summary>How many things are hidden right now because they are between the camera and the character.</summary>
-        public int HiddenBlockers => _hidden.Count;
+        // One thing faded out of the way: what it was drawn with, and how far it has faded.
+        class Faded
+        {
+            public Material[] materials;
+            public Color colour;
+            public float alpha = 1f;
+        }
+        readonly System.Collections.Generic.Dictionary<Renderer, Faded> _faded = new System.Collections.Generic.Dictionary<Renderer, Faded>();
+        readonly System.Collections.Generic.List<Renderer> _done = new System.Collections.Generic.List<Renderer>();
+        static MaterialPropertyBlock _block;
 
-        // Anything solid between the character and the camera, other than the room itself and other characters, is
-        // not drawn while it is there, and comes back the moment it is not.
+        [Tooltip("How see-through something in the way of the camera gets.")]
+        [Range(0f, 1f)] public float fadedAlpha = 0.3f;
+        [Tooltip("How quickly it fades out and back, in full fades a second.")]
+        public float fadeSpeed = 7f;
+
+        /// <summary>How many things are faded right now because they are between the camera and the character.</summary>
+        public int HiddenBlockers
+        {
+            get
+            {
+                int count = 0;
+                foreach (var pair in _faded) if (_blocking.Contains(pair.Key)) count++;
+                return count;
+            }
+        }
+
+        /// <summary>True while this renderer is drawn see-through because it is in the way.</summary>
+        public bool IsFaded(Renderer renderer) => renderer != null && _faded.ContainsKey(renderer);
+
+        // Anything solid between the character and the camera, other than the room itself and other characters, fades
+        // to see-through while it is there, and back the moment it is not. The room's walls never need it: the camera
+        // stays inside the room (see ClearDistance).
         void HideBlockers(Vector3 from, Vector3 to)
         {
             _blocking.Clear();
             Vector3 line = to - from;
             float length = line.magnitude;
-            if (seeThroughWalls && InRun && length > 0.6f)
+            var assets = GameAssets.Instance;
+            Material fade = assets != null ? assets.faded : null;
+            if (seeThroughWalls && InRun && fade != null && length > 0.6f)
             {
                 int count = Physics.SphereCastNonAlloc(from, 0.45f, line / length, Blockers, length, ~0, QueryTriggerInteraction.Ignore);
                 for (int i = 0; i < count; i++)
@@ -325,88 +354,65 @@ namespace Shrunk
                     if (blocker.GetComponent<Room>() != null || blocker.GetComponentInParent<Health>() != null) continue;
                     foreach (var shown in blocker.GetComponentsInChildren<Renderer>())
                     {
-                        // The gate left standing in a hidden door's place is there to be seen.
-                        if (shown.transform.parent != null && shown.transform.parent.name == GateName) continue;
+                        if (shown is ParticleSystemRenderer || shown is LineRenderer || shown is TrailRenderer) continue;
                         _blocking.Add(shown);
+                        if (_faded.ContainsKey(shown)) continue;
+                        var was = new Faded { materials = shown.sharedMaterials, colour = Color.white };
+                        Material first = was.materials.Length > 0 ? was.materials[0] : null;
+                        if (first != null && first.HasProperty("_BaseColor")) was.colour = first.GetColor("_BaseColor");
+                        _faded.Add(shown, was);
+                        var swapped = new Material[was.materials.Length];
+                        for (int m = 0; m < swapped.Length; m++) swapped[m] = fade;
+                        shown.sharedMaterials = swapped;
                     }
                 }
             }
 
-            for (int i = _hidden.Count - 1; i >= 0; i--)
+            if (_block == null) _block = new MaterialPropertyBlock();
+            _done.Clear();
+            foreach (var pair in _faded)
             {
-                Renderer was = _hidden[i];
-                if (was != null && _blocking.Contains(was)) continue;
-                if (was != null)
+                Renderer shown = pair.Key;
+                Faded was = pair.Value;
+                if (shown == null)
                 {
-                    was.forceRenderingOff = false;
-                    ShowGate(was, false);
+                    _done.Add(shown);
+                    continue;
                 }
-                _hidden.RemoveAt(i);
-            }
-            foreach (var blocker in _blocking)
-            {
-                if (blocker.forceRenderingOff) continue;
-                blocker.forceRenderingOff = true;
-                ShowGate(blocker, true);
-                _hidden.Add(blocker);
-            }
-        }
-
-        const string GateName = "Shut Gate";
-
-        // A shut door that is looked through still has to read as shut. While it is hidden, a low sill and a few thin
-        // bars stand in the doorway in its colour: enough to see that the way is closed, not enough to hide the room.
-        static void ShowGate(Renderer door, bool show)
-        {
-            if (!door.name.EndsWith(" Door") || door.GetComponentInParent<Room>() == null) return;
-            Transform gate = door.transform.Find(GateName);
-            if (gate == null)
-            {
-                if (!show) return;
-                gate = new GameObject(GateName).transform;
-                gate.SetParent(door.transform, false);
-                // The door is a stretched cube: work in metres, then undo its stretch.
-                Vector3 size = door.transform.lossyScale;
-                bool alongX = size.x >= size.z;
-                float width = alongX ? size.x : size.z, thick = alongX ? size.z : size.x;
-                void Piece(float along, float bottom, float w, float h)
+                float target = _blocking.Contains(shown) ? fadedAlpha : 1f;
+                was.alpha = Mathf.MoveTowards(was.alpha, target, fadeSpeed * Time.unscaledDeltaTime);
+                if (target >= 1f && was.alpha >= 1f)
                 {
-                    var piece = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    var solid = piece.GetComponent<Collider>();
-                    solid.enabled = false;
-                    Destroy(solid);
-                    piece.transform.SetParent(gate, false);
-                    Vector3 at = alongX ? new Vector3(along, 0f, 0f) : new Vector3(0f, 0f, along);
-                    piece.transform.localPosition = new Vector3(at.x / size.x, (bottom + h * 0.5f) / size.y - 0.5f, at.z / size.z);
-                    Vector3 scale = alongX ? new Vector3(w, h, thick * 0.5f) : new Vector3(thick * 0.5f, h, w);
-                    piece.transform.localScale = new Vector3(scale.x / size.x, scale.y / size.y, scale.z / size.z);
-                    var drawn = piece.GetComponent<Renderer>();
-                    drawn.sharedMaterial = door.sharedMaterial;
-                    drawn.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    shown.SetPropertyBlock(null);
+                    shown.sharedMaterials = was.materials;
+                    _done.Add(shown);
+                    continue;
                 }
-                Piece(0f, 0f, width, 0.45f);
-                int bars = Mathf.Max(2, Mathf.RoundToInt(width / 1.4f));
-                for (int i = 0; i <= bars; i++) Piece(Mathf.Lerp(-width * 0.5f + 0.1f, width * 0.5f - 0.1f, i / (float)bars), 0.45f, 0.14f, 2.2f);
+                Color colour = was.colour;
+                colour.a = was.alpha;
+                _block.Clear();
+                _block.SetColor("_BaseColor", colour);
+                shown.SetPropertyBlock(_block);
             }
-            gate.gameObject.SetActive(show);
+            foreach (var gone in _done) _faded.Remove(gone);
         }
 
         void OnDisable()
         {
-            foreach (var was in _hidden)
+            foreach (var pair in _faded)
             {
-                if (was == null) continue;
-                was.forceRenderingOff = false;
-                ShowGate(was, false);
+                if (pair.Key == null) continue;
+                pair.Key.SetPropertyBlock(null);
+                pair.Key.sharedMaterials = pair.Value.materials;
             }
-            _hidden.Clear();
+            _faded.Clear();
         }
 
-        [Tooltip("On, the camera backs through a room's walls and ceiling and looks in from behind them: they only show from inside, so the view stays put. Off, it jumps in front of them.")]
+        [Tooltip("On, things in a room that get between the camera and the character (a pebble, a root, a shut door) fade see-through and the view stays put. The room's own walls always bring the camera in.")]
         public bool seeThroughWalls = true;
 
-        // Pulls the camera in front of anything solid between it and the character. A room's own walls and ceiling
-        // are drawn on their inner face only, so with seeThroughWalls the camera is left where it is and sees in.
+        // Pulls the camera in front of the room's walls and ceiling, so it never sees out of the room it is in: no
+        // looking into the next room, and nothing outside the map. Anything else in the way is faded instead.
         float ClearDistance(Vector3 from, Vector3 direction, float wanted)
         {
             int count = Physics.SphereCastNonAlloc(from, 0.3f, direction, Hits, wanted, ~(1 << DressingLayer), QueryTriggerInteraction.Ignore);
@@ -415,9 +421,8 @@ namespace Shrunk
             {
                 if (Hits[i].distance >= nearest) continue;
                 if (Hits[i].collider.GetComponentInParent<Health>() != null) continue; // characters don't block the camera
-                // In a run nothing pushes the view about: walls are looked through, and whatever else is in the way
-                // (a pebble, a root, a shut door) is hidden while it is (see HideBlockers).
-                if (seeThroughWalls && (InRun || Hits[i].collider.GetComponent<Room>() != null)) continue;
+                // In a run only the room's walls push the view in; whatever else is in the way fades (see HideBlockers).
+                if (seeThroughWalls && InRun && Hits[i].collider.GetComponent<Room>() == null) continue;
                 nearest = Hits[i].distance;
             }
             return Mathf.Max(nearest, 0.4f);

@@ -127,6 +127,7 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Cube, "Wing L", flyModel, new Vector3(-0.3f, 1.05f, 0f), new Vector3(0.5f, 0.02f, 0.25f), wingGlass);
             Decor(PrimitiveType.Cube, "Wing R", flyModel, new Vector3(0.3f, 1.05f, 0f), new Vector3(0.5f, 0.02f, 0.25f), wingGlass);
             fly.pulseColor = new Color(1f, 0.95f, 0.4f);
+            fly.flies = true;
             fly.favouredDrops = new[] { ItemType.SpareBattery, ItemType.LostMarble };
             var flyPrefab = SaveEnemy(fly);
 
@@ -144,6 +145,7 @@ namespace Shrunk.EditorTools
             waspMuzzle.localPosition = new Vector3(0f, 0.8f, 0.9f);
             wasp.muzzle = waspMuzzle;
             wasp.projectilePrefab = stingerPrefab;
+            wasp.flies = true;
             wasp.telegraphMaterial = telegraph;
             wasp.favouredDrops = new[] { ItemType.NeedleTip, ItemType.CompoundEye };
             var waspPrefab = SaveEnemy(wasp);

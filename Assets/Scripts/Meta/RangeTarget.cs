@@ -34,6 +34,11 @@ namespace Shrunk
         float _nextChange;
 
         public bool IsDown { get; private set; }
+        /// <summary>Up, in sight, and not the secret one: something aim assist may turn a shot toward.</summary>
+        public bool Aimable => !IsDown && !IsHidden && !isRadio;
+
+        /// <summary>Every target in the scene, for aim assist: on a phone, shots only go off at something to aim at.</summary>
+        public static readonly System.Collections.Generic.List<RangeTarget> All = new System.Collections.Generic.List<RangeTarget>();
 
         Health _health;
         Collider _collider;
@@ -61,8 +66,17 @@ namespace Shrunk
             _nextChange = Time.time + (hide ? appearsEvery : staysFor);
         }
 
-        void OnEnable() => _health.Died += OnDied;
-        void OnDisable() => _health.Died -= OnDied;
+        void OnEnable()
+        {
+            _health.Died += OnDied;
+            All.Add(this);
+        }
+
+        void OnDisable()
+        {
+            _health.Died -= OnDied;
+            All.Remove(this);
+        }
 
         void Update()
         {

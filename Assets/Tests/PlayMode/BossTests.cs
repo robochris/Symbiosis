@@ -152,6 +152,48 @@ namespace Shrunk.Tests
             Assert.IsNull(BossEnemy.InPlay == mother && !mother.Health.IsDead ? mother : null);
         }
 
+        [UnityTest]
+        public IEnumerator Items_come_from_bosses_and_never_from_the_rank_and_file()
+        {
+            // Every boss, the Queen included, leaves exactly one.
+            var queen = SpawnBoss<AntQueen>(_biome.boss, new Vector3(0f, 0f, 12f));
+            yield return null;
+            queen.Health.Kill();
+            yield return null;
+            int items = 0;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Item) items++;
+            Assert.AreEqual(1, items, "the Ant Queen should drop exactly one item");
+            foreach (var pickup in new List<Pickup>(Pickup.All)) Object.Destroy(pickup.gameObject);
+            yield return null;
+
+            // Forty ordinary enemies, elites among them: not one item, and with coins left to chance only some pay.
+            Loot.CoinChanceOverride = null;
+            int paid = 0;
+            try
+            {
+                for (int i = 0; i < 40; i++)
+                {
+                    int coinsBefore = 0;
+                    foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Coin) coinsBefore++;
+                    var prefab = _biome.spawnTable[i % _biome.spawnTable.Length].prefab;
+                    var enemy = _spawner.SpawnAt(prefab, new Vector3(-10f + (i % 8) * 2.5f, 0f, 10f + (i / 8) * 2.5f), null);
+                    if (i % 10 == 0) enemy.MakeElite(_biome.eliteMaterial);
+                    enemy.Health.Kill();
+                    yield return null;
+                    int coinsAfter = 0;
+                    foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Coin) coinsAfter++;
+                    if (coinsAfter > coinsBefore) paid++;
+                }
+            }
+            finally
+            {
+                Loot.CoinChanceOverride = 1f;
+            }
+            foreach (var pickup in Pickup.All) Assert.AreNotEqual(PickupKind.Item, pickup.kind, "an ordinary enemy dropped an item");
+            Assert.Less(paid, 36, "nearly everything still drops coins");
+            Assert.Greater(paid, 4, "almost nothing drops coins");
+        }
+
         // ---------- Ant Queen ----------
 
         [UnityTest]

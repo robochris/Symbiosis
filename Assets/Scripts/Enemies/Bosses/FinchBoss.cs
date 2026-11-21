@@ -295,13 +295,11 @@ namespace Shrunk
         }
 
         // What is left in the flask.
-        public override void DropRewards()
+        // The item is always the dose.
+        protected override ItemDefinition RewardItem(ItemLibrary items)
         {
-            base.DropRewards();
-            var assets = GameAssets.Instance;
-            if (assets == null || assets.items == null) return;
-            var dose = assets.items.Get(ItemType.FinchsDose);
-            if (dose != null) Pickup.Item(dose, transform.position + Vector3.forward * 2f, 0);
+            var dose = items.Get(ItemType.FinchsDose);
+            return dose != null ? dose : base.RewardItem(items);
         }
 
         void Fire(Vector3 toTarget)

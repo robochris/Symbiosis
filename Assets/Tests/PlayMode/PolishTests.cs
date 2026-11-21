@@ -108,28 +108,31 @@ namespace Shrunk.Tests
             yield return null;
             float clear = (follow.transform.position - player.transform.position).magnitude;
 
-            // A crate dropped between the two: it is not drawn, and the view does not jump forward past it.
+            // A crate dropped between the two: it fades see-through (not gone), and the view does not jump forward past it.
             var crate = GameObject.CreatePrimitive(PrimitiveType.Cube);
             crate.transform.localScale = Vector3.one * 0.8f;
             crate.transform.position = Vector3.Lerp(player.transform.position + Vector3.up * 1.2f, follow.transform.position, 0.6f);
+            Material solid = crate.GetComponent<Renderer>().sharedMaterial;
             Physics.SyncTransforms();
             yield return null;
             yield return null;
             var drawn = crate.GetComponent<Renderer>();
-            Assert.IsTrue(drawn.forceRenderingOff, "the crate in front of the camera is still drawn");
+            Assert.IsTrue(follow.IsFaded(drawn), "the crate in front of the camera is still solid");
+            Assert.AreEqual(GameAssets.Instance.faded, drawn.sharedMaterial);
+            Assert.IsFalse(drawn.forceRenderingOff, "the crate vanished instead of fading");
             Assert.Greater(follow.HiddenBlockers, 0);
             Assert.AreEqual(clear, (follow.transform.position - player.transform.position).magnitude, 0.3f, "the view jumped in front of the crate");
 
             // Out of the way again: back on screen.
             crate.transform.position += Vector3.up * 40f;
             Physics.SyncTransforms();
-            yield return null;
-            yield return null;
-            Assert.IsFalse(drawn.forceRenderingOff, "the crate stayed hidden after it moved away");
+            yield return new WaitForSecondsRealtime(0.4f);
+            Assert.IsFalse(follow.IsFaded(drawn), "the crate stayed faded after it moved away");
+            Assert.AreEqual(solid, drawn.sharedMaterial, "the crate did not get its own look back");
             Assert.AreEqual(0, follow.HiddenBlockers);
             Object.Destroy(crate);
 
-            // A shut door that is in the way is looked through too, but leaves a gate standing so it still reads as shut.
+            // A shut door that is in the way fades too, so it still reads as shut.
             var floors = FloorManager.Instance;
             var roomObject = floors.CurrentRoom.gameObject;
             Transform door = null;
@@ -141,20 +144,37 @@ namespace Shrunk.Tests
             Physics.SyncTransforms();
             yield return null;
             yield return null;
-            Assert.IsTrue(door.GetComponent<Renderer>().forceRenderingOff, "the shut door in front of the camera is still drawn");
-            Transform gate = door.Find("Shut Gate");
-            Assert.IsNotNull(gate, "nothing shows that the doorway is shut");
-            Assert.IsTrue(gate.gameObject.activeSelf);
-            foreach (var bar in gate.GetComponentsInChildren<Renderer>()) Assert.IsFalse(bar.forceRenderingOff, "the gate was hidden along with the door");
-            Assert.IsNull(gate.GetComponentInChildren<Collider>(), "the gate is solid: it is only there to be seen");
+            Assert.IsTrue(follow.IsFaded(door.GetComponent<Renderer>()), "the shut door in front of the camera is still solid");
+            Assert.IsFalse(door.GetComponent<Renderer>().forceRenderingOff, "the shut door vanished instead of fading");
             door.position = home + Vector3.up * 60f;
             Physics.SyncTransforms();
-            yield return null;
-            yield return null;
-            Assert.IsFalse(door.GetComponent<Renderer>().forceRenderingOff);
-            Assert.IsFalse(gate.gameObject.activeSelf, "the gate stayed up after the door came back");
+            yield return new WaitForSecondsRealtime(0.4f);
+            Assert.IsFalse(follow.IsFaded(door.GetComponent<Renderer>()));
             door.position = home;
             door.gameObject.SetActive(false);
+
+            // Backed up to a wall, the camera comes in front of it: it never looks out of the room.
+            Vector3 back = -follow.transform.forward;
+            back.y = 0f;
+            back.Normalize();
+            Vector3 eye = player.transform.position + Vector3.up * 1.2f;
+            RaycastHit wall = default;
+            bool foundWall = false;
+            foreach (var hit in Physics.RaycastAll(eye, back, 60f, ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (hit.collider.GetComponent<Room>() == null) continue;
+                if (!foundWall || hit.distance < wall.distance) wall = hit;
+                foundWall = true;
+            }
+            Assert.IsTrue(foundWall, "no wall behind the camera to test with");
+            Vector3 spot = wall.point - back * 1.2f;
+            player.Teleport(new Vector3(spot.x, player.transform.position.y, spot.z));
+            follow.Snap();
+            yield return null;
+            yield return null;
+            Vector3 lookFrom = player.transform.position + Vector3.up * 1.2f;
+            foreach (var hit in Physics.RaycastAll(lookFrom, follow.transform.position - lookFrom, (follow.transform.position - lookFrom).magnitude, ~0, QueryTriggerInteraction.Ignore))
+                Assert.IsNull(hit.collider.GetComponent<Room>(), "the camera is outside the room's wall");
 
             // The line of text at the bottom wraps inside the screen whatever its length.
             var prompt = Object.FindAnyObjectByType<Hud>().promptText;

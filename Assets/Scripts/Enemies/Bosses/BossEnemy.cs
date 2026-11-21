@@ -43,6 +43,19 @@ namespace Shrunk
                 Vector2 offset = Random.insideUnitCircle * 2f;
                 Pickup.Sample(transform.position + new Vector3(offset.x, 0f, offset.y), Mathf.Max(1, sampleReward / lumps));
             }
+
+            // Every boss, big or small, leaves exactly one item. Ordinary enemies leave none.
+            var assets = GameAssets.Instance;
+            if (assets == null || assets.items == null) return;
+            ItemDefinition item = RewardItem(assets.items);
+            if (item != null) Pickup.Item(item, transform.position + Vector3.forward * 2f, 0);
+        }
+
+        /// <summary>Which item it leaves: a common one, unless the boss has one of its own.</summary>
+        protected virtual ItemDefinition RewardItem(ItemLibrary items)
+        {
+            var picks = items.RandomCommon(new System.Random(Random.Range(0, int.MaxValue)), 1);
+            return picks.Count > 0 ? picks[0] : null;
         }
 
         protected static bool Chance(float probability) => Random.value < probability;

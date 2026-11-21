@@ -194,10 +194,6 @@ namespace Shrunk
         public override void DropRewards()
         {
             base.DropRewards();
-            var assets = GameAssets.Instance;
-            if (assets == null || assets.items == null) return;
-            var picks = assets.items.RandomCommon(new System.Random(Random.Range(0, int.MaxValue)), 1);
-            if (picks.Count > 0) Pickup.Item(picks[0], transform.position, 0);
         }
     }
 }

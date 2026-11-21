@@ -131,6 +131,8 @@ namespace Shrunk
 
         /// <summary>Enemies caught by the last surge.</summary>
         public int LastSurgeHits { get; private set; }
+        /// <summary>How hard the surge throws what it catches: well past a shot's knockback.</summary>
+        public const float SurgeShove = 8f;
 
         float _activeUntil;
         Vector3[] _eyeScales;
@@ -238,7 +240,9 @@ namespace Shrunk
                 Vector3 away = enemy.transform.position - transform.position;
                 away.y = 0f;
                 if (away.magnitude > surgeRadius) continue;
-                enemy.Health.TakeDamage(surgeDamage, away.sqrMagnitude > 0.01f ? away.normalized : transform.forward);
+                Vector3 outward = away.sqrMagnitude > 0.01f ? away.normalized : transform.forward;
+                enemy.Health.TakeDamage(surgeDamage, outward);
+                enemy.Shove(outward * SurgeShove);
                 LastSurgeHits++;
             }
             if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.45f);
