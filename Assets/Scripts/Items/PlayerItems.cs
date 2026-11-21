@@ -38,6 +38,8 @@ namespace Shrunk
         public float crumbMultiplier;
         /// <summary>Extra coins from everything put down.</summary>
         public int coinBonus;
+        /// <summary>Above 0: the player's puddles reach fliers too.</summary>
+        public int splashUp;
 
         public static PlayerStats Default => new PlayerStats
         {
@@ -136,6 +138,7 @@ namespace Shrunk
                     fireDodge = Count(ItemType.BirthdayCandle),
                     bounce = Count(ItemType.RubberBand),
                     chill = Count(ItemType.IceCube),
+                    splashUp = Count(ItemType.RainBoot),
                     magnetMultiplier = 1f + 1.5f * Count(ItemType.FridgeMagnet),
                     powerFillMultiplier = 1f + 0.35f * Count(ItemType.SpareBattery),
                     crumbMultiplier = 1f + Count(ItemType.Lunchbox),

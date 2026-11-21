@@ -31,7 +31,9 @@ namespace Shrunk
         /// <summary>Everything drops one more coin.</summary>
         PiggyBank,
         /// <summary>Quicker on the feet and the trigger; the dodge takes longer to come back.</summary>
-        ColdCoffee
+        ColdCoffee,
+        /// <summary>The player's puddles splash up high enough to catch fliers.</summary>
+        RainBoot
     }
 
     /// <summary>Where an item shows on the character. Two items in one slot: the newer one shows.</summary>

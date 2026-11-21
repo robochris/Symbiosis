@@ -66,6 +66,7 @@ namespace Shrunk
             new LevelReward { level = 14, kind = RewardKind.Perk, perk = Perk.SecondOpinion, line = "Second Opinion: bosses leave two items to choose from" },
             new LevelReward { level = 15, kind = RewardKind.Item, item = ItemType.ColdCoffee, line = "Cold Coffee can drop" },
             new LevelReward { level = 16, kind = RewardKind.Style, style = "Gold Leaf", line = "the Gold Leaf style" },
+            new LevelReward { level = 17, kind = RewardKind.Item, item = ItemType.RainBoot, line = "Rain Boot can drop" },
         };
 
         public static int TopLevel => Ladder[Ladder.Length - 1].level;

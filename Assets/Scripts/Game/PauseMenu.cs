@@ -80,6 +80,7 @@ namespace Shrunk
             Add("Look speed", () => Level((GameSettings.LookSpeed - 0.4f) / 1.1f, "Slowest", "Slow", "Normal", "Fast"), () => GameSettings.LookSpeed = Next(GameSettings.LookSpeed, 0.4f, 0.6f, 1f, 1.5f));
             Add("Looking up and down", () => GameSettings.LockVertical ? "Locked" : "Free", () => GameSettings.LockVertical = !GameSettings.LockVertical);
             Add("Touch controls", () => GameSettings.LeftHanded ? "Left-handed" : "Right-handed", () => GameSettings.LeftHanded = !GameSettings.LeftHanded);
+            Add("Aim stick", () => GameSettings.FloatingAim ? "Follows your thumb" : "Stays put", () => GameSettings.FloatingAim = !GameSettings.FloatingAim);
             Add("Enemy arrows", () => GameSettings.EnemyArrows ? "On" : "Off", () => GameSettings.EnemyArrows = !GameSettings.EnemyArrows);
             Add("Damage numbers", () => GameSettings.DamageNumbers ? "On" : "Off", () => GameSettings.DamageNumbers = !GameSettings.DamageNumbers);
             Add("Difficulty", () => GameSettings.Relaxed ? "Relaxed (+2 health)" : "As intended", () => GameSettings.Relaxed = !GameSettings.Relaxed);
@@ -103,10 +104,11 @@ namespace Shrunk
                 row.rect = (RectTransform)go.transform;
                 row.rect.SetParent(panel, false);
                 row.rect.anchorMin = row.rect.anchorMax = row.rect.pivot = new Vector2(0.5f, 0.5f);
-                row.rect.anchoredPosition = new Vector2(0f, 365f - i * 70f);
-                row.rect.sizeDelta = new Vector2(900f, 62f);
+                // Fourteen rows and the heading, inside the 1080 the canvas is laid out for.
+                row.rect.anchoredPosition = new Vector2(0f, 370f - i * 63f);
+                row.rect.sizeDelta = new Vector2(900f, 57f);
                 row.background = go.GetComponent<Image>();
-                row.text = MakeText(row.rect, "", 36, Vector2.zero, new Vector2(860f, 60f));
+                row.text = MakeText(row.rect, "", 33, Vector2.zero, new Vector2(860f, 55f));
             }
 
             // Pause button, top of the screen just right of the camera label.

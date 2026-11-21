@@ -143,7 +143,7 @@ namespace Shrunk
                     bool onMoveSide = (position.x < Screen.width * 0.5f) != leftHanded;
                     // The move stick does not come to the thumb: its centre is where it is drawn.
                     if (onMoveSide && _moveId < 0) { _moveId = touch.touchId; _moveOrigin = _moveRest; }
-                    else if (!onMoveSide && _aimId < 0) { _aimId = touch.touchId; _aimOrigin = position; }
+                    else if (!onMoveSide && _aimId < 0) { _aimId = touch.touchId; _aimOrigin = GameSettings.FloatingAim ? position : (Vector2)_aimRest; }
                 }
 
                 if (touch.touchId == _moveId)
@@ -154,7 +154,7 @@ namespace Shrunk
                 else if (touch.touchId == _aimId)
                 {
                     if (ended) _aimId = -1;
-                    else { aimSeen = true; Aim = ReadStick(position, ref _aimOrigin, radius); }
+                    else { aimSeen = true; Aim = GameSettings.FloatingAim ? ReadStick(position, ref _aimOrigin, radius) : ReadFixedStick(position, _aimOrigin, radius); }
                 }
             }
 

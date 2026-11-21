@@ -731,10 +731,31 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Rain_boots_let_your_puddles_reach_fliers()
+        {
+            var flier = Dummy(new Vector3(0f, 0f, 6f), "WingedAnt");
+            var walker = Dummy(new Vector3(6f, 0f, 6f));
+            yield return null;
+            Assert.IsTrue(flier.IgnoresGroundHazards);
+
+            // Without the boots: the walker in a puddle is hurt, the flier over one is not.
+            GroundHazard.SpawnFriendlyPuddle(flier.transform.position, 1, false, null);
+            GroundHazard.SpawnFriendlyPuddle(walker.transform.position, 1, false, null);
+            yield return new WaitForSeconds(1.2f);
+            Assert.Greater(Lost(walker), 0, "the puddle hurt nothing at all");
+            Assert.AreEqual(0, Lost(flier), "a flier was hurt by a puddle on the floor");
+
+            Give(ItemType.RainBoot);
+            GroundHazard.SpawnFriendlyPuddle(flier.transform.position, 1, false, null);
+            yield return new WaitForSeconds(1.2f);
+            Assert.Greater(Lost(flier), 0, "with the boots on, the puddle still missed the flier");
+        }
+
+        [UnityTest]
         public IEnumerator Every_item_has_a_name_a_description_and_a_look()
         {
             var library = GameAssets.Instance.items;
-            Assert.AreEqual(25, library.items.Length);
+            Assert.AreEqual(26, library.items.Length);
             foreach (var item in library.items)
             {
                 Assert.IsNotEmpty(item.displayName);
@@ -744,7 +765,7 @@ namespace Shrunk.Tests
                 _items.Add(item); // must not throw
             }
             yield return null;
-            Assert.AreEqual(25, _items.Collected.Count);
+            Assert.AreEqual(26, _items.Collected.Count);
         }
 
         // ---------- hero power ----------

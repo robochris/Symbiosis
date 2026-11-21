@@ -505,6 +505,13 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Cylinder, "Coffee", look.transform, new Vector3(-0.45f, 0.19f, 0.25f), new Vector3(0.17f, 0.01f, 0.17f), ArenaSceneBuilder.Lit("ItemCoffee", new Color(0.25f, 0.15f, 0.08f), 0.6f));
             items.Add(Item(ItemType.ColdCoffee, "Cold Coffee", "Faster on your feet and the trigger. The dodge takes longer to come back.", ItemSlot.Hands, false, 20, new Color(0.45f, 0.28f, 0.15f), look));
 
+            // Rain Boot: a pair of yellow wellingtons. Whatever is on the floor goes up as well as out.
+            look = new GameObject("RainBoot");
+            var boot = ArenaSceneBuilder.Lit("ItemBoot", new Color(1f, 0.82f, 0.15f), 0.6f);
+            Decor(PrimitiveType.Cylinder, "Boot L", look.transform, new Vector3(-0.2f, 0.12f, 0f), new Vector3(0.24f, 0.12f, 0.24f), boot);
+            Decor(PrimitiveType.Cylinder, "Boot R", look.transform, new Vector3(0.2f, 0.12f, 0f), new Vector3(0.24f, 0.12f, 0.24f), boot);
+            items.Add(Item(ItemType.RainBoot, "Rain Boot", "Your puddles splash up: they hurt fliers too.", ItemSlot.Body, false, 15, new Color(1f, 0.82f, 0.15f), look));
+
             const string libraryPath = "Assets/Data/Items/ItemLibrary.asset";
             var library = AssetDatabase.LoadAssetAtPath<ItemLibrary>(libraryPath);
             if (library == null)
@@ -569,6 +576,7 @@ namespace Shrunk.EditorTools
                 case ItemType.PaperHat: return "Makes you look like you mean it. That costs something.";
                 case ItemType.PiggyBank: return "It was full when you found it. It is yours now, which is different.";
                 case ItemType.ColdCoffee: return "Somebody made this on Tuesday. It still works.";
+                case ItemType.RainBoot: return "There is no puddle so small it cannot be jumped in.";
                 default: return "";
             }
         }

@@ -46,6 +46,13 @@ namespace Shrunk
             set => SetInt("leftHanded", value ? 1 : 0);
         }
 
+        /// <summary>Off (the default): the aim stick stays where it is drawn. On: it starts wherever the thumb lands.</summary>
+        public static bool FloatingAim
+        {
+            get => PlayerPrefs.GetInt(Prefix + "floatingAim", 0) == 1;
+            set => SetInt("floatingAim", value ? 1 : 0);
+        }
+
         /// <summary>On: the view only turns left and right.</summary>
         public static bool LockVertical
         {
@@ -105,7 +112,7 @@ namespace Shrunk
         /// <summary>Back to the defaults.</summary>
         public static void Reset()
         {
-            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "sound", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed", "damageNumbers" })
+            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "sound", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed", "damageNumbers", "floatingAim" })
             {
                 PlayerPrefs.DeleteKey(Prefix + key);
             }

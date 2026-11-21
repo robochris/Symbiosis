@@ -174,10 +174,13 @@ namespace Shrunk
                 return;
             }
 
+            // Fliers keep clear of the floor, unless the player's boots splash it up at them.
+            var owner = PlayerController.Instance;
+            bool splashUp = owner != null && owner.Items != null && owner.Items.Stats.splashUp > 0;
             // Copy: a death can change the list while we walk it.
             foreach (var enemy in Enemy.Active.ToArray())
             {
-                if (enemy.Health.IsDead || enemy.IgnoresGroundHazards || !Inside(enemy.transform.position)) continue;
+                if (enemy.Health.IsDead || (enemy.IgnoresGroundHazards && !splashUp) || !Inside(enemy.transform.position)) continue;
                 enemy.Health.TakeDamage(damage, Vector3.zero);
                 if (burning) enemy.Ignite(1);
             }
