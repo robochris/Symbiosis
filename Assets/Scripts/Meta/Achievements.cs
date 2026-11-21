@@ -8,7 +8,7 @@ namespace Shrunk
         FirstSteps, MothersDay, Regicide, Untouchable, Omelette, HandsOff,
         Deeper, Hoarder, ShellShock, BubbleWrap, SweetTooth, FullPockets,
         PaperTrail, PerformanceReview, SpringClean, Unplugged, Defrosted,
-        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot, CleanSweep, GoldDigger, QuietPlease, OnARoll, HouseWins, CheckedOut, TongueTied, Croaked, SilverLining, ClearSkies, Patched, NosyParker, FishedOut, Champion, GoneFishing, BoxedIn
+        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot, CleanSweep, GoldDigger, QuietPlease, OnARoll, HouseWins, CheckedOut, TongueTied, Croaked, SilverLining, ClearSkies, Patched, NosyParker, FishedOut, Champion, GoneFishing, BoxedIn, RubberDucky
     }
 
     /// <summary>One achievement: what to do, and what doing it gives.</summary>
@@ -76,7 +76,8 @@ namespace Shrunk
             new Achievement { id = AchievementId.NosyParker, name = "Nosy Parker", how = "Break into 5 secret rooms.", reward = "the Plaster style", style = "Plaster" },
             new Achievement { id = AchievementId.Champion, name = "Champion", how = "Beat every boss in one Gauntlet, with at least 6 in it.", reward = "the Champion style", style = "Champion" },
             new Achievement { id = AchievementId.GoneFishing, name = "Gone Fishing", how = "Beat the Goldfish.", reward = "a portal into the toy box", biome = "toybox" },
-            new Achievement { id = AchievementId.BoxedIn, name = "Boxed In", how = "Beat the Jack-in-the-Box.", reward = "the Jester style", style = "Jester" },
+            new Achievement { id = AchievementId.BoxedIn, name = "Boxed In", how = "Beat the Jack-in-the-Box.", reward = "the Jester style, and a portal into the bathroom", style = "Jester", biome = "bathroom" },
+            new Achievement { id = AchievementId.RubberDucky, name = "Rubber Ducky", how = "Beat the Rubber Duck without once being caught by a ring.", reward = "the Duck style", style = "Duck" },
             new Achievement { id = AchievementId.HouseWins, name = "The House Wins", how = "Have the claw machine drop it 10 times.", reward = "the machine's respect. It has none" },
         };
 

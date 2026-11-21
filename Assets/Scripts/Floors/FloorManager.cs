@@ -555,6 +555,7 @@ namespace Shrunk
             _live.Clear();
             _livePools.Clear();
             GroundHazard.ClearAll();
+            RingWave.ClearAll();
             PheromoneTrail.ClearAll();
             Pickup.ClearAll();
 

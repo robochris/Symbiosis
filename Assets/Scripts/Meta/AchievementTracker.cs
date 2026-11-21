@@ -122,6 +122,7 @@ namespace Shrunk
                 if (fish.Dashes > 0 && fish.DashHits == 0) Achievements.Unlock(AchievementId.FishedOut);
             }
             if (enemy is ToyBoss toy && toy.canHide) Achievements.Unlock(AchievementId.BoxedIn);
+            if (enemy is BathBoss bath && bath.canSqueak && bath.Rings > 0 && bath.RingHits == 0) Achievements.Unlock(AchievementId.RubberDucky);
 
             if (enemy is CatBoss)
             {

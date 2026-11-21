@@ -107,6 +107,15 @@ namespace Shrunk
             ["MusicBox"] = "The same tune forever. Everybody near it hurries.",
             ["DartGun"] = "Suction cup on the end. Somehow, still.",
             ["Bead"] = "Grows into a toy car. Toys are like that.",
+            // The bathroom
+            ["Duckling"] = "Squeaks as it runs. It is running at you.",
+            ["Toothbrush"] = "Bristles first, always.",
+            ["ShampooBottle"] = "Lather, rinse, aim, repeat.",
+            ["SoapBubble"] = "Drifts and wobbles, then very suddenly does not.",
+            ["Loofah"] = "Throws suds over the bath mat at where you are going.",
+            ["AirFreshener"] = "Pine-fresh, and everybody near it is in a hurry.",
+            ["Tap"] = "Drips a line first. Then the rest of the bath.",
+            ["Suds"] = "Grows into a duckling. Bath logic.",
         };
 
         static MetaSave Meta => SaveSystem.Data.meta;

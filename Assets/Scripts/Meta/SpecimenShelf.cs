@@ -37,6 +37,8 @@ namespace Shrunk
             new Specimen { key = "TheGoldfish", title = "The Goldfish", label = "It has forgotten me twice since lunch. I find that restful." },
             new Specimen { key = "TheWindupMouse", title = "The Wind-up Mouse", label = "Wound down. I have hidden the key, from myself mostly." },
             new Specimen { key = "TheJackInTheBox", title = "The Jack-in-the-Box", label = "The lid is weighted. I still flinch when I pass." },
+            new Specimen { key = "TheBarOfSoap", title = "The Bar of Soap", label = "Smaller every time I look. I suspect it is washing itself." },
+            new Specimen { key = "TheRubberDuck", title = "The Rubber Duck", label = "It squeaks when I walk past. I do not touch it. It squeaks anyway." },
             new Specimen { key = "TheCat", title = "The Cat", label = "An empty jar. It would not get in. Dr. Finch asks that you do not tap the glass anyway." },
         };
 

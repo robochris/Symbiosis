@@ -376,6 +376,19 @@ namespace Shrunk
                 "A library. That isn't in the house. That isn't in any house I know of. Interesting.",
                 "Books, the size of buildings. Somebody is going to want those back.",
             },
+            ["bathroom"] = new[]
+            {
+                "A bathroom. Echoes, tiles, and the taps are running. Mind your footing.",
+                "Everything in here is either slippery or squeaky. Sometimes both.",
+            },
+            ["soap"] = new[]
+            {
+                "A bar of soap. It slides along its line. Off the line, and off the suds.",
+            },
+            ["duck"] = new[]
+            {
+                "The Rubber Duck. When it squeaks, rings come out. Dodge through the edge.",
+            },
             ["toybox"] = new[]
             {
                 "A toy box. Mind the bricks. Mind everything, really.",

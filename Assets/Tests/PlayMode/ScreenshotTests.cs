@@ -511,7 +511,7 @@ namespace Shrunk.Tests
             string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
             Directory.CreateDirectory(folder);
             CameraFollow.Instance.SetMode(CameraMode.Wide);
-            foreach (string id in new[] { "clouds", "console", "aquarium", "toybox" })
+            foreach (string id in new[] { "clouds", "console", "aquarium", "toybox", "bathroom" })
             {
                 Assert.IsTrue(floors.SetBiome(id));
                 floors.BuildFloor(10);
