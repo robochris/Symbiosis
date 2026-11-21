@@ -67,6 +67,9 @@ namespace Shrunk
             new LevelReward { level = 15, kind = RewardKind.Item, item = ItemType.ColdCoffee, line = "Cold Coffee can drop" },
             new LevelReward { level = 16, kind = RewardKind.Style, style = "Gold Leaf", line = "the Gold Leaf style" },
             new LevelReward { level = 17, kind = RewardKind.Item, item = ItemType.RainBoot, line = "Rain Boot can drop" },
+            new LevelReward { level = 18, kind = RewardKind.Item, item = ItemType.KiteString, line = "Kite String can drop" },
+            new LevelReward { level = 19, kind = RewardKind.Item, item = ItemType.Umbrella, line = "Umbrella can drop" },
+            new LevelReward { level = 20, kind = RewardKind.Item, item = ItemType.SaveState, line = "Save State can drop" },
         };
 
         public static int TopLevel => Ladder[Ladder.Length - 1].level;

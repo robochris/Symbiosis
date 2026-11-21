@@ -173,6 +173,8 @@ namespace Shrunk
                 var player = PlayerController.Instance;
                 if (player == null || player.Health.IsDead || player.IsHovering) return;
                 if (!Inside(player.transform.position)) return;
+                // An umbrella keeps the first one a room off, before it can land.
+                if (damage > 0 && !player.Health.Invulnerable && player.Items != null && player.Items.UseUmbrella()) return;
                 if (damage > 0 && player.Health.TakeDamage(damage, Vector3.zero)) HitPlayer?.Invoke(this);
                 if (slowTo > 0f) player.Slow(slowTo, 0.3f);
                 return;

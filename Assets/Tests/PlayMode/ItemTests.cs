@@ -631,6 +631,9 @@ namespace Shrunk.Tests
         [UnityTest]
         public IEnumerator The_bad_memo_turns_the_room_on_itself_and_is_earned_at_the_noticeboard()
         {
+            // From a clean save: whatever ran before may have done some jobs.
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
             Assert.IsFalse(HeroPower.Unlocked(PowerKind.BadMemo), "the Bad Memo is issued before any job is done");
             SaveSystem.Data.meta.jobsDone = 3;
             Assert.IsTrue(HeroPower.Unlocked(PowerKind.BadMemo));
@@ -752,10 +755,62 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_umbrella_keeps_one_blast_a_room_off()
+        {
+            Give(ItemType.Umbrella);
+            int health = _player.Health.Current;
+            GroundHazard.SpawnBlast(_player.transform.position, 2f, 0.2f, null);
+            yield return new WaitForSeconds(0.6f);
+            Assert.AreEqual(health, _player.Health.Current, "the umbrella let the first blast through");
+            Assert.IsFalse(_items.UmbrellaOpen);
+            yield return new WaitForSeconds(0.6f);
+            GroundHazard.SpawnBlast(_player.transform.position, 2f, 0.2f, null);
+            yield return new WaitForSeconds(0.6f);
+            Assert.Less(_player.Health.Current, health, "the umbrella kept a second one off in the same room");
+            _items.RechargeShield();
+            Assert.IsTrue(_items.UmbrellaOpen, "a new room did not open the umbrella again");
+        }
+
+        [UnityTest]
+        public IEnumerator A_save_state_shrugs_off_the_last_hit_once()
+        {
+            Give(ItemType.SaveState);
+            _player.Health.Restore(1);
+            Assert.IsTrue(_player.Health.TakeDamage(1, Vector3.forward));
+            Assert.AreEqual(1, _player.Health.Current, "the save state did not load");
+            Assert.IsFalse(_player.Health.IsDead);
+            Assert.AreEqual(1, _items.SaveStatesUsed);
+            yield return new WaitForSeconds(1.7f);
+            _player.Health.TakeDamage(1, Vector3.forward);
+            Assert.IsTrue(_player.Health.IsDead, "one save state saved twice");
+        }
+
+        [UnityTest]
+        public IEnumerator Kite_string_carries_a_dodge_further()
+        {
+            Vector3 start = _player.transform.position;
+            _player.Input.overrideFrame = new InputFrame { move = Vector3.right, dodge = true };
+            yield return null;
+            _player.Input.overrideFrame = new InputFrame();
+            yield return new WaitForSeconds(0.5f);
+            float plain = (_player.transform.position - start).magnitude;
+
+            Give(ItemType.KiteString);
+            yield return new WaitForSeconds(1.5f);
+            start = _player.transform.position;
+            _player.Input.overrideFrame = new InputFrame { move = Vector3.left, dodge = true };
+            yield return null;
+            _player.Input.overrideFrame = new InputFrame();
+            yield return new WaitForSeconds(0.5f);
+            float strung = (_player.transform.position - start).magnitude;
+            Assert.Greater(strung, plain * 1.4f, "the kite string did not carry the dodge further");
+        }
+
+        [UnityTest]
         public IEnumerator Every_item_has_a_name_a_description_and_a_look()
         {
             var library = GameAssets.Instance.items;
-            Assert.AreEqual(26, library.items.Length);
+            Assert.AreEqual(29, library.items.Length);
             foreach (var item in library.items)
             {
                 Assert.IsNotEmpty(item.displayName);
@@ -765,7 +820,7 @@ namespace Shrunk.Tests
                 _items.Add(item); // must not throw
             }
             yield return null;
-            Assert.AreEqual(26, _items.Collected.Count);
+            Assert.AreEqual(29, _items.Collected.Count);
         }
 
         // ---------- hero power ----------

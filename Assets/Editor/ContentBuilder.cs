@@ -512,6 +512,26 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Cylinder, "Boot R", look.transform, new Vector3(0.2f, 0.12f, 0f), new Vector3(0.24f, 0.12f, 0.24f), boot);
             items.Add(Item(ItemType.RainBoot, "Rain Boot", "Your puddles splash up: they hurt fliers too.", ItemSlot.Body, false, 15, new Color(1f, 0.82f, 0.15f), look));
 
+            // Umbrella: a small one, up, over the back.
+            look = new GameObject("Umbrella");
+            var canopy = ArenaSceneBuilder.Lit("ItemUmbrella", new Color(0.25f, 0.4f, 0.85f), 0.5f);
+            Decor(PrimitiveType.Sphere, "Canopy", look.transform, new Vector3(0f, 2.05f, -0.15f), new Vector3(1.1f, 0.3f, 1.1f), canopy);
+            Decor(PrimitiveType.Cylinder, "Shaft", look.transform, new Vector3(0f, 1.6f, -0.3f), new Vector3(0.04f, 0.45f, 0.04f), ArenaSceneBuilder.Lit("ItemCup", new Color(0.9f, 0.88f, 0.82f), 0.2f));
+            items.Add(Item(ItemType.Umbrella, "Umbrella", "The first blast or puddle that would hurt you in each room does not.", ItemSlot.Head, false, 25, new Color(0.25f, 0.4f, 0.85f), look));
+
+            // Save State: a cartridge on the back, with a little red light.
+            look = new GameObject("SaveState");
+            Decor(PrimitiveType.Cube, "Cartridge", look.transform, new Vector3(0f, 1.05f, -0.45f), new Vector3(0.45f, 0.5f, 0.12f), ArenaSceneBuilder.Lit("ItemCartridge", new Color(0.3f, 0.3f, 0.34f), 0.5f));
+            Decor(PrimitiveType.Sphere, "Light", look.transform, new Vector3(0.12f, 1.2f, -0.52f), Vector3.one * 0.07f, ArenaSceneBuilder.Unlit("Telegraph", new Color(1f, 0.25f, 0.2f)));
+            items.Add(Item(ItemType.SaveState, "Save State", "Once a run, a hit that would finish you does not.", ItemSlot.Back, false, 30, new Color(0.45f, 0.45f, 0.5f), look));
+
+            // Kite String: a loop of it round the middle, trailing.
+            look = new GameObject("KiteString");
+            var twine = ArenaSceneBuilder.Lit("ItemTwine", new Color(0.85f, 0.78f, 0.6f), 0.1f);
+            Decor(PrimitiveType.Cylinder, "Loop", look.transform, new Vector3(0f, 0.75f, 0f), new Vector3(0.75f, 0.03f, 0.75f), twine);
+            Decor(PrimitiveType.Cube, "Trail", look.transform, new Vector3(0f, 0.7f, -0.6f), new Vector3(0.03f, 0.03f, 0.6f), twine);
+            items.Add(Item(ItemType.KiteString, "Kite String", "Your dodge goes much further.", ItemSlot.Body, false, 20, new Color(0.85f, 0.78f, 0.6f), look));
+
             const string libraryPath = "Assets/Data/Items/ItemLibrary.asset";
             var library = AssetDatabase.LoadAssetAtPath<ItemLibrary>(libraryPath);
             if (library == null)
@@ -577,6 +597,9 @@ namespace Shrunk.EditorTools
                 case ItemType.PiggyBank: return "It was full when you found it. It is yours now, which is different.";
                 case ItemType.ColdCoffee: return "Somebody made this on Tuesday. It still works.";
                 case ItemType.RainBoot: return "There is no puddle so small it cannot be jumped in.";
+                case ItemType.Umbrella: return "Borrowed from the stand by the door. It will not be going back.";
+                case ItemType.SaveState: return "Nobody remembers saving. Somebody did.";
+                case ItemType.KiteString: return "Still attached to something, somewhere, pulling.";
                 default: return "";
             }
         }

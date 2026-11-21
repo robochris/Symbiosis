@@ -40,6 +40,8 @@ namespace Shrunk
         public int coinBonus;
         /// <summary>Above 0: the player's puddles reach fliers too.</summary>
         public int splashUp;
+        /// <summary>How much further a dodge carries. 1 = the usual distance.</summary>
+        public float dodgeReachMultiplier;
 
         public static PlayerStats Default => new PlayerStats
         {
@@ -100,12 +102,26 @@ namespace Shrunk
             // Chitin Plate: a shell that soaks up the first hit in every room.
             _health.ShouldBlock = direction =>
             {
-                if (ShieldCharges <= 0) return false;
-                ShieldCharges--;
-                _health.SetInvulnerable(0.5f);
-                Sfx.Play(SfxId.Blocked);
-                Changed?.Invoke();
-                return true;
+                if (ShieldCharges > 0)
+                {
+                    ShieldCharges--;
+                    _health.SetInvulnerable(0.5f);
+                    Sfx.Play(SfxId.Blocked);
+                    Changed?.Invoke();
+                    return true;
+                }
+                // Save State: the hit that would have ended the run, loaded back from just before it. Once a copy.
+                if (_health.Current <= 1 && SaveStatesUsed < Count(ItemType.SaveState))
+                {
+                    SaveStatesUsed++;
+                    _health.SetInvulnerable(1.5f);
+                    Sfx.Play(SfxId.PowerOn);
+                    var hud = FindAnyObjectByType<Hud>();
+                    if (hud != null) hud.Toast("Save State: loaded from just before that.", 3f);
+                    Changed?.Invoke();
+                    return true;
+                }
+                return false;
             };
         }
 
@@ -139,6 +155,7 @@ namespace Shrunk
                     bounce = Count(ItemType.RubberBand),
                     chill = Count(ItemType.IceCube),
                     splashUp = Count(ItemType.RainBoot),
+                    dodgeReachMultiplier = 1f + 0.6f * Count(ItemType.KiteString),
                     magnetMultiplier = 1f + 1.5f * Count(ItemType.FridgeMagnet),
                     powerFillMultiplier = 1f + 0.35f * Count(ItemType.SpareBattery),
                     crumbMultiplier = 1f + Count(ItemType.Lunchbox),
@@ -171,6 +188,9 @@ namespace Shrunk
                     break;
                 case ItemType.ChitinPlate:
                     ShieldCharges = Count(ItemType.ChitinPlate);
+                    break;
+                case ItemType.Umbrella:
+                    UmbrellaOpen = true;
                     break;
                 case ItemType.PaperHat:
                     // The price of the hat: a point of health, for good. Never the last one.
@@ -214,7 +234,24 @@ namespace Shrunk
         public void RechargeShield()
         {
             ShieldCharges = Count(ItemType.ChitinPlate);
+            UmbrellaOpen = Count(ItemType.Umbrella) > 0;
             Changed?.Invoke();
+        }
+
+        /// <summary>Save States spent this run.</summary>
+        public int SaveStatesUsed { get; private set; }
+        /// <summary>True while the umbrella has not yet kept anything off in this room.</summary>
+        public bool UmbrellaOpen { get; private set; }
+
+        /// <summary>A blast or puddle is about to hurt the player: true if the umbrella takes it instead (once a room).</summary>
+        public bool UseUmbrella()
+        {
+            if (!UmbrellaOpen || Count(ItemType.Umbrella) == 0) return false;
+            UmbrellaOpen = false;
+            _health.SetInvulnerable(0.5f);
+            Sfx.Play(SfxId.Blocked);
+            Changed?.Invoke();
+            return true;
         }
 
         void OnRoomChanged(FloorManager floors)

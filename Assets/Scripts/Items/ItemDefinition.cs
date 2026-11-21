@@ -33,7 +33,13 @@ namespace Shrunk
         /// <summary>Quicker on the feet and the trigger; the dodge takes longer to come back.</summary>
         ColdCoffee,
         /// <summary>The player's puddles splash up high enough to catch fliers.</summary>
-        RainBoot
+        RainBoot,
+        /// <summary>The first floor blast or puddle that would hurt the player in each room does not.</summary>
+        Umbrella,
+        /// <summary>Once a run, a hit that would finish the player is shrugged off.</summary>
+        SaveState,
+        /// <summary>The dodge goes much further.</summary>
+        KiteString
     }
 
     /// <summary>Where an item shows on the character. Two items in one slot: the newer one shows.</summary>

@@ -119,7 +119,7 @@ namespace Shrunk
             if (IsDodging)
             {
                 _dodgeTimeLeft -= Time.deltaTime;
-                velocity = _dodgeDirection * (_hovering ? dodgeSpeed * 0.7f : dodgeSpeed);
+                velocity = _dodgeDirection * (_hovering ? dodgeSpeed * 0.7f : dodgeSpeed) * stats.dodgeReachMultiplier;
                 AnimateDodge(1f - Mathf.Clamp01(_dodgeTimeLeft / _dodgeLength));
             }
             else
@@ -130,7 +130,7 @@ namespace Shrunk
                 if (input.dodge && _charges > 0)
                 {
                     StartDodge(input, stats);
-                    velocity = _dodgeDirection * dodgeSpeed;
+                    velocity = _dodgeDirection * dodgeSpeed * stats.dodgeReachMultiplier;
                 }
                 else
                 {
