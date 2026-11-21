@@ -30,6 +30,13 @@ namespace Shrunk
                 if (ScreenCards.Instance != null) ScreenCards.Instance.ShowCard(CycleHeading(MachineParts.Cycle), CycleLine, 6f);
             }
 
+            // How the run went, on a card of its own, unless a bigger card has the screen.
+            if (!string.IsNullOrEmpty(RunDirector.LastSummary) && ScreenCards.Instance != null && !ScreenCards.Instance.CardShowing)
+            {
+                ScreenCards.Instance.ShowCard(RunDirector.LastSummaryHeading, RunDirector.LastSummary, 4.5f);
+            }
+            RunDirector.LastSummary = null;
+
             var hud = FindAnyObjectByType<Hud>();
             if (hud == null) return;
 

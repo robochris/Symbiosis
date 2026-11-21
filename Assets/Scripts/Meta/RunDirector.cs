@@ -22,6 +22,8 @@ namespace Shrunk
         public static bool ToMachine;
         /// <summary>Set by the Daily Experiment before the run scene loads: this run is on the day's seed.</summary>
         public static bool Daily;
+        /// <summary>How the last run went, for the card the lab shows on the way in. Null once shown.</summary>
+        public static string LastSummaryHeading, LastSummary;
         public bool IsDaily { get; private set; }
         /// <summary>True for a run that is only the fight with the machine.</summary>
         public bool IsMachine { get; private set; }
@@ -268,6 +270,7 @@ namespace Shrunk
             SaveSystem.Data.run = new RunSave();
             SaveSystem.Save();
 
+            Summarise(IsDaily ? "DAILY: HOME" : "HOME");
             LastRunMessage = (multiplier > 1f
                 ? $"Extracted! {RunState.Samples} samples ×{multiplier:0.#} = {banked} brought home."
                 : $"Extracted! {banked} samples brought home.") + Tally();
@@ -289,11 +292,24 @@ namespace Shrunk
             meta.deaths++;
             if (!IsDescent) SaveSystem.Data.run = new RunSave();
             SaveSystem.Save();
+            if (!IsDescent) Summarise(IsDaily ? "DAILY: LOST" : "LOST");
 
             LastRunMessage = IsDescent
                 ? (IsMachine ? "The machine won that one. Its parts are still in. Go again from the panel." : "You fell at the bottom. The door is still there, whatever the radio says.")
                 : $"You fell on floor {floor}. {Mathf.RoundToInt(share * 100f)}% of your samples made it home: {kept}." + Tally();
             StartCoroutine(GoHome());
+        }
+
+        // The card for the lab: where it got to and what it was worth, on one line.
+        void Summarise(string heading)
+        {
+            int items = _player != null && _player.Items != null ? _player.Items.Collected.Count : 0;
+            int floor = _floors != null ? _floors.FloorNumber : 1;
+            int worlds = _floors != null ? _floors.WorldsBeaten : 0;
+            string worldPart = worlds > 0 ? $"  ·  {worlds} world{(worlds == 1 ? "" : "s")} beaten" : "";
+            string xp = Progress.RunXp > 0 ? $"  ·  +{Progress.RunXp} XP" : "";
+            LastSummaryHeading = heading;
+            LastSummary = $"Floor {floor}{worldPart}  ·  {RunState.Kills} kills  ·  {items} item{(items == 1 ? "" : "s")}{xp}";
         }
 
         // The rest of how it went, for the line the lab greets the player with.

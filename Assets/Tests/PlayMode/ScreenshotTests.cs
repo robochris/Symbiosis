@@ -526,6 +526,54 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_secret_wall_and_pause()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            GameSettings.Radio = 0;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            CameraFollow.Instance.SetMode(CameraMode.Wide);
+
+            SecretWall.ChanceForAll = 1f;
+            floors.BuildFloor(3);
+            yield return null;
+            SecretWall.ChanceForAll = 0f;
+            var wall = floors.Secret;
+            Assert.IsNotNull(wall);
+            // From the room next door, looking at the wall.
+            Vector3 into = wall.room.Centre - wall.transform.position;
+            into.y = 0f;
+            Vector3 stand = wall.transform.position - into.normalized * 5f;
+            player.Teleport(new Vector3(stand.x, 0.05f, stand.z));
+            player.transform.rotation = Quaternion.LookRotation(into.normalized);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(1f);
+            foreach (var enemy in new System.Collections.Generic.List<Enemy>(floors.LiveEnemies)) enemy.Health.Kill();
+            yield return new WaitForSeconds(0.5f);
+            yield return Screen(Path.Combine(folder, "secret-wall.png"));
+
+            var items = GameAssets.Instance.items;
+            player.Items.Add(items.Get(ItemType.Sprinkles));
+            player.Items.Add(items.Get(ItemType.Sprinkles));
+            player.Items.Add(items.Get(ItemType.RubberBand));
+            player.Items.Add(items.Get(ItemType.Umbrella));
+            PauseMenu.Instance.Open();
+            yield return null;
+            yield return Screen(Path.Combine(folder, "pause-items.png"));
+            PauseMenu.Instance.Close();
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_machine_room_and_cat_box()
         {
             SaveSystem.Profile = "tests";

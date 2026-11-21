@@ -24,7 +24,7 @@ namespace Shrunk
         Health _health;
 
         /// <summary>Seals a room's one doorway with a cracked wall, and lays the room's loot out ready.</summary>
-        public static SecretWall Seal(Room room, RoomNode node, Material crackMaterial)
+        public static SecretWall Seal(Room room, RoomNode node, Material crackMaterial, Material wallMaterial)
         {
             GameObject door = null;
             for (int side = 0; side < 4 && door == null; side++) door = room.DoorObject(side);
@@ -32,6 +32,8 @@ namespace Shrunk
 
             door.name = "Secret Wall";
             door.SetActive(true);
+            // The same stuff as the walls either side of it: only the cracks give it away.
+            if (wallMaterial != null) door.GetComponent<Renderer>().sharedMaterial = wallMaterial;
             // Health first, so the wall hears about it when it is knocked down.
             var health = door.AddComponent<Health>();
             health.team = Team.Enemy;

@@ -117,6 +117,12 @@ namespace Shrunk.Tests
             Object.FindAnyObjectByType<RunDirector>().Extract();
             Assert.AreEqual(beforeHome + Progress.ExtractXp, Progress.Xp);
             Assert.That(RunDirector.LastRunMessage, Does.Contain(Progress.RunXp + " XP"));
+            Assert.AreEqual("HOME", RunDirector.LastSummaryHeading);
+            Assert.That(RunDirector.LastSummary, Does.Contain("Floor 10").And.Contain("kills").And.Contain("+" + Progress.RunXp + " XP"));
+
+            // The pause menu says what is being carried, and the level.
+            var carried = PauseMenu.CarryingText();
+            Assert.That(carried, Does.Contain("Level"));
             yield return new WaitForSecondsRealtime(1.5f);
         }
 

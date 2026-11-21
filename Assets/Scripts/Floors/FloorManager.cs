@@ -422,7 +422,7 @@ namespace Shrunk
                 }
                 else if (node.type == RoomType.Secret)
                 {
-                    Secret = SecretWall.Seal(room, node, MachineRoom.Unlit(new Color(0.06f, 0.05f, 0.05f)));
+                    Secret = SecretWall.Seal(room, node, MachineRoom.Unlit(new Color(0.06f, 0.05f, 0.05f)), biome.wallMaterial);
                 }
                 else if (node.type == RoomType.Normal && Pond == null && biome.id == "forest" && FloorInBiome >= 2 && !InSpecial
                          && rng.NextDouble() < (ForestPond.ChanceForAll ?? ForestPond.Chance))

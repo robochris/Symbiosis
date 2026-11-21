@@ -73,6 +73,12 @@ namespace Shrunk
             _panel.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.8f);
 
             MakeText(panel, "PAUSED", 56, new Vector2(0f, 445f), new Vector2(900f, 70f));
+            // Down the left, clear of the options: the level, and in a run what is being carried and what it does.
+            // Below the counts in the top corner, so the two never print over each other.
+            _carrying = MakeText(panel, "", 24, new Vector2(-712f, -170f), new Vector2(460f, 860f));
+            _carrying.alignment = TextAnchor.UpperLeft;
+            _carrying.horizontalOverflow = HorizontalWrapMode.Wrap;
+            _carrying.verticalOverflow = VerticalWrapMode.Truncate;
 
             Add("Resume", null, Close);
             Add("Camera", () => CameraName(GameSettings.Camera), () => GameSettings.Camera = CameraFollow.After(GameSettings.Camera));
@@ -208,8 +214,32 @@ namespace Shrunk
             Fade.LoadScene(labScene);
         }
 
+        Text _carrying;
+
+        /// <summary>The words down the left of the pause menu: the level, then each item carried and what it does.</summary>
+        public static string CarryingText()
+        {
+            var lines = new System.Text.StringBuilder();
+            lines.Append(Progress.Summary()).Append("\n\n");
+            var player = PlayerController.Instance;
+            var items = player != null ? player.Items : null;
+            if (FloorManager.Instance == null || items == null) return lines.ToString().TrimEnd();
+            if (items.Collected.Count == 0) return lines.Append("CARRYING\nNothing yet.").ToString();
+            lines.Append("CARRYING\n");
+            var seen = new System.Collections.Generic.List<ItemType>();
+            foreach (var item in items.Collected)
+            {
+                if (seen.Contains(item.type)) continue;
+                seen.Add(item.type);
+                int count = items.Count(item.type);
+                lines.Append(count > 1 ? $"{item.displayName} ×{count}" : item.displayName).Append(": ").Append(item.description).Append("\n");
+            }
+            return lines.ToString().TrimEnd();
+        }
+
         void Refresh()
         {
+            if (_carrying != null) _carrying.text = CarryingText();
             for (int i = 0; i < _rows.Count; i++)
             {
                 Row row = _rows[i];
