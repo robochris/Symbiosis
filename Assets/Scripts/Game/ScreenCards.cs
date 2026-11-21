@@ -114,6 +114,18 @@ namespace Shrunk
             "Quiet, please. It will not be.",
         };
 
+        /// <summary>The toy box's own lines.</summary>
+        public static readonly string[] ToyBoxLines =
+        {
+            "Tip: every circle the Jack marks goes off. It only comes up out of one.",
+            "Tip: the Wind-up Mouse charges three times, then runs down. That is your moment.",
+            "Tip: the music box makes the others quicker. Close the lid on it.",
+            "Tip: the dart gun lines you up first. Step off the line.",
+            "Reminder: everything in here was played with once. Nothing in here wants to be again.",
+            "Fact: nobody has ever found all the pieces of anything in a toy box.",
+            "It gets messier further in. Somebody was told to tidy up.",
+        };
+
         /// <summary>The aquarium's own lines.</summary>
         public static readonly string[] AquariumLines =
         {
@@ -181,7 +193,7 @@ namespace Shrunk
         /// <summary>The line under "Floor N" for a biome: its own if it has any, otherwise the ants'. The floor's seed picks it.</summary>
         public static string TipFor(string biomeId, int seed)
         {
-            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : biomeId == "fridge" ? FridgeLines : biomeId == "library" ? LibraryLines : biomeId == "forest" ? ForestLines : biomeId == "clouds" ? CloudLines : biomeId == "console" ? ConsoleLines : biomeId == "aquarium" ? AquariumLines : FloorLines;
+            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : biomeId == "fridge" ? FridgeLines : biomeId == "library" ? LibraryLines : biomeId == "forest" ? ForestLines : biomeId == "clouds" ? CloudLines : biomeId == "console" ? ConsoleLines : biomeId == "aquarium" ? AquariumLines : biomeId == "toybox" ? ToyBoxLines : FloorLines;
             return lines[Mathf.Abs(seed) % lines.Length];
         }
 

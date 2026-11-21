@@ -42,6 +42,9 @@ namespace Shrunk
         public int splashUp;
         /// <summary>How much further a dodge carries. 1 = the usual distance.</summary>
         public float dodgeReachMultiplier;
+        public int farBonus, returns, popDodge;
+        /// <summary>Above 0: every this-many-th shot calls lightning down where it lands.</summary>
+        public int lightningEvery;
 
         public static PlayerStats Default => new PlayerStats
         {
@@ -142,7 +145,7 @@ namespace Shrunk
                     moveSpeedMultiplier = 1f + 0.15f * legs + 0.08f * jelly + 0.12f * dose + 0.18f * coffee,
                     // Coffee: everything quicker except getting your breath back.
                     dodgeCooldownMultiplier = Mathf.Pow(0.75f, legs) * Mathf.Pow(0.9f, jelly) * Mathf.Pow(0.85f, dose) * Mathf.Pow(1.3f, coffee),
-                    dodgeCharges = 1 + (legs > 0 && wings > 0 ? 1 : 0),
+                    dodgeCharges = 1 + (legs > 0 && wings > 0 ? 1 : 0) + Count(ItemType.SpringHeel),
                     hoverDodge = wings > 0,
                     damageMultiplier = overcharged ? 2 : 1,
                     // A marble is heavy: harder hits, further apart. Sprinkles are the opposite.
@@ -156,8 +159,12 @@ namespace Shrunk
                     chill = Count(ItemType.IceCube),
                     splashUp = Count(ItemType.RainBoot),
                     dodgeReachMultiplier = 1f + 0.6f * Count(ItemType.KiteString),
+                    farBonus = Count(ItemType.MagnifyingGlass),
+                    returns = Count(ItemType.YoYo),
+                    popDodge = Count(ItemType.BubbleWrap),
+                    lightningEvery = Count(ItemType.BottledLightning) > 0 ? Mathf.Max(3, 7 - Count(ItemType.BottledLightning)) : 0,
                     magnetMultiplier = 1f + 1.5f * Count(ItemType.FridgeMagnet),
-                    powerFillMultiplier = 1f + 0.35f * Count(ItemType.SpareBattery),
+                    powerFillMultiplier = (1f + 0.35f * Count(ItemType.SpareBattery)) * (1f + 0.5f * Count(ItemType.Croak)),
                     crumbMultiplier = 1f + Count(ItemType.Lunchbox),
                     pierce = 2 * Count(ItemType.NeedleTip) + (overcharged ? 99 : 0),
                     split = Count(ItemType.SplitterMandible),
@@ -181,6 +188,9 @@ namespace Shrunk
             {
                 case ItemType.SugarCube:
                     _health.SetMaxHealth(_health.maxHealth + 1, true);
+                    break;
+                case ItemType.ExtraLife:
+                    _health.SetMaxHealth(_health.maxHealth + 2, true);
                     break;
                 case ItemType.QueensJelly:
                     _health.SetMaxHealth(_health.maxHealth + 1, false);

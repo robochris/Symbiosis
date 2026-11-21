@@ -32,6 +32,10 @@ namespace Shrunk
         public PlayerItems Items { get; private set; }
         public HeroPower Power { get; private set; }
         public bool IsDodging => _dodgeTimeLeft > 0f;
+        /// <summary>How close something has to be to the player to be hurt by a Bubble Wrap pop.</summary>
+        public const float PopRadius = 2.6f;
+        /// <summary>Bubble Wrap pops so far, for tests.</summary>
+        public int Pops { get; private set; }
         /// <summary>Mid-dodge with Wing Buds: off the ground, so ground hazards can't touch the player.</summary>
         public bool IsHovering => IsDodging && _hovering;
         public int DodgeCharges => _charges;
@@ -187,6 +191,20 @@ namespace Shrunk
             _dodgeTimeLeft = _dodgeLength;
             Health.SetInvulnerable(_hovering ? _dodgeLength : dodgeInvulnerability);
             // Birthday Candle: where the dodge started is on fire now.
+            // Bubble Wrap: a pop, and whatever is right next to the player takes it.
+            if (stats.popDodge > 0)
+            {
+                Pops++;
+                Sfx.Play(SfxId.Blast, 0.5f);
+                Fx.Burst(transform.position + Vector3.up * 0.5f, new Color(0.85f, 0.95f, 1f), 14, 5f, 0.12f, 0.35f);
+                foreach (var enemy in Enemy.Active.ToArray())
+                {
+                    if (enemy.Health.IsDead || !enemy.Targetable) continue;
+                    Vector3 to = enemy.transform.position - transform.position;
+                    to.y = 0f;
+                    if (to.magnitude <= PopRadius) enemy.Health.TakeDamage(stats.popDodge, to.sqrMagnitude > 0.01f ? to.normalized : transform.forward);
+                }
+            }
             if (stats.fireDodge > 0 && GameAssets.Instance != null)
             {
                 GroundHazard.SpawnFriendlyPuddle(transform.position, stats.fireDodge + 1, true, GameAssets.Instance.fire);

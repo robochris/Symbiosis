@@ -29,16 +29,31 @@ namespace Shrunk
         public float size = 1f, length = 1f;
         /// <summary>Who fired it; it never hits them.</summary>
         public Health owner;
+        /// <summary>Magnifying Glass: this much more damage once the shot has flown far.</summary>
+        public int farBonus;
+        /// <summary>Yo-yo: how many more times it turns round at the end of its flight.</summary>
+        public int returns;
+        /// <summary>Bottled Lightning: where this one hits, lightning comes down.</summary>
+        public bool lightning;
 
         public Shot Child() => new Shot
         {
-            damage = damage, pierce = pierce, split = 0, acid = acid, burn = burn, chill = chill, bounce = bounce, crit = crit, isChild = true, owner = owner
+            damage = damage, pierce = pierce, split = 0, acid = acid, burn = burn, chill = chill, bounce = bounce, crit = crit, isChild = true, owner = owner, farBonus = farBonus
         };
     }
 
     /// <summary>A pooled shot. Moves in a straight line and sweeps a sphere each frame so fast shots can't skip through thin targets.</summary>
     public class Bullet : MonoBehaviour
     {
+        /// <summary>How far a shot has to fly before the Magnifying Glass's bonus counts.</summary>
+        public const float FarDistance = 7f;
+        /// <summary>Times any shot has turned round on a yo-yo, for tests.</summary>
+        public static int Returns;
+        /// <summary>Bottled Lightning: how far round the hit it reaches, and how hard.</summary>
+        public const float LightningRadius = 2.5f;
+        public const int LightningDamage = 2;
+        /// <summary>Times lightning has come down, for tests.</summary>
+        public static int Strikes;
         public float radius = 0.15f;
 
         static readonly RaycastHit[] Hits = new RaycastHit[16];
@@ -122,6 +137,18 @@ namespace Shrunk
                     }
                 }
 
+                // Yo-yo: a wall sends it back too, the way it came.
+                if (nearestHealth == null && _shot.returns > 0)
+                {
+                    _shot.returns--;
+                    Returns++;
+                    _direction = -_direction;
+                    transform.SetPositionAndRotation(new Vector3(nearestPoint.x, transform.position.y, nearestPoint.z) + _direction * (radius + 0.05f), Quaternion.LookRotation(_direction));
+                    _travelled = 0f;
+                    _alreadyHit.Clear();
+                    return;
+                }
+
                 if (!keepFlying)
                 {
                     Despawn();
@@ -131,13 +158,44 @@ namespace Shrunk
 
             transform.position += _direction * step;
             _travelled += step;
-            if (_travelled >= _range) Despawn();
+            if (_travelled >= _range)
+            {
+                // Yo-yo: back the way it came, as far again, through everything it passed the first time.
+                if (_shot.returns > 0)
+                {
+                    _shot.returns--;
+                    _direction = -_direction;
+                    transform.rotation = Quaternion.LookRotation(_direction);
+                    _travelled = 0f;
+                    _alreadyHit.Clear();
+                    Returns++;
+                    return;
+                }
+                Despawn();
+            }
         }
 
         // Order of effects: damage, then element, then split, then pierce. Returns true if the shot carries on.
         bool HitCharacter(Health health, Vector3 point)
         {
-            health.TakeDamage(_shot.damage * (_shot.crit ? 2 : 1), _direction);
+            int far = _shot.farBonus > 0 && _travelled >= FarDistance ? _shot.farBonus : 0;
+            health.TakeDamage((_shot.damage + far) * (_shot.crit ? 2 : 1), _direction);
+            if (_shot.lightning)
+            {
+                // Down it comes, on whatever was hit and everything round it.
+                _shot.lightning = false;
+                Strikes++;
+                Fx.Burst(point + Vector3.up * 2f, new Color(1f, 1f, 0.55f), 30, 10f, 0.2f, 0.4f);
+                Sfx.Play(SfxId.Blast, 0.7f);
+                foreach (var enemy in Enemy.Active.ToArray())
+                {
+                    if (enemy.Health.IsDead || enemy.Health == health) continue;
+                    Vector3 to = enemy.transform.position - point;
+                    to.y = 0f;
+                    if (to.magnitude <= LightningRadius) enemy.Health.TakeDamage(LightningDamage, to.sqrMagnitude > 0.01f ? to.normalized : _direction);
+                }
+                health.TakeDamage(LightningDamage, _direction);
+            }
 
             if (_shot.burn > 0)
             {

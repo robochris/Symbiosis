@@ -542,6 +542,42 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Cube, "Trail", look.transform, new Vector3(0f, 0.7f, -0.6f), new Vector3(0.03f, 0.03f, 0.6f), twine);
             items.Add(Item(ItemType.KiteString, "Kite String", "Your dodge goes much further.", ItemSlot.Body, false, 20, new Color(0.85f, 0.78f, 0.6f), look));
 
+            // Magnifying Glass: held up, catching the light.
+            look = new GameObject("MagnifyingGlass");
+            Decor(PrimitiveType.Cylinder, "Lens", look.transform, new Vector3(0.45f, 1.2f, 0.35f), new Vector3(0.35f, 0.02f, 0.35f), ArenaSceneBuilder.Lit("ItemLens", new Color(0.7f, 0.9f, 1f), 0.95f)).transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            Decor(PrimitiveType.Cylinder, "Handle", look.transform, new Vector3(0.45f, 0.95f, 0.35f), new Vector3(0.06f, 0.15f, 0.06f), ArenaSceneBuilder.Lit("ItemCoffee", new Color(0.25f, 0.15f, 0.08f), 0.6f));
+            items.Add(Item(ItemType.MagnifyingGlass, "Magnifying Glass", "Shots that have flown a long way hit harder.", ItemSlot.Hands, false, 25, new Color(0.7f, 0.9f, 1f), look));
+
+            // Yo-yo: on a finger, ready.
+            look = new GameObject("YoYo");
+            Decor(PrimitiveType.Cylinder, "Yo-yo", look.transform, new Vector3(-0.45f, 0.75f, 0.3f), new Vector3(0.25f, 0.06f, 0.25f), ArenaSceneBuilder.Lit("ItemYoYo", new Color(0.9f, 0.2f, 0.3f), 0.6f)).transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            items.Add(Item(ItemType.YoYo, "Yo-yo", "Shots come back off a wall, or at the end of their flight, hitting things again on the way.", ItemSlot.Hands, false, 25, new Color(0.9f, 0.2f, 0.3f), look));
+
+            // Bubble Wrap: worn, like a vest. It will not last.
+            look = new GameObject("BubbleWrap");
+            Decor(PrimitiveType.Cylinder, "Wrap", look.transform, new Vector3(0f, 0.95f, 0f), new Vector3(0.72f, 0.25f, 0.72f), ArenaSceneBuilder.Lit("Bubble", new Color(0.75f, 0.95f, 1f), 0.95f));
+            items.Add(Item(ItemType.BubbleWrap, "Bubble Wrap", "Every dodge goes pop, hurting anything right next to you.", ItemSlot.Body, false, 20, new Color(0.75f, 0.95f, 1f), look));
+
+            // ----- trophies: rare, and only from the boss that keeps each one -----
+            look = new GameObject("BottledLightning");
+            Decor(PrimitiveType.Cylinder, "Bottle", look.transform, new Vector3(0f, 1.05f, -0.45f), new Vector3(0.22f, 0.25f, 0.22f), ArenaSceneBuilder.Lit("JarGlass", new Color(0.6f, 0.8f, 0.85f), 0.95f));
+            Decor(PrimitiveType.Sphere, "Spark", look.transform, new Vector3(0f, 1.05f, -0.45f), Vector3.one * 0.14f, ArenaSceneBuilder.Unlit("Lightning", new Color(1f, 1f, 0.55f)));
+            items.Add(Item(ItemType.BottledLightning, "Bottled Lightning", "Every sixth shot calls lightning down where it lands, on everything round it.", ItemSlot.Back, true, 60, new Color(1f, 1f, 0.55f), look));
+
+            look = new GameObject("ExtraLife");
+            Decor(PrimitiveType.Sphere, "Heart", look.transform, new Vector3(0f, 2.1f, 0f), Vector3.one * 0.25f, ArenaSceneBuilder.Unlit("ExtraLifeGlow", new Color(0.4f, 1f, 0.45f)));
+            items.Add(Item(ItemType.ExtraLife, "Extra Life", "Two more health, and all of it back.", ItemSlot.Aura, true, 60, new Color(0.4f, 1f, 0.45f), look));
+
+            look = new GameObject("SpringHeel");
+            var springTin = ArenaSceneBuilder.Lit("Tin", new Color(0.6f, 0.62f, 0.66f), 0.85f);
+            Decor(PrimitiveType.Cylinder, "Spring L", look.transform, new Vector3(-0.2f, 0.06f, -0.1f), new Vector3(0.15f, 0.06f, 0.15f), springTin);
+            Decor(PrimitiveType.Cylinder, "Spring R", look.transform, new Vector3(0.2f, 0.06f, -0.1f), new Vector3(0.15f, 0.06f, 0.15f), springTin);
+            items.Add(Item(ItemType.SpringHeel, "Spring Heel", "One more dodge before you need to catch your breath.", ItemSlot.Body, true, 60, new Color(0.6f, 0.62f, 0.66f), look));
+
+            look = new GameObject("Croak");
+            Decor(PrimitiveType.Sphere, "Throat", look.transform, new Vector3(0f, 1.35f, 0.3f), new Vector3(0.3f, 0.2f, 0.2f), ArenaSceneBuilder.Lit("ToadBelly", new Color(0.85f, 0.8f, 0.55f), 0.3f));
+            items.Add(Item(ItemType.Croak, "Croak", "Your hero power fills half again as fast.", ItemSlot.Head, true, 60, new Color(0.42f, 0.4f, 0.18f), look));
+
             const string libraryPath = "Assets/Data/Items/ItemLibrary.asset";
             var library = AssetDatabase.LoadAssetAtPath<ItemLibrary>(libraryPath);
             if (library == null)
@@ -610,6 +646,13 @@ namespace Shrunk.EditorTools
                 case ItemType.Umbrella: return "Borrowed from the stand by the door. It will not be going back.";
                 case ItemType.SaveState: return "Nobody remembers saving. Somebody did.";
                 case ItemType.KiteString: return "Still attached to something, somewhere, pulling.";
+                case ItemType.MagnifyingGlass: return "Everything looks bigger through it, especially bruises.";
+                case ItemType.YoYo: return "It always comes back. So, it turns out, does everything else.";
+                case ItemType.BubbleWrap: return "Nobody has ever been able to leave it alone. Neither can you.";
+                case ItemType.BottledLightning: return "Kept from the Thundercloud. The cork hums.";
+                case ItemType.ExtraLife: return "Kept from the Glitch. It should not exist, and it is very glad it does.";
+                case ItemType.SpringHeel: return "Kept from the Jack-in-the-Box. It still wants to go boing.";
+                case ItemType.Croak: return "Kept from the Toad. Not the whole Toad. Just the bit that croaks.";
                 default: return "";
             }
         }

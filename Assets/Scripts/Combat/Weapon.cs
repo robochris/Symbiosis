@@ -96,6 +96,8 @@ namespace Shrunk
 
         public int ShotsFired { get; private set; }
         public int ChargedShots { get; private set; }
+        int _shotsSinceLightning;
+        bool _lightningNext;
         int _shotsSinceCharge;
 
         Pool<Bullet> _pool;
@@ -129,6 +131,12 @@ namespace Shrunk
             PlayerStats stats = Stats;
             WeaponInfo info = Weapons.Info(kind);
             _nextShot = Time.time + fireInterval * stats.fireIntervalMultiplier * info.intervalMultiplier;
+
+            // Bottled Lightning: every so many shots, one brings the weather with it.
+            _shotsSinceLightning++;
+            bool lightning = stats.lightningEvery > 0 && _shotsSinceLightning >= stats.lightningEvery;
+            if (lightning) _shotsSinceLightning = 0;
+            _lightningNext = lightning;
 
             // Static Sock: every so many shots, one is charged.
             _shotsSinceCharge++;
@@ -172,11 +180,15 @@ namespace Shrunk
                     crit = Random.value < stats.critChance,
                     size = info.shotSize,
                     length = info.shotLength,
-                    owner = _health
+                    owner = _health,
+                    farBonus = stats.farBonus,
+                    returns = stats.returns,
+                    lightning = _lightningNext && i == 0
                 };
                 float turn = (i - (info.pellets - 1) * 0.5f) * info.spread;
                 _pool.Get().Launch(origin, Quaternion.Euler(0f, turn, 0f) * direction, bulletSpeed * info.speedMultiplier, shot, Reach, Team.Player, _pool);
             }
+            _lightningNext = false;
             ShotsFired++;
             Sfx.Play(SfxId.Shoot, 0.6f);
         }

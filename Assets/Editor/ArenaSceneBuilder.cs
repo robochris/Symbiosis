@@ -427,6 +427,7 @@ namespace Shrunk.EditorTools
                 new VoidStyle { displayName = "Plaster", body = Lit("StylePlaster", new Color(0.85f, 0.8f, 0.72f), 0.1f), eyes = Unlit("StyleEyesDark", new Color(0.05f, 0.05f, 0.1f)) },
                 new VoidStyle { displayName = "Scales", body = Lit("StyleScales", new Color(1f, 0.55f, 0.1f), 0.7f), eyes = Unlit("StyleEyesDark", new Color(0.05f, 0.05f, 0.1f)) },
                 new VoidStyle { displayName = "Champion", body = Lit("StyleChampion", new Color(0.85f, 0.15f, 0.12f), 0.6f), eyes = Unlit("Gold", new Color(1f, 0.82f, 0.2f)) },
+                new VoidStyle { displayName = "Jester", body = Lit("StyleJester", new Color(0.85f, 0.15f, 0.15f), 0.5f), eyes = Unlit("ToyBall", new Color(1f, 0.3f, 0.5f)) },
                 new VoidStyle { displayName = "Moss", body = Lit("StyleMoss", new Color(0.28f, 0.5f, 0.18f), 0.15f), eyes = Unlit("ToadEye", new Color(1f, 0.75f, 0.15f)) },
             };
         }

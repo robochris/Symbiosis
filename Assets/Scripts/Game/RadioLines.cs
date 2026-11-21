@@ -376,6 +376,19 @@ namespace Shrunk
                 "A library. That isn't in the house. That isn't in any house I know of. Interesting.",
                 "Books, the size of buildings. Somebody is going to want those back.",
             },
+            ["toybox"] = new[]
+            {
+                "A toy box. Mind the bricks. Mind everything, really.",
+                "Somebody's childhood, all in one place. And all of it awake.",
+            },
+            ["wind-up"] = new[]
+            {
+                "A wind-up mouse. Let it run down, then let it have it.",
+            },
+            ["jack"] = new[]
+            {
+                "The Jack-in-the-Box. Every circle goes off. Be in none of them.",
+            },
             ["aquarium"] = new[]
             {
                 "A fish tank. You're in a fish tank. Keep an eye on the glass; things live on the other side.",

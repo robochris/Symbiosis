@@ -74,10 +74,18 @@ namespace Shrunk.Tests
             SaveSystem.Data.meta.creaturesSeen.Add("WorkerAnt");
             SaveSystem.Data.meta.creaturesSeen.Add("StagBeetle");
             SceneManager.LoadScene("Lab");
-            yield return null;
-            yield return null;
-            var book = Object.FindAnyObjectByType<FieldGuideBook>();
-            Assert.IsNotNull(book, "no field guide in the office");
+            FieldGuideBook book = null;
+            for (float t = 0f; t < 3f && book == null; t += Time.unscaledDeltaTime)
+            {
+                yield return null;
+                book = Object.FindAnyObjectByType<FieldGuideBook>();
+            }
+            if (book == null)
+            {
+                var hidden = Object.FindAnyObjectByType<FieldGuideBook>(FindObjectsInactive.Include);
+                string where = hidden == null ? "not in the scene at all" : $"switched off (self {hidden.gameObject.activeSelf}, parent {(hidden.transform.parent != null ? hidden.transform.parent.name : "none")})";
+                Assert.Fail("no field guide in the office: " + where + ", scene " + SceneManager.GetActiveScene().name);
+            }
             Assert.That(WorldPrompt.For(book.transform.position), Does.Contain("2 of " + FieldGuide.Total));
             Assert.That(book.Turn(), Does.StartWith("Worker Ant"));
             Assert.That(book.Turn(), Does.StartWith("Stag Beetle"));

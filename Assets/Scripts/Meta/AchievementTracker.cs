@@ -116,7 +116,12 @@ namespace Shrunk
                 if (storm.Strikes > 0 && storm.Struck == 0) Achievements.Unlock(AchievementId.SilverLining);
             }
             if (enemy is GlitchBoss glitch && glitch.canScan) Achievements.Unlock(AchievementId.Patched);
-            if (enemy is FishBoss fish && fish.canDash && fish.Dashes > 0 && fish.DashHits == 0) Achievements.Unlock(AchievementId.FishedOut);
+            if (enemy is FishBoss fish && fish.canDash)
+            {
+                Achievements.Unlock(AchievementId.GoneFishing);
+                if (fish.Dashes > 0 && fish.DashHits == 0) Achievements.Unlock(AchievementId.FishedOut);
+            }
+            if (enemy is ToyBoss toy && toy.canHide) Achievements.Unlock(AchievementId.BoxedIn);
 
             if (enemy is CatBoss)
             {

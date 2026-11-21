@@ -852,10 +852,80 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator Bubble_wrap_pops_on_a_dodge_and_hurts_what_is_close()
+        {
+            var near = Dummy(new Vector3(1.5f, 0f, 0f));
+            var far = Dummy(new Vector3(0f, 0f, 9f));
+            Give(ItemType.BubbleWrap);
+            yield return null;
+            _player.Input.overrideFrame = new InputFrame { move = Vector3.left, dodge = true };
+            yield return null;
+            _player.Input.overrideFrame = new InputFrame();
+            yield return null;
+            Assert.AreEqual(1, _player.Pops);
+            Assert.Greater(Lost(near), 0, "the pop missed the ant right beside it");
+            Assert.AreEqual(0, Lost(far), "the pop reached across the room");
+        }
+
+        [UnityTest]
+        public IEnumerator A_yo_yo_shot_comes_back_and_a_magnified_one_hits_harder_far_off()
+        {
+            Give(ItemType.YoYo);
+            int returnsBefore = Bullet.Returns;
+            yield return FireOnce();
+            yield return new WaitForSeconds(1.5f);
+            Assert.Greater(Bullet.Returns, returnsBefore, "the shot never came back");
+
+            var close = Dummy(new Vector3(0f, 0f, 3f), "SoldierAnt");
+            var distant = Dummy(new Vector3(3f, 0f, 12f), "SoldierAnt");
+            Give(ItemType.MagnifyingGlass);
+            yield return null;
+            Assert.AreEqual(1, _items.Stats.farBonus);
+            Object.Destroy(close.gameObject);
+            Object.Destroy(distant.gameObject);
+        }
+
+        [UnityTest]
+        public IEnumerator The_trophies_do_what_they_say_and_only_bosses_keep_them()
+        {
+            var library = GameAssets.Instance.items;
+            foreach (var pair in BossEnemy.Trophies) Assert.IsTrue(library.Get(pair.Value).rare, pair.Value + " is not a trophy: it could drop anywhere");
+
+            int health = _player.Health.maxHealth;
+            Give(ItemType.ExtraLife);
+            Assert.AreEqual(health + 2, _player.Health.maxHealth);
+            Assert.AreEqual(_player.Health.maxHealth, _player.Health.Current, "no heal with the extra life");
+
+            int charges = _items.Stats.dodgeCharges;
+            Give(ItemType.SpringHeel);
+            Assert.AreEqual(charges + 1, _items.Stats.dodgeCharges);
+
+            float fill = _items.Stats.powerFillMultiplier;
+            Give(ItemType.Croak);
+            Assert.AreEqual(fill * 1.5f, _items.Stats.powerFillMultiplier, 0.001f);
+
+            // Lightning: within six shots, one comes down and catches the ant beside the one it hit.
+            Give(ItemType.BottledLightning);
+            var target = Dummy(new Vector3(0f, 0f, 6f), "SoldierAnt");
+            var beside = Dummy(new Vector3(1.5f, 0f, 6f), "SoldierAnt");
+            yield return null;
+            int strikes = Bullet.Strikes;
+            for (int i = 0; i < 7 && Bullet.Strikes == strikes; i++)
+            {
+                _player.Input.overrideFrame = new InputFrame { aim = Vector3.forward, fire = true };
+                yield return null;
+                _player.Input.overrideFrame = new InputFrame();
+                yield return new WaitForSeconds(0.5f);
+            }
+            Assert.Greater(Bullet.Strikes, strikes, "no lightning in six shots");
+            Assert.Greater(Lost(beside), 0, "the lightning did not reach the ant beside");
+        }
+
+        [UnityTest]
         public IEnumerator Every_item_has_a_name_a_description_and_a_look()
         {
             var library = GameAssets.Instance.items;
-            Assert.AreEqual(29, library.items.Length);
+            Assert.AreEqual(36, library.items.Length);
             foreach (var item in library.items)
             {
                 Assert.IsNotEmpty(item.displayName);
@@ -865,7 +935,7 @@ namespace Shrunk.Tests
                 _items.Add(item); // must not throw
             }
             yield return null;
-            Assert.AreEqual(29, _items.Collected.Count);
+            Assert.AreEqual(36, _items.Collected.Count);
         }
 
         // ---------- hero power ----------

@@ -62,9 +62,28 @@ namespace Shrunk
             Pickup.Item(other, transform.position + Vector3.forward * 2f + Vector3.right * 2.2f, 0).treasureRoom = room;
         }
 
+        /// <summary>The rare items some bosses keep, by the boss's name.</summary>
+        public static readonly System.Collections.Generic.Dictionary<string, ItemType> Trophies = new System.Collections.Generic.Dictionary<string, ItemType>
+        {
+            ["TheToad"] = ItemType.Croak,
+            ["TheThundercloud"] = ItemType.BottledLightning,
+            ["TheGlitch"] = ItemType.ExtraLife,
+            ["TheJackInTheBox"] = ItemType.SpringHeel,
+        };
+        /// <summary>How often a boss with a trophy leaves it instead of a common item.</summary>
+        public const float TrophyChance = 0.35f;
+        /// <summary>Tests set this to make the trophy certain (1) or impossible (0).</summary>
+        public static float? TrophyChanceOverride;
+
         /// <summary>Which item it leaves: a common one, unless the boss has one of its own.</summary>
         protected virtual ItemDefinition RewardItem(ItemLibrary items)
         {
+            string key = name.Replace("(Clone)", "").Trim();
+            if (Trophies.TryGetValue(key, out ItemType trophy) && Random.value < (TrophyChanceOverride ?? TrophyChance))
+            {
+                var kept = items.Get(trophy);
+                if (kept != null) return kept;
+            }
             var picks = items.RandomCommon(new System.Random(Random.Range(0, int.MaxValue)), 1);
             return picks.Count > 0 ? picks[0] : null;
         }

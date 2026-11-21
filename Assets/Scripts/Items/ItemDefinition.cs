@@ -39,7 +39,21 @@ namespace Shrunk
         /// <summary>Once a run, a hit that would finish the player is shrugged off.</summary>
         SaveState,
         /// <summary>The dodge goes much further.</summary>
-        KiteString
+        KiteString,
+        /// <summary>Shots that have flown a long way hit harder.</summary>
+        MagnifyingGlass,
+        /// <summary>Shots come back to the player at the end of their flight, hitting things again.</summary>
+        YoYo,
+        /// <summary>Every dodge pops, hurting anything right next to the player.</summary>
+        BubbleWrap,
+        /// <summary>Trophy (the Thundercloud): every sixth shot calls lightning down where it lands.</summary>
+        BottledLightning,
+        /// <summary>Trophy (the Glitch): two more health, and a full heal.</summary>
+        ExtraLife,
+        /// <summary>Trophy (the Jack-in-the-Box): one more dodge charge.</summary>
+        SpringHeel,
+        /// <summary>Trophy (the Toad): the hero power fills half again as fast.</summary>
+        Croak
     }
 
     /// <summary>Where an item shows on the character. Two items in one slot: the newer one shows.</summary>

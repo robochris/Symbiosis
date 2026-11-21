@@ -213,20 +213,27 @@ namespace Shrunk.EditorTools
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Shelf", shelf.transform, new Vector3(0f, 1.1f, -2.05f), new Vector3(5.6f, 0.15f, 0.7f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Leg L", shelf.transform, new Vector3(-2.6f, 0.52f, -2.05f), new Vector3(0.15f, 1.05f, 0.6f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Leg R", shelf.transform, new Vector3(2.6f, 0.52f, -2.05f), new Vector3(0.15f, 1.05f, 0.6f), benchMat, false);
+            // A second shelf above the first: there are more bosses than one shelf holds.
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Shelf Top", shelf.transform, new Vector3(0f, 2.05f, -2.05f), new Vector3(5.6f, 0.15f, 0.7f), benchMat, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Upright L", shelf.transform, new Vector3(-2.75f, 1.55f, -2.05f), new Vector3(0.1f, 1.1f, 0.6f), benchMat, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Upright R", shelf.transform, new Vector3(2.75f, 1.55f, -2.05f), new Vector3(0.1f, 1.1f, 0.6f), benchMat, false);
             var jarGlass = ArenaSceneBuilder.Lit("JarGlass", new Color(0.6f, 0.8f, 0.85f), 0.95f);
             Color[] jarColours =
             {
                 new Color(0.3f, 0.08f, 0.06f), new Color(0.45f, 0.1f, 0.35f), new Color(0.3f, 0.8f, 0.25f), new Color(0.55f, 0.8f, 0.95f),
                 new Color(0.62f, 0.6f, 0.58f), new Color(0.13f, 0.14f, 0.16f), new Color(0.45f, 0.5f, 0.25f), new Color(0.7f, 0.88f, 1f), new Color(0.45f, 1f, 0.6f),
-                new Color(0.93f, 0.88f, 0.74f), new Color(0.3f, 0.7f, 0.25f), new Color(0.42f, 0.4f, 0.18f), new Color(0.95f, 0.3f, 0.35f), new Color(0.32f, 0.34f, 0.42f), new Color(0.97f, 0.97f, 1f), new Color(1f, 0.1f, 0.9f), new Color(0.6f, 0.4f, 0.2f), new Color(1f, 0.55f, 0.1f)
+                new Color(0.93f, 0.88f, 0.74f), new Color(0.3f, 0.7f, 0.25f), new Color(0.42f, 0.4f, 0.18f), new Color(0.95f, 0.3f, 0.35f), new Color(0.32f, 0.34f, 0.42f), new Color(0.97f, 0.97f, 1f), new Color(1f, 0.1f, 0.9f), new Color(0.6f, 0.4f, 0.2f), new Color(1f, 0.55f, 0.1f), new Color(0.55f, 0.55f, 0.58f), new Color(0.85f, 0.15f, 0.15f)
             };
             var jars = new GameObject[Specimens.All.Length];
             for (int i = 0; i < jars.Length; i++)
             {
                 var jar = new GameObject("Jar " + Specimens.All[i].key);
                 jar.transform.SetParent(shelf.transform, false);
-                float spacing = 4.8f / Mathf.Max(1, jars.Length - 1);
-                jar.transform.localPosition = new Vector3(-2.4f + i * spacing, 1.18f, -2.05f);
+                // The first half along the bottom shelf, the rest along the top.
+                int perShelf = (jars.Length + 1) / 2;
+                int row = i / perShelf, along = i % perShelf;
+                float spacing = 4.8f / Mathf.Max(1, perShelf - 1);
+                jar.transform.localPosition = new Vector3(-2.4f + along * spacing, row == 0 ? 1.18f : 2.13f, -2.05f);
                 jar.transform.localScale = Vector3.one * Mathf.Min(1f, spacing / 0.56f);
                 // No see-through glass yet, so a jar is a base, a lid and four thin posts, with the specimen in between.
                 ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Base", jar.transform, new Vector3(0f, 0.03f, 0f), new Vector3(0.54f, 0.03f, 0.54f), jarGlass, false);

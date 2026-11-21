@@ -98,6 +98,15 @@ namespace Shrunk
             ["PondSnail"] = "Slow and steady, and it makes everybody else quick.",
             ["Anglerfish"] = "The light is the warning. The rest of it is teeth.",
             ["Fry"] = "Grows into a shrimp. Nobody said the tank made sense.",
+            // The toy box
+            ["ToyCar"] = "Pull it back, let it go.",
+            ["BuildingBlock"] = "A face on every side, and every side is hard.",
+            ["TinRobot"] = "Batteries not included. It found some.",
+            ["ToyPlane"] = "Somebody is going neeeow. It is.",
+            ["Clown"] = "Juggles badly, in your direction.",
+            ["MusicBox"] = "The same tune forever. Everybody near it hurries.",
+            ["DartGun"] = "Suction cup on the end. Somehow, still.",
+            ["Bead"] = "Grows into a toy car. Toys are like that.",
         };
 
         static MetaSave Meta => SaveSystem.Data.meta;
@@ -192,45 +201,6 @@ namespace Shrunk
             if (hud == null) return;
             hud.Toast(_waiting.Dequeue(), gap);
             _next = Time.unscaledTime + gap;
-        }
-    }
-
-    /// <summary>The field guide in the office: how many have been met, and one page at a time to read.</summary>
-    public class FieldGuideBook : MonoBehaviour
-    {
-        public StepPad pad = new StepPad { radius = 1f };
-        int _page = -1;
-
-        void OnEnable() => WorldPrompt.Add(Prompt, transform);
-        void OnDisable() => WorldPrompt.Remove(Prompt);
-
-        void Update()
-        {
-            var player = PlayerController.Instance;
-            if (player == null || !pad.SteppedOn(transform.position, player.transform.position)) return;
-            Turn();
-        }
-
-        /// <summary>The next page among those met. Returns what it says, or null if nothing has been met yet.</summary>
-        public string Turn()
-        {
-            var seen = SaveSystem.Data.meta.creaturesSeen;
-            if (seen.Count == 0) return null;
-            _page = (_page + 1) % seen.Count;
-            string page = FieldGuide.Page(seen[_page]);
-            var hud = FindAnyObjectByType<Hud>();
-            if (hud != null) hud.Toast($"{_page + 1} of {seen.Count}. {page}", 5f);
-            Sfx.Play(SfxId.Coin, 0.5f);
-            return page;
-        }
-
-        string Prompt(Vector3 playerPosition)
-        {
-            if (pad.Distance(transform.position, playerPosition) > 2.2f) return null;
-            int seen = FieldGuide.SeenCount;
-            return seen == 0
-                ? "Dr. Finch's field guide. Blank so far: meet something first."
-                : $"Dr. Finch's field guide: {seen} of {FieldGuide.Total} creatures met. {Interact.Verb} to turn a page.";
         }
     }
 }
