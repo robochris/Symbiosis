@@ -8,7 +8,7 @@ namespace Shrunk
         FirstSteps, MothersDay, Regicide, Untouchable, Omelette, HandsOff,
         Deeper, Hoarder, ShellShock, BubbleWrap, SweetTooth, FullPockets,
         PaperTrail, PerformanceReview, SpringClean, Unplugged, Defrosted,
-        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot, CleanSweep, GoldDigger, QuietPlease, OnARoll, HouseWins, CheckedOut, TongueTied
+        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot, CleanSweep, GoldDigger, QuietPlease, OnARoll, HouseWins, CheckedOut, TongueTied, Croaked, SilverLining
     }
 
     /// <summary>One achievement: what to do, and what doing it gives.</summary>
@@ -68,6 +68,8 @@ namespace Shrunk
             new Achievement { id = AchievementId.OnARoll, name = "On a Roll", how = "Put down 15 in a row without a pause.", reward = "nothing but momentum" },
             new Achievement { id = AchievementId.CheckedOut, name = "Checked Out", how = "Beat the Librarian.", reward = "a portal to somewhere with weather", biome = "forest" },
             new Achievement { id = AchievementId.TongueTied, name = "Tongue-Tied", how = "Beat the Toad without once being caught by its tongue.", reward = "the Moss style", style = "Moss" },
+            new Achievement { id = AchievementId.Croaked, name = "Croaked", how = "Beat the Toad.", reward = "a portal up into the weather", biome = "clouds" },
+            new Achievement { id = AchievementId.SilverLining, name = "Silver Lining", how = "Beat the Thundercloud without once being struck by its lightning.", reward = "the Storm style", style = "Storm" },
             new Achievement { id = AchievementId.HouseWins, name = "The House Wins", how = "Have the claw machine drop it 10 times.", reward = "the machine's respect. It has none" },
         };
 

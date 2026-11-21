@@ -105,7 +105,12 @@ namespace Shrunk
                 Achievements.Unlock(AchievementId.CheckedOut);
                 if (librarian.Punished == 0) Achievements.Unlock(AchievementId.QuietPlease);
             }
-            if (enemy is ToadBoss toad && toad.canTongue && toad.Caught == 0 && toad.Lashes > 0) Achievements.Unlock(AchievementId.TongueTied);
+            if (enemy is ToadBoss toad && toad.canTongue)
+            {
+                Achievements.Unlock(AchievementId.Croaked);
+                if (toad.Caught == 0 && toad.Lashes > 0) Achievements.Unlock(AchievementId.TongueTied);
+            }
+            if (enemy is StormBoss storm && storm.canLightning && storm.Strikes > 0 && storm.Struck == 0) Achievements.Unlock(AchievementId.SilverLining);
 
             if (enemy is CatBoss)
             {

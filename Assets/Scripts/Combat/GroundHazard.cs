@@ -10,6 +10,10 @@ namespace Shrunk
     public class GroundHazard : MonoBehaviour
     {
         public static readonly List<GroundHazard> All = new List<GroundHazard>();
+        /// <summary>Raised when a hazard hurts the player, for whoever made it to keep count.</summary>
+        public static event System.Action<GroundHazard> HitPlayer;
+        /// <summary>Who made it, if anybody is keeping count.</summary>
+        [System.NonSerialized] public Object source;
 
         [Tooltip("Who it hurts.")]
         public Team hurts = Team.Player;
@@ -169,7 +173,7 @@ namespace Shrunk
                 var player = PlayerController.Instance;
                 if (player == null || player.Health.IsDead || player.IsHovering) return;
                 if (!Inside(player.transform.position)) return;
-                if (damage > 0) player.Health.TakeDamage(damage, Vector3.zero);
+                if (damage > 0 && player.Health.TakeDamage(damage, Vector3.zero)) HitPlayer?.Invoke(this);
                 if (slowTo > 0f) player.Slow(slowTo, 0.3f);
                 return;
             }

@@ -105,11 +105,12 @@ namespace Shrunk.EditorTools
             go.AddComponent<AudioListener>();
             go.AddComponent<CameraFollow>().target = target;
 
-            // The look: a little glow on bright things, a soft vignette, a touch more contrast and colour. Light enough
-            // for a phone. No edge smoothing: FXAA softened the on-screen text.
+            // The look: a little glow on bright things, a soft vignette, a touch more contrast and colour, and cheap edge
+            // smoothing. Light enough for a phone. The HUD draws on top of all of it (the screenshot tests move it into
+            // the camera's view, which is why text looks soft in their pictures and not in the game).
             var data = go.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
             data.renderPostProcessing = true;
-            data.antialiasing = UnityEngine.Rendering.Universal.AntialiasingMode.None;
+            data.antialiasing = UnityEngine.Rendering.Universal.AntialiasingMode.FastApproximateAntialiasing;
             var volume = new GameObject("Look").AddComponent<UnityEngine.Rendering.Volume>();
             volume.isGlobal = true;
             volume.sharedProfile = Look();
@@ -421,6 +422,7 @@ namespace Shrunk.EditorTools
                 new VoidStyle { displayName = "Coral", body = Lit("StyleCoral", new Color(1f, 0.5f, 0.42f), 0.45f), eyes = Unlit("StyleEyesWhite", new Color(0.95f, 1f, 1f)) },
                 new VoidStyle { displayName = "Midnight", body = Lit("StyleMidnight", new Color(0.1f, 0.08f, 0.25f), 0.7f), eyes = Unlit("StyleEyesYellow", new Color(1f, 0.92f, 0.3f)) },
                 new VoidStyle { displayName = "Gold Leaf", body = Lit("StyleGoldLeaf", new Color(0.95f, 0.78f, 0.35f), 0.95f), eyes = Unlit("StyleEyesDark", new Color(0.05f, 0.05f, 0.1f)) },
+                new VoidStyle { displayName = "Storm", body = Lit("StyleStorm", new Color(0.3f, 0.32f, 0.42f), 0.4f), eyes = Unlit("Spark", new Color(1f, 0.95f, 0.5f)) },
                 new VoidStyle { displayName = "Moss", body = Lit("StyleMoss", new Color(0.28f, 0.5f, 0.18f), 0.15f), eyes = Unlit("ToadEye", new Color(1f, 0.75f, 0.15f)) },
             };
         }

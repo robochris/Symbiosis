@@ -376,6 +376,19 @@ namespace Shrunk
                 "A library. That isn't in the house. That isn't in any house I know of. Interesting.",
                 "Books, the size of buildings. Somebody is going to want those back.",
             },
+            ["clouds"] = new[]
+            {
+                "Clouds. You are standing on clouds. I did not build the machine to do that. I'm not complaining.",
+                "Mind the edges. I don't know what's under them and I don't want you finding out.",
+            },
+            ["kite"] = new[]
+            {
+                "A kite. Somebody let go of it. It gusts; you'll see the strip first. Get off it.",
+            },
+            ["thundercloud"] = new[]
+            {
+                "The Thundercloud. Lightning lands where it's marked, the first one under your feet. Keep walking.",
+            },
             ["forest"] = new[]
             {
                 "Trees. Real ones, with a sky on top. I had forgotten what that looked like. Describe it. No, don't, keep moving.",

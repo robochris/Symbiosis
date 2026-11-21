@@ -27,6 +27,7 @@ namespace Shrunk.Tests
             Progress.PerksOverride = false;
             // Older tests walk onto pads to use them; the button is tested on its own.
             Interact.AutoUse = true;
+            ForestPond.ChanceForAll = 0f;
         }
 
         [OneTimeTearDown]
@@ -41,6 +42,7 @@ namespace Shrunk.Tests
             Progress.LevelOverride = null;
             Progress.PerksOverride = null;
             Interact.AutoUse = false;
+            ForestPond.ChanceForAll = null;
         }
     }
 }

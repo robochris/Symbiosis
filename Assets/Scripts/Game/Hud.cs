@@ -73,9 +73,18 @@ namespace Shrunk
         RoomNode _announced;
         BiomeDefinition _shownBiome;
 
+        public const string DareLine = "This floor has a dare room: the red square on the map, a dead end with a bell in it. Ring it for a harder fight and a prize. Or don't.";
+
         // Arriving somewhere new: say where.
         void OnFloorBuilt(FloorManager floors)
         {
+            // The first dare room anybody meets is pointed out, once, after the floor's card has gone.
+            if (floors.Dare != null && !SaveSystem.Data.meta.dareSeen)
+            {
+                SaveSystem.Data.meta.dareSeen = true;
+                SaveSystem.Save();
+                StartCoroutine(ToastLater(DareLine, 3.5f, 7f));
+            }
             // A floor with a twist says so. The floor's card does it; with none in the scene, a line of text does.
             if (floors.Twist != FloorTwist.None)
             {
@@ -111,6 +120,12 @@ namespace Shrunk
         }
 
         /// <summary>Shows a message in the middle of the screen for a few seconds.</summary>
+        System.Collections.IEnumerator ToastLater(string message, float delay, float seconds)
+        {
+            yield return new WaitForSecondsRealtime(delay);
+            Toast(message, seconds);
+        }
+
         public void Toast(string message, float seconds)
         {
             _toast = message;

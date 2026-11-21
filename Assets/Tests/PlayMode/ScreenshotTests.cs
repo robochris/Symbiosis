@@ -495,6 +495,48 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_machine_room_and_cat_box()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            GameSettings.Radio = 0;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            CameraFollow.Instance.SetMode(CameraMode.Wide);
+
+            foreach (var part in MachineParts.All) MachineParts.Take(part);
+            floors.WorldsBeaten = 1;
+            floors.BuildFloor(10);
+            yield return null;
+            Assert.IsNotNull(floors.MachineRoom);
+            player.Teleport(floors.MachineRoom.transform.position + new Vector3(0f, 0.05f, -5f));
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(1.2f);
+            yield return Screen(Path.Combine(folder, "machine-room.png"));
+
+            FloorManager.CatFlapChanceForAll = 1f;
+            floors.BuildFloor(3);
+            yield return null;
+            Assert.IsNotNull(floors.CatFlap);
+            player.Teleport(floors.CatFlap.transform.position + new Vector3(0f, 0.05f, -5f));
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(1.2f);
+            yield return Screen(Path.Combine(folder, "cat-box.png"));
+            FloorManager.CatFlapChanceForAll = null;
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_lab_full()
         {
             SaveSystem.Profile = "tests";

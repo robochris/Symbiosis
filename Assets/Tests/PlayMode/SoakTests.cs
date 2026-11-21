@@ -302,10 +302,17 @@ namespace Shrunk.Tests
             System.Action<int, Vector3> count = (amount, direction) => { hits += amount; if (direction == Vector3.zero) pools += amount; };
             _player.Health.Damaged += count;
             float started = Time.time;
+            // Coins as the game hands them out, not as the tests pin them.
+            float? pinned = Loot.CoinChanceOverride;
+            Loot.CoinChanceOverride = null;
+            int coinsBefore = RunState.Coins;
             yield return PlayFloor(floor, seed, true);
+            Loot.CoinChanceOverride = pinned;
+            int picked = RunState.Coins - coinsBefore, lying = 0;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Coin) lying += pickup.amount;
             _player.Health.Damaged -= count;
             foreach (var node in _floors.Layout.ordered) if (node.type == RoomType.Normal || node.type == RoomType.Exit) rooms++;
-            Debug.Log($"[Shrunk] MEASURE FLOOR {biome} {floor}: {Time.time - started:F0} s, {hits} hits over {rooms} fight rooms ({(float)hits / Mathf.Max(1, rooms):F1} a room), {pools} of them from pools and blasts");
+            Debug.Log($"[Shrunk] MEASURE FLOOR {biome} {floor}: {Time.time - started:F0} s, {hits} hits over {rooms} fight rooms ({(float)hits / Mathf.Max(1, rooms):F1} a room), {pools} of them from pools and blasts; coins {picked} picked up and {lying} left lying");
         }
 
         /// <summary>
@@ -350,6 +357,18 @@ namespace Shrunk.Tests
             yield return MeasureBoss(10, 906, "The Librarian");
             Time.timeScale = 3f;
             yield return MeasureFloor("library", 8, 7108);
+        }
+
+        /// <summary>Not a test: the clouds' two, and one of their floors. Read the log.</summary>
+        [UnityTest, Explicit, Timeout(3600000)]
+        public IEnumerator Measure_clouds()
+        {
+            Achievements.EverythingUnlocked = true;
+            Assert.IsTrue(_floors.SetBiome("clouds"));
+            yield return MeasureBoss(5, 508, "The Kite");
+            yield return MeasureBoss(10, 908, "The Thundercloud");
+            Time.timeScale = 3f;
+            yield return MeasureFloor("clouds", 8, 7110);
         }
 
         /// <summary>Not a test: the forest's two, and one of its floors. Read the log.</summary>

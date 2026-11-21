@@ -156,6 +156,46 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator A_pond_slows_the_wader_and_once_the_room_is_clear_can_be_dived()
+        {
+            ForestPond.ChanceForAll = 1f;
+            try
+            {
+                Assert.IsTrue(_floors.SetBiome("forest"));
+                _floors.BuildFloor(3);
+                yield return null;
+                var pond = _floors.Pond;
+                Assert.IsNotNull(pond, "no pond on a forest floor");
+
+                // Into the room: it locks, and the pond only slows.
+                _player.Teleport(pond.transform.position + new Vector3(-3f, 0.05f, -3f));
+                yield return WaitUntil(() => _floors.IsLocked, 3f, "the room to lock");
+                _player.Teleport(pond.transform.position + new Vector3(1f, 0.05f, 0f));
+                yield return null;
+                yield return null;
+                Assert.IsTrue(_player.IsSlowed, "wading was no slower");
+                Assert.IsFalse(pond.glint.activeSelf, "something to dive for while the room is still fighting");
+                Assert.IsFalse(pond.Dived);
+
+                foreach (var enemy in new System.Collections.Generic.List<Enemy>(_floors.LiveEnemies)) enemy.Health.Kill();
+                yield return WaitUntil(() => !_floors.IsLocked, 3f, "the room to open");
+                yield return null;
+                Assert.IsTrue(pond.glint.activeSelf, "no glint once the room was clear");
+                _player.Teleport(pond.transform.position + new Vector3(-4f, 0.05f, 0f));
+                yield return null;
+                _player.Teleport(pond.transform.position + Vector3.up * 0.05f);
+                yield return WaitUntil(() => pond.Dived, 3f, "the dive");
+                bool item = false;
+                foreach (var pickup in Pickup.All) item |= pickup.kind == PickupKind.Item && Vector3.Distance(pickup.transform.position, pond.transform.position) < 5f;
+                Assert.IsTrue(item, "nothing came up from the bottom");
+            }
+            finally
+            {
+                ForestPond.ChanceForAll = 0f;
+            }
+        }
+
+        [UnityTest]
         public IEnumerator The_froglet_hops_but_has_no_tongue_yet()
         {
             Assert.IsTrue(_floors.SetBiome("forest"));

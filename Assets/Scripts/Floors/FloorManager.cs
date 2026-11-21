@@ -53,6 +53,8 @@ namespace Shrunk
         /// <summary>True on the machine's floor or the cat's, entered from a run: the way back to the run is open after.</summary>
         public bool InSpecial => _returnBiome != null;
         public CatFlap CatFlap { get; private set; }
+        /// <summary>The forest floor's pond, if it has one.</summary>
+        public ForestPond Pond { get; private set; }
         public MachineRoom MachineRoom { get; private set; }
 
         BiomeDefinition _returnBiome;
@@ -413,6 +415,12 @@ namespace Shrunk
                 {
                     MachineRoom = MachineRoom.Create(room, room.Centre);
                 }
+                else if (node.type == RoomType.Normal && Pond == null && biome.id == "forest" && FloorInBiome >= 2 && !InSpecial
+                         && rng.NextDouble() < (ForestPond.ChanceForAll ?? ForestPond.Chance))
+                {
+                    // Off to one side of the middle, inside the square every room keeps clear.
+                    Pond = ForestPond.Create(room, room.Centre + new Vector3(2.2f, 0f, 2.2f));
+                }
                 else if (node.type == RoomType.Treasure)
                 {
                     var picks = assets.items.RandomCommon(rng, Mathf.Max(1, treasureChoices));
@@ -517,6 +525,7 @@ namespace Shrunk
             ExtractPortal = null;
             CatFlap = null;
             MachineRoom = null;
+            Pond = null;
             _portals.Clear();
             IsLocked = false;
             ExitOpen = false;
