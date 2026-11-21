@@ -114,6 +114,18 @@ namespace Shrunk
             "Quiet, please. It will not be.",
         };
 
+        /// <summary>The forest's own lines.</summary>
+        public static readonly string[] ForestLines =
+        {
+            "Tip: when the Toad jumps, the circle is where it comes down. Be somewhere else.",
+            "Tip: the Toad's tongue stops turning just before it lashes. That is the moment to step aside.",
+            "Tip: a toadstool puffs straight at you. Behind a log is behind a toadstool.",
+            "Tip: the hornet lines you up first. The line is the warning; the shot is not.",
+            "Reminder: there is no ceiling. That does not mean there is a way out.",
+            "Fact: every tree here is older than the house. Some of them are older than houses.",
+            "It is greener further in. The things that live there are not.",
+        };
+
         public static readonly string[] FridgeLines =
         {
             "Tip: frost on the floor slows walking. A dodge goes straight over it.",
@@ -133,7 +145,7 @@ namespace Shrunk
         /// <summary>The line under "Floor N" for a biome: its own if it has any, otherwise the ants'. The floor's seed picks it.</summary>
         public static string TipFor(string biomeId, int seed)
         {
-            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : biomeId == "fridge" ? FridgeLines : biomeId == "library" ? LibraryLines : FloorLines;
+            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : biomeId == "fridge" ? FridgeLines : biomeId == "library" ? LibraryLines : biomeId == "forest" ? ForestLines : FloorLines;
             return lines[Mathf.Abs(seed) % lines.Length];
         }
 

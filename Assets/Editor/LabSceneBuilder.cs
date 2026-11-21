@@ -143,14 +143,17 @@ namespace Shrunk.EditorTools
             Color[] jarColours =
             {
                 new Color(0.3f, 0.08f, 0.06f), new Color(0.45f, 0.1f, 0.35f), new Color(0.3f, 0.8f, 0.25f), new Color(0.55f, 0.8f, 0.95f),
-                new Color(0.62f, 0.6f, 0.58f), new Color(0.13f, 0.14f, 0.16f), new Color(0.45f, 0.5f, 0.25f), new Color(0.7f, 0.88f, 1f), new Color(0.45f, 1f, 0.6f)
+                new Color(0.62f, 0.6f, 0.58f), new Color(0.13f, 0.14f, 0.16f), new Color(0.45f, 0.5f, 0.25f), new Color(0.7f, 0.88f, 1f), new Color(0.45f, 1f, 0.6f),
+                new Color(0.93f, 0.88f, 0.74f), new Color(0.3f, 0.7f, 0.25f), new Color(0.42f, 0.4f, 0.18f)
             };
             var jars = new GameObject[Specimens.All.Length];
             for (int i = 0; i < jars.Length; i++)
             {
                 var jar = new GameObject("Jar " + Specimens.All[i].key);
                 jar.transform.SetParent(shelf.transform, false);
-                jar.transform.localPosition = new Vector3(-2.4f + i * (4.8f / Mathf.Max(1, jars.Length - 1)), 1.18f, -2.05f);
+                float spacing = 4.8f / Mathf.Max(1, jars.Length - 1);
+                jar.transform.localPosition = new Vector3(-2.4f + i * spacing, 1.18f, -2.05f);
+                jar.transform.localScale = Vector3.one * Mathf.Min(1f, spacing / 0.56f);
                 // No see-through glass yet, so a jar is a base, a lid and four thin posts, with the specimen in between.
                 ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Base", jar.transform, new Vector3(0f, 0.03f, 0f), new Vector3(0.54f, 0.03f, 0.54f), jarGlass, false);
                 ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Lid", jar.transform, new Vector3(0f, 0.67f, 0f), new Vector3(0.54f, 0.04f, 0.54f), benchMat, false);

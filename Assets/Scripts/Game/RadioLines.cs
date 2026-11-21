@@ -376,6 +376,19 @@ namespace Shrunk
                 "A library. That isn't in the house. That isn't in any house I know of. Interesting.",
                 "Books, the size of buildings. Somebody is going to want those back.",
             },
+            ["forest"] = new[]
+            {
+                "Trees. Real ones, with a sky on top. I had forgotten what that looked like. Describe it. No, don't, keep moving.",
+                "Mind the leaf litter. Some of it is leaves.",
+            },
+            ["froglet"] = new[]
+            {
+                "A froglet. Young, keen, and it lands where you were going. Go somewhere else.",
+            },
+            ["toad"] = new[]
+            {
+                "The Toad. When it stops turning, it's about to lash. Step off the line. I never did learn to.",
+            },
             ["librarian"] = new[]
             {
                 "The Librarian. When they say quiet, be quiet. I never managed it myself.",

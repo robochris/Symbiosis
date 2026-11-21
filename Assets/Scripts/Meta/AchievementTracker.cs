@@ -100,7 +100,12 @@ namespace Shrunk
             }
             // The streak counter may hear of this kill a moment after this does: one over the line is near enough.
             if (KillStreak.Live >= Achievements.StreakNeeded) Achievements.Unlock(AchievementId.OnARoll);
-            if (enemy is LibrarianBoss librarian && librarian.canShush && librarian.Punished == 0) Achievements.Unlock(AchievementId.QuietPlease);
+            if (enemy is LibrarianBoss librarian && librarian.canShush)
+            {
+                Achievements.Unlock(AchievementId.CheckedOut);
+                if (librarian.Punished == 0) Achievements.Unlock(AchievementId.QuietPlease);
+            }
+            if (enemy is ToadBoss toad && toad.canTongue && toad.Caught == 0 && toad.Lashes > 0) Achievements.Unlock(AchievementId.TongueTied);
 
             if (enemy is CatBoss)
             {

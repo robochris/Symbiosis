@@ -328,6 +328,29 @@ namespace Shrunk.Tests
             yield return BossClip(50f);
         }
 
+        /// <summary>The Forest: a room of it, then the Toad.</summary>
+        [UnityTest, Explicit]
+        public IEnumerator Capture_clip_forest()
+        {
+            yield return Begin("forest");
+            Achievements.EverythingUnlocked = true;
+            Assert.IsTrue(_floors.SetBiome("forest"));
+            _floors.BuildFloor(8, 4712);
+            yield return null;
+            _player.Health.SetInvulnerable(600f);
+            RoomNode fight = NearestFightRoom();
+            Room room = _floors.RoomAt(fight.cell);
+            yield return Stand(1.5f);
+            yield return Walk(OnNavMesh(room.Centre), 25f, () => _floors.IsLocked);
+            yield return Fight(20f);
+            yield return Stand(1f);
+
+            _floors.BuildFloor(10, 907);
+            yield return null;
+            Achievements.EverythingUnlocked = false;
+            yield return BossClip(45f);
+        }
+
         /// <summary>The machine, switched on with all four parts in.</summary>
         [UnityTest, Explicit]
         public IEnumerator Capture_clip_machine()
