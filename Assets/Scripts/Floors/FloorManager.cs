@@ -220,8 +220,9 @@ namespace Shrunk
             FloorNumber = number;
             int seed = seedOverride != 0 ? seedOverride : fixedSeed != 0 ? fixedSeed + number : UnityEngine.Random.Range(1, int.MaxValue);
             Twist = twistOverride ?? FloorTwists.Roll(seed, number, biome, TwistChanceForAll ?? twistChance);
-            Loot.CoinBonus = Twist == FloorTwist.Crowded ? FloorTwists.CrowdedCoins : 0;
-            Loot.SampleBonus = Twist == FloorTwist.PowerCut ? FloorTwists.PowerCutSamples : 0;
+            Loot.CoinBonus = Twist == FloorTwist.Crowded ? FloorTwists.CrowdedCoins : Twist == FloorTwist.RushHour ? FloorTwists.RushCoins : 0;
+            Loot.SampleBonus = Twist == FloorTwist.PowerCut ? FloorTwists.PowerCutSamples : Twist == FloorTwist.Mist ? FloorTwists.MistSamples : 0;
+            Enemy.WorldRush = Twist == FloorTwist.RushHour ? FloorTwists.RushSpeed : 1f;
             ApplyLook();
             // Now and then a floor has a dead end to spare, walled up with something in it.
             bool secret = FloorLayout.FloorInBiome(number) >= 2 && !InSpecial && !biome.isBottom
@@ -303,6 +304,12 @@ namespace Shrunk
             RenderSettings.fogColor = biome.fogColor;
             RenderSettings.fogStartDistance = biome.fogStart;
             RenderSettings.fogEndDistance = biome.fogEnd;
+            if (Twist == FloorTwist.Mist)
+            {
+                RenderSettings.fog = true;
+                RenderSettings.fogStartDistance = FloorTwists.MistStart;
+                RenderSettings.fogEndDistance = FloorTwists.MistEnd;
+            }
 
             var view = Camera.main;
             if (view != null) view.backgroundColor = biome.skyColor;

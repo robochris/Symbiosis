@@ -92,6 +92,7 @@ namespace Shrunk
             if (node != null) node.visited = true;
             var meta = SaveSystem.Data.meta;
             meta.secretsFound++;
+            Jobs.Count(JobKind.Secrets);
             if (meta.secretsFound >= Achievements.SecretsNeeded) Achievements.Unlock(AchievementId.NosyParker);
             SaveSystem.Save();
 

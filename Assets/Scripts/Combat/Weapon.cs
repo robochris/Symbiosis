@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Shrunk
 {
     /// <summary>The weapons the lab issues. Chosen at the equipment cupboard and kept between runs.</summary>
-    public enum WeaponKind { Pipette, Sprinkler, Syringe, SprayBottle }
+    public enum WeaponKind { Pipette, Sprinkler, Syringe, SprayBottle, StapleGun }
 
     /// <summary>What the cupboard says about a weapon, and how it differs from the plain one.</summary>
     public class WeaponInfo
@@ -20,6 +20,9 @@ namespace Shrunk
         public int damageMultiplier = 1, pierce;
         /// <summary>How its shots look: scale, and stretch along the way they are going.</summary>
         public float shotSize = 1f, shotLength = 1f;
+        /// <summary>Shots per pull, one after another down the same line, this far apart in seconds.</summary>
+        public int burst = 1;
+        public float burstGap = 0.07f;
     }
 
     public static class Weapons
@@ -33,6 +36,8 @@ namespace Shrunk
                 needs = "Issued once the Ant Queen has been dealt with.", intervalMultiplier = 3f, rangeMultiplier = 1.35f, speedMultiplier = 1.6f, damageMultiplier = 3, pierce = 1, shotSize = 1.15f, shotLength = 2.6f },
             new WeaponInfo { kind = WeaponKind.SprayBottle, name = "Spray Bottle", does = "Nearly twice as fast, and it gives out at half the distance. For people who would rather not aim.",
                 needs = "Issued once the Librarian has been dealt with.", intervalMultiplier = 0.55f, rangeMultiplier = 0.5f, speedMultiplier = 0.85f, shotSize = 0.8f },
+            new WeaponInfo { kind = WeaponKind.StapleGun, name = "Staple Gun", does = "Three staples in a quick burst, then a pause. Every one goes where the first one went.",
+                needs = "Issued once the Glitch has been dealt with.", burst = 3, burstGap = 0.07f, intervalMultiplier = 2.4f, speedMultiplier = 1.25f, rangeMultiplier = 0.9f, shotSize = 0.7f, shotLength = 1.8f },
         };
 
         public static WeaponInfo Info(WeaponKind kind)
@@ -49,6 +54,7 @@ namespace Shrunk
                 case WeaponKind.Sprinkler: return Achievements.Has(AchievementId.MothersDay);
                 case WeaponKind.Syringe: return Achievements.Has(AchievementId.Regicide);
                 case WeaponKind.SprayBottle: return Specimens.Has("TheLibrarian");
+                case WeaponKind.StapleGun: return Specimens.Has("TheGlitch");
                 default: return true;
             }
         }
@@ -111,6 +117,13 @@ namespace Shrunk
         /// <param name="aimDistance">How far off the aimed-at point is, if known. The shot leaves the hand, off to one side, and is angled to pass through that point.</param>
         public void Tick(bool triggerHeld, Vector3 aimDirection, float aimDistance = 0f)
         {
+            // The rest of a burst goes whether the trigger is still held or not, down the line the first one took.
+            if (_burstLeft > 0 && Time.time >= _burstAt)
+            {
+                _burstLeft--;
+                _burstAt = Time.time + Weapons.Info(kind).burstGap;
+                Volley(_burstDirection, Stats, Weapons.Info(kind), false);
+            }
             if (!triggerHeld || Time.time < _nextShot || aimDirection.sqrMagnitude < 0.001f) return;
 
             PlayerStats stats = Stats;
@@ -128,7 +141,23 @@ namespace Shrunk
 
             Vector3 origin = muzzle != null ? muzzle.position : transform.position;
             Vector3 direction = ApplyAimAssist(origin, Converge(origin, aimDirection.normalized, aimDistance), aimAssistAngle + stats.aimAssistBonusAngle);
-            // The Sprinkler throws a fan; the middle shot is the aimed one.
+            Volley(direction, stats, info, charged);
+            if (info.burst > 1)
+            {
+                _burstLeft = info.burst - 1;
+                _burstAt = Time.time + info.burstGap;
+                _burstDirection = direction;
+            }
+        }
+
+        int _burstLeft;
+        float _burstAt;
+        Vector3 _burstDirection;
+
+        // One pull's worth of shots: the Sprinkler throws a fan; the middle shot is the aimed one.
+        void Volley(Vector3 direction, PlayerStats stats, WeaponInfo info, bool charged)
+        {
+            Vector3 origin = muzzle != null ? muzzle.position : transform.position;
             for (int i = 0; i < info.pellets; i++)
             {
                 var shot = new Shot

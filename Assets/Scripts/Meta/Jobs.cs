@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Shrunk
 {
-    public enum JobKind { Kills, Elites, Mimics, Bosses, Dares, Extractions, Floors, Items, Streaks, GoldBugs, ClawWins, RangeRounds, Fortunes }
+    public enum JobKind { Kills, Elites, Mimics, Bosses, Dares, Extractions, Floors, Items, Streaks, GoldBugs, ClawWins, RangeRounds, Fortunes, Secrets, Dives, Dailies }
 
     /// <summary>One job off the lab's noticeboard: something to do a number of times, and what the lab pays for it.</summary>
     public class Job
@@ -39,6 +39,9 @@ namespace Shrunk
             new Job { id = 11, kind = JobKind.GoldBugs, needed = 2, pay = 45, what = "Catch 2 gold bugs before they leave." },
             new Job { id = 13, kind = JobKind.RangeRounds, needed = 1, pay = 20, what = "Knock down 8 or more in one round on the range." },
             new Job { id = 14, kind = JobKind.Fortunes, needed = 3, pay = 20, what = "Read 3 fortunes. One a visit." },
+            new Job { id = 15, kind = JobKind.Secrets, needed = 1, pay = 35, what = "Break into a secret room." },
+            new Job { id = 16, kind = JobKind.Dives, needed = 1, pay = 30, what = "Dive to the bottom of a pond in the forest." },
+            new Job { id = 17, kind = JobKind.Dailies, needed = 2, pay = 40, what = "Play the Daily Experiment on 2 days." },
             new Job { id = 12, kind = JobKind.ClawWins, needed = 3, pay = 35, what = "Get anything at all out of a claw machine, 3 times." },
         };
 

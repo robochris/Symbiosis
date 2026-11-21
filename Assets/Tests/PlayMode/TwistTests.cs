@@ -636,5 +636,31 @@ namespace Shrunk.Tests
                 Assert.IsTrue(_floors.Dare == null, "a dare on a boss's floor");
             }
         }
+
+        [UnityTest]
+        public IEnumerator Mist_closes_the_haze_in_and_rush_hour_hurries_everybody()
+        {
+            _floors.twistOverride = FloorTwist.Mist;
+            _floors.BuildFloor(4);
+            yield return null;
+            Assert.IsTrue(RenderSettings.fog);
+            Assert.AreEqual(FloorTwists.MistEnd, RenderSettings.fogEndDistance, 0.01f, "no mist");
+            Assert.AreEqual(FloorTwists.MistSamples, Loot.SampleBonus);
+            Assert.AreEqual(1f, Enemy.WorldRush);
+
+            _floors.twistOverride = FloorTwist.RushHour;
+            _floors.BuildFloor(5);
+            yield return null;
+            Assert.AreEqual(FloorTwists.RushSpeed, Enemy.WorldRush);
+            Assert.AreEqual(FloorTwists.RushCoins, Loot.CoinBonus);
+            Assert.Greater(RenderSettings.fogEndDistance, FloorTwists.MistEnd, "the mist stayed for the next floor");
+
+            _floors.twistOverride = FloorTwist.None;
+            _floors.BuildFloor(6);
+            yield return null;
+            Assert.AreEqual(1f, Enemy.WorldRush, "everything is still in a hurry");
+            Assert.AreEqual(0, Loot.CoinBonus);
+            Assert.That(FloorTwists.Line(FloorTwist.Mist), Is.Not.Empty);
+        }
     }
 }

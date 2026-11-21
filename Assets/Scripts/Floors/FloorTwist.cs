@@ -15,17 +15,23 @@ namespace Shrunk
         /// <summary>Everything in the shop is half price.</summary>
         Sale,
         /// <summary>A gold bug in every fight room.</summary>
-        GoldRush
+        GoldRush,
+        /// <summary>The haze closes right in. Every enemy is worth a sample more.</summary>
+        Mist,
+        /// <summary>Everything moves faster, and pays a coin more.</summary>
+        RushHour
     }
 
     /// <summary>What each twist is called, what it does, and which floors get one.</summary>
     public static class FloorTwists
     {
-        public const int CrowdedExtra = 2, CrowdedCoins = 2, PowerCutSamples = 2;
+        public const int CrowdedExtra = 2, CrowdedCoins = 2, PowerCutSamples = 2, MistSamples = 1, RushCoins = 1;
+        /// <summary>How close the haze comes in a mist, and how much quicker everything is in a rush.</summary>
+        public const float MistStart = 3f, MistEnd = 20f, RushSpeed = 1.25f;
         /// <summary>How much of the light is left in a power cut.</summary>
         public const float PowerCutAmbient = 0.45f, PowerCutSun = 0.3f;
 
-        public static readonly FloorTwist[] All = { FloorTwist.Crowded, FloorTwist.PowerCut, FloorTwist.Promotions, FloorTwist.Sale, FloorTwist.GoldRush };
+        public static readonly FloorTwist[] All = { FloorTwist.Crowded, FloorTwist.PowerCut, FloorTwist.Promotions, FloorTwist.Sale, FloorTwist.GoldRush, FloorTwist.Mist, FloorTwist.RushHour };
 
         public static string Name(FloorTwist twist)
         {
@@ -36,6 +42,8 @@ namespace Shrunk
                 case FloorTwist.Promotions: return "Promotions";
                 case FloorTwist.Sale: return "Closing-down sale";
                 case FloorTwist.GoldRush: return "Gold rush";
+                case FloorTwist.Mist: return "Mist";
+                case FloorTwist.RushHour: return "Rush hour";
                 default: return "";
             }
         }
@@ -50,6 +58,8 @@ namespace Shrunk
                 case FloorTwist.Promotions: return "there is a manager in every room.";
                 case FloorTwist.Sale: return "everything in the shop is half price.";
                 case FloorTwist.GoldRush: return "a gold bug in every room. They do not wait about.";
+                case FloorTwist.Mist: return "you cannot see far. Neither can they. Samples are worth more in it.";
+                case FloorTwist.RushHour: return "everything is in a hurry, you included. They pay a coin more for it.";
                 default: return "";
             }
         }

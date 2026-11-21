@@ -63,6 +63,7 @@ namespace Shrunk
         {
             if (Dived) return;
             Dived = true;
+            Jobs.Count(JobKind.Dives);
             var assets = GameAssets.Instance;
             Vector3 bank = transform.position + new Vector3(0f, 0f, -(Radius + 1.2f));
             if (assets != null && assets.items != null)

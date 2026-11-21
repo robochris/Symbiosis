@@ -124,7 +124,7 @@ namespace Shrunk
             }
             else
             {
-                velocity = input.move * (moveSpeed * stats.moveSpeedMultiplier * (IsSlowed ? _slowTo : 1f)
+                velocity = input.move * (moveSpeed * stats.moveSpeedMultiplier * (IsSlowed ? _slowTo : 1f) * (Enemy.WorldRush > 1f ? 1.1f : 1f)
                     * (Power != null && Power.IsOvercharged ? Power.moveSpeedMultiplier : 1f));
 
                 if (input.dodge && _charges > 0)

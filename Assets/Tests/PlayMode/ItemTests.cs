@@ -807,6 +807,22 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_staple_gun_fires_three_in_a_burst_down_one_line()
+        {
+            Assert.IsFalse(Weapons.Unlocked(WeaponKind.StapleGun), "the staple gun is issued before the Glitch");
+            _player.weapon.kind = WeaponKind.StapleGun;
+            var dummy = Dummy(new Vector3(0f, 0f, 8f));
+            yield return null;
+            _player.Input.overrideFrame = new InputFrame { aim = Vector3.forward, fire = true };
+            yield return null;
+            _player.Input.overrideFrame = new InputFrame();
+            yield return new WaitForSeconds(0.6f);
+            Assert.AreEqual(3, _player.weapon.ShotsFired, "one pull should be three staples");
+            Assert.AreEqual(Mathf.Min(3, dummy.Health.maxHealth), Lost(dummy), "the burst did not all land on what it was aimed at");
+            _player.weapon.kind = WeaponKind.Pipette;
+        }
+
+        [UnityTest]
         public IEnumerator Every_item_has_a_name_a_description_and_a_look()
         {
             var library = GameAssets.Instance.items;

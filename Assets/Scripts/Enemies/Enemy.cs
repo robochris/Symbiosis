@@ -56,7 +56,7 @@ namespace Shrunk
         public bool flies;
         public virtual bool IgnoresGroundHazards => flies;
         /// <summary>Everything that changes how fast this enemy moves and attacks, multiplied together.</summary>
-        public float SpeedScale => SpeedMultiplier * (IsBuffed ? 1.4f : 1f) * (IsChilled ? ChilledSpeed : 1f) * WorldSlow;
+        public float SpeedScale => SpeedMultiplier * (IsBuffed ? 1.4f : 1f) * (IsChilled ? ChilledSpeed : 1f) * WorldSlow * WorldRush;
         /// <summary>Chilled by an Ice Cube shot: slower in everything it does until it thaws.</summary>
         public bool IsChilled => Time.time < _chilledUntil;
         public const float ChilledSpeed = 0.6f;
@@ -72,6 +72,8 @@ namespace Shrunk
         /// puts it back.
         /// </summary>
         public static float WorldSlow = 1f;
+        /// <summary>Above 1 on a rush-hour floor: everything is quicker. Set by the floor.</summary>
+        public static float WorldRush = 1f;
 
         protected CharacterController Controller { get; private set; }
         protected Vector3 Knockback;

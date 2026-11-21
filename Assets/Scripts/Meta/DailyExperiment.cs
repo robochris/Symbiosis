@@ -65,6 +65,7 @@ namespace Shrunk
             meta.dailyBestStreak = Mathf.Max(meta.dailyBestStreak, meta.dailyStreak);
             meta.dailyDate = Key(Today);
             meta.dailyFloor = 0;
+            Jobs.Count(JobKind.Dailies);
             SaveSystem.Save();
             RunDirector.Daily = true;
             Fade.LoadScene(runScene);

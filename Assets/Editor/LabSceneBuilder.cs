@@ -296,12 +296,12 @@ namespace Shrunk.EditorTools
             cupboard.transform.position = new Vector3(WorkshopX - 4.6f, 0f, -3.6f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Cupboard", cupboard.transform, new Vector3(-1.9f, 0.6f, 0f), new Vector3(0.7f, 1.2f, 3.2f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", cupboard.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("WeaponMat", new Color(1f, 0.5f, 0.3f)), false);
-            Color[] weaponColours = { new Color(0.45f, 0.95f, 1f), new Color(1f, 0.6f, 0.3f), new Color(0.85f, 0.4f, 1f), new Color(0.5f, 1f, 0.55f) };
+            Color[] weaponColours = { new Color(0.45f, 0.95f, 1f), new Color(1f, 0.6f, 0.3f), new Color(0.85f, 0.4f, 1f), new Color(0.5f, 1f, 0.55f), new Color(0.8f, 0.82f, 0.88f) };
             var pieces = new Transform[Weapons.All.Length];
             for (int i = 0; i < pieces.Length; i++)
             {
                 var piece = ArenaSceneBuilder.Primitive(PrimitiveType.Cube, Weapons.All[i].name, cupboard.transform,
-                    new Vector3(-1.9f, 1.5f, -1.2f + i * 0.8f), new Vector3(0.3f, 0.3f, i == 1 ? 0.4f : 0.6f), ArenaSceneBuilder.Unlit("Weapon" + Weapons.All[i].kind, weaponColours[i % weaponColours.Length]), false);
+                    new Vector3(-1.9f, 1.5f, -1.2f + i * (2.4f / Mathf.Max(1, pieces.Length - 1))), new Vector3(0.3f, 0.3f, i == 1 ? 0.4f : 0.6f), ArenaSceneBuilder.Unlit("Weapon" + Weapons.All[i].kind, weaponColours[i % weaponColours.Length]), false);
                 pieces[i] = piece.transform;
             }
             cupboard.AddComponent<WeaponRack>().pieces = pieces;
