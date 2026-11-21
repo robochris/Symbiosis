@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
@@ -33,6 +33,7 @@ namespace Shrunk.Tests
             SaveSystem.Wipe();
             Time.timeScale = 1f;
             Achievements.EverythingUnlocked = false;
+            Progress.LevelOverride = Progress.TopLevel;
         }
 
         BiomeDefinition Cake
@@ -330,14 +331,17 @@ namespace Shrunk.Tests
             System.Action<Achievement> count = achievement => announced++;
             Achievements.Unlocked += count;
 
-            // A new player: one style, eight of the twelve items, no cake.
+            // A new player, at level 1: one style, the items neither an achievement nor a level holds back, no cake.
+            Progress.LevelOverride = 1;
+            int onLadder = 0;
+            foreach (var reward in Progress.Ladder) if (reward.kind == RewardKind.Item) onLadder++;
             Assert.AreEqual(0, Achievements.Count);
             Assert.AreEqual(1, style.UnlockedCount);
             Assert.IsFalse(Achievements.BiomeUnlocked("cake"));
             var rng = new System.Random(3);
             var seen = new HashSet<ItemType>();
             for (int i = 0; i < 300; i++) foreach (var item in library.RandomCommon(rng, 3)) seen.Add(item.type);
-            Assert.AreEqual(19, seen.Count, "a new player should find 19 common items (23, less the 4 behind achievements)");
+            Assert.AreEqual(19 - onLadder, seen.Count, "a new player should find 19 common items, less the ones levels hold back");
             Assert.IsFalse(seen.Contains(ItemType.LarvaBuddy));
             style.Next();
             Assert.AreEqual(0, style.Current, "a locked style was put on");
