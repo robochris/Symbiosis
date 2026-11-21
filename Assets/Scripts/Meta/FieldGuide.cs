@@ -23,6 +23,7 @@ namespace Shrunk
             ["MarksmanAnt"] = "It lines you up. Respect the line.",
             ["Mimic"] = "A coin with teeth. I have stopped picking up coins.",
             ["Antlion"] = "Lives under the floor. Comes up where you were standing. Stand elsewhere.",
+            ["NurseAnt"] = "Patches the others up. Never you.",
             ["GoldBug"] = "Pure profit, with legs. Catch it before it goes.",
             // The cake
             ["GummyBear"] = "Cheerful. Determined. Mostly sugar.",
@@ -154,6 +155,7 @@ namespace Shrunk
                 case ShooterEnemy _: return "keeps its distance and shoots.";
                 case FlyerEnemy _: return "circles, then dives. Dodge as it comes in.";
                 case LobberEnemy _: return "throws over cover at where you are going. Keep moving.";
+                case SupportEnemy healer when healer.healAmount > 0 && !healer.buffs: return "mends the others round it. Put it down first.";
                 case SupportEnemy _: return "makes the others quicker. Put it down first.";
                 case SniperEnemy _: return "draws a line first; the shot follows it. Step off the line.";
                 case LarvaEnemy _: return "grows into something worse if left.";

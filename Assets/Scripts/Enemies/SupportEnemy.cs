@@ -24,6 +24,12 @@ namespace Shrunk
         public float pulseRadius = 9f;
         [Tooltip("Seconds the speed lasts on whoever the pulse reaches.")]
         public float buffSeconds = 3f;
+        [Tooltip("Off for a healer: its pulse mends instead of hurrying.")]
+        public bool buffs = true;
+        [Tooltip("Health its pulse gives back to each hurt friend in reach.")]
+        public int healAmount;
+        /// <summary>Health given back by this one's pulses so far.</summary>
+        public int Healed { get; private set; }
         public Color pulseColor = new Color(1f, 0.5f, 0.8f);
 
         [Header("Alone")]
@@ -127,7 +133,13 @@ namespace Shrunk
             {
                 if (other == this || other.Health.IsDead || other is EggEnemy) continue;
                 if ((other.transform.position - transform.position).sqrMagnitude > pulseRadius * pulseRadius) continue;
-                other.Buff(buffSeconds);
+                if (buffs) other.Buff(buffSeconds);
+                if (healAmount > 0 && other.Health.Current < other.Health.maxHealth)
+                {
+                    int before = other.Health.Current;
+                    other.Health.Heal(healAmount);
+                    Healed += other.Health.Current - before;
+                }
                 LastReached++;
                 Fx.Burst(other.transform.position + Vector3.up, pulseColor, 6, 3f, 0.16f, 0.4f);
             }

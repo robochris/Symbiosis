@@ -253,6 +253,7 @@ namespace Shrunk.EditorTools
                 new EnemySpawnEntry { prefab = waspPrefab, weight = 1, minFloor = 5 },
                 new EnemySpawnEntry { prefab = ants.EnemyNamed("Mimic"), weight = 1, minFloor = 4 },
                 new EnemySpawnEntry { prefab = ants.EnemyNamed("Antlion"), weight = 1, minFloor = 3 },
+                new EnemySpawnEntry { prefab = ants.EnemyNamed("NurseAnt"), weight = 1, minFloor = 5 },
             };
             var mutations = new System.Collections.Generic.List<MutationDefinition>
             {

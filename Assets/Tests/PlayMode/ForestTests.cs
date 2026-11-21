@@ -71,7 +71,7 @@ namespace Shrunk.Tests
             Assert.IsTrue(Achievements.BiomeUnlocked("forest"));
 
             Assert.IsTrue(_floors.SetBiome("forest"));
-            Assert.AreEqual(9, forest.spawnTable.Length);
+            Assert.AreEqual(10, forest.spawnTable.Length);
             foreach (var entry in forest.spawnTable) Assert.IsNotNull(entry.prefab, "the forest has an empty place at the table");
             Assert.IsNotNull(forest.portalProp);
             Assert.IsFalse(forest.ceiling, "the forest has a roof on it");
