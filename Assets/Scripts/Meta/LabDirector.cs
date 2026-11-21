@@ -40,7 +40,7 @@ namespace Shrunk
             }
             else if (SaveSystem.Data.meta.runsStarted == 0)
             {
-                hud.Toast("The lab. Walk into the portal to start your first run.", 6f);
+                hud.Toast($"The lab. Stand at the portal and {Interact.Verb.ToLower()} to start your first run.", 6f);
             }
         }
 

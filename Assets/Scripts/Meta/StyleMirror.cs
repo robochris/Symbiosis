@@ -28,7 +28,7 @@ namespace Shrunk
             if (style == null || style.CurrentStyle == null) return null;
             int have = style.UnlockedCount, all = style.styles.Length;
             string text = $"The mirror: you are wearing {style.CurrentStyle.displayName}. {have} of {all} styles unlocked.";
-            if (have > 1) text += " Step off and on again to try the next one.";
+            if (have > 1) text += $" {Interact.Verb} to try the next one.";
             // Say how to get the next locked one.
             for (int i = 0; i < all; i++)
             {

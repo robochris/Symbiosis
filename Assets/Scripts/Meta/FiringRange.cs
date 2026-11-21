@@ -111,7 +111,7 @@ namespace Shrunk
         string Prompt(Vector3 playerPosition)
         {
             if (Running || pad.Distance(transform.position, playerPosition) > 2.2f) return null;
-            return $"The range: {roundSeconds:0} seconds, as many targets as you can. Your best is {Best}.\nStep on the mat to start the clock. Nothing here aims for you.";
+            return $"The range: {roundSeconds:0} seconds, as many targets as you can. Your best is {Best}.\n{Interact.Verb} to start the clock. Nothing here aims for you.";
         }
     }
 }

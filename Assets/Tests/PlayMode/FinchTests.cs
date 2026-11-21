@@ -81,10 +81,11 @@ namespace Shrunk.Tests
             yield return null;
             var door = Object.FindAnyObjectByType<HiddenDoor>();
             Assert.IsNotNull(door);
-            var player = PlayerController.Instance;
-            player.Input.overrideFrame = new InputFrame();
-            yield return null;
-            player.Teleport(door.transform.position + Vector3.up * 0.05f);
+            // The door itself is only a clue now (the cat is met through a shop's box, see SpecialTests): straight down.
+            PlayerController player;
+            RunDirector.Descent = true;
+            RunDirector.ToMachine = false;
+            SceneManager.LoadScene("Run");
             yield return WaitUntil(() => SceneManager.GetActiveScene().name == "Run" && FloorManager.Instance != null && FloorManager.Instance.Layout != null, 5f, "the bottom to load");
             yield return null;
 

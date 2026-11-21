@@ -28,6 +28,8 @@ namespace Shrunk
         public RectTransform cameraButton;
         [Tooltip("Tap to set off the hero power. Stays visible on PC as a meter.")]
         public RectTransform powerButton;
+        [Tooltip("Shown only while something usable is in reach.")]
+        public RectTransform useButton;
 
         [Header("Editor")]
         [Tooltip("Show the touch controls in the editor and drive them with the mouse.")]
@@ -44,7 +46,7 @@ namespace Shrunk
         Vector3 _moveRest, _aimRest;
         bool _dodgeQueued;
         bool _cameraQueued;
-        bool _powerQueued;
+        bool _powerQueued, _useQueued;
         bool _simulating;
 
         void Awake()
@@ -93,6 +95,14 @@ namespace Shrunk
             return queued;
         }
 
+        /// <summary>True once per USE tap.</summary>
+        public bool ConsumeUse()
+        {
+            bool queued = _useQueued;
+            _useQueued = false;
+            return queued;
+        }
+
         /// <summary>True once per hero-power tap.</summary>
         public bool ConsumePower()
         {
@@ -112,6 +122,7 @@ namespace Shrunk
         /// <summary>Reads this frame's touches. Called by PlayerInputReader so the order is always touches first, then the player.</summary>
         public void Poll()
         {
+            if (useButton != null && useButton.gameObject.activeSelf != (Active && Interact.Available)) useButton.gameObject.SetActive(Active && Interact.Available);
             if (!Active) return;
 
             float radius = stickRadius * (_canvas != null ? _canvas.scaleFactor : 1f);
@@ -127,6 +138,11 @@ namespace Shrunk
                     if (dodgeButton != null && RectTransformUtility.RectangleContainsScreenPoint(dodgeButton, position, null))
                     {
                         _dodgeQueued = true;
+                        continue;
+                    }
+                    if (useButton != null && useButton.gameObject.activeInHierarchy && RectTransformUtility.RectangleContainsScreenPoint(useButton, position, null))
+                    {
+                        _useQueued = true;
                         continue;
                     }
                     if (powerButton != null && RectTransformUtility.RectangleContainsScreenPoint(powerButton, position, null))

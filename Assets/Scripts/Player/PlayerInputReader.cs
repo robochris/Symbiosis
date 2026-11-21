@@ -16,6 +16,8 @@ namespace Shrunk
         public bool dodge;
         /// <summary>Set off the hero power.</summary>
         public bool power;
+        /// <summary>Use whatever is in reach: a pad, a portal, a station.</summary>
+        public bool use;
         /// <summary>Set in shoulder and first-person views: the character turns to face exactly this way.</summary>
         public float? faceYaw;
     }
@@ -70,16 +72,23 @@ namespace Shrunk
 
             bool look = follow != null && follow.IsLookMode;
             InputFrame frame = look ? ReadLook(follow, usingTouch) : ReadTopDown(usingTouch);
+            Interact.OnTouch = usingTouch;
             if (usingTouch)
             {
                 frame.dodge = touch.ConsumeDodge();
                 frame.power = touch.ConsumePower();
+                frame.use = touch.ConsumeUse();
             }
             else
             {
                 frame.power = keyboard != null && keyboard.qKey.wasPressedThisFrame;
+                frame.use = keyboard != null && (keyboard.eKey.wasPressedThisFrame || keyboard.fKey.wasPressedThisFrame);
                 var pad = Gamepad.current;
-                if (pad != null) frame.power |= pad.buttonNorth.wasPressedThisFrame;
+                if (pad != null)
+                {
+                    frame.power |= pad.buttonNorth.wasPressedThisFrame;
+                    frame.use |= pad.buttonWest.wasPressedThisFrame;
+                }
             }
             return frame;
         }

@@ -25,6 +25,8 @@ namespace Shrunk.Tests
             // Every level reached, so tests written before levels still see every item and style.
             Progress.LevelOverride = Progress.TopLevel;
             Progress.PerksOverride = false;
+            // Older tests walk onto pads to use them; the button is tested on its own.
+            Interact.AutoUse = true;
         }
 
         [OneTimeTearDown]
@@ -38,6 +40,7 @@ namespace Shrunk.Tests
             Loot.CoinChanceOverride = null;
             Progress.LevelOverride = null;
             Progress.PerksOverride = null;
+            Interact.AutoUse = false;
         }
     }
 }

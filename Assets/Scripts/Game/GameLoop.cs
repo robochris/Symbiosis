@@ -87,6 +87,8 @@ namespace Shrunk
                 bool last = enemy is CatBoss || enemy is MachineBoss || enemy is FinchBoss
                             || (floors != null && floors.biome != null && floors.biome.boss != null && enemy.name.StartsWith(floors.biome.boss.name));
                 Progress.Add(last ? Progress.BossXp : Progress.MiniBossXp);
+                // A world's own last boss, not the machine or the cat: one more world behind this run.
+                if (floors != null && !floors.InSpecial && floors.biome != null && floors.biome.boss != null && enemy.name.StartsWith(floors.biome.boss.name)) floors.WorldsBeaten++;
                 // The last boss of each world has one of the machine's parts. Once a cycle, it gives it up.
                 MachinePart part = MachineParts.From(enemy);
                 if (MachineParts.Take(part))

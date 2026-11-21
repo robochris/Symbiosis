@@ -177,7 +177,6 @@ namespace Shrunk.Tests
             Assert.IsNotNull(panel, "a new player cannot see where this is going");
             Assert.That(WorldPrompt.For(panel.transform.position), Does.Contain("0 of 4").And.Contain("the fuse").And.Contain("the lens"));
             foreach (var lamp in panel.lamps) Assert.IsFalse(lamp.activeSelf, "a part is showing that has not been found");
-            Assert.IsFalse(panel.SwitchOn());
 
             // Three in: three lamps, and still no.
             for (int i = 0; i < 3; i++) Assert.IsTrue(MachineParts.Take(MachineParts.All[i]));
@@ -213,11 +212,12 @@ namespace Shrunk.Tests
             yield return null;
             yield return null;
             var panel = Object.FindAnyObjectByType<MachinePanel>();
-            Assert.That(WorldPrompt.For(panel.transform.position), Does.Contain("all 4 parts are in"));
-            var player = PlayerController.Instance;
-            player.Input.overrideFrame = new InputFrame();
-            yield return null;
-            player.Teleport(panel.transform.position + Vector3.up * 0.05f);
+            Assert.That(WorldPrompt.For(panel.transform.position), Does.Contain("all 4 parts in hand"));
+            // The panel only keeps count now (the machine is built in a run, see SpecialTests): straight to it.
+            PlayerController player;
+            RunDirector.Descent = true;
+            RunDirector.ToMachine = true;
+            SceneManager.LoadScene("Run");
             yield return WaitUntil(() => SceneManager.GetActiveScene().name == "Run" && FloorManager.Instance != null && FloorManager.Instance.Layout != null, 5f, "the machine room to load");
             yield return null;
 

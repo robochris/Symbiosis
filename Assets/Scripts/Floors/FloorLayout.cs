@@ -11,7 +11,9 @@ namespace Shrunk
         /// <summary>One of the other three squares of a boss arena. The arena is the exit room and these three, as one big room.</summary>
         Arena,
         /// <summary>A dead end with a dare bell in it: nothing happens there unless the player rings it.</summary>
-        Dare
+        Dare,
+        /// <summary>Off the map on a boss floor: the machine, built from its four parts. Only once a run has come far enough.</summary>
+        Machine
     }
 
     [Flags]

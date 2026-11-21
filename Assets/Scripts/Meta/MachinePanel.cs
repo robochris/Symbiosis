@@ -5,8 +5,8 @@ namespace Shrunk
 {
     /// <summary>
     /// The machine's panel, in the lab from the first day: four sockets, one for each missing part, lit as the parts
-    /// come home. With all four in, stepping onto its mat switches the machine on, which is the fight with it. A run
-    /// that was saved is left as it is.
+    /// come home. It only keeps count: the machine itself is built out in a run (see MachineRoom), on a boss floor from
+    /// the second world on, once all four are in hand.
     /// </summary>
     public class MachinePanel : MonoBehaviour
     {
@@ -35,21 +35,7 @@ namespace Shrunk
         {
             var player = PlayerController.Instance;
             if (player == null || !pad.SteppedOn(transform.position, player.transform.position)) return;
-            SwitchOn();
-        }
-
-        /// <summary>Switches the machine on, if it has all its parts. Returns whether it did.</summary>
-        public bool SwitchOn()
-        {
-            if (!MachineParts.Complete)
-            {
-                Sfx.Play(SfxId.Blocked);
-                return false;
-            }
-            RunDirector.Descent = true;
-            RunDirector.ToMachine = true;
-            Fade.LoadScene(runScene);
-            return true;
+            Sfx.Play(SfxId.Blocked);
         }
 
         string Prompt(Vector3 playerPosition)
@@ -58,7 +44,7 @@ namespace Shrunk
             string cycle = MachineParts.Cycle > 0 ? $" Cycle {MachineParts.Cycle + 1}." : "";
             if (MachineParts.Complete)
             {
-                return $"The machine: all {MachineParts.All.Length} parts are in.{cycle}\nStep on the mat to switch it on. It will not thank you.";
+                return $"The machine: all {MachineParts.All.Length} parts in hand.{cycle}\nIt gets built out there: from the second world of a run on, look for a room off the map on a boss floor.";
             }
             return $"The machine: {MachineParts.Count} of {MachineParts.All.Length} parts fitted ({MachineParts.Names(true)}).{cycle}" +
                    $"\nStill out there, each with the last boss of a world: {MachineParts.Names(false)}.";

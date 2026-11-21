@@ -151,8 +151,8 @@ namespace Shrunk
                 if (_hintText != null)
                 {
                     _hintText.text = follow.IsLookMode
-                        ? "WASD move  ·  mouse look (click to grab, Esc to release)  ·  hold click to fire  ·  Space dodge  ·  Q power  ·  V camera"
-                        : "WASD move  ·  mouse aim  ·  hold click to fire  ·  Space dodge  ·  Q power  ·  V camera";
+                        ? "WASD move  ·  mouse look (click to grab, Esc to release)  ·  hold click to fire  ·  Space dodge  ·  Q power  ·  E use  ·  V camera"
+                        : "WASD move  ·  mouse aim  ·  hold click to fire  ·  Space dodge  ·  Q power  ·  E use  ·  V camera";
                 }
             }
 

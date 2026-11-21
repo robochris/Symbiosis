@@ -78,7 +78,7 @@ namespace Shrunk
             foreach (var info in HeroPower.All) if (HeroPower.Unlocked(info.kind)) issued++;
 
             string text = $"The power rack: you carry {carried.name}. {carried.does}";
-            if (issued > 1) text += " Step off and on again for the next.";
+            if (issued > 1) text += $" {Interact.Verb} for the next.";
             // Say how to be issued the next one that is still locked.
             foreach (var info in HeroPower.All)
             {

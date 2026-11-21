@@ -128,7 +128,8 @@ namespace Shrunk
                 if (!_tiles.TryGetValue(node.cell, out var tile)) continue;
 
                 bool discovered = node.visited;
-                if (!discovered)
+                // The machine's room is not on the map until somebody walks into it.
+                if (!discovered && node.type != RoomType.Machine)
                 {
                     foreach (var neighbour in floors.Layout.Neighbours(node))
                     {
@@ -159,6 +160,7 @@ namespace Shrunk
                 case RoomType.Treasure: return treasureColor;
                 case RoomType.Shop: return shopColor;
                 case RoomType.Dare: return dareColor;
+                case RoomType.Machine: return new Color(0.45f, 1f, 0.6f);
                 default: return normalColor;
             }
         }

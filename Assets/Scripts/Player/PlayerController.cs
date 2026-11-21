@@ -112,6 +112,7 @@ namespace Shrunk
             RechargeDodge(stats);
 
             if (input.power && Power != null) Power.TryActivate();
+            if (input.use) Interact.Press();
 
             Vector3 velocity;
 

@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
@@ -105,8 +105,8 @@ namespace Shrunk.EditorTools
             go.AddComponent<AudioListener>();
             go.AddComponent<CameraFollow>().target = target;
 
-            // The look: a little glow on bright things, a soft vignette, a touch more contrast and colour, and cheap
-            // edge smoothing. All of it is light enough for a phone.
+            // The look: a little glow on bright things, a soft vignette, a touch more contrast and colour. Light enough
+            // for a phone. No edge smoothing: FXAA softened the on-screen text.
             var data = go.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
             data.renderPostProcessing = true;
             data.antialiasing = UnityEngine.Rendering.Universal.AntialiasingMode.None;
@@ -258,7 +258,7 @@ namespace Shrunk.EditorTools
             }
 
             var kills = UiText("Kills", parent, font, "Kills: 0", 44, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-260f, -80f), new Vector2(400f, 60f));
-            var hint = UiText("Desktop Hint", parent, font, "WASD move  Â·  mouse aim  Â·  hold click to fire  Â·  Space dodge", 30, TextAnchor.LowerCenter, new Vector2(0.5f, 0f), new Vector2(0f, 50f), new Vector2(1700f, 50f));
+            var hint = UiText("Desktop Hint", parent, font, "WASD move  ·  mouse aim  ·  hold click to fire  ·  Space dodge", 30, TextAnchor.LowerCenter, new Vector2(0.5f, 0f), new Vector2(0f, 50f), new Vector2(1700f, 50f));
             FitAcross(hint, 18f);
             hint.color = new Color(1f, 1f, 1f, 0.6f);
 
@@ -268,7 +268,7 @@ namespace Shrunk.EditorTools
             cameraButton.sizeDelta = new Vector2(420f, 70f);
             var cameraLabel = UiText("Label", cameraButton, font, "V  camera: Shoulder", 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 70f));
 
-            var resources = UiText("Resources", parent, font, "Coins 0   Â·   Samples 0", 34, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(255f, -140f), new Vector2(400f, 50f));
+            var resources = UiText("Resources", parent, font, "Coins 0   ·   Samples 0", 34, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(255f, -140f), new Vector2(400f, 50f));
             var level = UiText("Level", parent, font, "Level 1", 24, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(365f, -190f), new Vector2(620f, 60f));
             level.horizontalOverflow = HorizontalWrapMode.Wrap;
             level.gameObject.SetActive(false);
@@ -286,9 +286,16 @@ namespace Shrunk.EditorTools
             powerFill.fillAmount = 0f;
             var powerLabel = UiText("Label", power, font, "POWER", 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(180f, 80f));
 
+            // Use: above the aim stick, and only there while something can be used.
+            var use = UiImage("Use Button", parent, knob, new Color(1f, 0.95f, 0.7f, 0.35f), new Vector2(1f, 0f), new Vector2(-470f, 560f), 160f);
+            var useLabel = UiText("Label", use, font, "USE", 34, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(160f, 60f));
+            useLabel.color = Color.white;
+            use.gameObject.SetActive(false);
+
             var touch = canvasGo.AddComponent<TouchControls>();
             touch.cameraButton = cameraButton;
             touch.powerButton = power;
+            touch.useButton = use;
             touch.moveBase = moveBase;
             touch.moveKnob = moveKnob;
             touch.aimBase = aimBase;

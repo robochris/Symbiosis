@@ -81,7 +81,7 @@ namespace Shrunk
             foreach (var info in Weapons.All) if (Weapons.Unlocked(info.kind)) issued++;
 
             string text = $"The equipment cupboard: you carry the {carried.name}. {carried.does}";
-            if (issued > 1) text += " Step off and on again for the next.";
+            if (issued > 1) text += $" {Interact.Verb} for the next.";
             foreach (var info in Weapons.All)
             {
                 if (Weapons.Unlocked(info.kind)) continue;

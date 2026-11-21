@@ -69,7 +69,7 @@ namespace Shrunk
             if (pad.Distance(transform.position, playerPosition) > 2.2f) return null;
             return Used
                 ? "The fortune machine: one a visit. Come back after a run."
-                : "The fortune machine: from Dr. Finch's desk calendar. Step on the mat for today's.";
+                : $"The fortune machine: from Dr. Finch's desk calendar. {Interact.Verb} for today's.";
         }
     }
 }

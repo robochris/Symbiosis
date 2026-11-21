@@ -61,8 +61,8 @@ namespace Shrunk
             int depth = MachineParts.Cycle + OvertimeDepth;
             float worth = RunDirector.RewardMultiplier(depth);
             return On
-                ? $"The time clock: you are on overtime. Runs start at depth {depth}: tougher from the first floor, samples worth ×{worth:0.#}. Step on to clock out."
-                : $"The time clock: you are on ordinary hours. Step on to clock in for overtime: runs start at depth {depth}, samples worth ×{worth:0.#}.";
+                ? $"The time clock: you are on overtime. Runs start at depth {depth}: tougher from the first floor, samples worth ×{worth:0.#}. {Interact.Verb} to clock out."
+                : $"The time clock: you are on ordinary hours. {Interact.Verb} to clock in for overtime: runs start at depth {depth}, samples worth ×{worth:0.#}.";
         }
     }
 }

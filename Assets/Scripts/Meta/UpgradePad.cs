@@ -51,7 +51,7 @@ namespace Shrunk
 
             int have = SaveSystem.Data.meta.samples;
             return have >= cost
-                ? text + $"   ·   {cost} samples (step onto the pad to buy)"
+                ? text + $"   ·   {cost} samples ({Interact.Verb.ToLower()} to buy)"
                 : text + $"   ·   {cost} samples (you have {have})";
         }
     }

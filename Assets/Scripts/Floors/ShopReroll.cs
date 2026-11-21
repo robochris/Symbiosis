@@ -103,8 +103,8 @@ namespace Shrunk
         {
             if (pad.Distance(transform.position, playerPosition) > 2.4f) return null;
             return price <= 0
-                ? "The bell: three different things on the shelf, and this time it is on the house. Step on the mat to ring it."
-                : $"The bell: {price} coins for three different things on the shelf (you have {RunState.Coins}). Step on the mat to ring it.";
+                ? $"The bell: three different things on the shelf, and this time it is on the house. {Interact.Verb} to ring it."
+                : $"The bell: {price} coins for three different things on the shelf (you have {RunState.Coins}). {Interact.Verb} to ring it.";
         }
     }
 }

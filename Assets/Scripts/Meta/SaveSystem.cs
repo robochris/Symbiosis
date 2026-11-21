@@ -82,6 +82,8 @@ namespace Shrunk
         public int coins;
         public int samples;
         public int kills;
+        /// <summary>Worlds whose last boss this run has beaten (the machine's room needs a few).</summary>
+        public int worldsBeaten;
         public float powerMeter;
         public List<int> items = new List<int>();
     }

@@ -183,6 +183,7 @@ namespace Shrunk
             RunState.Restore(run.kills, run.coins, run.samples);
 
             _floors.depth = Mathf.Max(1, run.depth);
+            _floors.WorldsBeaten = run.worldsBeaten;
             if (!string.IsNullOrEmpty(run.biome)) _floors.SetBiome(run.biome);
             _floors.BuildFloor(Mathf.Max(1, run.floorNumber), run.seed);
         }
@@ -190,7 +191,8 @@ namespace Shrunk
         // "The run saves at the start of every floor."
         void OnFloorBuilt(FloorManager floors)
         {
-            if (Ended || _player == null || IsDescent) return;
+            // The machine's floor and the cat's are not saved: quitting there comes back to where the run left off.
+            if (Ended || _player == null || IsDescent || floors.InSpecial) return;
 
             RunSave run = SaveSystem.Data.run;
             // A floor further down than the run has been: that is progress. (A resumed floor is not.)
@@ -204,6 +206,7 @@ namespace Shrunk
             run.coins = RunState.Coins;
             run.samples = RunState.Samples;
             run.kills = RunState.Kills;
+            run.worldsBeaten = floors.WorldsBeaten;
             run.powerMeter = _player.Power != null ? _player.Power.Meter : 0f;
             run.items.Clear();
             if (_player.Items != null)
@@ -270,7 +273,7 @@ namespace Shrunk
             SaveSystem.Save();
 
             LastRunMessage = IsDescent
-                ? (IsMachine ? "The machine won that one. Its parts are still in. Step on the mat to go again." : "You fell at the bottom. The door is still there, whatever the radio says.")
+                ? (IsMachine ? "The machine won that one. Its parts are still in. Go again from the panel." : "You fell at the bottom. The door is still there, whatever the radio says.")
                 : $"You fell on floor {floor}. {Mathf.RoundToInt(share * 100f)}% of your samples made it home: {kept}." + Tally();
             StartCoroutine(GoHome());
         }

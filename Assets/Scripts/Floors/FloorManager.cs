@@ -38,11 +38,50 @@ namespace Shrunk
             BuildFloor(FloorLayout.FloorsPerBiome);
         }
 
+        // ---------- the machine and the cat, reached from inside a run ----------
+
+        /// <summary>The machine's room turns up from this world of a run on (counting from 1).</summary>
+        public const int MachineFromWorld = 2;
+        [Tooltip("Chance a shop has the cat's box in it, once the notebook is complete.")]
+        public float catFlapChance = 0.08f;
+        /// <summary>Tests set these to make the cat's box or the machine's room certain (or impossible).</summary>
+        public static float? CatFlapChanceForAll;
+        public static bool? MachineRoomForAll;
+
+        /// <summary>Worlds whose last boss has been beaten this run.</summary>
+        public int WorldsBeaten { get; set; }
+        /// <summary>True on the machine's floor or the cat's, entered from a run: the way back to the run is open after.</summary>
+        public bool InSpecial => _returnBiome != null;
+        public CatFlap CatFlap { get; private set; }
+        public MachineRoom MachineRoom { get; private set; }
+
+        BiomeDefinition _returnBiome;
+        int _returnFloor, _returnDepth;
+
+        /// <summary>Through the machine's portal or the cat's flap: that fight, then home or back to the run.</summary>
+        public void EnterSpecial(BiomeDefinition special)
+        {
+            if (special == null || InSpecial) return;
+            _returnBiome = biome;
+            _returnFloor = FloorNumber;
+            _returnDepth = depth;
+            biome = special;
+            BuildFloor(FloorLayout.FloorsPerBiome);
+        }
+
+        bool MachineRoomHere()
+        {
+            if (MachineRoomForAll.HasValue) return MachineRoomForAll.Value && machineBiome != null && !InSpecial;
+            return machineBiome != null && !InSpecial && !biome.isBottom && MachineParts.Complete && WorldsBeaten + 1 >= MachineFromWorld;
+        }
+
         /// <summary>One way onward in the portal room: a gate, and the biome it leads to.</summary>
         public class BiomePortal
         {
             public GameObject gate;
             public BiomeDefinition leadsTo;
+            /// <summary>Above 0: this is the way back to the run, to this floor at this depth.</summary>
+            public int resumeFloor, resumeDepth;
             public readonly StepPad pad = new StepPad { radius = 1.5f };
         }
 
@@ -113,6 +152,7 @@ namespace Shrunk
         Transform _enemiesRoot;
         NavMeshSurface _surface;
         bool _exitArmed;
+        readonly StepPad _exitPad = new StepPad();
         readonly StepPad _extractPad = new StepPad { radius = 1.5f };
 
         void Awake()
@@ -181,9 +221,19 @@ namespace Shrunk
             ApplyLook();
             Layout = FloorLayout.Generate(seed, FloorLayout.RoomCountForFloor(number), FloorLayout.IsBossFloor(number));
             // Nobody is dared on the first floor, or at the bottom: there the room is just a room.
-            if (number < 2 || biome.isBottom)
+            if (number < 2 || biome.isBottom || InSpecial)
             {
                 foreach (var node in Layout.ordered) if (node.type == RoomType.Dare) node.type = RoomType.Normal;
+            }
+            // A world's last floor, far enough into a run, with the parts in hand: a quiet dead end holds the machine.
+            if (FloorLayout.IsBossFloor(number) && FloorLayout.FloorInBiome(number) == 10 && MachineRoomHere())
+            {
+                foreach (var node in Layout.ordered)
+                {
+                    if (node.type != RoomType.Normal || node.DoorCount != 1) continue;
+                    node.type = RoomType.Machine;
+                    break;
+                }
             }
 
             foreach (var node in Layout.ordered)
@@ -359,6 +409,10 @@ namespace Shrunk
                 {
                     Dare = DareBell.Create(room, room.Centre, biome.eliteMaterial != null ? biome.eliteMaterial : assets.coin, assets.coin);
                 }
+                else if (node.type == RoomType.Machine)
+                {
+                    MachineRoom = MachineRoom.Create(room, room.Centre);
+                }
                 else if (node.type == RoomType.Treasure)
                 {
                     var picks = assets.items.RandomCommon(rng, Mathf.Max(1, treasureChoices));
@@ -383,6 +437,12 @@ namespace Shrunk
                     Pickup.Health(room.Centre + new Vector3(2.6f, 0f, 0.9f), sale ? FloorTwists.Discount(Pickup.CrumbPrice) : Pickup.CrumbPrice);
                     // On the other side, the bell: a few coins for three different things.
                     ShopReroll.Create(room, room.Centre + new Vector3(-2.6f, 0f, 0.9f), spots, assets.coin, assets.note).sale = sale;
+                    // Now and then, once the notebook is complete: a box in the corner, and the real management.
+                    bool catsLetIn = CatFlapChanceForAll.HasValue || Achievements.Has(AchievementId.PaperTrail);
+                    if (catsLetIn && !InSpecial && !biome.isBottom && bottomBiome != null && rng.NextDouble() < (CatFlapChanceForAll ?? catFlapChance))
+                    {
+                        CatFlap = CatFlap.Create(room, room.Centre + new Vector3(0f, 0f, 2.8f));
+                    }
                 }
             }
         }
@@ -455,6 +515,8 @@ namespace Shrunk
             Claw = null;
             DareFight = false;
             ExtractPortal = null;
+            CatFlap = null;
+            MachineRoom = null;
             _portals.Clear();
             IsLocked = false;
             ExitOpen = false;
@@ -498,6 +560,14 @@ namespace Shrunk
             {
                 if (!portal.pad.SteppedOn(portal.gate.transform.position, position)) continue;
                 biome = portal.leadsTo;
+                if (portal.resumeFloor > 0)
+                {
+                    // Back from the machine or the cat to where the run left off.
+                    _returnBiome = null;
+                    depth = portal.resumeDepth;
+                    BuildFloor(portal.resumeFloor);
+                    return;
+                }
                 depth++;
                 BuildFloor(FloorNumber + 1);
                 return;
@@ -509,9 +579,9 @@ namespace Shrunk
                 toExit.y = 0f;
                 float distance = toExit.magnitude;
 
-                // If the hole opens under the player's feet, they must step off it first. Going down is always a choice.
-                if (distance > exitRadius + 0.5f) _exitArmed = true;
-                else if (_exitArmed && distance <= exitRadius) BuildFloor(FloorNumber + 1);
+                // Going down is always a choice: stand at the hole and use it. (Walking over it does nothing.)
+                _exitPad.radius = exitRadius;
+                if (_exitPad.SteppedOn(room.ExitHole.transform.position, position)) BuildFloor(FloorNumber + 1);
             }
         }
 
@@ -660,20 +730,27 @@ namespace Shrunk
         {
             if (ExtractPortal != null && _extractPad.Distance(ExtractPortal.transform.position, playerPosition) < 3.5f)
             {
-                if (biome != null && biome.isBottom) return "The way back up. Step in to go home.";
+                if (biome != null && biome.isBottom) return $"The way back up. {Interact.Verb} to go home.";
                 float multiplier = RunDirector.RewardMultiplier(depth);
                 int worth = Mathf.RoundToInt(RunState.Samples * multiplier);
                 return multiplier > 1f
-                    ? $"Extract: go home with {RunState.Samples} samples ×{multiplier:0.#} = {worth}. Step in to leave."
-                    : $"Extract: go home with {worth} samples. Step in to leave.";
+                    ? $"Extract: go home with {RunState.Samples} samples ×{multiplier:0.#} = {worth}. {Interact.Verb} to leave."
+                    : $"Extract: go home with {worth} samples. {Interact.Verb} to leave.";
             }
             foreach (var portal in _portals)
             {
                 if (portal.pad.Distance(portal.gate.transform.position, playerPosition) >= 3.5f) continue;
+                if (portal.resumeFloor > 0) return $"Back to the run: {portal.leadsTo.displayName}, where you left it. {Interact.Verb} to go back.";
                 string where = portal.leadsTo == biome ? $"{biome.displayName} again" : portal.leadsTo.displayName;
                 string theme = string.IsNullOrEmpty(portal.leadsTo.mutationTheme) ? "" : $" ({portal.leadsTo.mutationTheme})";
                 return $"Go deeper: {where}{theme}, depth {depth + 1}. Samples will be worth ×{RunDirector.RewardMultiplier(depth + 1):0.#}; " +
-                       $"enemies carry up to {MutationBudget.MaxPoints(depth + 1, 1)} mutation points. Step in to push on.";
+                       $"enemies carry up to {MutationBudget.MaxPoints(depth + 1, 1)} mutation points. {Interact.Verb} to push on.";
+            }
+            var room = CurrentRoom;
+            if (ExitOpen && ExtractPortal == null && CurrentNode != null && CurrentNode.type == RoomType.Exit && room != null && room.ExitHole != null
+                && _exitPad.Distance(room.ExitHole.transform.position, playerPosition) < exitRadius + 1.5f)
+            {
+                return $"The way down. {Interact.Verb} to drop to floor {FloorLayout.FloorOfBiome(FloorNumber + 1)}.";
             }
             return null;
         }
@@ -811,7 +888,21 @@ namespace Shrunk
             if (node.type == RoomType.Exit)
             {
                 ExitOpen = true;
-                if (biome.isBottom && biome.extractPortalProp != null)
+                if (InSpecial && biome.extractPortalProp != null && _returnBiome != null)
+                {
+                    // Out of the machine or past the cat: home with what the run has, or back to it.
+                    ExtractPortal = Instantiate(biome.extractPortalProp, middle + new Vector3(-4f, 0f, 0f), Quaternion.identity, room.transform);
+                    PortalTag.Create(ExtractPortal.transform, HomeTag, HomeColor);
+                    GameObject prop = _returnBiome.portalProp != null ? _returnBiome.portalProp : biome.deeperPortalProp != null ? biome.deeperPortalProp : biome.extractPortalProp;
+                    var gate = Instantiate(prop, middle + new Vector3(4f, 0f, 0f), Quaternion.identity, room.transform);
+                    // From a boss floor the run goes on deeper; from a shop, to the next floor.
+                    bool fromBoss = FloorLayout.FloorInBiome(_returnFloor) == 10;
+                    var back = new BiomePortal { gate = gate, leadsTo = _returnBiome, resumeFloor = _returnFloor + 1, resumeDepth = _returnDepth + (fromBoss ? 1 : 0) };
+                    _portals.Add(back);
+                    string label = "BACK TO THE RUN\n" + _returnBiome.displayName.ToUpperInvariant();
+                    PortalTag.Create(gate.transform, () => label, DeeperColor);
+                }
+                else if (biome.isBottom && biome.extractPortalProp != null)
                 {
                     // There is nothing under the bottom: the only way on is back up.
                     ExtractPortal = Instantiate(biome.extractPortalProp, middle, Quaternion.identity, room.transform);
