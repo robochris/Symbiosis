@@ -108,6 +108,8 @@ namespace Shrunk
         public static bool StyleUnlocked(string styleName)
         {
             if (EverythingUnlocked) return true;
+            int level = Progress.LevelForStyle(styleName);
+            if (level > 0) return Progress.Level >= level;
             foreach (var achievement in All)
             {
                 if (achievement.style == styleName) return Has(achievement.id);
@@ -119,6 +121,7 @@ namespace Shrunk
         public static bool ItemUnlocked(ItemType type)
         {
             if (EverythingUnlocked) return true;
+            if (!Progress.ItemUnlocked(type)) return false;
             foreach (var achievement in All)
             {
                 if (achievement.item.HasValue && achievement.item.Value == type) return Has(achievement.id);

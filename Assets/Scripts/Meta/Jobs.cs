@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Shrunk
 {
@@ -102,6 +102,7 @@ namespace Shrunk
 
                 meta.samples += job.pay;
                 meta.jobsDone++;
+                Shrunk.Progress.Add(Shrunk.Progress.JobXp);
                 // Off the board first, so the pile cannot hand the same one straight back.
                 current[slot] = -1;
                 current[slot] = NextId();

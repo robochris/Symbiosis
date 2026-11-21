@@ -83,6 +83,10 @@ namespace Shrunk
             {
                 SaveSystem.Data.meta.bossesBeaten++;
                 Specimens.Keep(enemy);
+                var floors = FloorManager.Instance;
+                bool last = enemy is CatBoss || enemy is MachineBoss || enemy is FinchBoss
+                            || (floors != null && floors.biome != null && floors.biome.boss != null && enemy.name.StartsWith(floors.biome.boss.name));
+                Progress.Add(last ? Progress.BossXp : Progress.MiniBossXp);
                 // The last boss of each world has one of the machine's parts. Once a cycle, it gives it up.
                 MachinePart part = MachineParts.From(enemy);
                 if (MachineParts.Take(part))

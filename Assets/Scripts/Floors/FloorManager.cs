@@ -374,7 +374,11 @@ namespace Shrunk
                     var picks = assets.items.RandomCommon(rng, 3);
                     Vector3[] spots = { new Vector3(-2f, 0f, -1.7f), new Vector3(0f, 0f, -2.3f), new Vector3(2f, 0f, -1.7f) };
                     bool sale = Twist == FloorTwist.Sale;
-                    for (int i = 0; i < picks.Count; i++) Pickup.Item(picks[i], room.Centre + spots[i], sale ? FloorTwists.Discount(picks[i].price) : picks[i].price);
+                    for (int i = 0; i < picks.Count; i++)
+                    {
+                        int price = Progress.ShopPrice(picks[i].price);
+                        Pickup.Item(picks[i], room.Centre + spots[i], sale ? FloorTwists.Discount(price) : price);
+                    }
                     // And something to eat, beside the counter. Both stay inside the square every room keeps clear round its middle.
                     Pickup.Health(room.Centre + new Vector3(2.6f, 0f, 0.9f), sale ? FloorTwists.Discount(Pickup.CrumbPrice) : Pickup.CrumbPrice);
                     // On the other side, the bell: a few coins for three different things.

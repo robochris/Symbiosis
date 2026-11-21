@@ -13,6 +13,8 @@ namespace Shrunk
         [Tooltip("Optional; only shown in scenes with a FloorManager.")]
         public Text floorText;
         public Text resourcesText;
+        [Tooltip("In the lab only: the level, the XP bar and what the next level gives.")]
+        public Text levelText;
         [Tooltip("Describes the item you are standing next to, and announces items you pick up.")]
         public Text promptText;
         [Tooltip("Radial fill over the dodge button; full when the dodge is ready.")]
@@ -39,7 +41,7 @@ namespace Shrunk
         int _shownFloor = -1;
         int _shownStreak;
         int _shownMode = -1;
-        int _shownCoins = -1, _shownSamples = -1, _shownDepth = -1;
+        int _shownCoins = -1, _shownSamples = -1, _shownDepth = -1, _shownXp = -1;
         Text _hintText;
         string _toast;
         float _toastUntil;
@@ -171,13 +173,16 @@ namespace Shrunk
                 killsText.text = streak > 0 ? $"Kills: {_shownKills}   ×{streak}" : "Kills: " + _shownKills;
             }
 
+            if (levelText != null && levelText.gameObject.activeSelf != lab) levelText.gameObject.SetActive(lab);
             if (resourcesText != null && lab)
             {
                 MetaSave meta = SaveSystem.Data.meta;
-                if (_shownSamples != meta.samples || _shownCoins != meta.rareMaterials)
+                if (_shownSamples != meta.samples || _shownCoins != meta.rareMaterials || _shownXp != meta.xp)
                 {
                     _shownSamples = meta.samples;
                     _shownCoins = meta.rareMaterials;
+                    _shownXp = meta.xp;
+                    if (levelText != null) levelText.text = Progress.Summary();
                     resourcesText.text = meta.rareMaterials > 0
                         ? $"Samples {meta.samples}   ·   Rare materials {meta.rareMaterials}"
                         : $"Samples {meta.samples}";

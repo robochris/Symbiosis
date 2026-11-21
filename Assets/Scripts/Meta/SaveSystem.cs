@@ -10,6 +10,8 @@ namespace Shrunk
     public class MetaSave
     {
         public int samples;
+        /// <summary>Experience, for levels (see Progress).</summary>
+        public int xp;
         public int rareMaterials;
         /// <summary>Level of each upgrade, indexed by UpgradeType.</summary>
         public int[] upgradeLevels = new int[0];

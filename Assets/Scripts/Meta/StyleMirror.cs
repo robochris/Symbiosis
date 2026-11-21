@@ -34,7 +34,9 @@ namespace Shrunk
             {
                 if (style.Unlocked(i)) continue;
                 var needs = Achievements.ForStyle(style.styles[i].displayName);
-                if (needs != null) text += $" {style.styles[i].displayName}: {needs.how}";
+                int level = Progress.LevelForStyle(style.styles[i].displayName);
+                if (level > 0) text += $" {style.styles[i].displayName}: reach level {level}.";
+                else if (needs != null) text += $" {style.styles[i].displayName}: {needs.how}";
                 break;
             }
             return text;

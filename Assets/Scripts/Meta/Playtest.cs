@@ -31,6 +31,7 @@ namespace Shrunk
             meta.deaths = Mathf.Max(meta.deaths, 3);
             meta.jobsDone = Mathf.Max(meta.jobsDone, 3);
             meta.bossesBeaten = Mathf.Max(meta.bossesBeaten, Specimens.All.Length);
+            meta.xp = Mathf.Max(meta.xp, Progress.XpFor(Progress.TopLevel));
             SaveSystem.Save();
         }
 

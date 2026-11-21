@@ -218,6 +218,9 @@ namespace Shrunk.EditorTools
             var cameraLabel = UiText("Label", cameraButton, font, "V  camera: Shoulder", 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 70f));
 
             var resources = UiText("Resources", parent, font, "Coins 0   ·   Samples 0", 34, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(255f, -140f), new Vector2(400f, 50f));
+            var level = UiText("Level", parent, font, "Level 1", 24, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(365f, -190f), new Vector2(620f, 60f));
+            level.horizontalOverflow = HorizontalWrapMode.Wrap;
+            level.gameObject.SetActive(false);
             var prompt = UiText("Prompt", parent, font, "", 34, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0f, 130f), new Vector2(1700f, 60f));
             // Above the hint, and growing upward: a long prompt wraps onto a second line inside the screen.
             FitAcross(prompt, 104f);
@@ -250,6 +253,7 @@ namespace Shrunk.EditorTools
             hud.crosshair = crosshair;
             hud.cameraLabel = cameraLabel;
             hud.resourcesText = resources;
+            hud.levelText = level;
             hud.promptText = prompt;
             hud.powerFill = powerFill;
             hud.powerLabel = powerLabel;
@@ -355,6 +359,10 @@ namespace Shrunk.EditorTools
                 new VoidStyle { displayName = "Beetle", body = Lit("StyleBeetle", new Color(0.1f, 0.4f, 0.25f), 0.9f), eyes = Unlit("Gold", new Color(1f, 0.82f, 0.2f)) },
                 new VoidStyle { displayName = "Ink", body = Lit("StyleInk", new Color(0.08f, 0.1f, 0.3f), 0.85f), eyes = Unlit("StyleEyesWhite", new Color(0.95f, 1f, 1f)) },
                 new VoidStyle { displayName = "Lab Coat", body = Lit("LabCoat", new Color(0.93f, 0.94f, 0.96f), 0.3f), eyes = Unlit("FinchDose", new Color(0.45f, 1f, 0.6f)) },
+                new VoidStyle { displayName = "Sprout", body = Lit("StyleSprout", new Color(0.55f, 0.85f, 0.35f), 0.3f), eyes = Unlit("StyleEyesDark", new Color(0.05f, 0.05f, 0.1f)) },
+                new VoidStyle { displayName = "Coral", body = Lit("StyleCoral", new Color(1f, 0.5f, 0.42f), 0.45f), eyes = Unlit("StyleEyesWhite", new Color(0.95f, 1f, 1f)) },
+                new VoidStyle { displayName = "Midnight", body = Lit("StyleMidnight", new Color(0.1f, 0.08f, 0.25f), 0.7f), eyes = Unlit("StyleEyesYellow", new Color(1f, 0.92f, 0.3f)) },
+                new VoidStyle { displayName = "Gold Leaf", body = Lit("StyleGoldLeaf", new Color(0.95f, 0.78f, 0.35f), 0.95f), eyes = Unlit("StyleEyesDark", new Color(0.05f, 0.05f, 0.1f)) },
                 new VoidStyle { displayName = "Moss", body = Lit("StyleMoss", new Color(0.28f, 0.5f, 0.18f), 0.15f), eyes = Unlit("ToadEye", new Color(1f, 0.75f, 0.15f)) },
             };
         }

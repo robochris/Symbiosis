@@ -154,17 +154,28 @@ namespace Shrunk.Tests
             door.gameObject.SetActive(false);
 
             // Backed up to a wall, the camera comes in front of it: it never looks out of the room.
-            Vector3 back = -follow.transform.forward;
-            back.y = 0f;
-            back.Normalize();
-            Vector3 eye = player.transform.position + Vector3.up * 1.2f;
+            // Turned until there is a wall behind (not a doorway).
+            Vector3 back = Vector3.zero;
             RaycastHit wall = default;
             bool foundWall = false;
-            foreach (var hit in Physics.RaycastAll(eye, back, 60f, ~0, QueryTriggerInteraction.Ignore))
+            for (int turn = 0; turn < 8 && !foundWall; turn++)
             {
-                if (hit.collider.GetComponent<Room>() == null) continue;
-                if (!foundWall || hit.distance < wall.distance) wall = hit;
-                foundWall = true;
+                if (turn > 0)
+                {
+                    follow.AddLook(45f, 0f);
+                    yield return null;
+                    yield return null;
+                }
+                back = -follow.transform.forward;
+                back.y = 0f;
+                back.Normalize();
+                Vector3 eye = player.transform.position + Vector3.up * 1.2f;
+                foreach (var hit in Physics.RaycastAll(eye, back, 30f, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    if (hit.collider.GetComponent<Room>() == null) continue;
+                    if (!foundWall || hit.distance < wall.distance) wall = hit;
+                    foundWall = true;
+                }
             }
             Assert.IsTrue(foundWall, "no wall behind the camera to test with");
             Vector3 spot = wall.point - back * 1.2f;

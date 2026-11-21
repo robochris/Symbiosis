@@ -143,7 +143,9 @@ namespace Shrunk
         void Begin()
         {
             SaveSystem.Data.meta.runsStarted++;
+            Progress.StartRun();
             if (Upgrades.StartCoins > 0) RunState.AddCoins(Upgrades.StartCoins);
+            if (Progress.Has(Perk.LooseChange)) RunState.AddCoins(Progress.LooseChangeCoins);
             // A lucky fortune, read in the lab before setting out.
             if (SaveSystem.Data.meta.luckyCoins > 0)
             {
@@ -191,6 +193,8 @@ namespace Shrunk
             if (Ended || _player == null || IsDescent) return;
 
             RunSave run = SaveSystem.Data.run;
+            // A floor further down than the run has been: that is progress. (A resumed floor is not.)
+            if (run.active && floors.FloorNumber > run.floorNumber) Progress.Add(Progress.FloorXp);
             run.active = true;
             run.floorNumber = floors.FloorNumber;
             run.depth = floors.depth;
@@ -235,6 +239,7 @@ namespace Shrunk
             int banked = Mathf.RoundToInt(RunState.Samples * multiplier);
 
             Extracted?.Invoke(RunState.Samples);
+            Progress.Add(Progress.ExtractXp);
             var meta = SaveSystem.Data.meta;
             meta.samples += banked;
             meta.rareMaterials += depth;
@@ -277,6 +282,7 @@ namespace Shrunk
             string where = _floors != null && _floors.biome != null ? _floors.biome.displayName : "";
             string text = $"  {RunState.Kills} kills, {items} {(items == 1 ? "item" : "items")}";
             if (_floors != null && _floors.depth > 1) text += $", depth {_floors.depth}";
+            if (Progress.RunXp > 0) text += $", {Progress.RunXp} XP";
             return where.Length > 0 ? text + $", last seen in {where}." : text + ".";
         }
 

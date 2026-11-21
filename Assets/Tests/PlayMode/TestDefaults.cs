@@ -22,6 +22,9 @@ namespace Shrunk.Tests
             FloorManager.GoldBugChanceForAll = 0f;
             // Every enemy pays, so tests that count coins are not a coin flip.
             Loot.CoinChanceOverride = 1f;
+            // Every level reached, so tests written before levels still see every item and style.
+            Progress.LevelOverride = Progress.TopLevel;
+            Progress.PerksOverride = false;
         }
 
         [OneTimeTearDown]
@@ -33,6 +36,8 @@ namespace Shrunk.Tests
             FloorManager.ClawChanceForAll = null;
             FloorManager.GoldBugChanceForAll = null;
             Loot.CoinChanceOverride = null;
+            Progress.LevelOverride = null;
+            Progress.PerksOverride = null;
         }
     }
 }

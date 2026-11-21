@@ -89,7 +89,8 @@ namespace Shrunk
             }
             for (int i = 0; picks != null && i < picks.Count && i < spots.Length; i++)
             {
-                Pickup.Item(picks[i], room.Centre + spots[i], sale ? FloorTwists.Discount(picks[i].price) : picks[i].price);
+                int price = Progress.ShopPrice(picks[i].price);
+                Pickup.Item(picks[i], room.Centre + spots[i], sale ? FloorTwists.Discount(price) : price);
             }
 
             Rerolls++;

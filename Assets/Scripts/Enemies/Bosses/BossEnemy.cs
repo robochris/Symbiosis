@@ -48,7 +48,18 @@ namespace Shrunk
             var assets = GameAssets.Instance;
             if (assets == null || assets.items == null) return;
             ItemDefinition item = RewardItem(assets.items);
-            if (item != null) Pickup.Item(item, transform.position + Vector3.forward * 2f, 0);
+            if (item == null) return;
+            var first = Pickup.Item(item, transform.position + Vector3.forward * 2f, 0);
+            // Second Opinion: a second one beside it. Taking either clears the other away, as in a treasure room.
+            var floors = FloorManager.Instance;
+            Room room = floors != null ? floors.CurrentRoom : null;
+            if (!Progress.Has(Perk.SecondOpinion) || room == null) return;
+            var picks = assets.items.RandomCommon(new System.Random(Random.Range(0, int.MaxValue)), 2);
+            ItemDefinition other = null;
+            foreach (var pick in picks) if (pick != item && other == null) other = pick;
+            if (other == null) return;
+            first.treasureRoom = room;
+            Pickup.Item(other, transform.position + Vector3.forward * 2f + Vector3.right * 2.2f, 0).treasureRoom = room;
         }
 
         /// <summary>Which item it leaves: a common one, unless the boss has one of its own.</summary>
