@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
@@ -104,6 +104,57 @@ namespace Shrunk.EditorTools
             cam.farClipPlane = 100f;
             go.AddComponent<AudioListener>();
             go.AddComponent<CameraFollow>().target = target;
+
+            // The look: a little glow on bright things, a soft vignette, a touch more contrast and colour, and cheap
+            // edge smoothing. All of it is light enough for a phone.
+            var data = go.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
+            data.renderPostProcessing = true;
+            data.antialiasing = UnityEngine.Rendering.Universal.AntialiasingMode.None;
+            var volume = new GameObject("Look").AddComponent<UnityEngine.Rendering.Volume>();
+            volume.isGlobal = true;
+            volume.sharedProfile = Look();
+        }
+
+        const string LookPath = "Assets/Settings/ShrunkLook.asset";
+
+        static UnityEngine.Rendering.VolumeProfile Look()
+        {
+            var profile = AssetDatabase.LoadAssetAtPath<UnityEngine.Rendering.VolumeProfile>(LookPath);
+            if (profile == null)
+            {
+                profile = ScriptableObject.CreateInstance<UnityEngine.Rendering.VolumeProfile>();
+                AssetDatabase.CreateAsset(profile, LookPath);
+            }
+            // Made fresh each time, so what is here is what there is.
+            foreach (var old in profile.components.ToArray()) Object.DestroyImmediate(old, true);
+            profile.components.Clear();
+
+            var bloom = Effect<UnityEngine.Rendering.Universal.Bloom>(profile);
+            bloom.threshold.Override(0.85f);
+            bloom.intensity.Override(0.55f);
+            bloom.scatter.Override(0.6f);
+            bloom.highQualityFiltering.Override(false);
+
+            var vignette = Effect<UnityEngine.Rendering.Universal.Vignette>(profile);
+            vignette.intensity.Override(0.22f);
+            vignette.smoothness.Override(0.45f);
+
+            var colour = Effect<UnityEngine.Rendering.Universal.ColorAdjustments>(profile);
+            colour.contrast.Override(10f);
+            colour.saturation.Override(12f);
+
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssets();
+            return profile;
+        }
+
+        static T Effect<T>(UnityEngine.Rendering.VolumeProfile profile) where T : UnityEngine.Rendering.VolumeComponent
+        {
+            var effect = profile.Add<T>(true);
+            effect.name = typeof(T).Name;
+            effect.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
+            AssetDatabase.AddObjectToAsset(effect, profile);
+            return effect;
         }
 
         // ---------- player ----------
@@ -207,7 +258,7 @@ namespace Shrunk.EditorTools
             }
 
             var kills = UiText("Kills", parent, font, "Kills: 0", 44, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-260f, -80f), new Vector2(400f, 60f));
-            var hint = UiText("Desktop Hint", parent, font, "WASD move  ·  mouse aim  ·  hold click to fire  ·  Space dodge", 30, TextAnchor.LowerCenter, new Vector2(0.5f, 0f), new Vector2(0f, 50f), new Vector2(1700f, 50f));
+            var hint = UiText("Desktop Hint", parent, font, "WASD move  Â·  mouse aim  Â·  hold click to fire  Â·  Space dodge", 30, TextAnchor.LowerCenter, new Vector2(0.5f, 0f), new Vector2(0f, 50f), new Vector2(1700f, 50f));
             FitAcross(hint, 18f);
             hint.color = new Color(1f, 1f, 1f, 0.6f);
 
@@ -217,7 +268,7 @@ namespace Shrunk.EditorTools
             cameraButton.sizeDelta = new Vector2(420f, 70f);
             var cameraLabel = UiText("Label", cameraButton, font, "V  camera: Shoulder", 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 70f));
 
-            var resources = UiText("Resources", parent, font, "Coins 0   ·   Samples 0", 34, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(255f, -140f), new Vector2(400f, 50f));
+            var resources = UiText("Resources", parent, font, "Coins 0   Â·   Samples 0", 34, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(255f, -140f), new Vector2(400f, 50f));
             var level = UiText("Level", parent, font, "Level 1", 24, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(365f, -190f), new Vector2(620f, 60f));
             level.horizontalOverflow = HorizontalWrapMode.Wrap;
             level.gameObject.SetActive(false);
