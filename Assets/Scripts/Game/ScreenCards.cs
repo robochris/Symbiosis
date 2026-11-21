@@ -114,6 +114,18 @@ namespace Shrunk
             "Quiet, please. It will not be.",
         };
 
+        /// <summary>The attic's own lines.</summary>
+        public static readonly string[] AtticLines =
+        {
+            "Tip: web slows you down. A dodge goes over it.",
+            "Tip: when the Spider climbs out of sight, a circle is coming. Move off it.",
+            "Tip: too close to the Spider and it bites. Keep your distance.",
+            "Tip: the gramophone makes the others quicker. Lift the needle. With bullets.",
+            "Reminder: nobody has been up here since the move. Something has.",
+            "Fact: every box up here is labelled MISC.",
+            "It gets dustier further in. Try not to breathe.",
+        };
+
         /// <summary>The bathroom's own lines.</summary>
         public static readonly string[] BathroomLines =
         {
@@ -205,7 +217,7 @@ namespace Shrunk
         /// <summary>The line under "Floor N" for a biome: its own if it has any, otherwise the ants'. The floor's seed picks it.</summary>
         public static string TipFor(string biomeId, int seed)
         {
-            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : biomeId == "fridge" ? FridgeLines : biomeId == "library" ? LibraryLines : biomeId == "forest" ? ForestLines : biomeId == "clouds" ? CloudLines : biomeId == "console" ? ConsoleLines : biomeId == "aquarium" ? AquariumLines : biomeId == "toybox" ? ToyBoxLines : biomeId == "bathroom" ? BathroomLines : FloorLines;
+            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : biomeId == "fridge" ? FridgeLines : biomeId == "library" ? LibraryLines : biomeId == "forest" ? ForestLines : biomeId == "clouds" ? CloudLines : biomeId == "console" ? ConsoleLines : biomeId == "aquarium" ? AquariumLines : biomeId == "toybox" ? ToyBoxLines : biomeId == "bathroom" ? BathroomLines : biomeId == "attic" ? AtticLines : FloorLines;
             return lines[Mathf.Abs(seed) % lines.Length];
         }
 

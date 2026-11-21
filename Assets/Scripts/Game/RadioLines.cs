@@ -376,6 +376,19 @@ namespace Shrunk
                 "A library. That isn't in the house. That isn't in any house I know of. Interesting.",
                 "Books, the size of buildings. Somebody is going to want those back.",
             },
+            ["attic"] = new[]
+            {
+                "The attic. Dust, boxes, and a lot of legs in the corners.",
+                "Mind the web. It is everywhere, and it is not decorative.",
+            },
+            ["bat"] = new[]
+            {
+                "A bat. It swoops along a line it shows you first. Off the line.",
+            },
+            ["spider"] = new[]
+            {
+                "The Spider. When she goes up, she comes down on a circle. Do not be in it.",
+            },
             ["bathroom"] = new[]
             {
                 "A bathroom. Echoes, tiles, and the taps are running. Mind your footing.",

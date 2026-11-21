@@ -117,6 +117,15 @@ namespace Shrunk
             ["AirFreshener"] = "Pine-fresh, and everybody near it is in a hurry.",
             ["Tap"] = "Drips a line first. Then the rest of the bath.",
             ["Suds"] = "Grows into a duckling. Bath logic.",
+            // The attic
+            ["Spiderling"] = "Eight legs, all of them in a hurry toward you.",
+            ["OldBoot"] = "Kicks. That was its job, and it misses it.",
+            ["Slingshot"] = "Somebody's, confiscated. It has found new ammunition.",
+            ["Bat"] = "Flaps about, then comes straight down at you.",
+            ["MothballJar"] = "Throws mothballs. They smell worse than they hurt.",
+            ["Gramophone"] = "Plays something old and fast. Everybody near it hurries.",
+            ["Telescope"] = "Lines you up from the far end of the attic.",
+            ["SpiderEgg"] = "Grows into a spiderling. Of course it does.",
         };
 
         static MetaSave Meta => SaveSystem.Data.meta;
