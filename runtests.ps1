@@ -1,7 +1,7 @@
 param([string]$Platform = "PlayMode", [string]$Filter = "")
 $d = Join-Path $env:TEMP "shrunk-tests"; New-Item -ItemType Directory -Force $d | Out-Null
 $log = "$d\$Platform.log"; $res = "$d\$Platform.xml"; Remove-Item $res -ErrorAction SilentlyContinue
-$unity = "C:\Program Files\Unity\Hub\Editor\6000.0.55f1\Editor\Unity.exe"
+. (Join-Path $PSScriptRoot "unity-path.ps1")
 $a = @('-batchmode','-projectPath',$PSScriptRoot,'-runTests','-testPlatform',$Platform,'-testResults',"`"$res`"",'-logFile',"`"$log`"")
 if ($Filter) { $a += @('-testFilter',$Filter) }
 $p = Start-Process -FilePath $unity -ArgumentList $a -PassThru -Wait
