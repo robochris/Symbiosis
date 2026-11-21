@@ -10,6 +10,67 @@ namespace Shrunk.EditorTools
     /// </summary>
     public static class LabSceneBuilder
     {
+        /// <summary>How far east the workshop's middle is (and west, the office's).</summary>
+        public const float WorkshopX = 21f;
+        const float SideHalfWidth = 9f, SideHalfDepth = 7f, DoorHalf = 1.4f, DoorHeight = 3.2f;
+
+        // One of the hub's side walls: two pieces, a lintel, and floor under the gap, so the doorway is walked straight through.
+        static void SideWall(Transform room, string side, float x, float halfDepth, float height, Material wall, Material floor)
+        {
+            float northLength = halfDepth - DoorHalf;
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall " + side + " N", room, new Vector3(x, height * 0.5f, DoorHalf + northLength * 0.5f), new Vector3(1f, height, northLength), wall, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall " + side + " S", room, new Vector3(x, height * 0.5f, -DoorHalf - northLength * 0.5f), new Vector3(1f, height, northLength), wall, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall " + side + " Lintel", room, new Vector3(x, (DoorHeight + height) * 0.5f, 0f), new Vector3(1f, height - DoorHeight, DoorHalf * 2f), wall, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Threshold " + side, room, new Vector3(x, -0.5f, 0f), new Vector3(1.4f, 1f, DoorHalf * 2f + 0.4f), floor, true);
+        }
+
+        // A side room off the hub: floor, three walls and a roof, the open side against the hub's doorway, and a light of its own.
+        static void SideRoom(string name, Vector3 centre, float height, Material floor, Material wall, Color light)
+        {
+            var root = new GameObject(name).transform;
+            float w = SideHalfWidth, d = SideHalfDepth;
+            float outer = centre.x + Mathf.Sign(centre.x) * (w + 0.5f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Floor", root, new Vector3(centre.x, -0.5f, 0f), new Vector3(w * 2f, 1f, d * 2f), floor, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall North", root, new Vector3(centre.x, height * 0.5f, d + 0.5f), new Vector3(w * 2f + 2f, height, 1f), wall, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall South", root, new Vector3(centre.x, height * 0.5f, -d - 0.5f), new Vector3(w * 2f + 2f, height, 1f), wall, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall Far", root, new Vector3(outer, height * 0.5f, 0f), new Vector3(1f, height, d * 2f), wall, true);
+            // The side against the hub: the hub's own wall, faced in this room's colour.
+            float near = centre.x - Mathf.Sign(centre.x) * w;
+            float faceX = near + Mathf.Sign(centre.x) * 0.02f;
+            float pieceLength = d - DoorHalf;
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Facing N", root, new Vector3(faceX, height * 0.5f, DoorHalf + pieceLength * 0.5f), new Vector3(0.04f, height, pieceLength), wall, false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Facing S", root, new Vector3(faceX, height * 0.5f, -DoorHalf - pieceLength * 0.5f), new Vector3(0.04f, height, pieceLength), wall, false);
+            var roof = ArenaSceneBuilder.Primitive(PrimitiveType.Quad, "Ceiling", root, new Vector3(centre.x, height, 0f), new Vector3(w * 2f + 2f, d * 2f + 2f, 1f), wall, true);
+            roof.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
+
+            var lamp = new GameObject("Light").AddComponent<Light>();
+            lamp.transform.SetParent(root, false);
+            lamp.transform.position = new Vector3(centre.x, height - 0.8f, 0f);
+            lamp.type = LightType.Point;
+            lamp.color = light;
+            lamp.range = 16f;
+            lamp.intensity = 1.6f;
+            lamp.shadows = LightShadows.None;
+        }
+
+        // A name over a doorway, on the hub side.
+        static void Sign(string text, Transform parent, Vector3 at, float yaw)
+        {
+            var go = new GameObject("Sign " + text);
+            go.transform.SetParent(parent, false);
+            go.transform.position = at;
+            go.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+            var mesh = go.AddComponent<TextMesh>();
+            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            mesh.font = font;
+            go.GetComponent<MeshRenderer>().sharedMaterial = font.material;
+            mesh.text = text;
+            mesh.fontSize = 64;
+            mesh.characterSize = 0.06f;
+            mesh.anchor = TextAnchor.MiddleCenter;
+            mesh.color = new Color(1f, 0.95f, 0.8f);
+        }
+
         public const string ScenePath = "Assets/Scenes/Lab.unity";
 
         [MenuItem("Shrunk/Rebuild Lab Scene", priority = 22)]
@@ -43,8 +104,21 @@ namespace Shrunk.EditorTools
             // The floor under the doorway: the wall is a metre thick, and the two rooms' floors stop either side of it.
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Threshold", room, new Vector3((doorLeft + doorRight) * 0.5f, -0.5f, southZ), new Vector3(doorRight - doorLeft + 0.4f, 1f, 1.4f), floorMat, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall South Lintel", room, new Vector3((doorLeft + doorRight) * 0.5f, (doorHeight + height) * 0.5f, southZ), new Vector3(doorRight - doorLeft, height - doorHeight, 1f), wallMat, true);
-            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall East", room, new Vector3(halfWidth + 0.5f, height * 0.5f, 0f), new Vector3(1f, height, halfDepth * 2f), wallMat, true);
-            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall West", room, new Vector3(-halfWidth - 0.5f, height * 0.5f, 0f), new Vector3(1f, height, halfDepth * 2f), wallMat, true);
+            // East and west: a doorway in the middle of each, to the workshop and the office.
+            SideWall(room, "East", halfWidth + 0.5f, halfDepth, height, wallMat, floorMat);
+            SideWall(room, "West", -halfWidth - 0.5f, halfDepth, height, wallMat, floorMat);
+
+            // ----- the workshop, through the east doorway: getting stronger. Wood, pegboard, a warm light. -----
+            var workFloor = ArenaSceneBuilder.Lit("WorkshopFloor", new Color(0.45f, 0.32f, 0.2f), 0.35f);
+            var workWall = ArenaSceneBuilder.Lit("Pegboard", new Color(0.55f, 0.4f, 0.26f), 0.15f);
+            SideRoom("Workshop", new Vector3(WorkshopX, 0f, 0f), height, workFloor, workWall, new Color(1f, 0.78f, 0.5f));
+            Sign("WORKSHOP", room, new Vector3(halfWidth - 0.05f, DoorHeight + 0.6f, 0f), -90f);
+
+            // ----- the office, through the west doorway: how it has gone so far. Carpet, green walls, lamplight. -----
+            var officeFloor = ArenaSceneBuilder.Lit("OfficeCarpet", new Color(0.28f, 0.16f, 0.18f), 0.05f);
+            var officeWall = ArenaSceneBuilder.Lit("OfficeWall", new Color(0.2f, 0.3f, 0.24f), 0.2f);
+            SideRoom("Office", new Vector3(-WorkshopX, 0f, 0f), height, officeFloor, officeWall, new Color(1f, 0.85f, 0.6f));
+            Sign("OFFICE", room, new Vector3(-halfWidth + 0.05f, DoorHeight + 0.6f, 0f), 90f);
 
             // A roof that only shows from below, so the camera never sees out over the walls.
             var roof = ArenaSceneBuilder.Primitive(PrimitiveType.Quad, "Ceiling", room, new Vector3(0f, height, 0f), new Vector3(halfWidth * 2f + 2f, halfDepth * 2f + 2f, 1f), wallMat, true);
@@ -52,7 +126,7 @@ namespace Shrunk.EditorTools
 
             // ----- the workbench: a long bench with one pad per upgrade in front of it -----
             var bench = new GameObject("Workbench").transform;
-            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Bench", bench, new Vector3(0f, 0.55f, 6.6f), new Vector3(19f, 1.1f, 1.6f), benchMat, true);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Bench", bench, new Vector3(WorkshopX, 0.55f, 5.6f), new Vector3(16.5f, 1.1f, 1.6f), benchMat, true);
 
             Color[] colours =
             {
@@ -64,11 +138,11 @@ namespace Shrunk.EditorTools
                 var upgrade = upgrades[i];
                 var glow = ArenaSceneBuilder.Unlit("Upgrade" + upgrade.type, colours[i % colours.Length]);
                 // Spread along the bench however many there are.
-                float x = -8f + i * (16f / Mathf.Max(1, upgrades.Length - 1));
+                float x = WorkshopX - 7.2f + i * (14.4f / Mathf.Max(1, upgrades.Length - 1));
 
                 var station = new GameObject(upgrade.displayName + " Pad");
                 station.transform.SetParent(bench, false);
-                station.transform.position = new Vector3(x, 0f, 4.2f);
+                station.transform.position = new Vector3(x, 0f, 3.2f);
                 ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Pad", station.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), glow, false);
 
                 // Equipment on the bench that lights up level by level, so progress is something you can see.
@@ -95,7 +169,7 @@ namespace Shrunk.EditorTools
             var mirrorGlass = ArenaSceneBuilder.Lit("MirrorGlass", new Color(0.75f, 0.85f, 0.9f), 0.95f);
             mirrorGlass.SetFloat("_Metallic", 1f);
             var mirror = new GameObject("Mirror");
-            mirror.transform.position = new Vector3(-8.2f, 0f, -3f);
+            mirror.transform.position = new Vector3(-WorkshopX - 6.2f, 0f, 4.2f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Frame", mirror.transform, new Vector3(-2.55f, 2.1f, 0f), new Vector3(0.2f, 4.2f, 3f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Glass", mirror.transform, new Vector3(-2.42f, 2.1f, 0f), new Vector3(0.1f, 3.8f, 2.6f), mirrorGlass, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", mirror.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("StyleMat", new Color(0.9f, 0.9f, 0.95f)), false);
@@ -103,7 +177,7 @@ namespace Shrunk.EditorTools
 
             // ----- the record board: how the runs have gone -----
             var board = new GameObject("Record Board");
-            board.transform.position = new Vector3(8.2f, 0f, -3f);
+            board.transform.position = new Vector3(-halfWidth - 4.2f, 0f, 4.4f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Board", board.transform, new Vector3(2.55f, 2.2f, 0f), new Vector3(0.2f, 2.6f, 4f), benchMat, false);
             var pegGold = ArenaSceneBuilder.Unlit("Gold", new Color(1f, 0.82f, 0.2f));
             var pegs = new GameObject[12];
@@ -118,7 +192,7 @@ namespace Shrunk.EditorTools
             // ----- the evidence board: pages of Finch's notebook -----
             var evidence = new GameObject("Evidence Board");
             // Clear of the last upgrade pad, so standing at the board reads the board.
-            evidence.transform.position = new Vector3(8.2f, 0f, 0.9f);
+            evidence.transform.position = new Vector3(-halfWidth - 4.2f, 0f, -4.3f);
             var cork = ArenaSceneBuilder.Lit("Cork", new Color(0.55f, 0.38f, 0.22f), 0.1f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Board", evidence.transform, new Vector3(2.55f, 2f, 0f), new Vector3(0.2f, 3.5f, 3.2f), cork, false);
             var paper = ArenaSceneBuilder.Unlit("FinchNote", new Color(1f, 0.96f, 0.8f));
@@ -135,7 +209,7 @@ namespace Shrunk.EditorTools
 
             // ----- the specimen shelf: a jar for every boss beaten, against the south wall -----
             var shelf = new GameObject("Specimen Shelf");
-            shelf.transform.position = new Vector3(-5.5f, 0f, -5.6f);
+            shelf.transform.position = new Vector3(-WorkshopX + 0.5f, 0f, -4.4f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Shelf", shelf.transform, new Vector3(0f, 1.1f, -2.05f), new Vector3(5.6f, 0.15f, 0.7f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Leg L", shelf.transform, new Vector3(-2.6f, 0.52f, -2.05f), new Vector3(0.15f, 1.05f, 0.6f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Leg R", shelf.transform, new Vector3(2.6f, 0.52f, -2.05f), new Vector3(0.15f, 1.05f, 0.6f), benchMat, false);
@@ -176,7 +250,7 @@ namespace Shrunk.EditorTools
 
             // ----- the power rack: which hero power to carry, against the south wall on the other side of the portal -----
             var rack = new GameObject("Power Rack");
-            rack.transform.position = new Vector3(5.5f, 0f, -5.4f);
+            rack.transform.position = new Vector3(WorkshopX + 4f, 0f, -4.2f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Rack", rack.transform, new Vector3(0f, 0.6f, -2.2f), new Vector3(3.4f, 1.2f, 0.7f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", rack.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("PowerMat", new Color(1f, 0.82f, 0.2f)), false);
             Color[] powerColours = { new Color(0.45f, 0.95f, 1f), new Color(0.6f, 0.75f, 1f), new Color(0.5f, 1f, 0.55f), new Color(1f, 0.96f, 0.8f) };
@@ -192,7 +266,7 @@ namespace Shrunk.EditorTools
             // ----- the filing cabinet: every kind of item ever found, in the corner by the record board -----
             var cabinet = new GameObject("Filing Cabinet");
             // Against the south wall in the corner, far enough from the record board that standing at one never reads the other.
-            cabinet.transform.position = new Vector3(9.3f, 0f, -7.1f);
+            cabinet.transform.position = new Vector3(-WorkshopX - 3.5f, 0f, -6.1f);
             var cabinetMat = ArenaSceneBuilder.Lit("FilingCabinet", new Color(0.4f, 0.47f, 0.42f), 0.6f);
             var cabinetBody = ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Body", cabinet.transform, Vector3.zero, new Vector3(1.1f, 2.4f, 0.9f), cabinetMat, false);
             cabinetBody.transform.localPosition = new Vector3(0f, 1.2f, -0.35f);
@@ -209,7 +283,7 @@ namespace Shrunk.EditorTools
 
             // ----- the time clock: overtime, for after the ending. In the corner past the mirror. -----
             var clock = new GameObject("Time Clock");
-            clock.transform.position = new Vector3(-9.3f, 0f, -5.4f);
+            clock.transform.position = new Vector3(-WorkshopX - 6.2f, 0f, 0.3f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Box", clock.transform, new Vector3(-1.5f, 1.9f, 0f), new Vector3(0.35f, 1.3f, 0.9f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Face", clock.transform, new Vector3(-1.3f, 2.15f, 0f), new Vector3(0.6f, 0.03f, 0.6f), paper, false).transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Slot", clock.transform, new Vector3(-1.3f, 1.5f, 0f), new Vector3(0.05f, 0.08f, 0.5f), black, false);
@@ -219,7 +293,7 @@ namespace Shrunk.EditorTools
 
             // ----- the equipment cupboard: which weapon to carry. Free-standing, west of the middle of the room. -----
             var cupboard = new GameObject("Equipment Cupboard");
-            cupboard.transform.position = new Vector3(-4.2f, 0f, -1.2f);
+            cupboard.transform.position = new Vector3(WorkshopX - 4.6f, 0f, -3.6f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Cupboard", cupboard.transform, new Vector3(-1.9f, 0.6f, 0f), new Vector3(0.7f, 1.2f, 3.2f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", cupboard.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("WeaponMat", new Color(1f, 0.5f, 0.3f)), false);
             Color[] weaponColours = { new Color(0.45f, 0.95f, 1f), new Color(1f, 0.6f, 0.3f), new Color(0.85f, 0.4f, 1f), new Color(0.5f, 1f, 0.55f) };
@@ -249,7 +323,7 @@ namespace Shrunk.EditorTools
 
             // ----- the noticeboard: three jobs at a time. Free-standing, west of where the day starts. -----
             var notices = new GameObject("Noticeboard");
-            notices.transform.position = new Vector3(-4.2f, 0f, 1.6f);
+            notices.transform.position = new Vector3(-WorkshopX + 1f, 0f, 2.2f);
             var corkBoard = ArenaSceneBuilder.Lit("Cork", new Color(0.55f, 0.38f, 0.22f), 0.1f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Post L", notices.transform, new Vector3(-1.5f, 0.9f, -0.9f), new Vector3(0.12f, 1.8f, 0.12f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Post R", notices.transform, new Vector3(-1.5f, 0.9f, 0.9f), new Vector3(0.12f, 1.8f, 0.12f), benchMat, false);
@@ -390,7 +464,7 @@ namespace Shrunk.EditorTools
 
             // ----- the hidden door: turns up with the last page, on the wall the radio never mentions -----
             var door = new GameObject("Hidden Door");
-            door.transform.position = new Vector3(-8.2f, 0f, 0.8f);
+            door.transform.position = new Vector3(-WorkshopX - 6.2f, 0f, -3.6f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Frame", door.transform, new Vector3(-2.6f, 1.7f, 0f), new Vector3(0.25f, 3.4f, 2.4f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Dark", door.transform, new Vector3(-2.5f, 1.55f, 0f), new Vector3(0.2f, 3.1f, 1.9f), black, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Sign", door.transform, new Vector3(-2.42f, 3.6f, 0f), new Vector3(0.06f, 0.3f, 1.4f), paper, false);

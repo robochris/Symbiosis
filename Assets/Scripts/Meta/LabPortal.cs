@@ -28,8 +28,8 @@ namespace Shrunk
             if (pad.Distance(transform.position, playerPosition) > 3.5f) return null;
             RunSave run = SaveSystem.Data.run;
             return run.active
-                ? $"Portal: carry on your run from floor {run.floorNumber}. Step in to go."
-                : "Portal: start a run into the Backyard Ant Colony. Step in to go.";
+                ? $"Portal: carry on your run from floor {run.floorNumber}. {Interact.Verb} to go."
+                : $"Portal: start a run into the Backyard Ant Colony. {Interact.Verb} to go.";
         }
     }
 }

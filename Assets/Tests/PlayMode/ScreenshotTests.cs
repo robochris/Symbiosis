@@ -519,7 +519,21 @@ namespace Shrunk.Tests
             yield return new WaitForSeconds(0.8f);
             yield return Screen(Path.Combine(folder, "lab-south.png"));
 
-            // And the other way: the bench and its eight pads.
+            // The workshop, looking at the bench and its pads.
+            player.Teleport(new Vector3(21f, 0.05f, -3f));
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.8f);
+            yield return Screen(Path.Combine(folder, "lab-workshop.png"));
+
+            // The office, looking at the far wall: mirror, clock, cat flap.
+            player.Teleport(new Vector3(-18f, 0.05f, 0f));
+            player.transform.rotation = Quaternion.Euler(0f, -90f, 0f);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.8f);
+            yield return Screen(Path.Combine(folder, "lab-office.png"));
+
+            // And the hub from the far side, toward both doorways.
             player.Teleport(new Vector3(0f, 0.05f, -2f));
             player.transform.rotation = Quaternion.identity;
             CameraFollow.Instance.Snap();

@@ -43,7 +43,7 @@ namespace Shrunk
             if (pad.Distance(transform.position, playerPosition) > 1.6f) return null;
             return Emptied
                 ? "A vent. Empty. You have already been through the petty cash."
-                : "A vent, with the cover off. There is an envelope in it. Step in.";
+                : $"A vent, with the cover off. There is an envelope in it. {Interact.Verb} to reach in.";
         }
     }
 }
