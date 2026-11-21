@@ -4,7 +4,7 @@ $log = "$d\$Platform.log"; $res = "$d\$Platform.xml"; Remove-Item $res -ErrorAct
 . (Join-Path $PSScriptRoot "unity-path.ps1")
 $a = @('-batchmode','-projectPath',$PSScriptRoot,'-runTests','-testPlatform',$Platform,'-testResults',"`"$res`"",'-logFile',"`"$log`"")
 if ($Filter) { $a += @('-testFilter',$Filter) }
-$p = Start-Process -FilePath $unity -ArgumentList $a -PassThru -Wait
+$p = Start-Process -FilePath $unity -ArgumentList $a -WindowStyle Hidden -PassThru -Wait
 if (Test-Path $res) {
   [xml]$x = Get-Content $res; $r = $x.'test-run'
   "$Platform : total=$($r.total) passed=$($r.passed) failed=$($r.failed) duration=$([math]::Round([double]$r.duration,1))s"

@@ -26,6 +26,9 @@ namespace Shrunk
         public bool endingSeen;
         /// <summary>The dare room has been pointed out once.</summary>
         public bool dareSeen;
+        /// <summary>The Daily Experiment: the day last played ("yyyy-MM-dd"), how far it got, and the streak.</summary>
+        public string dailyDate = "";
+        public int dailyFloor, dailyBestFloor, dailyStreak, dailyBestStreak;
         /// <summary>Clocked in at the lab's time clock: new runs start a depth further down.</summary>
         public bool overtime;
         /// <summary>Achievements earned, as AchievementId numbers.</summary>
@@ -86,6 +89,8 @@ namespace Shrunk
         public int kills;
         /// <summary>Worlds whose last boss this run has beaten (the machine's room needs a few).</summary>
         public int worldsBeaten;
+        /// <summary>Non-zero for a Daily Experiment: the day's seed, so a resumed one stays on the same floors.</summary>
+        public int dailySeed;
         public float powerMeter;
         public List<int> items = new List<int>();
     }

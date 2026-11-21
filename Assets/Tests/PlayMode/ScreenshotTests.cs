@@ -495,6 +495,37 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_clouds_and_console()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            GameSettings.Radio = 0;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            CameraFollow.Instance.SetMode(CameraMode.Wide);
+            foreach (string id in new[] { "clouds", "console" })
+            {
+                Assert.IsTrue(floors.SetBiome(id));
+                floors.BuildFloor(10);
+                yield return null;
+                player.Teleport(floors.ArenaCentre + new Vector3(0f, 0.05f, -9f));
+                for (float t = 0f; t < 4f && floors.Boss == null; t += Time.unscaledDeltaTime) yield return null;
+                for (float t = 0f; t < 8f && Time.timeScale == 0f; t += Time.unscaledDeltaTime) yield return null;
+                yield return new WaitForSeconds(4f);
+                yield return Screen(Path.Combine(folder, id + "-boss.png"));
+            }
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_machine_room_and_cat_box()
         {
             SaveSystem.Profile = "tests";

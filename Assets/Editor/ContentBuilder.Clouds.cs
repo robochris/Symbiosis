@@ -16,8 +16,8 @@ namespace Shrunk.EditorTools
         public static BiomeDefinition BuildClouds(BiomeDefinition ants)
         {
             var dark = ArenaSceneBuilder.Lit("CandyDark", new Color(0.15f, 0.08f, 0.06f), 0.5f);
-            var cloud = ArenaSceneBuilder.Lit("CloudFloor", new Color(0.92f, 0.94f, 0.98f), 0.05f);
-            var bank = ArenaSceneBuilder.Lit("CloudBank", new Color(0.78f, 0.82f, 0.9f), 0.05f);
+            var cloud = ArenaSceneBuilder.Lit("CloudFloor", new Color(0.7f, 0.76f, 0.86f), 0.05f);
+            var bank = ArenaSceneBuilder.Lit("CloudBank", new Color(0.56f, 0.62f, 0.75f), 0.05f);
             var storm = ArenaSceneBuilder.Lit("StormGrey", new Color(0.32f, 0.34f, 0.42f), 0.1f);
             var rainBlue = ArenaSceneBuilder.Lit("Raindrop", new Color(0.35f, 0.6f, 1f), 0.9f);
             var hail = ArenaSceneBuilder.Lit("Hail", new Color(0.88f, 0.95f, 1f), 0.95f);
@@ -215,10 +215,11 @@ namespace Shrunk.EditorTools
             biome.ceiling = false;
             biome.ceilingMaterial = null;
             biome.skyColor = new Color(0.5f, 0.72f, 1f);
-            biome.ambientColor = new Color(0.72f, 0.8f, 0.95f);
-            biome.sunIntensity = 1.3f;
+            // Bright, but not so bright the white lettering on screen disappears into it.
+            biome.ambientColor = new Color(0.55f, 0.62f, 0.78f);
+            biome.sunIntensity = 1f;
             biome.fog = true;
-            biome.fogColor = new Color(0.75f, 0.85f, 1f);
+            biome.fogColor = new Color(0.55f, 0.68f, 0.9f);
             biome.fogStart = 30f;
             biome.fogEnd = 110f;
             biome.roomCastsShadows = false;

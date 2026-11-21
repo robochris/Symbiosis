@@ -376,6 +376,19 @@ namespace Shrunk
                 "A library. That isn't in the house. That isn't in any house I know of. Interesting.",
                 "Books, the size of buildings. Somebody is going to want those back.",
             },
+            ["console"] = new[]
+            {
+                "Inside a games console. Mind the capacitors. I'm told that's important.",
+                "It's warm in there. Everything in there is either on, or about to be.",
+            },
+            ["cursor"] = new[]
+            {
+                "A cursor. It clicks three times. Don't be where it clicks.",
+            },
+            ["glitch"] = new[]
+            {
+                "The Glitch. When the rows come, look for the gap. There is always a gap.",
+            },
             ["clouds"] = new[]
             {
                 "Clouds. You are standing on clouds. I did not build the machine to do that. I'm not complaining.",

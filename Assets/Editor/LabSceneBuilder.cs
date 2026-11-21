@@ -218,7 +218,7 @@ namespace Shrunk.EditorTools
             {
                 new Color(0.3f, 0.08f, 0.06f), new Color(0.45f, 0.1f, 0.35f), new Color(0.3f, 0.8f, 0.25f), new Color(0.55f, 0.8f, 0.95f),
                 new Color(0.62f, 0.6f, 0.58f), new Color(0.13f, 0.14f, 0.16f), new Color(0.45f, 0.5f, 0.25f), new Color(0.7f, 0.88f, 1f), new Color(0.45f, 1f, 0.6f),
-                new Color(0.93f, 0.88f, 0.74f), new Color(0.3f, 0.7f, 0.25f), new Color(0.42f, 0.4f, 0.18f), new Color(0.95f, 0.3f, 0.35f), new Color(0.32f, 0.34f, 0.42f)
+                new Color(0.93f, 0.88f, 0.74f), new Color(0.3f, 0.7f, 0.25f), new Color(0.42f, 0.4f, 0.18f), new Color(0.95f, 0.3f, 0.35f), new Color(0.32f, 0.34f, 0.42f), new Color(0.97f, 0.97f, 1f), new Color(1f, 0.1f, 0.9f)
             };
             var jars = new GameObject[Specimens.All.Length];
             for (int i = 0; i < jars.Length; i++)
@@ -449,6 +449,25 @@ namespace Shrunk.EditorTools
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Glow", hole.transform, new Vector3(0f, 0.4f, -0.07f), new Vector3(0.5f, 0.5f, 0.02f), ArenaSceneBuilder.Unlit("HoleLight", new Color(1f, 0.85f, 0.5f)), false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Cable", hole.transform, new Vector3(-0.95f, 0.02f, -0.4f), new Vector3(1.1f, 0.03f, 0.05f), black, false);
             hole.AddComponent<WallHole>();
+
+            // ----- the Daily Experiment: one run a day on the day's own floors, chalked up on the north wall -----
+            var daily = new GameObject("Daily Experiment");
+            daily.transform.position = new Vector3(-6f, 0f, halfDepth - 1.6f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Board", daily.transform, new Vector3(0f, 3f, 1.53f), new Vector3(4.2f, 1.7f, 0.1f), ArenaSceneBuilder.Lit("Chalkboard", new Color(0.08f, 0.14f, 0.1f), 0.1f), false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", daily.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("DailyMat", new Color(0.95f, 0.95f, 0.85f)), false);
+            var chalk = new GameObject("Chalk");
+            chalk.transform.SetParent(daily.transform, false);
+            chalk.transform.localPosition = new Vector3(0f, 3f, 1.46f);
+            var chalkText = chalk.AddComponent<TextMesh>();
+            Font chalkFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            chalkText.font = chalkFont;
+            chalk.GetComponent<MeshRenderer>().sharedMaterial = chalkFont.material;
+            chalkText.fontSize = 48;
+            chalkText.characterSize = 0.045f;
+            chalkText.anchor = TextAnchor.MiddleCenter;
+            chalkText.alignment = TextAlignment.Center;
+            chalkText.color = new Color(0.92f, 0.95f, 0.9f);
+            daily.AddComponent<DailyExperiment>().board = chalkText;
 
             // ----- Dr. Finch's radio set, beside the hole. It can be shot. He would rather it were not. -----
             var radioSet = new GameObject("Finch's Radio");

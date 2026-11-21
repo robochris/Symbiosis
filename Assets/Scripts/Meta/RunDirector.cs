@@ -20,6 +20,9 @@ namespace Shrunk
         public static bool Descent;
         /// <summary>Set with Descent by the machine's panel: the trip is to the machine room, not the bottom.</summary>
         public static bool ToMachine;
+        /// <summary>Set by the Daily Experiment before the run scene loads: this run is on the day's seed.</summary>
+        public static bool Daily;
+        public bool IsDaily { get; private set; }
         /// <summary>True for a run that is only the fight with the machine.</summary>
         public bool IsMachine { get; private set; }
         /// <summary>The machine has just been beaten: the lab has a card to show and the radio a word to say.</summary>
@@ -112,6 +115,8 @@ namespace Shrunk
             IsMachine = IsDescent && ToMachine && _floors.machineBiome != null;
             Descent = false;
             ToMachine = false;
+            IsDaily = Daily && !IsDescent;
+            Daily = false;
 
             RunSave run = SaveSystem.Data.run;
             if (IsDescent) BeginDescent();
@@ -161,6 +166,7 @@ namespace Shrunk
             }
 
             _floors.depth = TimeClock.StartDepth;
+            if (IsDaily) _floors.fixedSeed = DailyExperiment.SeedFor(DailyExperiment.Today);
             _floors.BuildFloor(1);
         }
 
@@ -184,6 +190,11 @@ namespace Shrunk
 
             _floors.depth = Mathf.Max(1, run.depth);
             _floors.WorldsBeaten = run.worldsBeaten;
+            if (run.dailySeed != 0)
+            {
+                IsDaily = true;
+                _floors.fixedSeed = run.dailySeed;
+            }
             if (!string.IsNullOrEmpty(run.biome)) _floors.SetBiome(run.biome);
             _floors.BuildFloor(Mathf.Max(1, run.floorNumber), run.seed);
         }
@@ -207,6 +218,13 @@ namespace Shrunk
             run.samples = RunState.Samples;
             run.kills = RunState.Kills;
             run.worldsBeaten = floors.WorldsBeaten;
+            run.dailySeed = IsDaily ? floors.fixedSeed : 0;
+            if (IsDaily)
+            {
+                MetaSave daily = SaveSystem.Data.meta;
+                daily.dailyFloor = Mathf.Max(daily.dailyFloor, floors.FloorNumber);
+                daily.dailyBestFloor = Mathf.Max(daily.dailyBestFloor, floors.FloorNumber);
+            }
             run.powerMeter = _player.Power != null ? _player.Power.Meter : 0f;
             run.items.Clear();
             if (_player.Items != null)

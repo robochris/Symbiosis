@@ -423,6 +423,7 @@ namespace Shrunk.EditorTools
                 new VoidStyle { displayName = "Midnight", body = Lit("StyleMidnight", new Color(0.1f, 0.08f, 0.25f), 0.7f), eyes = Unlit("StyleEyesYellow", new Color(1f, 0.92f, 0.3f)) },
                 new VoidStyle { displayName = "Gold Leaf", body = Lit("StyleGoldLeaf", new Color(0.95f, 0.78f, 0.35f), 0.95f), eyes = Unlit("StyleEyesDark", new Color(0.05f, 0.05f, 0.1f)) },
                 new VoidStyle { displayName = "Storm", body = Lit("StyleStorm", new Color(0.3f, 0.32f, 0.42f), 0.4f), eyes = Unlit("Spark", new Color(1f, 0.95f, 0.5f)) },
+                new VoidStyle { displayName = "Pixel", body = Lit("StylePixel", new Color(0.06f, 0.28f, 0.16f), 0.5f), eyes = Unlit("NeonPink", new Color(1f, 0.3f, 0.8f)) },
                 new VoidStyle { displayName = "Moss", body = Lit("StyleMoss", new Color(0.28f, 0.5f, 0.18f), 0.15f), eyes = Unlit("ToadEye", new Color(1f, 0.75f, 0.15f)) },
             };
         }

@@ -31,6 +31,8 @@ namespace Shrunk
             new Specimen { key = "TheToad", title = "The Toad", label = "It has not blinked since it went in. Neither, I find, have I." },
             new Specimen { key = "TheKite", title = "The Kite", label = "The string is still attached. I am not pulling on it. You pull on it." },
             new Specimen { key = "TheThundercloud", title = "The Thundercloud", label = "The jar fogs up from the inside. Now and then it rumbles. I have stopped jumping." },
+            new Specimen { key = "TheCursor", title = "The Cursor", label = "It still points at things. Mostly the lid." },
+            new Specimen { key = "TheGlitch", title = "The Glitch", label = "Not quite in the jar. Partly in the next jar. I have stopped asking how." },
             new Specimen { key = "TheCat", title = "The Cat", label = "An empty jar. It would not get in. Dr. Finch asks that you do not tap the glass anyway." },
         };
 
