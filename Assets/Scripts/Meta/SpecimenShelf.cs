@@ -33,6 +33,8 @@ namespace Shrunk
             new Specimen { key = "TheThundercloud", title = "The Thundercloud", label = "The jar fogs up from the inside. Now and then it rumbles. I have stopped jumping." },
             new Specimen { key = "TheCursor", title = "The Cursor", label = "It still points at things. Mostly the lid." },
             new Specimen { key = "TheGlitch", title = "The Glitch", label = "Not quite in the jar. Partly in the next jar. I have stopped asking how." },
+            new Specimen { key = "TheSnail", title = "The Snail", label = "Still crossing the jar. It may make it by spring." },
+            new Specimen { key = "TheGoldfish", title = "The Goldfish", label = "It has forgotten me twice since lunch. I find that restful." },
             new Specimen { key = "TheCat", title = "The Cat", label = "An empty jar. It would not get in. Dr. Finch asks that you do not tap the glass anyway." },
         };
 

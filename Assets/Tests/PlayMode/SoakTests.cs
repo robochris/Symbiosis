@@ -359,6 +359,16 @@ namespace Shrunk.Tests
             yield return MeasureFloor("library", 8, 7108);
         }
 
+        /// <summary>Not a test: the aquarium's two. Read the log.</summary>
+        [UnityTest, Explicit, Timeout(3600000)]
+        public IEnumerator Measure_aquarium()
+        {
+            Achievements.EverythingUnlocked = true;
+            Assert.IsTrue(_floors.SetBiome("aquarium"));
+            yield return MeasureBoss(5, 510, "The Snail");
+            yield return MeasureBoss(10, 910, "The Goldfish");
+        }
+
         /// <summary>Not a test: the console's two. Read the log.</summary>
         [UnityTest, Explicit, Timeout(3600000)]
         public IEnumerator Measure_console()

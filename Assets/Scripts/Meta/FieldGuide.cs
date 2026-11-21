@@ -88,6 +88,15 @@ namespace Shrunk
             ["CoolingFan"] = "Keeps tempers down and speeds up.",
             ["LaserDiode"] = "A thin line first, then the rest of the light.",
             ["Bit"] = "A one, or possibly a zero. Grows into an electron.",
+            // The aquarium
+            ["Shrimp"] = "All legs and no sense of danger.",
+            ["HermitCrab"] = "Somebody else's shell, its own temper.",
+            ["Pufferfish"] = "Puffs up, and the spines have to go somewhere.",
+            ["Angelfish"] = "Swims the way the others fly. Comes down the same.",
+            ["SeaUrchin"] = "Does not move much. Does not have to.",
+            ["PondSnail"] = "Slow and steady, and it makes everybody else quick.",
+            ["Anglerfish"] = "The light is the warning. The rest of it is teeth.",
+            ["Fry"] = "Grows into a shrimp. Nobody said the tank made sense.",
         };
 
         static MetaSave Meta => SaveSystem.Data.meta;

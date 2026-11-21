@@ -62,6 +62,37 @@ namespace Shrunk
         BiomeDefinition _returnBiome;
         int _returnFloor, _returnDepth;
 
+        // ---------- the gauntlet: every boss beaten so far, one after another ----------
+
+        /// <summary>True in a Gauntlet run: nothing but boss floors, one world after another.</summary>
+        public bool InGauntlet => _gauntlet != null;
+        public int GauntletIndex { get; private set; }
+        public int GauntletLength => _gauntlet != null ? _gauntlet.Count : 0;
+        /// <summary>Bosses beaten in this Gauntlet run.</summary>
+        public int GauntletBeaten { get; set; }
+        List<BiomeDefinition> _gauntlet;
+
+        public void StartGauntlet(List<BiomeDefinition> worlds)
+        {
+            if (worlds == null || worlds.Count == 0) return;
+            _gauntlet = worlds;
+            GauntletIndex = 0;
+            GauntletBeaten = 0;
+            biome = worlds[0];
+            BuildFloor(FloorLayout.FloorsPerBiome);
+        }
+
+        // On to the next world's boss, with a little health back for the trouble.
+        void NextInGauntlet()
+        {
+            GauntletIndex++;
+            biome = _gauntlet[GauntletIndex];
+            depth++;
+            var player = PlayerController.Instance;
+            if (player != null) player.Health.Heal(1);
+            BuildFloor(FloorNumber + FloorLayout.FloorsPerBiome);
+        }
+
         /// <summary>Through the machine's portal or the cat's flap: that fight, then home or back to the run.</summary>
         public void EnterSpecial(BiomeDefinition special)
         {
@@ -76,7 +107,7 @@ namespace Shrunk
         bool MachineRoomHere()
         {
             if (MachineRoomForAll.HasValue) return MachineRoomForAll.Value && machineBiome != null && !InSpecial;
-            return machineBiome != null && !InSpecial && !biome.isBottom && MachineParts.Complete && WorldsBeaten + 1 >= MachineFromWorld;
+            return machineBiome != null && !InSpecial && !InGauntlet && !biome.isBottom && MachineParts.Complete && WorldsBeaten + 1 >= MachineFromWorld;
         }
 
         /// <summary>One way onward in the portal room: a gate, and the biome it leads to.</summary>
@@ -86,6 +117,8 @@ namespace Shrunk
             public BiomeDefinition leadsTo;
             /// <summary>Above 0: this is the way back to the run, to this floor at this depth.</summary>
             public int resumeFloor, resumeDepth;
+            /// <summary>The Gauntlet's way on to the next boss.</summary>
+            public bool gauntletNext;
             public readonly StepPad pad = new StepPad { radius = 1.5f };
         }
 
@@ -225,7 +258,7 @@ namespace Shrunk
             Enemy.WorldRush = Twist == FloorTwist.RushHour ? FloorTwists.RushSpeed : 1f;
             ApplyLook();
             // Now and then a floor has a dead end to spare, walled up with something in it.
-            bool secret = FloorLayout.FloorInBiome(number) >= 2 && !InSpecial && !biome.isBottom
+            bool secret = FloorLayout.FloorInBiome(number) >= 2 && !InSpecial && !InGauntlet && !biome.isBottom
                           && new System.Random(seed ^ 0x5EC2E7).NextDouble() < (SecretWall.ChanceForAll ?? SecretWall.Chance);
             Layout = FloorLayout.Generate(seed, FloorLayout.RoomCountForFloor(number), FloorLayout.IsBossFloor(number), secret);
             // Nobody is dared on the first floor, or at the bottom: there the room is just a room.
@@ -254,7 +287,8 @@ namespace Shrunk
                 // Only fight rooms need clearing.
                 node.cleared = node.type != RoomType.Normal && node.type != RoomType.Exit;
                 // At the bottom nothing is waiting in the rooms on the way. Only at the end.
-                if (biome.isBottom && node.type == RoomType.Normal) node.cleared = true;
+                // At the bottom, and in the Gauntlet, the only fight on the floor is the boss.
+                if ((biome.isBottom || InGauntlet) && node.type == RoomType.Normal) node.cleared = true;
             }
 
             // Every way into a boss's room gets an arch, so it is walked into on purpose.
@@ -463,7 +497,7 @@ namespace Shrunk
                     ShopReroll.Create(room, room.Centre + new Vector3(-2.6f, 0f, 0.9f), spots, assets.coin, assets.note).sale = sale;
                     // Now and then, once the notebook is complete: a box in the corner, and the real management.
                     bool catsLetIn = CatFlapChanceForAll.HasValue || Achievements.Has(AchievementId.PaperTrail);
-                    if (catsLetIn && !InSpecial && !biome.isBottom && bottomBiome != null && rng.NextDouble() < (CatFlapChanceForAll ?? catFlapChance))
+                    if (catsLetIn && !InSpecial && !InGauntlet && !biome.isBottom && bottomBiome != null && rng.NextDouble() < (CatFlapChanceForAll ?? catFlapChance))
                     {
                         CatFlap = CatFlap.Create(room, room.Centre + new Vector3(0f, 0f, 2.8f));
                     }
@@ -585,6 +619,11 @@ namespace Shrunk
             foreach (var portal in _portals)
             {
                 if (!portal.pad.SteppedOn(portal.gate.transform.position, position)) continue;
+                if (portal.gauntletNext)
+                {
+                    NextInGauntlet();
+                    return;
+                }
                 biome = portal.leadsTo;
                 if (portal.resumeFloor > 0)
                 {
@@ -767,6 +806,7 @@ namespace Shrunk
             {
                 if (portal.pad.Distance(portal.gate.transform.position, playerPosition) >= 3.5f) continue;
                 if (portal.resumeFloor > 0) return $"Back to the run: {portal.leadsTo.displayName}, where you left it. {Interact.Verb} to go back.";
+                if (portal.gauntletNext) return $"The Gauntlet goes on: {portal.leadsTo.displayName}'s boss next, with a point of health back. {Interact.Verb} to go on.";
                 string where = portal.leadsTo == biome ? $"{biome.displayName} again" : portal.leadsTo.displayName;
                 string theme = string.IsNullOrEmpty(portal.leadsTo.mutationTheme) ? "" : $" ({portal.leadsTo.mutationTheme})";
                 return $"Go deeper: {where}{theme}, depth {depth + 1}. Samples will be worth ×{RunDirector.RewardMultiplier(depth + 1):0.#}; " +
@@ -914,7 +954,23 @@ namespace Shrunk
             if (node.type == RoomType.Exit)
             {
                 ExitOpen = true;
-                if (InSpecial && biome.extractPortalProp != null && _returnBiome != null)
+                if (InGauntlet && biome.extractPortalProp != null)
+                {
+                    // The Gauntlet: home with what was won, or on to the next one, if there is a next one.
+                    GauntletBeaten = Mathf.Max(GauntletBeaten, GauntletIndex + 1);
+                    ExtractPortal = Instantiate(biome.extractPortalProp, middle + new Vector3(-4f, 0f, 0f), Quaternion.identity, room.transform);
+                    PortalTag.Create(ExtractPortal.transform, HomeTag, HomeColor);
+                    if (GauntletIndex + 1 < GauntletLength)
+                    {
+                        var next = _gauntlet[GauntletIndex + 1];
+                        GameObject prop = next.portalProp != null ? next.portalProp : biome.deeperPortalProp != null ? biome.deeperPortalProp : biome.extractPortalProp;
+                        var gate = Instantiate(prop, middle + new Vector3(4f, 0f, 0f), Quaternion.identity, room.transform);
+                        _portals.Add(new BiomePortal { gate = gate, leadsTo = next, gauntletNext = true });
+                        string label = $"NEXT: {next.displayName.ToUpperInvariant()}\n{GauntletIndex + 2} of {GauntletLength}";
+                        PortalTag.Create(gate.transform, () => label, DeeperColor);
+                    }
+                }
+                else if (InSpecial && biome.extractPortalProp != null && _returnBiome != null)
                 {
                     // Out of the machine or past the cat: home with what the run has, or back to it.
                     ExtractPortal = Instantiate(biome.extractPortalProp, middle + new Vector3(-4f, 0f, 0f), Quaternion.identity, room.transform);

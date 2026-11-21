@@ -376,6 +376,19 @@ namespace Shrunk
                 "A library. That isn't in the house. That isn't in any house I know of. Interesting.",
                 "Books, the size of buildings. Somebody is going to want those back.",
             },
+            ["aquarium"] = new[]
+            {
+                "A fish tank. You're in a fish tank. Keep an eye on the glass; things live on the other side.",
+                "Bubbles are slow. Everything else down there is not.",
+            },
+            ["snail"] = new[]
+            {
+                "A snail. When it goes into its shell, nothing gets in. Wait it out.",
+            },
+            ["goldfish"] = new[]
+            {
+                "The Goldfish. It shows you the line it'll dash along. Believe it.",
+            },
             ["console"] = new[]
             {
                 "Inside a games console. Mind the capacitors. I'm told that's important.",

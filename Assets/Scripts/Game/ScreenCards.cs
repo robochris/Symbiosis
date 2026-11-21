@@ -114,6 +114,18 @@ namespace Shrunk
             "Quiet, please. It will not be.",
         };
 
+        /// <summary>The aquarium's own lines.</summary>
+        public static readonly string[] AquariumLines =
+        {
+            "Tip: the Goldfish paints its line before it dashes. Step off the line.",
+            "Tip: bubbles are slow. Walk between them, not through them.",
+            "Tip: while the Snail is in its shell it cannot be hurt. Wait for it.",
+            "Tip: the pond snail makes the others quicker. Put it down first.",
+            "Reminder: do not tap on the glass. Something might tap back.",
+            "Fact: the little castle is not to scale. Neither are you.",
+            "It gets murkier further in. Somebody should change the water.",
+        };
+
         /// <summary>The console's own lines.</summary>
         public static readonly string[] ConsoleLines =
         {
@@ -169,7 +181,7 @@ namespace Shrunk
         /// <summary>The line under "Floor N" for a biome: its own if it has any, otherwise the ants'. The floor's seed picks it.</summary>
         public static string TipFor(string biomeId, int seed)
         {
-            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : biomeId == "fridge" ? FridgeLines : biomeId == "library" ? LibraryLines : biomeId == "forest" ? ForestLines : biomeId == "clouds" ? CloudLines : biomeId == "console" ? ConsoleLines : FloorLines;
+            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : biomeId == "fridge" ? FridgeLines : biomeId == "library" ? LibraryLines : biomeId == "forest" ? ForestLines : biomeId == "clouds" ? CloudLines : biomeId == "console" ? ConsoleLines : biomeId == "aquarium" ? AquariumLines : FloorLines;
             return lines[Mathf.Abs(seed) % lines.Length];
         }
 

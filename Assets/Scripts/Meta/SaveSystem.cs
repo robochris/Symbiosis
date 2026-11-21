@@ -33,6 +33,8 @@ namespace Shrunk
         public int secretsFound;
         /// <summary>Every kind of creature met, by name, for the field guide.</summary>
         public List<string> creaturesSeen = new List<string>();
+        /// <summary>The most bosses beaten in one Gauntlet run.</summary>
+        public int gauntletBest;
         /// <summary>Clocked in at the lab's time clock: new runs start a depth further down.</summary>
         public bool overtime;
         /// <summary>Achievements earned, as AchievementId numbers.</summary>

@@ -218,7 +218,7 @@ namespace Shrunk.EditorTools
             {
                 new Color(0.3f, 0.08f, 0.06f), new Color(0.45f, 0.1f, 0.35f), new Color(0.3f, 0.8f, 0.25f), new Color(0.55f, 0.8f, 0.95f),
                 new Color(0.62f, 0.6f, 0.58f), new Color(0.13f, 0.14f, 0.16f), new Color(0.45f, 0.5f, 0.25f), new Color(0.7f, 0.88f, 1f), new Color(0.45f, 1f, 0.6f),
-                new Color(0.93f, 0.88f, 0.74f), new Color(0.3f, 0.7f, 0.25f), new Color(0.42f, 0.4f, 0.18f), new Color(0.95f, 0.3f, 0.35f), new Color(0.32f, 0.34f, 0.42f), new Color(0.97f, 0.97f, 1f), new Color(1f, 0.1f, 0.9f)
+                new Color(0.93f, 0.88f, 0.74f), new Color(0.3f, 0.7f, 0.25f), new Color(0.42f, 0.4f, 0.18f), new Color(0.95f, 0.3f, 0.35f), new Color(0.32f, 0.34f, 0.42f), new Color(0.97f, 0.97f, 1f), new Color(1f, 0.1f, 0.9f), new Color(0.6f, 0.4f, 0.2f), new Color(1f, 0.55f, 0.1f)
             };
             var jars = new GameObject[Specimens.All.Length];
             for (int i = 0; i < jars.Length; i++)
@@ -477,6 +477,24 @@ namespace Shrunk.EditorTools
             chalkText.alignment = TextAlignment.Center;
             chalkText.color = new Color(0.92f, 0.95f, 0.9f);
             daily.AddComponent<DailyExperiment>().board = chalkText;
+
+            // ----- the Gauntlet: boss after boss, chalked up on the north wall the other side of the hole -----
+            var gauntlet = new GameObject("Gauntlet");
+            gauntlet.transform.position = new Vector3(6f, 0f, halfDepth - 1.6f);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Board", gauntlet.transform, new Vector3(0f, 3f, 1.53f), new Vector3(4.2f, 1.4f, 0.1f), ArenaSceneBuilder.Lit("GauntletBoard", new Color(0.25f, 0.06f, 0.06f), 0.2f), false);
+            ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", gauntlet.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("GauntletMat", new Color(1f, 0.35f, 0.3f)), false);
+            var gauntletWords = new GameObject("Words");
+            gauntletWords.transform.SetParent(gauntlet.transform, false);
+            gauntletWords.transform.localPosition = new Vector3(0f, 3f, 1.46f);
+            var gauntletText = gauntletWords.AddComponent<TextMesh>();
+            gauntletText.font = chalkFont;
+            gauntletWords.GetComponent<MeshRenderer>().sharedMaterial = chalkFont.material;
+            gauntletText.fontSize = 48;
+            gauntletText.characterSize = 0.05f;
+            gauntletText.anchor = TextAnchor.MiddleCenter;
+            gauntletText.alignment = TextAlignment.Center;
+            gauntletText.color = new Color(1f, 0.85f, 0.75f);
+            gauntlet.AddComponent<GauntletStation>().board = gauntletText;
 
             // ----- Dr. Finch's radio set, beside the hole. It can be shot. He would rather it were not. -----
             var radioSet = new GameObject("Finch's Radio");

@@ -22,6 +22,9 @@ namespace Shrunk
         public static bool ToMachine;
         /// <summary>Set by the Daily Experiment before the run scene loads: this run is on the day's seed.</summary>
         public static bool Daily;
+        /// <summary>Set by the Gauntlet before the run scene loads: boss after boss, nothing else.</summary>
+        public static bool Gauntlet;
+        public bool IsGauntlet { get; private set; }
         /// <summary>How the last run went, for the card the lab shows on the way in. Null once shown.</summary>
         public static string LastSummaryHeading, LastSummary;
         public bool IsDaily { get; private set; }
@@ -119,9 +122,12 @@ namespace Shrunk
             ToMachine = false;
             IsDaily = Daily && !IsDescent;
             Daily = false;
+            IsGauntlet = Gauntlet && !IsDescent;
+            Gauntlet = false;
 
             RunSave run = SaveSystem.Data.run;
-            if (IsDescent) BeginDescent();
+            if (IsGauntlet) BeginGauntlet();
+            else if (IsDescent) BeginDescent();
             else if (run.active) Resume(run);
             else Begin();
         }
@@ -172,6 +178,21 @@ namespace Shrunk
             _floors.BuildFloor(1);
         }
 
+        // Every world whose boss is in a jar, in order, one boss after another. Nothing is saved: it is one sitting.
+        void BeginGauntlet()
+        {
+            SaveSystem.Data.meta.runsStarted++;
+            Progress.StartRun();
+            var worlds = new System.Collections.Generic.List<BiomeDefinition>();
+            foreach (var world in _floors.AllBiomes())
+            {
+                if (world != null && world.boss != null && !world.isBottom && Specimens.Has(world.boss.name)) worlds.Add(world);
+            }
+            if (worlds.Count == 0) worlds.Add(_floors.biome);
+            _floors.depth = 1;
+            _floors.StartGauntlet(worlds);
+        }
+
         // Puts the player back at the start of the floor they were on.
         void Resume(RunSave run)
         {
@@ -205,7 +226,7 @@ namespace Shrunk
         void OnFloorBuilt(FloorManager floors)
         {
             // The machine's floor and the cat's are not saved: quitting there comes back to where the run left off.
-            if (Ended || _player == null || IsDescent || floors.InSpecial) return;
+            if (Ended || _player == null || IsDescent || floors.InSpecial || floors.InGauntlet) return;
 
             RunSave run = SaveSystem.Data.run;
             // A floor further down than the run has been: that is progress. (A resumed floor is not.)
@@ -270,7 +291,8 @@ namespace Shrunk
             SaveSystem.Data.run = new RunSave();
             SaveSystem.Save();
 
-            Summarise(IsDaily ? "DAILY: HOME" : "HOME");
+            RecordGauntlet();
+            Summarise(IsGauntlet ? "GAUNTLET: HOME" : IsDaily ? "DAILY: HOME" : "HOME");
             LastRunMessage = (multiplier > 1f
                 ? $"Extracted! {RunState.Samples} samples ×{multiplier:0.#} = {banked} brought home."
                 : $"Extracted! {banked} samples brought home.") + Tally();
@@ -292,12 +314,21 @@ namespace Shrunk
             meta.deaths++;
             if (!IsDescent) SaveSystem.Data.run = new RunSave();
             SaveSystem.Save();
-            if (!IsDescent) Summarise(IsDaily ? "DAILY: LOST" : "LOST");
+            RecordGauntlet();
+            if (!IsDescent) Summarise(IsGauntlet ? "GAUNTLET: LOST" : IsDaily ? "DAILY: LOST" : "LOST");
 
             LastRunMessage = IsDescent
                 ? (IsMachine ? "The machine won that one. Its parts are still in. Go again from the panel." : "You fell at the bottom. The door is still there, whatever the radio says.")
                 : $"You fell on floor {floor}. {Mathf.RoundToInt(share * 100f)}% of your samples made it home: {kept}." + Tally();
             StartCoroutine(GoHome());
+        }
+
+        void RecordGauntlet()
+        {
+            if (!IsGauntlet || _floors == null) return;
+            var meta = SaveSystem.Data.meta;
+            meta.gauntletBest = Mathf.Max(meta.gauntletBest, _floors.GauntletBeaten);
+            SaveSystem.Save();
         }
 
         // The card for the lab: where it got to and what it was worth, on one line.
