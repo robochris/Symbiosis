@@ -121,6 +121,7 @@ namespace Shrunk
             int before = LevelFor(Meta.xp);
             Meta.xp += amount;
             RunXp += amount;
+            Season.Add(amount);
             int after = LevelFor(Meta.xp);
             for (int level = before + 1; level <= after; level++)
             {

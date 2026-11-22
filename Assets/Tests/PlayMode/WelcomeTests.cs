@@ -520,5 +520,29 @@ namespace Shrunk.Tests
             Assert.AreEqual("lab", Music.Playing);
             Music.Off = true;
         }
+
+        [UnityTest]
+        public IEnumerator The_season_track_pays_as_it_goes_and_starts_again_each_season()
+        {
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            Assert.IsNotNull(SeasonBoard.Current, "no season board");
+            Season.Off = false;
+            Season.NowOverride = new System.DateTime(2026, 3, 2);
+            int samples = SaveSystem.Data.meta.samples;
+            Season.Add(Season.XpPerLevel * 2);
+            Assert.AreEqual(2, Season.Level);
+            Assert.AreEqual(samples + 2 * Season.Samples, SaveSystem.Data.meta.samples);
+            Season.Add(Season.XpPerLevel * 3);
+            Assert.AreEqual(Season.Coins, SaveSystem.Data.meta.luckyCoins, "level five paid no lucky coins");
+            Season.Add(Season.XpPerLevel * 40);
+            Assert.AreEqual(Season.Levels, Season.Level);
+            Assert.AreEqual(1, SaveSystem.Data.meta.seasonStars);
+            Season.NowOverride = new System.DateTime(2026, 3, 2).AddDays(Season.Days);
+            Assert.AreEqual(0, Season.Level, "the track did not start again with a new season");
+            Season.NowOverride = null;
+            Season.Off = true;
+        }
     }
 }

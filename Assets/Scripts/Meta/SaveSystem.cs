@@ -82,6 +82,8 @@ namespace Shrunk
         public List<string> lettersRead = new List<string>();
         /// <summary>Times the rival has been met, and whether it is beaten for good.</summary>
         public int rivalMet, rivalBeaten;
+        /// <summary>The season the track belongs to, the XP on it, and Season Stars earned (a whole track each).</summary>
+        public int seasonId, seasonXp, seasonStars;
         public int goldBugsCaught;
         public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>
