@@ -688,7 +688,7 @@ namespace Shrunk
 
                 // Going down is always a choice: stand at the hole and use it. (Walking over it does nothing.)
                 _exitPad.radius = exitRadius;
-                if (_exitPad.SteppedOn(room.ExitHole.transform.position, position)) BuildFloor(FloorNumber + 1);
+                if (_exitPad.SteppedOn(room.ExitHole.transform.position, position)) BuildFloor(NextFloorNumber());
             }
         }
 
@@ -778,6 +778,16 @@ namespace Shrunk
         // enemy put down there starts inside it. Walkable ground at floor level, right here, is the test.
         static bool OpenFloor(Vector3 point) =>
             UnityEngine.AI.NavMesh.SamplePosition(point, out var hit, 0.5f, UnityEngine.AI.NavMesh.AllAreas) && hit.position.y < 0.3f;
+
+        /// <summary>Where the hole goes: the next floor, or on a quick run, after a world's second floor, its boss.</summary>
+        public int NextFloorNumber()
+        {
+            var run = RunDirector.Instance;
+            int stage = FloorLayout.FloorOfBiome(FloorNumber);
+            if (run != null && run.IsQuick && !FloorLayout.IsBossFloor(FloorNumber) && stage >= 2)
+                return FloorNumber - stage + FloorLayout.FloorsPerBiome;
+            return FloorNumber + 1;
+        }
 
         /// <summary>A few more enemies into this room, away from the player: for trials like the vault's.</summary>
         public void SpawnInto(Room room, int count)
@@ -880,7 +890,7 @@ namespace Shrunk
             if (ExitOpen && ExtractPortal == null && CurrentNode != null && CurrentNode.type == RoomType.Exit && room != null && room.ExitHole != null
                 && _exitPad.Distance(room.ExitHole.transform.position, playerPosition) < exitRadius + 1.5f)
             {
-                return $"The way down. {Interact.Verb} to drop to floor {FloorLayout.FloorOfBiome(FloorNumber + 1)}.";
+                return $"The way down. {Interact.Verb} to drop to floor {FloorLayout.FloorOfBiome(NextFloorNumber())}.";
             }
             return null;
         }

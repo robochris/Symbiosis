@@ -43,6 +43,10 @@ namespace Shrunk
             if (player != null) HatStand.Place(player.transform.position + new Vector3(-2.6f, 0f, 1.6f));
             if (player != null) PetJar.Place(player.transform.position + new Vector3(-2.6f, 0f, -1.4f));
             if (player != null) PressureGauge.Place(player.transform.position + new Vector3(2.6f, 0f, -1.4f));
+            if (player != null) Mailbox.Place(player.transform.position + new Vector3(4.6f, 0f, 1.2f));
+            if (player != null) QuickRunSign.Place(player.transform.position + new Vector3(-2.6f, 0f, -5.8f));
+            var cabinet = FindAnyObjectByType<FilingCabinet>(FindObjectsInactive.Include);
+            if (cabinet != null) ItemWall.Place(cabinet.transform.position + new Vector3(-2.8f, 0f, 0.4f), Quaternion.LookRotation(Vector3.back));
             Pressure.Apply(0);
 
             // A hat or a pet earned on the way: say so, and where to find it.

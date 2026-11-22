@@ -24,6 +24,9 @@ namespace Shrunk
         public static bool Daily;
         /// <summary>Set by the Gauntlet before the run scene loads: boss after boss, nothing else.</summary>
         public static bool Gauntlet;
+        /// <summary>Set by the quick-run sign before the run scene loads: every world is two floors and its boss.</summary>
+        public static bool Quick;
+        public bool IsQuick { get; private set; }
         /// <summary>Set by the dev menu before the run scene loads: a fresh run in this world ("" = the usual one), on this floor of it.</summary>
         public static string DevWorld;
         public static int DevStage = 1;
@@ -131,6 +134,8 @@ namespace Shrunk
             Daily = false;
             IsGauntlet = Gauntlet && !IsDescent;
             Gauntlet = false;
+            IsQuick = Quick && !IsDescent && !IsGauntlet && !IsDaily;
+            Quick = false;
 
             // The lab's pressure gauge, for an ordinary run.
             Pressure.Apply(IsDaily || IsGauntlet || IsDescent ? 0 : Pressure.Chosen);
@@ -266,6 +271,7 @@ namespace Shrunk
                 _floors.dailyTwist = FloorTwists.ForDay(run.dailySeed);
             }
             if (!string.IsNullOrEmpty(run.biome)) _floors.SetBiome(run.biome);
+            IsQuick = run.quick;
             _floors.BuildFloor(Mathf.Max(1, run.floorNumber), run.seed);
         }
 
@@ -288,6 +294,7 @@ namespace Shrunk
             run.samples = RunState.Samples;
             run.kills = RunState.Kills;
             run.worldsBeaten = floors.WorldsBeaten;
+            run.quick = IsQuick;
             run.dailySeed = IsDaily ? floors.fixedSeed : 0;
             if (IsDaily)
             {

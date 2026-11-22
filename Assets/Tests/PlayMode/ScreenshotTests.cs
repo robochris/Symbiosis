@@ -771,6 +771,16 @@ namespace Shrunk.Tests
             CameraFollow.Instance.Snap();
             yield return new WaitForSeconds(0.8f);
             yield return Screen(Path.Combine(folder, "lab-north.png"));
+
+            // The item wall, beside the filing cabinet.
+            if (ItemWall.Current != null)
+            {
+                player.Teleport(ItemWall.Current.transform.position + new Vector3(0f, 0.05f, 4f));
+                player.transform.rotation = Quaternion.LookRotation(Vector3.back);
+                CameraFollow.Instance.Snap();
+                yield return new WaitForSeconds(0.8f);
+                yield return Screen(Path.Combine(folder, "lab-itemwall.png"));
+            }
             GameSettings.Reset();
             SaveSystem.Wipe();
         }

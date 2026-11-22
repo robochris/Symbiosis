@@ -387,5 +387,33 @@ namespace Shrunk.Tests
             Assert.IsTrue(vault.Cleared, "three rounds right and the vault is not cleared");
             Assert.AreEqual(1, SaveSystem.Data.meta.vaultsCleared);
         }
+
+        [UnityTest]
+        public IEnumerator The_lab_has_mail_an_item_wall_and_a_quick_run()
+        {
+            SaveSystem.Data.meta.runsStarted = 1;
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            Assert.IsNotNull(Mailbox.Current, "no mailbox");
+            Assert.IsNotNull(ItemWall.Current, "no item wall");
+            Assert.IsNotNull(QuickRunSign.Current, "no quick-run sign");
+            Assert.AreEqual(1, Mailbox.Waiting().Count, "the first letter has not come");
+            int samples = SaveSystem.Data.meta.samples;
+            var letter = Mailbox.Current.ReadNext();
+            Assert.AreEqual("welcome", letter.id);
+            Assert.AreEqual(samples + letter.gift, SaveSystem.Data.meta.samples);
+            Assert.AreEqual(0, Mailbox.Waiting().Count, "a letter read twice");
+
+            Assert.IsTrue(QuickRunSign.Current.Begin());
+            yield return new WaitForSeconds(1.5f);
+            yield return null;
+            Assert.IsNotNull(RunDirector.Instance, "the quick run did not start");
+            Assert.IsTrue(RunDirector.Instance.IsQuick);
+            var floors = FloorManager.Instance;
+            floors.BuildFloor(2);
+            yield return null;
+            Assert.IsTrue(FloorLayout.IsBossFloor(floors.NextFloorNumber()), "a quick run's second floor does not lead to the boss");
+        }
     }
 }

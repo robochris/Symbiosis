@@ -78,6 +78,8 @@ namespace Shrunk
         /// <summary>The getting-started goals done, one bit each.</summary>
         public int starterGoals;
         public int vaultsOpened, vaultsCleared;
+        /// <summary>Letters from the mailbox already read, by id.</summary>
+        public List<string> lettersRead = new List<string>();
         public int goldBugsCaught;
         public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>
@@ -101,6 +103,8 @@ namespace Shrunk
     public class RunSave
     {
         public bool active;
+        /// <summary>A quick run: every world two floors and its boss.</summary>
+        public bool quick;
         public int floorNumber;
         public int depth;
         /// <summary>Which biome the run is in. Empty in saves from before there was more than one.</summary>
