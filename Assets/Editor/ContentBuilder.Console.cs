@@ -155,6 +155,10 @@ namespace Shrunk.EditorTools
             cursor.friends = new[] { electronPrefab };
             cursor.sampleReward = 12;
             cursor.knockbackOnHit = 1f;
+            // Its own move, so it is not just a smaller copy of the boss at the end.
+            var cursorMove = cursor.gameObject.AddComponent<MiniBossMove>();
+            cursorMove.kind = MiniBossMove.Kind.Hem;
+            cursorMove.material = telegraph;
             Object.DestroyImmediate(cursor.GetComponent<EnemyMutations>());
             var cursorPrefab = (BossEnemy)SaveEnemy(cursor);
 

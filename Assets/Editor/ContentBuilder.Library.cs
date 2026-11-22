@@ -155,6 +155,10 @@ namespace Shrunk.EditorTools
             trainee.friends = new[] { fishPrefab };
             trainee.sampleReward = 12;
             trainee.knockbackOnHit = 1f;
+            // Its own move, so it is not just a smaller copy of the boss at the end.
+            var traineeMove = trainee.gameObject.AddComponent<MiniBossMove>();
+            traineeMove.kind = MiniBossMove.Kind.Hem;
+            traineeMove.material = telegraph;
             Object.DestroyImmediate(trainee.GetComponent<EnemyMutations>());
             var traineePrefab = (BossEnemy)SaveEnemy(trainee);
 

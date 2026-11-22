@@ -143,6 +143,12 @@ namespace Shrunk.EditorTools
             trimmer.friends = new[] { earwigPrefab };
             trimmer.sampleReward = 12;
             trimmer.knockbackOnHit = 0.5f;
+            // Its own move, so it is not just a smaller copy of the boss at the end.
+            var trimmerMove = trimmer.gameObject.AddComponent<MiniBossMove>();
+            trimmerMove.kind = MiniBossMove.Kind.Burst;
+            trimmerMove.material = telegraph;
+            trimmerMove.projectilePrefab = dropPrefab;
+            trimmerMove.shots = 8;
             Object.DestroyImmediate(trimmer.GetComponent<EnemyMutations>());
             var trimmerPrefab = (BossEnemy)SaveEnemy(trimmer);
 

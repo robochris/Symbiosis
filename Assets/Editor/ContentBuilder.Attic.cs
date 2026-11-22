@@ -149,6 +149,10 @@ namespace Shrunk.EditorTools
             bigBat.friends = new[] { batPrefab };
             bigBat.sampleReward = 12;
             bigBat.knockbackOnHit = 0.5f;
+            // Its own move, so it is not just a smaller copy of the boss at the end.
+            var bigBatMove = bigBat.gameObject.AddComponent<MiniBossMove>();
+            bigBatMove.kind = MiniBossMove.Kind.Shockwave;
+            bigBatMove.material = telegraph;
             Object.DestroyImmediate(bigBat.GetComponent<EnemyMutations>());
             var bigBatPrefab = (BossEnemy)SaveEnemy(bigBat);
 

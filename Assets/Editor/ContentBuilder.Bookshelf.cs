@@ -149,6 +149,12 @@ namespace Shrunk.EditorTools
             bookend.friends = new[] { fishPrefab };
             bookend.sampleReward = 12;
             bookend.knockbackOnHit = 0.4f;
+            // Its own move, so it is not just a smaller copy of the boss at the end.
+            var bookendMove = bookend.gameObject.AddComponent<MiniBossMove>();
+            bookendMove.kind = MiniBossMove.Kind.Burst;
+            bookendMove.material = telegraph;
+            bookendMove.projectilePrefab = pagePrefab;
+            bookendMove.shots = 10;
             Object.DestroyImmediate(bookend.GetComponent<EnemyMutations>());
             var bookendPrefab = (BossEnemy)SaveEnemy(bookend);
 

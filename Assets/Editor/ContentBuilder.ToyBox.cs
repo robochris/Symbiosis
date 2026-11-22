@@ -161,6 +161,10 @@ namespace Shrunk.EditorTools
             mouse.friends = new[] { carPrefab };
             mouse.sampleReward = 12;
             mouse.knockbackOnHit = 0.5f;
+            // Its own move, so it is not just a smaller copy of the boss at the end.
+            var mouseMove = mouse.gameObject.AddComponent<MiniBossMove>();
+            mouseMove.kind = MiniBossMove.Kind.Shockwave;
+            mouseMove.material = telegraph;
             Object.DestroyImmediate(mouse.GetComponent<EnemyMutations>());
             var mousePrefab = (BossEnemy)SaveEnemy(mouse);
 

@@ -898,5 +898,19 @@ namespace Shrunk.Tests
             Assert.IsFalse(SaveSystem.Data.meta.featuresAnnounced.Contains("Mailbox"), "two things announced in one visit");
             Unlocks.AllOpen = true;
         }
+
+        [UnityTest]
+        public IEnumerator Every_mini_boss_is_more_than_a_small_copy_of_its_boss()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            foreach (var biome in FloorManager.Instance.AllBiomes())
+            {
+                if (biome.miniBoss == null || biome.boss == null) continue;
+                bool sameKind = biome.miniBoss.GetType() == biome.boss.GetType();
+                if (sameKind) Assert.IsNotNull(biome.miniBoss.GetComponent<MiniBossMove>(), biome.displayName + "'s mini-boss is only a small copy of its boss");
+            }
+        }
     }
 }

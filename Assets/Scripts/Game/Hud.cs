@@ -101,7 +101,11 @@ namespace Shrunk
         }
 
         /// <summary>The last message shown, for tests.</summary>
-        public string LastToast => _toast;
+        /// <summary>The newest message asked for (it may still be waiting its turn).</summary>
+        public string LastToast => _lastAsked ?? _toast;
+        string _lastAsked;
+        float _toastShownAt;
+        readonly System.Collections.Generic.Queue<System.Collections.Generic.KeyValuePair<string, float>> _waiting = new System.Collections.Generic.Queue<System.Collections.Generic.KeyValuePair<string, float>>();
         public bool ToastShowing => Time.time < _toastUntil;
 
         // Walking into a special kind of fight room for the first time: say what it is and what to do about it.
@@ -126,14 +130,38 @@ namespace Shrunk
             Toast(message, seconds);
         }
 
+        /// <summary>
+        /// Shows a message. If another is up, the new one waits its turn instead of wiping it out; the one up is cut to
+        /// a couple of seconds so the queue moves. The same message twice in a row is said once.
+        /// </summary>
         public void Toast(string message, float seconds)
         {
+            _lastAsked = message;
+            if (Time.time < _toastUntil && _toast != message)
+            {
+                foreach (var waiting in _waiting) if (waiting.Key == message) return;
+                if (_waiting.Count >= 4) _waiting.Dequeue();
+                _waiting.Enqueue(new System.Collections.Generic.KeyValuePair<string, float>(message, seconds));
+                _toastUntil = Mathf.Min(_toastUntil, Mathf.Max(Time.time, _toastShownAt + 2.2f));
+                return;
+            }
+            Show(message, seconds);
+        }
+
+        void Show(string message, float seconds)
+        {
             _toast = message;
+            _toastShownAt = Time.time;
             _toastUntil = Time.time + seconds;
         }
 
         void Update()
         {
+            if (Time.time >= _toastUntil && _waiting.Count > 0)
+            {
+                var next = _waiting.Dequeue();
+                Show(next.Key, _waiting.Count > 0 ? Mathf.Min(next.Value, 2.6f) : next.Value);
+            }
             var player = PlayerController.Instance;
             if (player != null)
             {

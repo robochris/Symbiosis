@@ -135,6 +135,7 @@ GameObject:
   - component: {fileID: 4338401146201956732}
   - component: {fileID: 8690936584261592599}
   - component: {fileID: 5349377811937709821}
+  - component: {fileID: 3770052382495783916}
   m_Layer: 0
   m_Name: TheCursor
   m_TagString: Untagged
@@ -263,6 +264,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Shrunk::Shrunk.HitFlash
   duration: 0.08
   color: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &3770052382495783916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1484855907196501304}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8096cef9babfc44c862df94892b0535, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shrunk::Shrunk.MiniBossMove
+  kind: 3
+  every: 6
+  material: {fileID: 2100000, guid: 4120780dd9ff2244ca1acb01ea1c585d, type: 2}
+  projectilePrefab: {fileID: 0}
+  shots: 10
+  shotSpeed: 7
+  trailHurts: 0
 --- !u!1 &3538444489094117863
 GameObject:
   m_ObjectHideFlags: 0

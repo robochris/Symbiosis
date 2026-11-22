@@ -176,6 +176,10 @@ namespace Shrunk.EditorTools
             kite.friends = new[] { birdPrefab };
             kite.sampleReward = 12;
             kite.knockbackOnHit = 1f;
+            // Its own move, so it is not just a smaller copy of the boss at the end.
+            var kiteMove = kite.gameObject.AddComponent<MiniBossMove>();
+            kiteMove.kind = MiniBossMove.Kind.Trail;
+            kiteMove.material = puddle;
             Object.DestroyImmediate(kite.GetComponent<EnemyMutations>());
             var kitePrefab = (BossEnemy)SaveEnemy(kite);
 

@@ -175,6 +175,10 @@ namespace Shrunk.EditorTools
             bigSnail.friends = new[] { shrimpPrefab };
             bigSnail.sampleReward = 12;
             bigSnail.knockbackOnHit = 0.5f;
+            // Its own move, so it is not just a smaller copy of the boss at the end.
+            var bigSnailMove = bigSnail.gameObject.AddComponent<MiniBossMove>();
+            bigSnailMove.kind = MiniBossMove.Kind.Trail;
+            bigSnailMove.material = telegraph;
             Object.DestroyImmediate(bigSnail.GetComponent<EnemyMutations>());
             var bigSnailPrefab = (BossEnemy)SaveEnemy(bigSnail);
 

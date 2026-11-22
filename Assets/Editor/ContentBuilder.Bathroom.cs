@@ -153,6 +153,10 @@ namespace Shrunk.EditorTools
             bar.friends = new[] { ducklingPrefab };
             bar.sampleReward = 12;
             bar.knockbackOnHit = 0.5f;
+            // Its own move, so it is not just a smaller copy of the boss at the end.
+            var barMove = bar.gameObject.AddComponent<MiniBossMove>();
+            barMove.kind = MiniBossMove.Kind.Trail;
+            barMove.material = telegraph;
             Object.DestroyImmediate(bar.GetComponent<EnemyMutations>());
             var barPrefab = (BossEnemy)SaveEnemy(bar);
 

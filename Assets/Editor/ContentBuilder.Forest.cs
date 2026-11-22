@@ -176,6 +176,10 @@ namespace Shrunk.EditorTools
             frog.friends = new[] { woodlousePrefab };
             frog.sampleReward = 12;
             frog.knockbackOnHit = 1f;
+            // Its own move, so it is not just a smaller copy of the boss at the end.
+            var frogMove = frog.gameObject.AddComponent<MiniBossMove>();
+            frogMove.kind = MiniBossMove.Kind.Shockwave;
+            frogMove.material = telegraph;
             Object.DestroyImmediate(frog.GetComponent<EnemyMutations>());
             var frogPrefab = (BossEnemy)SaveEnemy(frog);
 

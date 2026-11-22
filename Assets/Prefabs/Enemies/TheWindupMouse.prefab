@@ -412,6 +412,7 @@ GameObject:
   - component: {fileID: 4274586702485383410}
   - component: {fileID: 5250619163156446072}
   - component: {fileID: 9095553386181688016}
+  - component: {fileID: 5317841696745630841}
   m_Layer: 0
   m_Name: TheWindupMouse
   m_TagString: Untagged
@@ -540,6 +541,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Shrunk::Shrunk.HitFlash
   duration: 0.08
   color: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &5317841696745630841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5323548176954886974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8096cef9babfc44c862df94892b0535, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shrunk::Shrunk.MiniBossMove
+  kind: 2
+  every: 6
+  material: {fileID: 2100000, guid: 4120780dd9ff2244ca1acb01ea1c585d, type: 2}
+  projectilePrefab: {fileID: 0}
+  shots: 10
+  shotSpeed: 7
+  trailHurts: 0
 --- !u!1 &6982874736700795768
 GameObject:
   m_ObjectHideFlags: 0
