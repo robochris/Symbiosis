@@ -51,6 +51,16 @@ namespace Shrunk
             _weapon = GetComponent<Weapon>();
         }
 
+        bool _fireLatched;
+
+        // Held, or with the setting on, a click to start and a click to stop.
+        bool MouseFire(UnityEngine.InputSystem.Mouse mouse)
+        {
+            if (!GameSettings.ToggleFire) return mouse.leftButton.isPressed;
+            if (mouse.leftButton.wasPressedThisFrame) _fireLatched = !_fireLatched;
+            return _fireLatched;
+        }
+
         public InputFrame Read()
         {
             if (overrideFrame.HasValue) return overrideFrame.Value;
@@ -130,7 +140,7 @@ namespace Shrunk
                     {
                         Vector2 delta = mouse.delta.ReadValue() * (mouseSensitivity * GameSettings.LookSpeed);
                         follow.AddLook(delta.x, delta.y);
-                        frame.fire = mouse.leftButton.isPressed;
+                        frame.fire = MouseFire(mouse);
                     }
                 }
 
@@ -216,7 +226,7 @@ namespace Shrunk
                     to.y = 0f;
                     if (to.sqrMagnitude > 0.01f) frame.aim = to.normalized;
                 }
-                frame.fire = mouse.leftButton.isPressed;
+                frame.fire = MouseFire(mouse);
             }
 
             frame.move = cameraYaw * ToGround(Vector2.ClampMagnitude(move, 1f));

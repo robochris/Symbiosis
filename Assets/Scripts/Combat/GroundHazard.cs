@@ -76,6 +76,7 @@ namespace Shrunk
         {
             var hazard = Create(PrimitiveType.Cylinder, "Blast", Flat(position, 0.05f), material);
             hazard.isBlast = true;
+            Recolour(hazard);
             hazard.flat = true;
             hazard.radius = radius;
             hazard.fuse = fuse;
@@ -113,6 +114,23 @@ namespace Shrunk
             go.transform.position = position;
             if (material != null) go.GetComponent<Renderer>().sharedMaterial = material;
             return go.AddComponent<GroundHazard>();
+        }
+
+        static MaterialPropertyBlock _block;
+
+        /// <summary>A warning mark in the colour the player chose (red as built).</summary>
+        static void Recolour(GroundHazard hazard)
+        {
+            int choice = GameSettings.WarningColour;
+            if (choice == 0) return;
+            var renderer = hazard.GetComponent<Renderer>();
+            if (renderer == null) return;
+            if (_block == null) _block = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(_block);
+            Color colour = choice == 1 ? new Color(1f, 0.9f, 0.1f) : new Color(0.2f, 0.55f, 1f);
+            _block.SetColor("_BaseColor", colour);
+            _block.SetColor("_Color", colour);
+            renderer.SetPropertyBlock(_block);
         }
 
         /// <summary>Removes every hazard, e.g. when a new floor is built.</summary>

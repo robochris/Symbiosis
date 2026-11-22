@@ -114,6 +114,12 @@ namespace Shrunk
                     Changed?.Invoke();
                     return true;
                 }
+                // Assist: the last point of health holds.
+                if (_health.Current <= 1 && GameSettings.NoDeath)
+                {
+                    _health.SetInvulnerable(1f);
+                    return true;
+                }
                 // A first run's safety net: a lethal hit caught, a few times.
                 if (_health.Current <= 1 && SafetyNet.Catch())
                 {

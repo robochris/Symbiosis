@@ -783,5 +783,24 @@ namespace Shrunk.Tests
             Assert.Greater(after, items, "nothing for clearing in time");
             RoomChallenge.ChanceForAll = 0f;
         }
+
+        [UnityTest]
+        public IEnumerator The_cant_lose_assist_holds_the_last_point()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            GameSettings.NoDeath = true;
+            player.Health.ClearInvulnerability();
+            player.Health.Restore(1);
+            player.Health.TakeDamage(1, Vector3.forward);
+            Assert.IsFalse(player.Health.IsDead, "the assist let the last point go");
+            GameSettings.NoDeath = false;
+            GameSettings.WarningColour = 1;
+            var blast = GroundHazard.SpawnBlast(player.transform.position + Vector3.forward * 6f, 1f, 3f, null);
+            Assert.IsNotNull(blast);
+            GameSettings.WarningColour = 0;
+        }
     }
 }

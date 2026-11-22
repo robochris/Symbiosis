@@ -100,6 +100,9 @@ namespace Shrunk
             Add("Back", null, () => ShowPage(0));
             Add("Text size", () => Level((GameSettings.TextSize - 0.85f) / 0.3f, "Smaller", "Normal", "Larger"), () => GameSettings.TextSize = Next(GameSettings.TextSize, 0.85f, 1f, 1.15f));
             Add("Screen shake", () => GameSettings.ScreenShake ? "On" : "Off", () => GameSettings.ScreenShake = !GameSettings.ScreenShake);
+            Add("Warning marks", () => new[] { "Red", "Yellow", "Blue" }[GameSettings.WarningColour], () => GameSettings.WarningColour = (GameSettings.WarningColour + 1) % 3);
+            Add("Firing (PC)", () => GameSettings.ToggleFire ? "Click to start and stop" : "Hold to fire", () => GameSettings.ToggleFire = !GameSettings.ToggleFire);
+            Add("Assist: can't lose", () => GameSettings.NoDeath ? "On" : "Off", () => GameSettings.NoDeath = !GameSettings.NoDeath);
             Add("Vibration (phone)", () => GameSettings.Vibration ? "On" : "Off", () => GameSettings.Vibration = !GameSettings.Vibration);
             Add("Touch controls", () => GameSettings.LeftHanded ? "Left-handed" : "Right-handed", () => GameSettings.LeftHanded = !GameSettings.LeftHanded);
             Add("Enemy arrows", () => GameSettings.EnemyArrows ? "On" : "Off", () => GameSettings.EnemyArrows = !GameSettings.EnemyArrows);

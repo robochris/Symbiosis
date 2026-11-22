@@ -74,6 +74,27 @@ namespace Shrunk
             set => Set("music", value);
         }
 
+        /// <summary>The colour of warning marks on the floor: 0 red (as built), 1 yellow, 2 blue. For colour-blind players.</summary>
+        public static int WarningColour
+        {
+            get => Mathf.Clamp(PlayerPrefs.GetInt(Prefix + "warningColour", 0), 0, 2);
+            set => SetInt("warningColour", value);
+        }
+
+        /// <summary>Assist: the player cannot lose their last point of health. For exploring, or for little ones.</summary>
+        public static bool NoDeath
+        {
+            get => PlayerPrefs.GetInt(Prefix + "noDeath", 0) == 1;
+            set => SetInt("noDeath", value ? 1 : 0);
+        }
+
+        /// <summary>On a PC: a click starts firing and another stops it, instead of holding the button.</summary>
+        public static bool ToggleFire
+        {
+            get => PlayerPrefs.GetInt(Prefix + "toggleFire", 0) == 1;
+            set => SetInt("toggleFire", value ? 1 : 0);
+        }
+
         /// <summary>On a phone: a short buzz when hurt.</summary>
         public static bool Vibration
         {
@@ -140,7 +161,7 @@ namespace Shrunk
         /// <summary>Back to the defaults.</summary>
         public static void Reset()
         {
-            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "sound", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed", "damageNumbers", "floatingAim", "textSize", "screenShake", "vibration", "music" })
+            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "sound", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed", "damageNumbers", "floatingAim", "textSize", "screenShake", "vibration", "music", "warningColour", "noDeath", "toggleFire" })
             {
                 PlayerPrefs.DeleteKey(Prefix + key);
             }
