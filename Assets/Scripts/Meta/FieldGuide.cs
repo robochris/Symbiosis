@@ -135,6 +135,15 @@ namespace Shrunk
             ["WindChime"] = "Rings, and everybody near it hurries.",
             ["Hosepipe"] = "Drips a line first. Then the rest of the reservoir.",
             ["Seedling"] = "Grows into an earwig. Not how seeds work. Here, it is.",
+            // The bookshelf
+            ["Silverfish"] = "Eats paper. Will settle for you.",
+            ["InkPot"] = "Spits ink. It never comes out.",
+            ["HolePunch"] = "Two holes, evenly spaced. In you.",
+            ["PaperPlane"] = "Folded by someone with a grudge.",
+            ["RubberStamp"] = "APPROVED. It means you.",
+            ["DeskLamp"] = "Shines on the others, and they hurry.",
+            ["Pencil"] = "Draws a line first. Then the rest of the lead.",
+            ["SilverfishEgg"] = "Hatches into a silverfish. It will be hungry.",
         };
 
         static MetaSave Meta => SaveSystem.Data.meta;

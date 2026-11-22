@@ -46,7 +46,7 @@ namespace Shrunk.EditorTools
             game.AddComponent<GameLoop>();
             var floors = game.AddComponent<FloorManager>();
             floors.biome = biome;
-            floors.otherBiomes = new[] { ContentBuilder.BuildCake(biome), ContentBuilder.BuildSofa(biome), ContentBuilder.BuildFridge(biome), ContentBuilder.BuildLibrary(biome), ContentBuilder.BuildForest(biome), ContentBuilder.BuildClouds(biome), ContentBuilder.BuildConsole(biome), ContentBuilder.BuildAquarium(biome), ContentBuilder.BuildToyBox(biome), ContentBuilder.BuildBathroom(biome), ContentBuilder.BuildAttic(biome), ContentBuilder.BuildShed(biome) };
+            floors.otherBiomes = new[] { ContentBuilder.BuildCake(biome), ContentBuilder.BuildSofa(biome), ContentBuilder.BuildFridge(biome), ContentBuilder.BuildLibrary(biome), ContentBuilder.BuildForest(biome), ContentBuilder.BuildClouds(biome), ContentBuilder.BuildConsole(biome), ContentBuilder.BuildAquarium(biome), ContentBuilder.BuildToyBox(biome), ContentBuilder.BuildBathroom(biome), ContentBuilder.BuildAttic(biome), ContentBuilder.BuildShed(biome), ContentBuilder.BuildBookshelf(biome) };
             floors.bottomBiome = ContentBuilder.BuildBottom(biome);
             floors.goldBug = ContentBuilder.BuildGoldBug();
             var worlds = new System.Collections.Generic.List<BiomeDefinition> { biome };

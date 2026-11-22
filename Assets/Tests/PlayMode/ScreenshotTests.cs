@@ -511,7 +511,7 @@ namespace Shrunk.Tests
             string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
             Directory.CreateDirectory(folder);
             CameraFollow.Instance.SetMode(CameraMode.Wide);
-            foreach (string id in new[] { "clouds", "console", "aquarium", "toybox", "bathroom", "attic", "shed" })
+            foreach (string id in new[] { "clouds", "console", "aquarium", "toybox", "bathroom", "attic", "shed", "bookshelf" })
             {
                 Assert.IsTrue(floors.SetBiome(id));
                 floors.BuildFloor(10);
@@ -522,6 +522,55 @@ namespace Shrunk.Tests
                 yield return new WaitForSeconds(4f);
                 yield return Screen(Path.Combine(folder, id + "-boss.png"));
             }
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
+        public IEnumerator Capture_ledges()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            GameSettings.Radio = 0;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            CameraFollow.Instance.SetMode(CameraMode.Wide);
+            Assert.IsTrue(floors.SetBiome("bookshelf"));
+            Transform ledge = null;
+            for (int floor = 3; floor < 9 && ledge == null; floor++)
+            {
+                floors.BuildFloor(floor);
+                yield return null;
+                foreach (var each in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None)) if (each.name == "Ledge") { ledge = each; break; }
+            }
+            Assert.IsNotNull(ledge);
+            // From the middle of its room, looking at it.
+            Vector3 middle = ledge.parent.position;
+            Vector3 toLedge = ledge.position - middle;
+            toLedge.y = 0f;
+            player.Teleport(middle + Vector3.up * 0.05f);
+            player.transform.rotation = Quaternion.LookRotation(toLedge);
+            CameraFollow.Instance.Snap();
+            for (float t = 0f; t < 8f && Time.timeScale == 0f; t += Time.unscaledDeltaTime) yield return null;
+            yield return new WaitForSecondsRealtime(4.5f);
+            player.Teleport(middle + Vector3.up * 0.05f);
+            player.transform.rotation = Quaternion.LookRotation(toLedge);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.5f);
+            yield return Screen(Path.Combine(folder, "ledges.png"));
+            // And from overhead, standing beside it.
+            player.Teleport(ledge.position - toLedge.normalized * 5f + Vector3.up * 0.05f);
+            CameraFollow.Instance.SetMode(CameraMode.TopDown);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.6f);
+            yield return Screen(Path.Combine(folder, "ledges-above.png"));
             SaveSystem.Wipe();
         }
 

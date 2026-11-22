@@ -108,7 +108,9 @@ namespace Shrunk
             Vector3 origin = muzzle != null ? muzzle.position : transform.position + Vector3.up * 0.7f;
             // A confused spitter's shots hurt other enemies.
             var shot = new Shot { damage = damage, owner = Health };
-            pool.Get().Launch(origin, toPlayer.normalized, projectileSpeed, shot, projectileRange, IsConfused ? Team.Player : Team.Enemy, pool);
+            // A player on another level is aimed at chest high, so the shot clears the ledge's edge.
+            Vector3 aim = Mathf.Abs(toPlayer.y) > 0.8f ? transform.position + toPlayer + Vector3.up * 0.9f - origin : toPlayer;
+            pool.Get().Launch(origin, aim.normalized, projectileSpeed, shot, projectileRange, IsConfused ? Team.Player : Team.Enemy, pool);
             ShotsFired++;
         }
     }

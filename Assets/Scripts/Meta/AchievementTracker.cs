@@ -129,6 +129,7 @@ namespace Shrunk
             }
             if (enemy is SpiderBoss) Achievements.Unlock(AchievementId.Cobwebs);
             if (enemy is MowerBoss mower && mower.canSweep) Achievements.Unlock(AchievementId.LawnOrder);
+            if (enemy is BookBoss book && book.canThrowPages) Achievements.Unlock(AchievementId.Shelved);
 
             if (enemy is CatBoss)
             {

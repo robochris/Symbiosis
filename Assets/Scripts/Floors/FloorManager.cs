@@ -277,12 +277,15 @@ namespace Shrunk
                 }
             }
 
+            Ledges.Clear();
             foreach (var node in Layout.ordered)
             {
                 RoomShape shape = RoomShape.GenerateFor(Layout, node, number);
                 Room room = Room.Create(shape, biome, _roomsRoot, CellCentre(node.cell));
                 room.name = $"{node.type} {node.cell.x},{node.cell.y}";
                 _rooms.Add(node.cell, room);
+                if (biome.ledges && node.type == RoomType.Normal && !FloorLayout.IsBossFloor(number))
+                    Ledges.Build(room, seed ^ (node.cell.x * 73856093) ^ (node.cell.y * 19349663), biome.wallMaterial, biome.ledgeTopMaterial != null ? biome.ledgeTopMaterial : biome.floorMaterial);
 
                 // Only fight rooms need clearing.
                 node.cleared = node.type != RoomType.Normal && node.type != RoomType.Exit;
@@ -772,6 +775,12 @@ namespace Shrunk
                 foreach (var tile in room.Shape.free) if (OpenFloor(room.TileWorld(tile))) points.Add(room.TileWorld(tile));
                 points.Sort((a, b) => (b - playerPosition).sqrMagnitude.CompareTo((a - playerPosition).sqrMagnitude));
                 if (points.Count > count) points.RemoveRange(count, points.Count - count);
+            }
+
+            // Up on the ledges as well, where there are any, far enough off.
+            foreach (var spot in Ledges.SpotsIn(room))
+            {
+                if ((spot - playerPosition).sqrMagnitude >= minSpawnDistance * minSpawnDistance * 0.5f) points.Add(spot);
             }
 
             var rng = new System.Random(UnityEngine.Random.Range(0, int.MaxValue));

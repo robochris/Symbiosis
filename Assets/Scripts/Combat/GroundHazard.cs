@@ -105,6 +105,8 @@ namespace Shrunk
             var collider = go.GetComponent<Collider>();
             collider.enabled = false;
             Destroy(collider);
+            // On a floor with ledges, a mark put down on the floor goes on whatever is underfoot there.
+            if (position.y < 0.3f && Ledges.Count > 0) position.y += Ledges.SurfaceAt(position);
             go.transform.position = position;
             if (material != null) go.GetComponent<Renderer>().sharedMaterial = material;
             return go.AddComponent<GroundHazard>();
@@ -162,6 +164,8 @@ namespace Shrunk
         bool Inside(Vector3 position)
         {
             Vector3 to = position - transform.position;
+            // Only at its own level: a mark on a ledge's top does not reach under it, nor one on the floor up onto it.
+            if (Mathf.Abs(to.y) > 1.2f) return false;
             to.y = 0f;
             return to.sqrMagnitude <= radius * radius;
         }

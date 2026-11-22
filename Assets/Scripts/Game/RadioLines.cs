@@ -376,6 +376,19 @@ namespace Shrunk
                 "A library. That isn't in the house. That isn't in any house I know of. Interesting.",
                 "Books, the size of buildings. Somebody is going to want those back.",
             },
+            ["bookshelf"] = new[]
+            {
+                "The bookshelf. Upstairs, at last. Mind the ledges, and what is standing on them.",
+                "Second storey. Shoot up, shoot down. Your aim will follow.",
+            },
+            ["bookend"] = new[]
+            {
+                "The Bookend. It falls over on purpose. Do not be where it falls.",
+            },
+            ["encyclopedia"] = new[]
+            {
+                "The Encyclopedia. Long marks, then a long fall. Then it is lying down. That is your moment.",
+            },
             ["shed"] = new[]
             {
                 "The garden shed. Tools, pots, and a smell of creosote. Mind the blades.",

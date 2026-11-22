@@ -22,6 +22,9 @@ namespace Shrunk
         public string displayName = "Biome";
         [Tooltip("Short name with no spaces, written into saved runs.")]
         public string id = "biome";
+        [Tooltip("A second storey: raised platforms with ramps in the corners of fight rooms.")]
+        public bool ledges;
+        public Material ledgeTopMaterial;
         [Tooltip("Shown on the portal that leads here.")]
         public string mutationTheme = "";
         [Tooltip("The bottom: nothing lives here but its boss, and after the boss there is only the way home.")]

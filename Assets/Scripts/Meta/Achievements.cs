@@ -8,7 +8,7 @@ namespace Shrunk
         FirstSteps, MothersDay, Regicide, Untouchable, Omelette, HandsOff,
         Deeper, Hoarder, ShellShock, BubbleWrap, SweetTooth, FullPockets,
         PaperTrail, PerformanceReview, SpringClean, Unplugged, Defrosted,
-        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot, CleanSweep, GoldDigger, QuietPlease, OnARoll, HouseWins, CheckedOut, TongueTied, Croaked, SilverLining, ClearSkies, Patched, NosyParker, FishedOut, Champion, GoneFishing, BoxedIn, RubberDucky, BathTime, Cobwebs, LawnOrder
+        LooseChange, FiledAway, TimeAndAHalf, AskedForIt, Reboot, CleanSweep, GoldDigger, QuietPlease, OnARoll, HouseWins, CheckedOut, TongueTied, Croaked, SilverLining, ClearSkies, Patched, NosyParker, FishedOut, Champion, GoneFishing, BoxedIn, RubberDucky, BathTime, Cobwebs, LawnOrder, Shelved
     }
 
     /// <summary>One achievement: what to do, and what doing it gives.</summary>
@@ -80,7 +80,8 @@ namespace Shrunk
             new Achievement { id = AchievementId.RubberDucky, name = "Rubber Ducky", how = "Beat the Rubber Duck without once being caught by a ring.", reward = "the Duck style", style = "Duck" },
             new Achievement { id = AchievementId.BathTime, name = "Bath Time", how = "Beat the Rubber Duck.", reward = "a ladder up into the attic", biome = "attic" },
             new Achievement { id = AchievementId.Cobwebs, name = "Cobwebs", how = "Beat the Spider.", reward = "the Spider style, and a door out to the garden shed", style = "Spider", biome = "shed" },
-            new Achievement { id = AchievementId.LawnOrder, name = "Lawn Order", how = "Beat the Lawnmower.", reward = "the Grass style", style = "Grass" },
+            new Achievement { id = AchievementId.LawnOrder, name = "Lawn Order", how = "Beat the Lawnmower.", reward = "the Grass style, and a way up to the bookshelf", style = "Grass", biome = "bookshelf" },
+            new Achievement { id = AchievementId.Shelved, name = "Shelved", how = "Beat the Encyclopedia.", reward = "the Paper style", style = "Paper" },
             new Achievement { id = AchievementId.HouseWins, name = "The House Wins", how = "Have the claw machine drop it 10 times.", reward = "the machine's respect. It has none" },
         };
 

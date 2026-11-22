@@ -149,6 +149,7 @@ namespace Shrunk
 
             Vector3 origin = muzzle != null ? muzzle.position : transform.position;
             Vector3 direction = ApplyAimAssist(origin, Converge(origin, aimDirection.normalized, aimDistance), aimAssistAngle + stats.aimAssistBonusAngle);
+            direction = Pitch(origin, direction, (aimAssistAngle + stats.aimAssistBonusAngle) * 1.5f);
             Volley(direction, stats, info, charged);
             if (info.burst > 1)
             {
@@ -222,6 +223,38 @@ namespace Shrunk
             Vector3 to = target - origin;
             to.y = 0f;
             return to.sqrMagnitude > 0.01f ? to.normalized : aimDirection;
+        }
+
+        /// <summary>
+        /// Up and down: the aim is only ever left and right, so a shot at something on a ledge above (or below) is
+        /// tilted to meet it. Only for a target on another level: on the flat, shots fly flat as they always have.
+        /// </summary>
+        Vector3 Pitch(Vector3 origin, Vector3 flat, float coneAngle)
+        {
+            Collider best = null;
+            float bestAngle = Mathf.Max(coneAngle, 12f);
+            float bestDistance = 0f;
+            foreach (var enemy in Enemy.Active)
+            {
+                if (enemy.Health.IsDead || !enemy.Targetable) continue;
+                if (Mathf.Abs(enemy.transform.position.y - transform.position.y) < 0.8f) continue;
+                Vector3 to = enemy.transform.position - origin;
+                to.y = 0f;
+                float distance = to.magnitude;
+                if (distance > Reach || distance < 0.5f) continue;
+                float angle = Vector3.Angle(flat, to);
+                if (angle >= bestAngle) continue;
+                var body = enemy.GetComponent<Collider>();
+                if (body == null) continue;
+                bestAngle = angle;
+                best = body;
+                bestDistance = distance;
+            }
+            if (best == null) return flat;
+            float rise = best.bounds.center.y - origin.y;
+            Vector3 level = flat;
+            level.y = 0f;
+            return (level.normalized * bestDistance + Vector3.up * rise).normalized;
         }
 
         Vector3 ApplyAimAssist(Vector3 origin, Vector3 direction, float coneAngle)

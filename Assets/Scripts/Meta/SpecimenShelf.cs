@@ -43,6 +43,8 @@ namespace Shrunk
             new Specimen { key = "TheSpider", title = "The Spider", label = "She has redecorated the jar. It is nicer than my office." },
             new Specimen { key = "TheHedgeTrimmer", title = "The Hedge Trimmer", label = "Unplugged, and still trying to tidy the jar." },
             new Specimen { key = "TheLawnmower", title = "The Lawnmower", label = "Too big for a jar. This is a very large jar. I had it made." },
+            new Specimen { key = "TheBookend", title = "The Bookend", label = "Propped up on its own, for once. It does not care for it." },
+            new Specimen { key = "TheEncyclopedia", title = "The Encyclopedia", label = "Pressed flat between two sheets of glass. Still reading." },
             new Specimen { key = "TheCat", title = "The Cat", label = "An empty jar. It would not get in. Dr. Finch asks that you do not tap the glass anyway." },
         };
 
