@@ -143,9 +143,13 @@ namespace Shrunk.Tests
             Assert.IsNull(_floors.MachineRoom, "the machine turned up in the first world of a run");
 
             // A world in: there it is, off the map.
+            // (It needs a quiet dead end; not every layout has one, so try a few.)
             _floors.WorldsBeaten = 1;
-            _floors.BuildFloor(10);
-            yield return null;
+            for (int seed = 1; seed <= 8 && _floors.MachineRoom == null; seed++)
+            {
+                _floors.BuildFloor(10, 4100 + seed);
+                yield return null;
+            }
             var machine = _floors.MachineRoom;
             Assert.IsNotNull(machine, "no machine room on the second world's boss floor");
             RoomNode node = null;

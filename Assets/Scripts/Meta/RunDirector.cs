@@ -50,7 +50,7 @@ namespace Shrunk
         PlayerController _player;
 
         /// <summary>Each extra biome raises what your samples are worth when you extract: ×1, ×1.5, ×2...</summary>
-        public static float RewardMultiplier(int depth) => 1f + 0.5f * (Mathf.Max(1, depth) - 1);
+        public static float RewardMultiplier(int depth) => (1f + 0.5f * (Mathf.Max(1, depth) - 1)) * Pressure.RewardScale;
 
         void Awake()
         {
@@ -106,6 +106,9 @@ namespace Shrunk
                 CycleCard = CycleRadio = true;
                 return;
             }
+            // A world's own boss beaten: the next pressure level may open.
+            if (enemy is BossEnemy && _floors != null && _floors.biome != null && _floors.biome.boss != null && enemy.name.StartsWith(_floors.biome.boss.name))
+                Pressure.BossBeaten();
             if (!(enemy is CatBoss)) return;
             SaveSystem.Data.meta.finchBeaten++;
             SaveSystem.Save();
@@ -128,6 +131,9 @@ namespace Shrunk
             Daily = false;
             IsGauntlet = Gauntlet && !IsDescent;
             Gauntlet = false;
+
+            // The lab's pressure gauge, for an ordinary run.
+            Pressure.Apply(IsDaily || IsGauntlet || IsDescent ? 0 : Pressure.Chosen);
 
             RunSave run = SaveSystem.Data.run;
             if (DevWorld != null) run.active = false;
@@ -193,6 +199,11 @@ namespace Shrunk
                 }
             }
 
+            if (Pressure.Active > 0)
+            {
+                var pressureHud = FindAnyObjectByType<Hud>();
+                if (pressureHud != null) pressureHud.Toast("Running at " + Pressure.Describe(Pressure.Active) + ".", 4f);
+            }
             _floors.depth = TimeClock.StartDepth;
             if (IsDaily)
             {

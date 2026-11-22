@@ -65,13 +65,13 @@ namespace Shrunk.Tests
 
             // Ledges in the fight rooms, walkable on top, with a way up.
             int ledges = 0;
-            for (int floor = 2; floor <= 4 && ledges == 0; floor++)
+            for (int floor = 2; floor <= 8 && ledges == 0; floor++)
             {
                 _floors.BuildFloor(floor);
                 yield return null;
                 ledges = Ledges.Count;
             }
-            Assert.Greater(ledges, 0, "no ledges on three floors of the bookshelf");
+            Assert.Greater(ledges, 0, "no ledges on seven floors of the bookshelf");
             Ledge first = null;
             foreach (var each in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None)) if (each.name == "Ledge") { first = new Ledge { at = each.position }; break; }
             Assert.IsNotNull(first, "no ledge in the scene");

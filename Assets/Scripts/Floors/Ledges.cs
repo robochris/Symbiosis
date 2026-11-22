@@ -41,16 +41,24 @@ namespace Shrunk
             }
             int wanted = 1 + rng.Next(2);
             int made = 0;
+            // Each corner in turn, a little further in or out, the ramp either way, until one fits.
             foreach (var corner in corners)
             {
                 if (made >= wanted) break;
-                if (TryBuild(room, shape, corner, rng.Next(2) == 0, sides, top)) made++;
+                bool alongX = rng.Next(2) == 0;
+                bool done = false;
+                foreach (int reach in new[] { 4, 3, 5 })
+                {
+                    for (int turn = 0; turn < 2 && !done; turn++) done = TryBuild(room, shape, corner, reach, turn == 0 ? alongX : !alongX, sides, top);
+                    if (done) break;
+                }
+                if (done) made++;
             }
         }
 
-        static bool TryBuild(Room room, RoomShape shape, Vector2Int corner, bool rampAlongX, Material sides, Material topMaterial)
+        static bool TryBuild(Room room, RoomShape shape, Vector2Int corner, int reach, bool rampAlongX, Material sides, Material topMaterial)
         {
-            Vector2Int middle = shape.centre + corner * 4;
+            Vector2Int middle = shape.centre + corner * reach;
             int half = Span / 2;
             var tiles = new List<Vector2Int>();
             for (int x = -half; x <= half; x++)
@@ -75,6 +83,21 @@ namespace Shrunk
             platform.transform.position = centre + Vector3.up * (Height * 0.5f);
             platform.transform.localScale = new Vector3(Span * size, Height, Span * size);
             if (sides != null) platform.GetComponent<Renderer>().sharedMaterial = sides;
+            // Drawn as a stack of three books, each a little askew, the top one's pages showing at the edge.
+            platform.GetComponent<Renderer>().enabled = false;
+            var rng = new System.Random(middle.x * 31 + middle.y * 17);
+            Color[] covers = { new Color(0.55f, 0.12f, 0.12f), new Color(0.13f, 0.35f, 0.22f), new Color(0.15f, 0.22f, 0.5f), new Color(0.45f, 0.3f, 0.12f), new Color(0.35f, 0.15f, 0.4f) };
+            float layer = Height / 3f;
+            for (int book = 0; book < 3; book++)
+            {
+                float y = layer * (book + 0.5f);
+                float turn = (float)(rng.NextDouble() * 6.0 - 3.0);
+                var cover = Part.Make(PrimitiveType.Cube, "Book " + book, platform.transform.parent, Vector3.zero, new Vector3(Span * size + 0.2f, layer * 0.98f, Span * size - 0.1f), covers[rng.Next(covers.Length)]);
+                cover.transform.position = centre + Vector3.up * y;
+                cover.transform.rotation = Quaternion.Euler(0f, turn, 0f);
+                var pages = Part.Make(PrimitiveType.Cube, "Pages " + book, cover.transform, new Vector3(0.012f, 0f, 0f), new Vector3(0.97f, 0.8f, 1.03f), new Color(0.93f, 0.9f, 0.8f));
+                pages.transform.localPosition = new Vector3(0f, 0f, 0f);
+            }
 
             // A lighter lid, so the top reads as somewhere to stand.
             var lid = GameObject.CreatePrimitive(PrimitiveType.Cube);

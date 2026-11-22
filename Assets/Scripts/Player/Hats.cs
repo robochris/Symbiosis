@@ -92,6 +92,13 @@ namespace Shrunk
                 }
                 Part.Make(PrimitiveType.Sphere, "Jewel", t, new Vector3(0f, Top + 0.06f, 0.25f), Vector3.one * 0.08f, new Color(0.9f, 0.1f, 0.3f), true);
             } },
+            new Hat { name = "Hard Hat", how = "Beat a world's boss at pressure 3.", earned = m => m.pressureBest >= 3, build = t =>
+            {
+                var yellow = new Color(1f, 0.82f, 0.1f);
+                Part.Make(PrimitiveType.Sphere, "Shell", t, new Vector3(0f, Top - 0.02f, 0f), new Vector3(0.64f, 0.36f, 0.66f), yellow);
+                Part.Make(PrimitiveType.Cylinder, "Brim", t, new Vector3(0f, Top - 0.04f, 0.06f), new Vector3(0.72f, 0.015f, 0.78f), yellow);
+                Part.Make(PrimitiveType.Cube, "Ridge", t, new Vector3(0f, Top + 0.16f, 0f), new Vector3(0.08f, 0.05f, 0.5f), new Color(0.9f, 0.72f, 0.05f));
+            } },
         };
 
         public static bool Earned(int index)

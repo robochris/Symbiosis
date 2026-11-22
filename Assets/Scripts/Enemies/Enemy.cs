@@ -58,7 +58,7 @@ namespace Shrunk
         public bool flies;
         public virtual bool IgnoresGroundHazards => flies;
         /// <summary>Everything that changes how fast this enemy moves and attacks, multiplied together.</summary>
-        public float SpeedScale => SpeedMultiplier * (IsBuffed ? 1.4f : 1f) * (IsChilled ? ChilledSpeed : 1f) * WorldSlow * WorldRush;
+        public float SpeedScale => SpeedMultiplier * (IsBuffed ? 1.4f : 1f) * (IsChilled ? ChilledSpeed : 1f) * WorldSlow * WorldRush * PressureRush;
         /// <summary>Chilled by an Ice Cube shot: slower in everything it does until it thaws.</summary>
         public bool IsChilled => Time.time < _chilledUntil;
         public const float ChilledSpeed = 0.6f;
@@ -76,6 +76,9 @@ namespace Shrunk
         public static float WorldSlow = 1f;
         /// <summary>Above 1 on a rush-hour floor: everything is quicker. Set by the floor.</summary>
         public static float WorldRush = 1f;
+        /// <summary>Pressure (see Pressure): every enemy's health is scaled by this when it comes into play, and its speed by PressureRush.</summary>
+        public static float HealthScale = 1f, PressureRush = 1f;
+        int _bornMaxHealth;
 
         protected CharacterController Controller { get; private set; }
         protected Vector3 Knockback;
@@ -160,6 +163,10 @@ namespace Shrunk
             SpeedMultiplier = 1f;
             BaseScale = 1f;
             Targetable = true;
+            // Health as built, scaled for the run's pressure. Worked out from the built figure each time, so a pooled
+            // enemy never compounds it.
+            if (_bornMaxHealth <= 0) _bornMaxHealth = Health.maxHealth;
+            Health.SetMaxHealth(Mathf.CeilToInt(_bornMaxHealth * HealthScale), true);
             SetVisualScale(1f);
             HideChargeLine();
             Appeared?.Invoke(this);

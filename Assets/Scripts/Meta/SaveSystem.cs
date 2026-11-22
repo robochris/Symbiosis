@@ -71,6 +71,8 @@ namespace Shrunk
         public int bestCombo;
         /// <summary>The pet chosen, and which pets have been announced (one bit each).</summary>
         public int pet, petsSeen;
+        /// <summary>The pressure chosen at the gauge, and the highest at which a world's boss has been beaten.</summary>
+        public int pressure, pressureBest;
         public int goldBugsCaught;
         public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>

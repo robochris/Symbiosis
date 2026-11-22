@@ -224,5 +224,39 @@ namespace Shrunk.Tests
             player.Health.TakeDamage(1, Vector3.forward);
             Assert.AreEqual(buzzes + 1, Haptics.Buzzes, "a hit with no buzz");
         }
+
+        [UnityTest]
+        public IEnumerator Pressure_makes_enemies_tougher_and_samples_worth_more()
+        {
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            Assert.IsNotNull(PressureGauge.Current, "no pressure gauge in the lab");
+            Assert.AreEqual(0, Pressure.Unlocked, "pressure before any boss");
+            SaveSystem.Data.meta.bossesBeaten = 1;
+            Assert.AreEqual(1, Pressure.Unlocked);
+            Assert.AreEqual(1, Pressure.Next());
+            Assert.AreEqual(0, Pressure.Next(), "the dial went past what is open");
+            Pressure.Next();
+
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            Assert.AreEqual(1, Pressure.Active);
+            Assert.AreEqual(1.25f, RunDirector.RewardMultiplier(1), 0.001f);
+            var prefab = FloorManager.Instance.biome.spawnTable[0].prefab;
+            var enemy = UnityEngine.Object.Instantiate(prefab, PlayerController.Instance.transform.position + Vector3.forward * 12f, Quaternion.identity);
+            yield return null;
+            Assert.AreEqual(Mathf.CeilToInt(prefab.GetComponent<Health>().maxHealth * 1.2f), enemy.Health.maxHealth, "no extra health under pressure");
+            UnityEngine.Object.Destroy(enemy.gameObject);
+
+            // A world's boss beaten at it opens the next level; three, the hard hat.
+            Pressure.BossBeaten();
+            Assert.AreEqual(2, Pressure.Unlocked);
+            SaveSystem.Data.meta.pressureBest = 3;
+            Assert.IsTrue(Hats.Earned(Hats.All.Length - 1), "no hard hat at pressure 3");
+            Pressure.Apply(0);
+            Assert.AreEqual(1f, Enemy.HealthScale);
+        }
     }
 }

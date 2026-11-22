@@ -42,6 +42,8 @@ namespace Shrunk
             if (player != null) DailyParcel.Place(player.transform.position + new Vector3(2.6f, 0f, 1.6f));
             if (player != null) HatStand.Place(player.transform.position + new Vector3(-2.6f, 0f, 1.6f));
             if (player != null) PetJar.Place(player.transform.position + new Vector3(-2.6f, 0f, -1.4f));
+            if (player != null) PressureGauge.Place(player.transform.position + new Vector3(2.6f, 0f, -1.4f));
+            Pressure.Apply(0);
 
             // A hat or a pet earned on the way: say so, and where to find it.
             var fresh = Hats.TakeNew();
