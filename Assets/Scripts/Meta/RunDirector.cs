@@ -24,6 +24,9 @@ namespace Shrunk
         public static bool Daily;
         /// <summary>Set by the Gauntlet before the run scene loads: boss after boss, nothing else.</summary>
         public static bool Gauntlet;
+        /// <summary>Set by the dev menu before the run scene loads: a fresh run in this world ("" = the usual one), on this floor of it.</summary>
+        public static string DevWorld;
+        public static int DevStage = 1;
         public bool IsGauntlet { get; private set; }
         /// <summary>How the last run went, for the card the lab shows on the way in. Null once shown.</summary>
         public static string LastSummaryHeading, LastSummary;
@@ -126,6 +129,7 @@ namespace Shrunk
             Gauntlet = false;
 
             RunSave run = SaveSystem.Data.run;
+            if (DevWorld != null) run.active = false;
             if (IsGauntlet) BeginGauntlet();
             else if (IsDescent) BeginDescent();
             else if (run.active) Resume(run);
@@ -178,6 +182,16 @@ namespace Shrunk
             {
                 _floors.fixedSeed = DailyExperiment.SeedFor(DailyExperiment.Today);
                 _floors.dailyTwist = FloorTwists.ForDay(_floors.fixedSeed);
+            }
+            if (DevWorld != null)
+            {
+                string world = DevWorld;
+                int stage = DevStage;
+                DevWorld = null;
+                DevStage = 1;
+                if (world != "") _floors.SetBiome(world);
+                _floors.BuildFloor(Mathf.Clamp(stage, 1, FloorLayout.FloorsPerBiome));
+                return;
             }
             _floors.BuildFloor(1);
         }
