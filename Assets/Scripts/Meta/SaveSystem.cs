@@ -90,6 +90,9 @@ namespace Shrunk
         /// <summary>Item synergies ever found, by name.</summary>
         public List<string> synergiesFound = new List<string>();
         public int shiniesFound;
+        /// <summary>Worlds whose rubber duck has been found, and how many times the pet jar has been opened.</summary>
+        public List<string> ducksFound = new List<string>();
+        public int petJarOpens;
         /// <summary>Each boss's best time in seconds, and the bosses beaten without a hit (by prefab name).</summary>
         public List<string> bossTimeKeys = new List<string>();
         public List<float> bossTimes = new List<float>();

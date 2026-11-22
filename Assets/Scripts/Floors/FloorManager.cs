@@ -426,6 +426,8 @@ namespace Shrunk
         /// <summary>Tests pin these.</summary>
         public static float? SleepChanceForAll, ShinyChanceForAll;
 
+        /// <summary>This floor's hidden rubber duck, if it has one.</summary>
+        public HiddenDuck Duck { get; private set; }
         /// <summary>This floor's caged larva, if it has one.</summary>
         public RescueCage Cage { get; private set; }
         /// <summary>This floor's shrine, if it has one.</summary>
@@ -496,6 +498,30 @@ namespace Shrunk
                 var starter = assets.items.RandomCommon(new System.Random(seed), 1);
                 Room first = _rooms[Layout.start.cell];
                 if (starter.Count > 0) Pickup.Item(starter[0], first.Centre + new Vector3(0f, 0f, 3f), 0);
+            }
+
+            // A rubber duck, hidden in a corner of some room, until this world's has been found.
+            Duck = null;
+            if (!FloorLayout.IsBossFloor(FloorNumber) && !biome.isBottom && !InSpecial && !InGauntlet && !SaveSystem.Data.meta.ducksFound.Contains(biome.id)
+                && new System.Random(seed ^ 0xD0C6).NextDouble() < (HiddenDuck.ChanceForAll ?? HiddenDuck.Chance))
+            {
+                var duckRng = new System.Random(seed ^ 0xD0C7);
+                var rooms = new List<RoomNode>();
+                foreach (var each in Layout.ordered) if (each.type == RoomType.Normal || each.type == RoomType.Treasure) rooms.Add(each);
+                if (rooms.Count > 0)
+                {
+                    Room duckRoom = _rooms[rooms[duckRng.Next(rooms.Count)].cell];
+                    // The free tile furthest from the middle: tucked away in a corner.
+                    Vector3 best = duckRoom.Centre;
+                    float far = -1f;
+                    foreach (var tile in duckRoom.Shape.free)
+                    {
+                        Vector3 point = duckRoom.TileWorld(tile);
+                        float d = (point - duckRoom.Centre).sqrMagnitude;
+                        if (d > far && OpenFloor(point)) { far = d; best = point; }
+                    }
+                    Duck = HiddenDuck.Place(duckRoom, best, biome.id);
+                }
             }
 
             // And now and then a caged larva in one of the fight rooms, to be let out once it is cleared.
@@ -907,7 +933,8 @@ namespace Shrunk
                 Enemy enemy = Spawn(biome.PickEnemy(FloorInBiome, rng), points[pick], playerPosition);
                 // Now and then one is asleep, or (very rarely) shiny.
                 if (!(enemy is BossEnemy) && !forceElite && FloorInBiome >= 2 && UnityEngine.Random.value < (SleepChanceForAll ?? SleepChance)) enemy.FallAsleep();
-                if (!(enemy is BossEnemy) && UnityEngine.Random.value < (ShinyChanceForAll ?? ShinyChance)) enemy.MakeShiny();
+                float shiny = ShinyChanceForAll ?? (System.DateTime.Now.Hour == 0 ? ShinyChance * 20f : ShinyChance);
+                if (!(enemy is BossEnemy) && UnityEngine.Random.value < shiny) enemy.MakeShiny();
                 if (elite && i == 0)
                 {
                     if (enemy.Mutations != null) enemy.Mutations.Apply(MutationBudget.RollFull(rng, biome.mutations, budget + 1));

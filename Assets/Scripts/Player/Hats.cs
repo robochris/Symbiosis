@@ -106,6 +106,12 @@ namespace Shrunk
                 star.transform.localRotation = Quaternion.Euler(0f, 0f, 45f);
                 Part.Make(PrimitiveType.Cube, "Star B", t, new Vector3(0f, Top + 0.32f, 0f), new Vector3(0.2f, 0.2f, 0.05f), gold, true);
             } },
+            new Hat { name = "Duck Bill", how = "Find ten hidden rubber ducks.", earned = m => m.ducksFound.Count >= HiddenDuck.ForTheHat, build = t =>
+            {
+                var yellow = new Color(1f, 0.85f, 0.15f);
+                Part.Make(PrimitiveType.Sphere, "Cap", t, new Vector3(0f, Top - 0.03f, 0f), new Vector3(0.62f, 0.3f, 0.62f), yellow);
+                Part.Make(PrimitiveType.Cube, "Bill", t, new Vector3(0f, Top - 0.05f, 0.38f), new Vector3(0.4f, 0.06f, 0.3f), new Color(1f, 0.5f, 0.1f));
+            } },
             new Hat { name = "Hard Hat", how = "Beat a world's boss at pressure 3.", earned = m => m.pressureBest >= 3, build = t =>
             {
                 var yellow = new Color(1f, 0.82f, 0.1f);

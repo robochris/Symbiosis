@@ -802,5 +802,27 @@ namespace Shrunk.Tests
             Assert.IsNotNull(blast);
             GameSettings.WarningColour = 0;
         }
+
+        [UnityTest]
+        public IEnumerator A_rubber_duck_hides_in_each_world()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            HiddenDuck.ChanceForAll = 1f;
+            floors.BuildFloor(2);
+            yield return null;
+            HiddenDuck.ChanceForAll = 0f;
+            var duck = floors.Duck;
+            Assert.IsNotNull(duck, "no duck with the chance pinned to always");
+            duck.Take();
+            Assert.AreEqual(1, HiddenDuck.Found);
+            HiddenDuck.ChanceForAll = 1f;
+            floors.BuildFloor(3);
+            yield return null;
+            HiddenDuck.ChanceForAll = 0f;
+            Assert.IsNull(floors.Duck, "a second duck in a world whose duck was found");
+        }
     }
 }

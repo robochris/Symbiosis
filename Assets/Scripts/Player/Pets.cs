@@ -46,6 +46,11 @@ namespace Shrunk
                 Part.Make(PrimitiveType.Sphere, "Body", t, Vector3.zero, new Vector3(0.12f, 0.12f, 0.3f), new Color(0.55f, 0.45f, 0.35f));
                 Wings(t, new Color(0.8f, 0.72f, 0.6f), 0.36f);
             } },
+            new Pet { name = "Golden Moth", how = "???", earned = m => m.petJarOpens >= 100, build = t =>
+            {
+                Part.Make(PrimitiveType.Sphere, "Body", t, Vector3.zero, new Vector3(0.12f, 0.12f, 0.3f), new Color(1f, 0.8f, 0.2f), true);
+                Wings(t, new Color(1f, 0.9f, 0.4f), 0.36f);
+            } },
         };
 
         static void Wings(Transform t, Color colour, float size = 0.26f)
@@ -85,7 +90,8 @@ namespace Shrunk
 
         public static Pet NextToEarn()
         {
-            for (int i = 0; i < All.Length; i++) if (!Earned(i)) return All[i];
+            // A secret one is never mentioned.
+            for (int i = 0; i < All.Length; i++) if (!Earned(i) && All[i].how != "???") return All[i];
             return null;
         }
 
@@ -107,6 +113,7 @@ namespace Shrunk
 
         public static Pet ChooseNext()
         {
+            SaveSystem.Data.meta.petJarOpens++;
             int next = Chosen;
             for (int i = 0; i < All.Length; i++)
             {

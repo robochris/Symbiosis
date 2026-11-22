@@ -12,6 +12,9 @@ namespace Shrunk
         public const string EndingHeading = "END OF PROBATION";
         public const string EndingLine = "You are now permanent staff. Dr. Finch remains, technically, your manager.";
 
+        /// <summary>Tests switch off the middle-of-the-night note.</summary>
+        public static bool NightNoteOff;
+
         void Start()
         {
             // Home from the bottom with Finch beaten, for the first time: the ending, such as it is.
@@ -54,6 +57,8 @@ namespace Shrunk
             var cabinet = FindAnyObjectByType<FilingCabinet>(FindObjectsInactive.Include);
             if (cabinet != null) ItemWall.Place(cabinet.transform.position + new Vector3(-2.8f, 0f, 0.4f), Quaternion.LookRotation(Vector3.back));
             Pressure.Apply(0);
+            if (!NightNoteOff && System.DateTime.Now.Hour >= 2 && System.DateTime.Now.Hour < 5 && ScreenCards.Instance != null && !ScreenCards.Instance.CardShowing)
+                ScreenCards.Instance.ShowCard("A NOTE FROM FINCH", "It is the middle of the night. Go to sleep. The ants will still be there in the morning.", 4f);
             if (SaveSystem.Data.meta.runsStarted == 0)
             {
                 var portal = GameObject.Find("Portal");

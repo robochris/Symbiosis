@@ -45,6 +45,8 @@ namespace Shrunk.Tests
             FloorManager.SleepChanceForAll = 0f;
             RoomChallenge.ChanceForAll = 0f;
             RoomChallenge.FlawlessOff = true;
+            HiddenDuck.ChanceForAll = 0f;
+            LabDirector.NightNoteOff = true;
             FloorManager.ShinyChanceForAll = 0f;
             StarterGoals.Off = true;
             Shrine.ChanceForAll = 0f;
@@ -81,6 +83,8 @@ namespace Shrunk.Tests
             FloorManager.SleepChanceForAll = null;
             RoomChallenge.ChanceForAll = null;
             RoomChallenge.FlawlessOff = false;
+            HiddenDuck.ChanceForAll = null;
+            LabDirector.NightNoteOff = false;
             FloorManager.ShinyChanceForAll = null;
             StarterGoals.Off = false;
             Shrine.ChanceForAll = null;
