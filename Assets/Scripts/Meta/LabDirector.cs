@@ -40,19 +40,20 @@ namespace Shrunk
             }
             RunDirector.LastSummary = null;
 
-            // Today's parcel, beside where the player comes in.
+            // By the door, only the everyday things (the parcel, the mail, the first steps); the rest is in the side
+            // rooms, by theme: looks in the office by the mirror, tools in the workshop.
             var player = PlayerController.Instance;
             if (player != null && Unlocks.Open(Unlocks.Feature.DailyParcel)) DailyParcel.Place(player.transform.position + new Vector3(2.6f, 0f, 1.6f));
-            if (player != null && Unlocks.Open(Unlocks.Feature.HatStand)) HatStand.Place(player.transform.position + new Vector3(-2.6f, 0f, 1.6f));
-            if (player != null && Unlocks.Open(Unlocks.Feature.PetJar)) PetJar.Place(player.transform.position + new Vector3(-2.6f, 0f, -1.4f));
-            if (player != null && Unlocks.Open(Unlocks.Feature.PressureGauge)) PressureGauge.Place(player.transform.position + new Vector3(2.6f, 0f, -1.4f));
+            if (player != null && Unlocks.Open(Unlocks.Feature.HatStand)) HatStand.Place(new Vector3(-24.8f, 0f, 2.4f));
+            if (player != null && Unlocks.Open(Unlocks.Feature.PetJar)) PetJar.Place(new Vector3(-24.6f, 0f, -1.0f));
+            if (player != null && Unlocks.Open(Unlocks.Feature.PressureGauge)) PressureGauge.Place(new Vector3(20.8f, 0f, -3.4f));
             if (player != null && Unlocks.Open(Unlocks.Feature.Mailbox)) Mailbox.Place(player.transform.position + new Vector3(4.6f, 0f, 1.2f));
-            if (player != null && Unlocks.Open(Unlocks.Feature.Jukebox)) Jukebox.Place(player.transform.position + new Vector3(-4.8f, 0f, 1.2f));
+            if (player != null && Unlocks.Open(Unlocks.Feature.Jukebox)) Jukebox.Place(new Vector3(27.5f, 0f, -1.0f));
             if (player != null && Unlocks.Open(Unlocks.Feature.FishTank)) FishTank.Place(player.transform.position + new Vector3(-4.8f, 0f, 4.2f));
             // The cat is asleep somewhere new each visit: one of a few spots out of the way.
             Vector3[] naps = { new Vector3(3.6f, 0f, 4.6f), new Vector3(-6.5f, 0f, -1.5f), new Vector3(6.5f, 0f, 3.5f), new Vector3(-3.6f, 0f, 5f) };
             if (player != null) LabCat.Place(player.transform.position + naps[UnityEngine.Random.Range(0, naps.Length)]);
-            if (player != null && Unlocks.Open(Unlocks.Feature.Seasons)) SeasonBoard.Place(player.transform.position + new Vector3(2.6f, 0f, -4.4f), player.transform.position);
+            if (player != null && Unlocks.Open(Unlocks.Feature.Seasons)) SeasonBoard.Place(new Vector3(2.8f, 0f, -4.6f), player.transform.position);
             if (player != null && Unlocks.Open(Unlocks.Feature.QuickRun)) QuickRunSign.Place(player.transform.position + new Vector3(-2.6f, 0f, -5.8f));
             var cabinet = FindAnyObjectByType<FilingCabinet>(FindObjectsInactive.Include);
             if (cabinet != null && Unlocks.Open(Unlocks.Feature.ItemWall)) ItemWall.Place(cabinet.transform.position + new Vector3(-2.8f, 0f, 0.4f), Quaternion.LookRotation(Vector3.back));
@@ -77,7 +78,7 @@ namespace Shrunk
             if ((fresh.Count > 0 || pets.Count > 0) && ScreenCards.Instance != null && !ScreenCards.Instance.CardShowing)
             {
                 string line = "";
-                if (fresh.Count > 0) line += (fresh.Count == 1 ? $"You earned the {fresh[0].name}." : $"You earned {fresh.Count} new hats.") + (fresh.Count == 1 ? " Try it on" : " Try them on") + " at the hat stand by the door. ";
+                if (fresh.Count > 0) line += (fresh.Count == 1 ? $"You earned the {fresh[0].name}." : $"You earned {fresh.Count} new hats.") + (fresh.Count == 1 ? " Try it on" : " Try them on") + " at the hat stand in the office, by the mirror. ";
                 if (pets.Count > 0) line += (pets.Count == 1 ? $"The {pets[0].name} would like to come along." : $"{pets.Count} pets would like to come along.") + " Let them out at the pet jar.";
                 string heading = fresh.Count > 0 && pets.Count > 0 ? "NEW THINGS" : fresh.Count > 0 ? (fresh.Count == 1 ? "NEW HAT" : "NEW HATS") : (pets.Count == 1 ? "NEW PET" : "NEW PETS");
                 ScreenCards.Instance.ShowCard(heading, line.Trim(), 4.5f);
