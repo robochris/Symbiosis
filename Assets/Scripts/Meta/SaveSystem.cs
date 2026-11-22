@@ -77,6 +77,7 @@ namespace Shrunk
         public List<string> bossItems = new List<string>();
         /// <summary>The getting-started goals done, one bit each.</summary>
         public int starterGoals;
+        public int vaultsOpened, vaultsCleared;
         public int goldBugsCaught;
         public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>

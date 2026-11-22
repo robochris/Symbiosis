@@ -336,5 +336,56 @@ namespace Shrunk.Tests
             Assert.Greater(CloseCalls.BoostUntil, Time.time);
             UnityEngine.Object.Destroy(shot.gameObject);
         }
+
+        [UnityTest]
+        public IEnumerator A_vault_opens_to_its_code_and_its_trial_pays()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            var player = PlayerController.Instance;
+            player.Health.SetInvulnerable(600f);
+            CodeVault.ChanceForAll = 1f;
+            CodeVault vault = null;
+            for (int floor = 2; floor <= 5 && vault == null; floor++)
+            {
+                floors.BuildFloor(floor);
+                yield return null;
+                vault = floors.Vault;
+            }
+            CodeVault.ChanceForAll = 0f;
+            Assert.IsNotNull(vault, "no vault with the chance pinned to always");
+            Assert.IsNotNull(vault.Clue, "no slate with the code");
+            Assert.That(WorldPrompt.For(vault.Clue.transform.position), Does.Contain(CodeVault.ColourNames[vault.code[0]]));
+
+            // Wrong, then right.
+            Assert.IsFalse(vault.Open);
+            vault.Turn(0);
+            if (vault.code[0] == 1 && vault.code[1] == 0 && vault.code[2] == 0) Assert.IsTrue(vault.Open);
+            else Assert.IsFalse(vault.Open, "one turn of one dial opened it");
+            // Round to the start, then to the code.
+            for (int t = 1; t < CodeVault.Colours.Length && !vault.Open; t++) vault.Turn(0);
+            for (int dial = 0; dial < 3 && !vault.Open; dial++)
+                for (int t = 0; t < vault.code[dial] && !vault.Open; t++) vault.Turn(dial);
+            Assert.IsTrue(vault.Open, "the right code did not open the vault");
+
+            // The trial: in, watch, step.
+            player.Teleport(vault.room.Centre + Vector3.up * 0.05f);
+            for (float t = 0f; t < 2f && vault.Round == 0; t += Time.deltaTime) yield return null;
+            Assert.AreEqual(1, vault.Round, "the trial did not start");
+            yield return new WaitForSeconds(0.6f + vault.Order.Count * 0.8f);
+            int wrong = (vault.Order[0] + 1) % 3;
+            vault.StepOn(wrong);
+            Assert.AreEqual(1, vault.Mistakes);
+            for (int round = 1; round <= CodeVault.Rounds; round++)
+            {
+                yield return new WaitForSeconds(0.6f + vault.Order.Count * 0.8f);
+                var order = new System.Collections.Generic.List<int>(vault.Order);
+                foreach (int plate in order) vault.StepOn(plate);
+            }
+            Assert.IsTrue(vault.Cleared, "three rounds right and the vault is not cleared");
+            Assert.AreEqual(1, SaveSystem.Data.meta.vaultsCleared);
+        }
     }
 }

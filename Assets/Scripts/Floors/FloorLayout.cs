@@ -15,7 +15,9 @@ namespace Shrunk
         /// <summary>Off the map on a boss floor: the machine, built from its four parts. Only once a run has come far enough.</summary>
         Machine,
         /// <summary>A dead end walled off behind a cracked wall: shoot it down for free loot. Not on the map until found.</summary>
-        Secret
+        Secret,
+        /// <summary>A dead end behind a coded door: the vault and its trial (see CodeVault).</summary>
+        Vault
     }
 
     [Flags]

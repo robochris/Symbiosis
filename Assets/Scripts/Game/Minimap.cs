@@ -162,6 +162,7 @@ namespace Shrunk
                 case RoomType.Dare: return dareColor;
                 case RoomType.Machine: return new Color(0.45f, 1f, 0.6f);
                 case RoomType.Secret: return new Color(0.85f, 0.75f, 0.55f);
+                case RoomType.Vault: return new Color(0.75f, 0.55f, 1f);
                 default: return normalColor;
             }
         }

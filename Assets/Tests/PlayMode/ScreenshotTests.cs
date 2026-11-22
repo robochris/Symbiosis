@@ -526,6 +526,62 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_vault()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            GameSettings.Radio = 0;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            CameraFollow.Instance.SetMode(CameraMode.Wide);
+            CodeVault.ChanceForAll = 1f;
+            for (int floor = 2; floor < 8 && floors.Vault == null; floor++)
+            {
+                floors.BuildFloor(floor);
+                yield return null;
+            }
+            CodeVault.ChanceForAll = 0f;
+            var vault = floors.Vault;
+            Assert.IsNotNull(vault);
+            for (float t = 0f; t < 8f && Time.timeScale == 0f; t += Time.unscaledDeltaTime) yield return null;
+            yield return new WaitForSecondsRealtime(4.5f);
+
+            // The door and its dials, from a little way back.
+            Vector3 dial = vault.transform.position;
+            foreach (var each in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None)) if (each.name == "Dial 2") dial = each.position;
+            Vector3 outward = dial - vault.room.Centre;
+            outward.y = 0f;
+            player.Teleport(dial + outward.normalized * 3.5f + Vector3.up * 0.05f);
+            player.transform.rotation = Quaternion.LookRotation(-outward);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.6f);
+            yield return Screen(Path.Combine(folder, "vault-door.png"));
+
+            // The slate.
+            player.Teleport(vault.Clue.transform.position + new Vector3(0f, 0.05f, -2.5f));
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.6f);
+            yield return Screen(Path.Combine(folder, "vault-slate.png"));
+
+            // Open it, go in, and watch the beacon.
+            for (int d = 0; d < 3; d++) for (int t = 0; t < vault.code[d] && !vault.Open; t++) vault.Turn(d);
+            player.Teleport(vault.room.Centre + new Vector3(0f, 0.05f, -2f));
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(1.2f);
+            yield return Screen(Path.Combine(folder, "vault-trial.png"));
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_ledges()
         {
             SaveSystem.Profile = "tests";

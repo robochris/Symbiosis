@@ -278,6 +278,20 @@ namespace Shrunk
             }
 
             Ledges.Clear();
+            // Now and then, a quiet dead end becomes a coded vault.
+            Vault = null;
+            if (!FloorLayout.IsBossFloor(number) && FloorLayout.FloorInBiome(number) >= 2 && !biome.isBottom && !InSpecial && !InGauntlet
+                && new System.Random(seed ^ 0x7A017).NextDouble() < (CodeVault.ChanceForAll ?? CodeVault.Chance))
+            {
+                // A plain dead end if there is one; otherwise it takes the dare's place for this floor.
+                RoomNode pick = null;
+                foreach (var node in Layout.ordered)
+                    if (pick == null && node.type == RoomType.Normal && node.DoorCount == 1 && node != Layout.start) pick = node;
+                foreach (var node in Layout.ordered)
+                    if (pick == null && node.type == RoomType.Dare && node.DoorCount == 1) pick = node;
+                if (pick != null) pick.type = RoomType.Vault;
+            }
+
             foreach (var node in Layout.ordered)
             {
                 RoomShape shape = RoomShape.GenerateFor(Layout, node, number);
@@ -395,6 +409,8 @@ namespace Shrunk
 
         /// <summary>The bell in this floor's dare room, until it is rung. Not every floor has a dare room.</summary>
         public DareBell Dare { get; private set; }
+        /// <summary>This floor's coded vault, if it has one.</summary>
+        public CodeVault Vault { get; private set; }
         /// <summary>This floor's shrine, if it has one.</summary>
         public Shrine ShrineHere { get; private set; }
         /// <summary>How many more enemies a dare brings than the room had the first time.</summary>
@@ -477,6 +493,14 @@ namespace Shrunk
                 else if (node.type == RoomType.Machine)
                 {
                     MachineRoom = MachineRoom.Create(room, room.Centre);
+                }
+                else if (node.type == RoomType.Vault)
+                {
+                    // The code goes up in another room, one that has to be fought through.
+                    var others = new List<Room>();
+                    foreach (var other in Layout.ordered) if (other.type == RoomType.Normal) others.Add(_rooms[other.cell]);
+                    Room clue = others.Count > 0 ? others[new System.Random(seed ^ 0x51).Next(others.Count)] : _rooms[Layout.start.cell];
+                    Vault = CodeVault.Build(room, node, clue, seed ^ 0x3C0DE);
                 }
                 else if (node.type == RoomType.Secret)
                 {
@@ -754,6 +778,22 @@ namespace Shrunk
         // enemy put down there starts inside it. Walkable ground at floor level, right here, is the test.
         static bool OpenFloor(Vector3 point) =>
             UnityEngine.AI.NavMesh.SamplePosition(point, out var hit, 0.5f, UnityEngine.AI.NavMesh.AllAreas) && hit.position.y < 0.3f;
+
+        /// <summary>A few more enemies into this room, away from the player: for trials like the vault's.</summary>
+        public void SpawnInto(Room room, int count)
+        {
+            if (room == null || count <= 0) return;
+            var player = PlayerController.Instance;
+            Vector3 near = player != null ? player.transform.position : room.Centre;
+            var points = new List<Vector3>();
+            foreach (var tile in room.Shape.free)
+            {
+                Vector3 point = room.TileWorld(tile);
+                if (OpenFloor(point) && (point - near).sqrMagnitude > 25f) points.Add(point);
+            }
+            var rng = new System.Random(UnityEngine.Random.Range(0, int.MaxValue));
+            for (int i = 0; i < count && points.Count > 0; i++) Spawn(biome.PickEnemy(FloorInBiome, rng), points[UnityEngine.Random.Range(0, points.Count)], near);
+        }
 
         // One room's worth of enemies, put down away from the player.
         void SpawnWave(Room room, Vector3 playerPosition, int extra, bool forceElite, int extraBudget)
