@@ -343,7 +343,7 @@ namespace Shrunk.Tests
             var rng = new System.Random(3);
             var seen = new HashSet<ItemType>();
             for (int i = 0; i < 300; i++) foreach (var item in library.RandomCommon(rng, 3)) seen.Add(item.type);
-            Assert.AreEqual(26 - onLadder, seen.Count, "a new player should find 26 common items, less the ones levels hold back");
+            Assert.AreEqual(30 - onLadder, seen.Count, "a new player should find 30 common items, less the ones levels hold back");
             Assert.IsFalse(seen.Contains(ItemType.LarvaBuddy));
             style.Next();
             Assert.AreEqual(0, style.Current, "a locked style was put on");

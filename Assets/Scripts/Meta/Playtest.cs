@@ -33,6 +33,8 @@ namespace Shrunk
             meta.bossesBeaten = Mathf.Max(meta.bossesBeaten, Specimens.All.Length);
             meta.xp = Mathf.Max(meta.xp, Progress.XpFor(Progress.TopLevel));
             meta.dailyBestStreak = Mathf.Max(meta.dailyBestStreak, 3);
+            meta.secretsFound = Mathf.Max(meta.secretsFound, 1);
+            meta.deepestFloor = Mathf.Max(meta.deepestFloor, 10);
             SaveSystem.Save();
         }
 

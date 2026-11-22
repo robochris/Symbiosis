@@ -106,7 +106,10 @@ namespace Shrunk
             collider.enabled = false;
             Destroy(collider);
             // On a floor with ledges, a mark put down on the floor goes on whatever is underfoot there.
-            if (position.y < 0.3f && Ledges.Count > 0) position.y += Ledges.SurfaceAt(position);
+            // A mark always lies on whatever is underfoot: a ledge's top, or the floor. One put down by a flier is
+            // not left hanging at its height, out of reach of the player it was meant for.
+            float surface = Ledges.SurfaceAt(position);
+            if (position.y < surface - 0.2f || position.y > surface + 0.25f) position.y = surface + 0.02f;
             go.transform.position = position;
             if (material != null) go.GetComponent<Renderer>().sharedMaterial = material;
             return go.AddComponent<GroundHazard>();

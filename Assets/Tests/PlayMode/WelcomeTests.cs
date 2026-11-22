@@ -577,5 +577,95 @@ namespace Shrunk.Tests
             Assert.AreEqual(1, Pickup.SweepUp(player.transform.position, 9f));
             Assert.AreEqual(coins + 3, RunState.Coins);
         }
+
+        [UnityTest]
+        public IEnumerator New_weapons_a_parry_and_a_last_stand()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            Assert.IsFalse(Weapons.Unlocked(WeaponKind.Boomerang));
+            SaveSystem.Data.meta.specimens.Add("TheJackInTheBox");
+            Assert.IsTrue(Weapons.Unlocked(WeaponKind.Boomerang));
+            Assert.AreEqual(1, Weapons.Info(WeaponKind.Boomerang).returns);
+            Assert.AreEqual(2, Weapons.Info(WeaponKind.MarbleLauncher).bounce);
+
+            // A shot turned round is the player's.
+            var player = PlayerController.Instance;
+            Bullet shot = null;
+            foreach (var entry in FloorManager.Instance.biome.spawnTable)
+            {
+                var shooter = entry.prefab != null ? entry.prefab.GetComponent<ShooterEnemy>() : null;
+                if (shooter != null && shooter.projectilePrefab != null) { shot = UnityEngine.Object.Instantiate(shooter.projectilePrefab); break; }
+            }
+            shot.Launch(player.transform.position + Vector3.forward * 6f, Vector3.back, 0.1f, new Shot { damage = 1 }, 5f, Team.Enemy, null);
+            shot.Reflect();
+            Assert.AreEqual(Team.Player, shot.Team);
+            UnityEngine.Object.Destroy(shot.gameObject);
+
+            // The last stand: at one health, a kill gives one back.
+            Juice.Off = false;
+            player.Health.SetMaxHealth(4, true);
+            player.Health.Restore(1);
+            var prefab = FloorManager.Instance.biome.spawnTable[0].prefab;
+            var enemy = UnityEngine.Object.Instantiate(prefab, player.transform.position + Vector3.forward * 12f, Quaternion.identity);
+            yield return null;
+            enemy.Health.Kill();
+            yield return null;
+            Assert.AreEqual(2, player.Health.Current, "no last stand");
+            Juice.Off = true;
+        }
+
+        [UnityTest]
+        public IEnumerator Synergies_and_the_glass_heart()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var items = player.Items;
+            var library = GameAssets.Instance.items;
+            int bounce = items.Stats.bounce;
+            items.Add(library.Get(ItemType.RubberBand));
+            items.Add(library.Get(ItemType.YoYo));
+            Assert.IsTrue(Synergies.Has("Elastic", items));
+            Assert.AreEqual(bounce + 2, items.Stats.bounce, "Elastic gave no extra bounce");
+            Assert.Contains("Elastic", SaveSystem.Data.meta.synergiesFound);
+
+            int damage = items.Stats.damageBonus;
+            items.Add(library.Get(ItemType.GlassHeart));
+            Assert.AreEqual(damage + 2, items.Stats.damageBonus);
+            player.Health.ClearInvulnerability();
+            player.Health.SetMaxHealth(5, true);
+            player.Health.TakeDamage(1, Vector3.forward);
+            Assert.IsTrue(items.GlassBroken);
+            Assert.AreEqual(damage, items.Stats.damageBonus, "the heart still counts once broken");
+        }
+
+        [UnityTest]
+        public IEnumerator The_new_powers_hop_stomp_hoover_and_shrink()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var power = player.Power;
+            Assert.IsFalse(HeroPower.Unlocked(PowerKind.Hop));
+            SaveSystem.Data.meta.secretsFound = 1;
+            Assert.IsTrue(HeroPower.Unlocked(PowerKind.Hop));
+
+            power.SetKind(PowerKind.Hop);
+            power.SetMeter(1f);
+            Vector3 from = player.transform.position;
+            Assert.IsTrue(power.TryActivate());
+            yield return null;
+            Assert.Greater(Vector3.Distance(from, player.transform.position), 1f, "the hop went nowhere");
+
+            power.SetKind(PowerKind.Tiny);
+            float speed = player.Items.Stats.moveSpeedMultiplier;
+            power.SetMeter(1f);
+            Assert.IsTrue(power.TryActivate());
+            Assert.Greater(player.Items.Stats.moveSpeedMultiplier, speed + 0.4f, "tiny is not faster");
+        }
     }
 }

@@ -41,6 +41,7 @@ namespace Shrunk.Tests
             RunRules.Off = true;
             Music.Off = true;
             Season.Off = true;
+            Juice.Off = true;
             StarterGoals.Off = true;
             Shrine.ChanceForAll = 0f;
             RunDirector.BeginnersLuckOff = true;
@@ -72,6 +73,7 @@ namespace Shrunk.Tests
             RunRules.Off = false;
             Music.Off = false;
             Season.Off = false;
+            Juice.Off = false;
             StarterGoals.Off = false;
             Shrine.ChanceForAll = null;
             RunDirector.BeginnersLuckOff = false;

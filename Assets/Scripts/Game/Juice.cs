@@ -23,8 +23,37 @@ namespace Shrunk
             _instance = go.AddComponent<Juice>();
         }
 
-        void OnEnable() => FloorManager.RoomCleared += OnRoomCleared;
-        void OnDisable() => FloorManager.RoomCleared -= OnRoomCleared;
+        /// <summary>Tests switch off the last stand, so health stays as they set it.</summary>
+        public static bool Off;
+        bool _standUsed;
+
+        void OnEnable()
+        {
+            FloorManager.RoomCleared += OnRoomCleared;
+            FloorManager.FloorBuilt += OnFloorBuilt;
+            Enemy.Killed += OnKilled;
+        }
+
+        void OnDisable()
+        {
+            FloorManager.RoomCleared -= OnRoomCleared;
+            FloorManager.FloorBuilt -= OnFloorBuilt;
+            Enemy.Killed -= OnKilled;
+        }
+
+        void OnFloorBuilt(FloorManager floors) => _standUsed = false;
+
+        /// <summary>The last stand: at the last point of health, the next kill gives one back. Once a floor.</summary>
+        void OnKilled(Enemy enemy)
+        {
+            var player = PlayerController.Instance;
+            if (Off || _standUsed || player == null || player.Health.IsDead || player.Health.Current != 1 || player.Health.maxHealth <= 1) return;
+            _standUsed = true;
+            player.Health.Heal(1);
+            Fx.Burst(player.transform.position + Vector3.up, new Color(1f, 0.45f, 0.55f), 14, 4f, 0.14f, 0.5f);
+            var hud = FindAnyObjectByType<Hud>();
+            if (hud != null) hud.Toast("Last stand: that kill gave you a point back. Once a floor.", 2.5f);
+        }
 
         void OnRoomCleared(FloorManager floors)
         {

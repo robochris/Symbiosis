@@ -175,7 +175,7 @@ namespace Shrunk
             if (player == null) { ShowEdge(0f); return; }
 
             if (!player.IsDodging) _counted = false;
-            else if (!_counted && ShotNear(player.transform.position)) Reward(player);
+            else if (!_counted && ShotNear(player.transform.position, out var near)) { Reward(player); Parry(near, player); }
 
             // The last point of health: a heartbeat at the edges.
             Health health = player.Health;
@@ -185,16 +185,32 @@ namespace Shrunk
             ShowEdge(low ? 0.25f + 0.35f * pulse : 0f);
         }
 
-        static bool ShotNear(Vector3 at)
+        static bool ShotNear(Vector3 at, out Bullet near)
         {
+            near = null;
             foreach (var bullet in Bullet.Live)
             {
                 if (bullet == null || bullet.Team != Team.Enemy) continue;
                 Vector3 to = bullet.transform.position - at;
                 to.y = 0f;
-                if (to.magnitude <= Range) return true;
+                if (to.magnitude <= Range) { near = bullet; return true; }
             }
             return false;
+        }
+
+        public static int Parries { get; private set; }
+
+        // A shot right on top of the dodge is sent straight back.
+        static void Parry(Bullet bullet, PlayerController player)
+        {
+            if (bullet == null) return;
+            Vector3 to = bullet.transform.position - player.transform.position;
+            to.y = 0f;
+            if (to.magnitude > Range * 0.75f) return;
+            bullet.Reflect();
+            Parries++;
+            Sfx.Play(SfxId.Blocked, 0.8f);
+            Fx.Burst(bullet.transform.position, new Color(0.7f, 1f, 1f), 14, 6f, 0.1f, 0.3f);
         }
 
         void Reward(PlayerController player)

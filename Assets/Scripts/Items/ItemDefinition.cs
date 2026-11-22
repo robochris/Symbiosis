@@ -75,7 +75,15 @@ namespace Shrunk
         /// <summary>Boss item (the Encyclopedia): shots hit harder the further they fly, and hit for double more often.</summary>
         Footnote,
         /// <summary>Boss item (the Tap): shots go through one more and come a fifth faster.</summary>
-        PlugChain
+        PlugChain,
+        /// <summary>Two more damage, until the first hit taken breaks it for the run.</summary>
+        GlassHeart,
+        /// <summary>Enemies look surprised. One shot in twenty hits for double.</summary>
+        GooglyEyes,
+        /// <summary>A little luck (crits); a pair is a lot more than two of them.</summary>
+        OddSock,
+        /// <summary>At the last point of health: faster shots and feet.</summary>
+        AdrenalineGland
     }
 
     /// <summary>Where an item shows on the character. Two items in one slot: the newer one shows.</summary>

@@ -181,7 +181,15 @@ namespace Shrunk
         bool HitCharacter(Health health, Vector3 point)
         {
             int far = _shot.farBonus > 0 && _travelled >= FarDistance ? _shot.farBonus : 0;
-            health.TakeDamage((_shot.damage + far) * (_shot.crit ? 2 : 1), _direction);
+            // From behind: one more. (The player's shots only.)
+            int behind = 0;
+            if (_team == Team.Player)
+            {
+                var target = health.GetComponent<Enemy>();
+                if (target != null && Vector3.Dot(target.transform.forward, _direction) > 0.5f) { behind = 1; Backstabs++; }
+            }
+            health.TakeDamage((_shot.damage + far + behind) * (_shot.crit ? 2 : 1), _direction);
+            if (_shot.crit && _team == Team.Player) Fx.Burst(point + Vector3.up * 0.5f, new Color(1f, 0.95f, 0.4f), 12, 5f, 0.1f, 0.3f);
             if (_shot.lightning)
             {
                 // Down it comes, on whatever was hit and everything round it.
@@ -248,6 +256,19 @@ namespace Shrunk
 
         /// <summary>Every shot in the air.</summary>
         public static readonly List<Bullet> Live = new List<Bullet>();
+        /// <summary>Hits from behind, for tests.</summary>
+        public static int Backstabs;
+
+        /// <summary>A parry: the shot turns round and is the player's now.</summary>
+        public void Reflect()
+        {
+            _team = Team.Player;
+            _direction = -_direction;
+            _travelled = 0f;
+            _alreadyHit.Clear();
+            if (_shot != null) _shot.owner = null;
+            transform.rotation = Quaternion.LookRotation(_direction);
+        }
 
         /// <summary>Takes every enemy shot out of the air. Returns how many there were.</summary>
         public static int ClearEnemyShots()

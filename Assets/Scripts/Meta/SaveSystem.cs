@@ -87,6 +87,8 @@ namespace Shrunk
         /// <summary>Deaths in a row early in a world, and whether Relaxed has been suggested yet.</summary>
         public int quickDeaths;
         public bool relaxedSuggested;
+        /// <summary>Item synergies ever found, by name.</summary>
+        public List<string> synergiesFound = new List<string>();
         public int goldBugsCaught;
         public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>

@@ -639,6 +639,24 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Cylinder, "Plug", look.transform, new Vector3(0.3f, 0.22f, 0.1f), new Vector3(0.22f, 0.05f, 0.22f), ArenaSceneBuilder.Lit("PlugBlack", new Color(0.12f, 0.12f, 0.14f), 0.7f));
             items.Add(Item(ItemType.PlugChain, "Plug Chain", "Boss item. Shots go through one more, and come a fifth faster.", ItemSlot.Hands, true, 60, new Color(0.85f, 0.88f, 0.92f), look));
 
+            // ----- a few odd ones -----
+            look = new GameObject("GlassHeart");
+            Decor(PrimitiveType.Sphere, "Heart", look.transform, new Vector3(0f, 0.75f, 0.33f), new Vector3(0.25f, 0.22f, 0.1f), ArenaSceneBuilder.Lit("Glass", new Color(0.8f, 0.95f, 1f), 0.97f));
+            items.Add(Item(ItemType.GlassHeart, "Glass Heart", "Two more damage. The first hit you take breaks it, for the run.", ItemSlot.Body, false, 18, new Color(0.8f, 0.95f, 1f), look));
+
+            look = new GameObject("GooglyEyes");
+            Decor(PrimitiveType.Sphere, "Eye L", look.transform, new Vector3(-0.13f, 1.12f, 0.32f), new Vector3(0.18f, 0.18f, 0.06f), ArenaSceneBuilder.Lit("GooglyWhite", Color.white, 0.6f));
+            Decor(PrimitiveType.Sphere, "Eye R", look.transform, new Vector3(0.13f, 1.12f, 0.32f), new Vector3(0.18f, 0.18f, 0.06f), ArenaSceneBuilder.Lit("GooglyWhite", Color.white, 0.6f));
+            items.Add(Item(ItemType.GooglyEyes, "Googly Eyes", "Enemies look surprised. One shot in twenty hits for double.", ItemSlot.Eyes, false, 8, Color.white, look));
+
+            look = new GameObject("OddSock");
+            Decor(PrimitiveType.Cube, "Sock", look.transform, new Vector3(-0.35f, 0.5f, 0f), new Vector3(0.15f, 0.35f, 0.12f), ArenaSceneBuilder.Lit("SockStripe", new Color(0.9f, 0.4f, 0.6f), 0.2f));
+            items.Add(Item(ItemType.OddSock, "Odd Sock", "A little luck. Find its pair and it is a lot of luck.", ItemSlot.Hands, false, 10, new Color(0.9f, 0.4f, 0.6f), look));
+
+            look = new GameObject("AdrenalineGland");
+            Decor(PrimitiveType.Sphere, "Gland", look.transform, new Vector3(0f, 0.7f, -0.4f), Vector3.one * 0.25f, ArenaSceneBuilder.Unlit("Adrenaline", new Color(1f, 0.35f, 0.2f)));
+            items.Add(Item(ItemType.AdrenalineGland, "Adrenaline Gland", "At your last point of health: much faster shots, and faster feet.", ItemSlot.Back, false, 14, new Color(1f, 0.35f, 0.2f), look));
+
             const string libraryPath = "Assets/Data/Items/ItemLibrary.asset";
             var library = AssetDatabase.LoadAssetAtPath<ItemLibrary>(libraryPath);
             if (library == null)
@@ -759,6 +777,10 @@ namespace Shrunk.EditorTools
                 case ItemType.GrassClippings: return "Kept from the Lawnmower. Smells like Sunday.";
                 case ItemType.Footnote: return "Kept from the Encyclopedia. See also: everything.";
                 case ItemType.PlugChain: return "Kept from the Tap. Pull it and everything goes down the drain.";
+                case ItemType.GlassHeart: return "Handle with care. You will not.";
+                case ItemType.GooglyEyes: return "They are not real eyes. Nobody has told the enemies.";
+                case ItemType.OddSock: return "Somewhere, in some universe, the other one is looking for it.";
+                case ItemType.AdrenalineGland: return "Squeezes when you are nearly done for. Squeezes hard.";
                 default: return "";
             }
         }

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Shrunk
 {
     /// <summary>Which active ability the Void carries. Chosen at the rack in the lab.</summary>
-    public enum PowerKind { Overcharge, FreezeFrame, SecondWind, BadMemo, Decoy }
+    public enum PowerKind { Overcharge, FreezeFrame, SecondWind, BadMemo, Decoy, Hop, Stomp, Hoover, Tiny }
 
     /// <summary>What the lab's rack says about a power, and what it takes to be issued one.</summary>
     public class PowerInfo
@@ -34,6 +34,10 @@ namespace Shrunk
             new PowerInfo { kind = PowerKind.SecondWind, name = "Second Wind", does = "One health back, every enemy shot swept away, and 4 seconds in which nothing can hurt you.", needs = "Issued to interns who have fallen three times.", killsToFill = 18f, duration = 4f },
             new PowerInfo { kind = PowerKind.BadMemo, name = "Bad Memo", does = "A memo goes round. For 6 seconds everything in the room that is not a boss turns on its neighbours.", needs = "Issued to interns who have done three jobs off the noticeboard.", killsToFill = 22f, duration = 6f },
             new PowerInfo { kind = PowerKind.Decoy, name = "Decoy", does = "A cardboard you, left where you stand. For 7 seconds everything goes for it instead, bosses included, until it falls over.", needs = "Issued to interns who keep a Daily Experiment streak of 3 days.", killsToFill = 20f, duration = 7f },
+            new PowerInfo { kind = PowerKind.Hop, name = "Hop", does = "Straight to where you are aiming, up to seven paces, and a second in which nothing can touch you. Fills fast.", needs = "Issued to interns who have found a secret room.", killsToFill = 8f, duration = 1f },
+            new PowerInfo { kind = PowerKind.Stomp, name = "Stomp", does = "A stamp that knocks everything in a wide ring flat: three damage, and thrown well back.", needs = "Issued to interns who have beaten five bosses.", killsToFill = 18f, duration = 0.5f },
+            new PowerInfo { kind = PowerKind.Hoover, name = "Hoover", does = "Everything in front of you is pulled into one heap, five paces ahead. Then make the most of it.", needs = "Issued once the Robot Vacuum is in a jar.", killsToFill = 16f, duration = 0.6f },
+            new PowerInfo { kind = PowerKind.Tiny, name = "Tiny", does = "Smaller still for 8 seconds: much faster on your feet, and the dodge comes back quicker.", needs = "Issued to interns who have reached floor 10.", killsToFill = 18f, duration = 8f },
         };
 
         public const float FreezeSlow = 0.3f;
@@ -55,6 +59,10 @@ namespace Shrunk
                 case PowerKind.SecondWind: return meta.deaths >= 3;
                 case PowerKind.BadMemo: return meta.jobsDone >= 3;
                 case PowerKind.Decoy: return meta.dailyBestStreak >= 3;
+                case PowerKind.Hop: return meta.secretsFound >= 1;
+                case PowerKind.Stomp: return meta.bossesBeaten >= 5;
+                case PowerKind.Hoover: return Specimens.Has("RobotVacuum");
+                case PowerKind.Tiny: return meta.deepestFloor >= 10;
                 default: return true;
             }
         }
@@ -73,6 +81,7 @@ namespace Shrunk
         public PowerKind Kind { get; private set; } = PowerKind.Overcharge;
         /// <summary>True while Overcharge itself is running: the one that changes what a shot does.</summary>
         public bool IsOvercharged => IsActive && Kind == PowerKind.Overcharge;
+        public bool IsTiny => IsActive && Kind == PowerKind.Tiny;
         public bool IsFreezing => IsActive && Kind == PowerKind.FreezeFrame;
 
         /// <summary>Carries a different power. The meter is kept as a share, so swapping in the lab loses nothing.</summary>
@@ -209,6 +218,66 @@ namespace Shrunk
                 case PowerKind.Decoy:
                     Decoy.Place(transform.position, transform.rotation, duration);
                     Fx.Burst(transform.position + Vector3.up * 0.9f, new Color(0.85f, 0.7f, 0.45f), 24, 6f, 0.2f, 0.5f);
+                    break;
+
+                case PowerKind.Hop:
+                {
+                    var player = GetComponent<PlayerController>();
+                    // The way the player faces, which is the way they aim.
+                    Vector3 aim = transform.forward;
+                    aim.y = 0f;
+                    Vector3 to = transform.position + aim.normalized * 7f;
+                    // As far as the floor goes, and not through a wall.
+                    if (Physics.Raycast(transform.position + Vector3.up * 0.8f, aim.normalized, out var wall, 7f, ~0, QueryTriggerInteraction.Ignore))
+                        to = transform.position + aim.normalized * Mathf.Max(0f, wall.distance - 0.6f);
+                    if (UnityEngine.AI.NavMesh.SamplePosition(to, out var land, 2f, UnityEngine.AI.NavMesh.AllAreas)) to = land.position;
+                    Fx.Burst(transform.position + Vector3.up * 0.8f, new Color(0.5f, 0.9f, 1f), 18, 5f, 0.15f, 0.35f);
+                    if (player != null) player.Teleport(to + Vector3.up * 0.05f);
+                    GetComponent<Health>()?.SetInvulnerable(duration);
+                    Fx.Burst(to + Vector3.up * 0.8f, new Color(0.5f, 0.9f, 1f), 18, 5f, 0.15f, 0.35f);
+                    break;
+                }
+
+                case PowerKind.Stomp:
+                    LastSurgeHits = 0;
+                    foreach (var enemy in Enemy.Active.ToArray())
+                    {
+                        if (enemy.Health.IsDead || !enemy.Targetable) continue;
+                        Vector3 away = enemy.transform.position - transform.position;
+                        away.y = 0f;
+                        if (away.magnitude > surgeRadius * 1.8f) continue;
+                        Vector3 outward = away.sqrMagnitude > 0.01f ? away.normalized : transform.forward;
+                        enemy.Health.TakeDamage(3, outward);
+                        enemy.Shove(outward * SurgeShove * 1.5f);
+                        LastSurgeHits++;
+                    }
+                    if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.7f);
+                    Fx.Burst(transform.position + Vector3.up * 0.2f, new Color(0.85f, 0.75f, 0.55f), 50, 14f, 0.25f, 0.6f);
+                    break;
+
+                case PowerKind.Hoover:
+                {
+                    // Everything in front, within a wide cone, is dragged to one spot ahead.
+                    Vector3 heap = transform.position + transform.forward * 5f;
+                    LastSurgeHits = 0;
+                    foreach (var enemy in Enemy.Active.ToArray())
+                    {
+                        if (enemy.Health.IsDead || !enemy.Targetable || enemy is BossEnemy) continue;
+                        Vector3 to = enemy.transform.position - transform.position;
+                        to.y = 0f;
+                        if (to.magnitude > 16f || Vector3.Angle(transform.forward, to) > 70f) continue;
+                        Vector3 pull = heap - enemy.transform.position;
+                        pull.y = 0f;
+                        enemy.Shove(pull * 2.2f);
+                        LastSurgeHits++;
+                    }
+                    Fx.Burst(heap + Vector3.up * 0.6f, new Color(0.7f, 0.7f, 0.75f), 30, 3f, 0.2f, 0.6f);
+                    Sfx.Play(SfxId.Dodge, 1f);
+                    break;
+                }
+
+                case PowerKind.Tiny:
+                    Fx.Burst(transform.position + Vector3.up * 0.6f, new Color(0.9f, 0.6f, 1f), 24, 6f, 0.15f, 0.4f);
                     break;
 
                 case PowerKind.BadMemo:

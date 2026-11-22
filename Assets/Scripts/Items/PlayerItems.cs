@@ -102,6 +102,7 @@ namespace Shrunk
 
         void Start()
         {
+            _health.Damaged += BreakGlass;
             // Chitin Plate: a shell that soaks up the first hit in every room.
             _health.ShouldBlock = direction =>
             {
@@ -137,6 +138,20 @@ namespace Shrunk
 
         public int Count(ItemType type) => _counts.TryGetValue(type, out int count) ? count : 0;
 
+        /// <summary>The Glass Heart has been broken by a hit, for the rest of the run.</summary>
+        public bool GlassBroken { get; private set; }
+
+        void BreakGlass(int amount, Vector3 direction)
+        {
+            if (amount <= 0 || GlassBroken || Count(ItemType.GlassHeart) == 0) return;
+            GlassBroken = true;
+            Sfx.Play(SfxId.Blast, 0.6f);
+            Fx.Burst(transform.position + Vector3.up, new Color(0.8f, 0.95f, 1f), 20, 6f, 0.1f, 0.5f);
+            var hud = FindAnyObjectByType<Hud>();
+            if (hud != null) hud.Toast("The Glass Heart breaks. It was lovely while it lasted.", 3f);
+            Changed?.Invoke();
+        }
+
         public PlayerStats Stats
         {
             get
@@ -149,7 +164,7 @@ namespace Shrunk
                 var rule = RunRules.Active;
                 bool overcharged = _power != null && _power.IsOvercharged;
 
-                return new PlayerStats
+                var stats = new PlayerStats
                 {
                     moveSpeedMultiplier = 1f + 0.15f * legs + 0.08f * jelly + 0.12f * dose + 0.18f * coffee + 0.1f * fish + 0.12f * clippings + (rule == RunRules.Rule.QuickFeet ? 0.2f : 0f),
                     // Coffee: everything quicker except getting your breath back.
@@ -182,6 +197,37 @@ namespace Shrunk
                     critChance = 0.15f * Count(ItemType.CompoundEye) + 0.1f * jelly + 0.12f * Count(ItemType.FrostCore) + 0.15f * Count(ItemType.Footnote) + (rule == RunRules.Rule.SharpEyes ? 0.1f : 0f),
                     aimAssistBonusAngle = 10f * Count(ItemType.CompoundEye)
                 };
+
+                // Tiny: much quicker, for a while.
+                if (_power != null && _power.IsTiny)
+                {
+                    stats.moveSpeedMultiplier += 0.45f;
+                    stats.dodgeCooldownMultiplier *= 0.5f;
+                }
+
+                // Glass Heart, until it breaks. Odd Sock: one is a little luck, a pair a lot. Adrenaline, at the last point.
+                if (Count(ItemType.GlassHeart) > 0 && !GlassBroken) stats.damageBonus += 2;
+                stats.critChance += 0.05f * Count(ItemType.GooglyEyes);
+                int socks = Count(ItemType.OddSock);
+                stats.critChance += socks >= 2 ? 0.25f : 0.06f * socks;
+                if (Count(ItemType.AdrenalineGland) > 0 && _health != null && _health.Current == 1 && _health.maxHealth > 1)
+                {
+                    stats.fireIntervalMultiplier *= 0.6f;
+                    stats.moveSpeedMultiplier += 0.2f;
+                }
+
+                // Synergies: pairs that are more together.
+                if (Synergies.Has("Packed Lunch Money", this)) stats.coinBonus += 1;
+                if (Synergies.Has("Steam", this)) stats.damageBonus += 1;
+                if (Synergies.Has("Elastic", this)) stats.bounce += 1;
+                if (Synergies.Has("Eagle Eye", this)) stats.critChance += 0.1f;
+                if (Synergies.Has("Pogo", this)) stats.dodgeReachMultiplier += 0.4f;
+                if (Synergies.Has("Party Popper", this)) stats.popDodge += 1;
+                if (Synergies.Has("Acid Rain", this)) stats.acid += 1;
+                if (Synergies.Has("Sugar Rush", this)) stats.moveSpeedMultiplier += 0.1f;
+                if (Synergies.Has("Static Cling", this) && stats.chargedEvery > 2) stats.chargedEvery -= 1;
+                if (Synergies.Has("Royal Guard", this)) stats.pierce += 1;
+                return stats;
             }
         }
 
@@ -232,6 +278,7 @@ namespace Shrunk
             }
 
             ShowLook(item);
+            Synergies.Check(this, item.type);
             Changed?.Invoke();
         }
 

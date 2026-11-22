@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Shrunk
 {
     /// <summary>The weapons the lab issues. Chosen at the equipment cupboard and kept between runs.</summary>
-    public enum WeaponKind { Pipette, Sprinkler, Syringe, SprayBottle, StapleGun }
+    public enum WeaponKind { Pipette, Sprinkler, Syringe, SprayBottle, StapleGun, Boomerang, MarbleLauncher }
 
     /// <summary>What the cupboard says about a weapon, and how it differs from the plain one.</summary>
     public class WeaponInfo
@@ -23,6 +23,8 @@ namespace Shrunk
         /// <summary>Shots per pull, one after another down the same line, this far apart in seconds.</summary>
         public int burst = 1;
         public float burstGap = 0.07f;
+        /// <summary>Built in: walls each shot bounces off, and whether shots come back at the end of their flight.</summary>
+        public int bounce, returns;
     }
 
     public static class Weapons
@@ -38,6 +40,10 @@ namespace Shrunk
                 needs = "Issued once the Librarian has been dealt with.", intervalMultiplier = 0.55f, rangeMultiplier = 0.5f, speedMultiplier = 0.85f, shotSize = 0.8f },
             new WeaponInfo { kind = WeaponKind.StapleGun, name = "Staple Gun", does = "Three staples in a quick burst, then a pause. Every one goes where the first one went.",
                 needs = "Issued once the Glitch has been dealt with.", burst = 3, burstGap = 0.07f, intervalMultiplier = 2.4f, speedMultiplier = 1.25f, rangeMultiplier = 0.9f, shotSize = 0.7f, shotLength = 1.8f },
+            new WeaponInfo { kind = WeaponKind.Boomerang, name = "Boomerang", does = "A slower throw that comes back to you at the end of its flight, hitting everything again on the way.",
+                needs = "Issued once the Jack-in-the-Box has been dealt with.", returns = 1, intervalMultiplier = 1.8f, speedMultiplier = 0.9f, rangeMultiplier = 0.8f, shotSize = 1.2f, shotLength = 0.6f },
+            new WeaponInfo { kind = WeaponKind.MarbleLauncher, name = "Marble Launcher", does = "Heavy marbles that bounce off two walls. For rooms with a lot of corners.",
+                needs = "Issued once Grandmother Dust has been dealt with.", bounce = 2, damageMultiplier = 2, intervalMultiplier = 2f, speedMultiplier = 0.9f, shotSize = 1.1f },
         };
 
         public static WeaponInfo Info(WeaponKind kind)
@@ -55,6 +61,8 @@ namespace Shrunk
                 case WeaponKind.Syringe: return Achievements.Has(AchievementId.Regicide);
                 case WeaponKind.SprayBottle: return Specimens.Has("TheLibrarian");
                 case WeaponKind.StapleGun: return Specimens.Has("TheGlitch");
+                case WeaponKind.Boomerang: return Specimens.Has("TheJackInTheBox");
+                case WeaponKind.MarbleLauncher: return Specimens.Has("GrandmotherDust");
                 default: return true;
             }
         }
@@ -177,13 +185,13 @@ namespace Shrunk
                     acid = stats.acid,
                     burn = stats.burn,
                     chill = stats.chill,
-                    bounce = stats.bounce,
+                    bounce = stats.bounce + info.bounce,
                     crit = Random.value < stats.critChance,
                     size = info.shotSize,
                     length = info.shotLength,
                     owner = _health,
                     farBonus = stats.farBonus,
-                    returns = stats.returns,
+                    returns = stats.returns + info.returns,
                     lightning = _lightningNext && i == 0
                 };
                 float turn = (i - (info.pellets - 1) * 0.5f) * info.spread;
