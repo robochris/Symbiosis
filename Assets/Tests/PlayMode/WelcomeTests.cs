@@ -415,5 +415,72 @@ namespace Shrunk.Tests
             yield return null;
             Assert.IsTrue(FloorLayout.IsBossFloor(floors.NextFloorNumber()), "a quick run's second floor does not lead to the boss");
         }
+
+        [UnityTest]
+        public IEnumerator The_rival_bolts_at_half_health_and_stays_the_third_time()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var prefab = GameAssets.Instance.rivalPrefab;
+            Assert.IsNotNull(prefab, "no rival");
+            var player = PlayerController.Instance;
+            player.Health.SetInvulnerable(600f);
+            var rival = (RivalVoid)UnityEngine.Object.Instantiate(prefab, player.transform.position + Vector3.forward * 9f, Quaternion.identity);
+            yield return null;
+            Assert.IsFalse(rival.Final);
+            rival.Health.TakeDamage(rival.Health.maxHealth / 2 + 1, Vector3.forward);
+            yield return null;
+            yield return null;
+            Assert.IsTrue(rival.Escaped, "it did not bolt at half health");
+            Assert.AreEqual(1, SaveSystem.Data.meta.rivalMet);
+
+            SaveSystem.Data.meta.rivalMet = RivalVoid.Meetings - 1;
+            var last = (RivalVoid)UnityEngine.Object.Instantiate(prefab, player.transform.position + Vector3.forward * 9f, Quaternion.identity);
+            yield return null;
+            Assert.IsTrue(last.Final);
+            last.Health.TakeDamage(last.Health.maxHealth / 2 + 1, Vector3.forward);
+            yield return null;
+            Assert.IsFalse(last.Escaped, "it ran the third time");
+            last.Health.Kill();
+            yield return null;
+            Assert.AreEqual(1, SaveSystem.Data.meta.rivalBeaten);
+            bool bandana = false;
+            for (int i = 0; i < Hats.All.Length; i++) if (Hats.All[i].name == "Rival's Bandana") bandana = Hats.Earned(i);
+            Assert.IsTrue(bandana, "no bandana for beating the rival");
+        }
+
+        [UnityTest]
+        public IEnumerator A_caged_larva_comes_along_and_the_rule_of_the_day_counts()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            RescueCage.ChanceForAll = 1f;
+            floors.BuildFloor(2);
+            yield return null;
+            RescueCage.ChanceForAll = 0f;
+            var cage = floors.Cage;
+            Assert.IsNotNull(cage, "no cage with the chance pinned to always");
+            cage.Open();
+            Assert.IsNotNull(cage.Freed, "nothing came out of the cage");
+            var freed = cage.Freed;
+            floors.BuildFloor(3);
+            yield return null;
+            yield return null;
+            Assert.IsTrue(freed == null, "the larva stayed on into the next floor");
+
+            RunRules.Off = false;
+            RunRules.Begin(true);
+            Assert.AreNotEqual(RunRules.Rule.None, RunRules.Active);
+            RunRules.TodayOverride = new System.DateTime(2026, 1, 2);
+            var a = RunRules.Today;
+            RunRules.TodayOverride = new System.DateTime(2026, 1, 3);
+            Assert.AreNotEqual(a, RunRules.Today, "the same rule two days running");
+            RunRules.TodayOverride = null;
+            RunRules.End();
+            RunRules.Off = true;
+        }
     }
 }

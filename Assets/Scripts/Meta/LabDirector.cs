@@ -48,6 +48,7 @@ namespace Shrunk
             var cabinet = FindAnyObjectByType<FilingCabinet>(FindObjectsInactive.Include);
             if (cabinet != null) ItemWall.Place(cabinet.transform.position + new Vector3(-2.8f, 0f, 0.4f), Quaternion.LookRotation(Vector3.back));
             Pressure.Apply(0);
+            RunRules.End();
 
             // A hat or a pet earned on the way: say so, and where to find it.
             var fresh = Hats.TakeNew();

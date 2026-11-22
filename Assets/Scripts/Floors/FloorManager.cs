@@ -411,6 +411,8 @@ namespace Shrunk
         public DareBell Dare { get; private set; }
         /// <summary>This floor's coded vault, if it has one.</summary>
         public CodeVault Vault { get; private set; }
+        /// <summary>This floor's caged larva, if it has one.</summary>
+        public RescueCage Cage { get; private set; }
         /// <summary>This floor's shrine, if it has one.</summary>
         public Shrine ShrineHere { get; private set; }
         /// <summary>How many more enemies a dare brings than the room had the first time.</summary>
@@ -471,6 +473,26 @@ namespace Shrunk
             {
                 Room first = _rooms[Layout.start.cell];
                 Claw = ClawMachine.Create(first, first.Centre + new Vector3(-2f, 0f, 1.2f), assets.coin, biome.doorMaterial, assets.sample);
+            }
+
+            // And now and then a caged larva in one of the fight rooms, to be let out once it is cleared.
+            Cage = null;
+            if (FloorNumber >= 2 && !biome.isBottom && !InSpecial && !InGauntlet && new System.Random(seed ^ 0x0CA6E).NextDouble() < (RescueCage.ChanceForAll ?? RescueCage.Chance))
+            {
+                var fights = new List<RoomNode>();
+                foreach (var each in Layout.ordered) if (each.type == RoomType.Normal && each != Layout.start) fights.Add(each);
+                if (fights.Count > 0)
+                {
+                    var pick = fights[new System.Random(seed ^ 0x0CA6F).Next(fights.Count)];
+                    Room cageRoom = _rooms[pick.cell];
+                    Vector3 spot = cageRoom.Centre + new Vector3(1.5f, 0f, 1.5f);
+                    foreach (var tile in cageRoom.Shape.free)
+                    {
+                        Vector3 point = cageRoom.TileWorld(tile);
+                        if ((point - cageRoom.Centre).sqrMagnitude < 30f && OpenFloor(point)) { spot = point; break; }
+                    }
+                    Cage = RescueCage.Create(cageRoom, pick, spot);
+                }
             }
 
             // And now and then a shrine, at the back of the first room, offering one trade.
@@ -838,6 +860,14 @@ namespace Shrunk
             // Some rooms have an elite: the first ant in gets a full load of mutations, more health and a crown.
             float eliteChance = eliteChanceOverride >= 0f ? eliteChanceOverride : MutationBudget.EliteChance(depth, FloorInBiome);
             bool elite = forceElite || rng.NextDouble() < eliteChance;
+            // Now and then the rival turns up for the fight as well.
+            var rivalPrefab = GameAssets.Instance != null ? GameAssets.Instance.rivalPrefab : null;
+            if (rivalPrefab != null && points.Count > 0 && RivalVoid.ShouldAppear(this))
+            {
+                RivalVoid.MetThisRun = true;
+                Spawn(rivalPrefab, points[UnityEngine.Random.Range(0, points.Count)], playerPosition);
+            }
+
             for (int i = 0; i < count && points.Count > 0; i++)
             {
                 int pick = UnityEngine.Random.Range(0, points.Count);

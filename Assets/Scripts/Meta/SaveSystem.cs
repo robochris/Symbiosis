@@ -80,6 +80,8 @@ namespace Shrunk
         public int vaultsOpened, vaultsCleared;
         /// <summary>Letters from the mailbox already read, by id.</summary>
         public List<string> lettersRead = new List<string>();
+        /// <summary>Times the rival has been met, and whether it is beaten for good.</summary>
+        public int rivalMet, rivalBeaten;
         public int goldBugsCaught;
         public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>

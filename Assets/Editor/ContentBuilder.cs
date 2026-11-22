@@ -314,6 +314,7 @@ namespace Shrunk.EditorTools
             game.AddComponent<Fx>().material = ArenaSceneBuilder.LoadOrCreate("Particle", "Universal Render Pipeline/Particles/Unlit");
             assets.items = BuildItems(out var larva);
             assets.larvaPrefab = larva;
+            assets.rivalPrefab = BuildRival();
             assets.note = ArenaSceneBuilder.Unlit("FinchNote", new Color(1f, 0.96f, 0.8f));
             assets.health = ArenaSceneBuilder.Unlit("HealthCrumb", new Color(1f, 0.45f, 0.5f));
             assets.playerAcid = ArenaSceneBuilder.Unlit("PlayerAcid", new Color(0.35f, 0.95f, 0.75f));
@@ -643,6 +644,40 @@ namespace Shrunk.EditorTools
             library.items = items.ToArray();
             EditorUtility.SetDirty(library);
             return library;
+        }
+
+        // The rival: another Void, red-eyed, in a bandana.
+        static Enemy BuildRival()
+        {
+            var body = ArenaSceneBuilder.Lit("RivalBody", new Color(0.06f, 0.05f, 0.08f), 0.5f);
+            var eyes = ArenaSceneBuilder.Unlit("RivalEyes", new Color(1f, 0.15f, 0.15f));
+            var bandana = ArenaSceneBuilder.Lit("RivalBandana", new Color(0.8f, 0.1f, 0.12f), 0.3f);
+            var shotLook = ArenaSceneBuilder.Unlit("RivalShot", new Color(1f, 0.3f, 0.3f));
+            var shot = new GameObject("RivalShot");
+            Decor(PrimitiveType.Sphere, "Visual", shot.transform, Vector3.zero, Vector3.one * 0.3f, shotLook);
+            shot.AddComponent<Bullet>().radius = 0.17f;
+            var shotPrefab = ArenaSceneBuilder.SavePrefab(shot, "Enemies/RivalShot").GetComponent<Bullet>();
+
+            var rival = Creature<RivalVoid>("TheRival", 0.4f, 1.6f, 36, 1f, 2.3f, out var model);
+            Decor(PrimitiveType.Capsule, "Body", model, new Vector3(0f, 0.55f, 0f), new Vector3(0.6f, 0.5f, 0.5f), body);
+            Decor(PrimitiveType.Sphere, "Head", model, new Vector3(0f, 1.25f, 0f), Vector3.one * 0.62f, body);
+            Decor(PrimitiveType.Sphere, "Eye L", model, new Vector3(-0.13f, 1.3f, 0.27f), new Vector3(0.12f, 0.15f, 0.06f), eyes);
+            Decor(PrimitiveType.Sphere, "Eye R", model, new Vector3(0.13f, 1.3f, 0.27f), new Vector3(0.12f, 0.15f, 0.06f), eyes);
+            Decor(PrimitiveType.Cylinder, "Bandana", model, new Vector3(0f, 1.42f, 0f), new Vector3(0.64f, 0.05f, 0.64f), bandana);
+            Decor(PrimitiveType.Cube, "Tail", model, new Vector3(0f, 1.4f, -0.35f), new Vector3(0.08f, 0.05f, 0.3f), bandana).transform.localRotation = Quaternion.Euler(20f, 0f, 0f);
+            var muzzle = new GameObject("Muzzle").transform;
+            muzzle.SetParent(rival.transform, false);
+            muzzle.localPosition = new Vector3(0f, 0.9f, 0.5f);
+            rival.muzzle = muzzle;
+            rival.projectilePrefab = shotPrefab;
+            rival.fireInterval = 1.4f;
+            rival.windupTime = 0.3f;
+            rival.moveSpeed = 4.5f;
+            rival.minRange = 5f;
+            rival.maxRange = 11f;
+            rival.knockbackOnHit = 0.6f;
+            Object.DestroyImmediate(rival.GetComponent<EnemyMutations>());
+            return SaveEnemy(rival);
         }
 
         static ItemDefinition Item(ItemType type, string name, string description, ItemSlot slot, bool rare, int price, Color color, GameObject look)

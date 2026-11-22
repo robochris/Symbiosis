@@ -36,6 +36,9 @@ namespace Shrunk.Tests
             HitStop.Off = true;
             SafetyNet.Off = true;
             CodeVault.ChanceForAll = 0f;
+            RivalVoid.ChanceForAll = 0f;
+            RescueCage.ChanceForAll = 0f;
+            RunRules.Off = true;
             StarterGoals.Off = true;
             Shrine.ChanceForAll = 0f;
             RunDirector.BeginnersLuckOff = true;
@@ -62,6 +65,9 @@ namespace Shrunk.Tests
             HitStop.Off = false;
             SafetyNet.Off = false;
             CodeVault.ChanceForAll = null;
+            RivalVoid.ChanceForAll = null;
+            RescueCage.ChanceForAll = null;
+            RunRules.Off = false;
             StarterGoals.Off = false;
             Shrine.ChanceForAll = null;
             RunDirector.BeginnersLuckOff = false;

@@ -9,6 +9,8 @@ namespace Shrunk
 
         public ItemLibrary items;
         public LarvaBuddy larvaPrefab;
+        /// <summary>The rival Void (see RivalVoid).</summary>
+        public Enemy rivalPrefab;
 
         [Header("Effect materials")]
         public Material playerAcid;

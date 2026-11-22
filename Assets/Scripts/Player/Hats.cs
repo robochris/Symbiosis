@@ -92,6 +92,12 @@ namespace Shrunk
                 }
                 Part.Make(PrimitiveType.Sphere, "Jewel", t, new Vector3(0f, Top + 0.06f, 0.25f), Vector3.one * 0.08f, new Color(0.9f, 0.1f, 0.3f), true);
             } },
+            new Hat { name = "Rival's Bandana", how = "Beat the rival Void for good.", earned = m => m.rivalBeaten > 0, build = t =>
+            {
+                var red = new Color(0.8f, 0.1f, 0.12f);
+                Part.Make(PrimitiveType.Cylinder, "Band", t, new Vector3(0f, Top - 0.12f, 0f), new Vector3(0.66f, 0.06f, 0.66f), red);
+                Part.Make(PrimitiveType.Cube, "Tail", t, new Vector3(0f, Top - 0.14f, -0.38f), new Vector3(0.08f, 0.05f, 0.32f), red).transform.localRotation = Quaternion.Euler(25f, 0f, 0f);
+            } },
             new Hat { name = "Hard Hat", how = "Beat a world's boss at pressure 3.", earned = m => m.pressureBest >= 3, build = t =>
             {
                 var yellow = new Color(1f, 0.82f, 0.1f);

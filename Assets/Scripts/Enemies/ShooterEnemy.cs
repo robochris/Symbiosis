@@ -54,6 +54,8 @@ namespace Shrunk
             }
 
             Vector3 toPlayer = targetPosition - transform.position;
+            // How far above (or below) the player is, kept before the aim is flattened: for shooting up at a ledge.
+            _rise = toPlayer.y;
             toPlayer.y = 0f;
             float distance = toPlayer.magnitude;
             bool sees = CanSee(targetPosition);
@@ -93,6 +95,8 @@ namespace Shrunk
             }
         }
 
+        float _rise;
+
         void Fire(Vector3 toPlayer)
         {
             _winding = false;
@@ -109,7 +113,7 @@ namespace Shrunk
             // A confused spitter's shots hurt other enemies.
             var shot = new Shot { damage = damage, owner = Health };
             // A player on another level is aimed at chest high, so the shot clears the ledge's edge.
-            Vector3 aim = Mathf.Abs(toPlayer.y) > 0.8f ? transform.position + toPlayer + Vector3.up * 0.9f - origin : toPlayer;
+            Vector3 aim = Mathf.Abs(_rise) > 0.8f ? transform.position + toPlayer + Vector3.up * (_rise + 0.9f) - origin : toPlayer;
             pool.Get().Launch(origin, aim.normalized, projectileSpeed, shot, projectileRange, IsConfused ? Team.Player : Team.Enemy, pool);
             ShotsFired++;
         }

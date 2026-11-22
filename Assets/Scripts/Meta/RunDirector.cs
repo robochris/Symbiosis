@@ -181,6 +181,15 @@ namespace Shrunk
             Progress.StartRun();
             KillCombo.StartRun();
             SafetyNet.StartRun();
+            RivalVoid.MetThisRun = false;
+            // Today's rule, said at the start.
+            RunRules.Begin(!IsDaily && !IsGauntlet && !IsDescent);
+            if (RunRules.Active != RunRules.Rule.None)
+            {
+                if (RunRules.Active == RunRules.Rule.GlassCannon && _player.Health.maxHealth > 2) _player.Health.SetMaxHealth(_player.Health.maxHealth - 1, true);
+                var ruleHud = FindAnyObjectByType<Hud>();
+                if (ruleHud != null) ruleHud.Toast("Today's rule. " + RunRules.Describe(RunRules.Active) + " A new one tomorrow.", 5f);
+            }
             if (Upgrades.StartCoins > 0) RunState.AddCoins(Upgrades.StartCoins);
             if (Progress.Has(Perk.LooseChange)) RunState.AddCoins(Progress.LooseChangeCoins);
             // A lucky fortune, read in the lab before setting out.
@@ -272,6 +281,7 @@ namespace Shrunk
             }
             if (!string.IsNullOrEmpty(run.biome)) _floors.SetBiome(run.biome);
             IsQuick = run.quick;
+            RunRules.Begin(!IsDaily);
             _floors.BuildFloor(Mathf.Max(1, run.floorNumber), run.seed);
         }
 
