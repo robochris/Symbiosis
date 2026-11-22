@@ -31,8 +31,9 @@ namespace Shrunk
             return at;
         }
 
-        protected virtual void LateUpdate()
+        protected override void LateUpdate()
         {
+            base.LateUpdate();
             var player = PlayerController.Instance;
             if (player == null || Time.deltaTime <= 0f) return;
             Vector3 at = player.transform.position;

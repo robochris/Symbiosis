@@ -84,6 +84,9 @@ namespace Shrunk
         public int rivalMet, rivalBeaten;
         /// <summary>The season the track belongs to, the XP on it, and Season Stars earned (a whole track each).</summary>
         public int seasonId, seasonXp, seasonStars;
+        /// <summary>Deaths in a row early in a world, and whether Relaxed has been suggested yet.</summary>
+        public int quickDeaths;
+        public bool relaxedSuggested;
         public int goldBugsCaught;
         public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>

@@ -31,7 +31,7 @@ namespace Shrunk
         {
             new WeaponInfo { kind = WeaponKind.Pipette, name = "Pipette", does = "Standard issue. Quick, straight, and reaches across a room.", needs = "" },
             new WeaponInfo { kind = WeaponKind.Sprinkler, name = "Sprinkler", does = "Three shots in a fan, slower, and they do not travel far. For getting close, which is discouraged.",
-                needs = "Issued once the Brood Mother has been dealt with.", pellets = 3, spread = 11f, shotSize = 0.75f, intervalMultiplier = 2.1f, rangeMultiplier = 0.55f },
+                needs = "Issued after your first run.", pellets = 3, spread = 11f, shotSize = 0.75f, intervalMultiplier = 2.1f, rangeMultiplier = 0.55f },
             new WeaponInfo { kind = WeaponKind.Syringe, name = "Syringe", does = "One slow, heavy shot: triple damage, goes through the first thing it hits, and reaches further.",
                 needs = "Issued once the Ant Queen has been dealt with.", intervalMultiplier = 3f, rangeMultiplier = 1.35f, speedMultiplier = 1.6f, damageMultiplier = 3, pierce = 1, shotSize = 1.15f, shotLength = 2.6f },
             new WeaponInfo { kind = WeaponKind.SprayBottle, name = "Spray Bottle", does = "Nearly twice as fast, and it gives out at half the distance. For people who would rather not aim.",
@@ -51,7 +51,7 @@ namespace Shrunk
             if (Achievements.EverythingUnlocked) return true;
             switch (kind)
             {
-                case WeaponKind.Sprinkler: return Achievements.Has(AchievementId.MothersDay);
+                case WeaponKind.Sprinkler: return Achievements.Has(AchievementId.MothersDay) || SaveSystem.Data.meta.deaths + SaveSystem.Data.meta.extractions > 0;
                 case WeaponKind.Syringe: return Achievements.Has(AchievementId.Regicide);
                 case WeaponKind.SprayBottle: return Specimens.Has("TheLibrarian");
                 case WeaponKind.StapleGun: return Specimens.Has("TheGlitch");

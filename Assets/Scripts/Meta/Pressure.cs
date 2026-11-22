@@ -141,7 +141,7 @@ namespace Shrunk
         public const float EliteSeconds = 0.06f, BossSeconds = 0.18f;
         public static bool Off;
         static HitStop _instance;
-        float _until, _restore;
+        float _until, _restore, _slow = 0.05f;
         bool _holding;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -163,8 +163,11 @@ namespace Shrunk
             if (seconds <= 0f) return;
             if (!_holding) _restore = Time.timeScale;
             _holding = true;
-            _until = Time.unscaledTime + seconds;
-            Time.timeScale = 0.05f;
+            bool boss = enemy is BossEnemy;
+            // A boss: a long slow-motion moment on the last hit. An elite: a short freeze.
+            _until = Time.unscaledTime + (boss ? 0.9f : seconds);
+            _slow = boss ? 0.25f : 0.05f;
+            Time.timeScale = _slow;
         }
 
         void Update()
@@ -172,7 +175,7 @@ namespace Shrunk
             if (!_holding || Time.unscaledTime < _until) return;
             _holding = false;
             // Only put it back if nothing else (a pause, a card) has taken the clock meanwhile.
-            if (Mathf.Approximately(Time.timeScale, 0.05f)) Time.timeScale = _restore;
+            if (Mathf.Approximately(Time.timeScale, _slow)) Time.timeScale = _restore;
         }
     }
 }

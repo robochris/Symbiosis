@@ -189,6 +189,8 @@ namespace Shrunk
         Transform _hat;
         int _wearing = -1;
         PlayerController _player;
+        Vector3 _last;
+        float _wobble;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Hook() => SceneManager.sceneLoaded += (scene, mode) => Attach();
@@ -231,6 +233,16 @@ namespace Shrunk
             // An item on the head (a paper hat, say) is worn over it: the hat comes off meanwhile.
             bool covered = _player.Items != null && _player.Items.LookIn(ItemSlot.Head) != null;
             if (_hat.gameObject.activeSelf == covered) _hat.gameObject.SetActive(!covered);
+            // A wobble while running, leaning back against the way it is going.
+            Vector3 moved = (transform.position - _last) / Mathf.Max(Time.deltaTime, 0.0001f);
+            _last = transform.position;
+            moved.y = 0f;
+            float speed = Mathf.Min(moved.magnitude, 10f);
+            _wobble += Time.deltaTime * (6f + speed);
+            Vector3 back = transform.InverseTransformDirection(-moved.normalized);
+            float lean = speed * 1.2f;
+            Quaternion target = Quaternion.Euler(back.z * -lean + Mathf.Sin(_wobble) * speed * 0.6f, 0f, back.x * lean);
+            _hat.localRotation = Quaternion.Slerp(_hat.localRotation, target, Time.deltaTime * 10f);
         }
     }
 

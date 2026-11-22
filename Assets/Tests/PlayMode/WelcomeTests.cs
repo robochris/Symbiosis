@@ -544,5 +544,38 @@ namespace Shrunk.Tests
             Season.NowOverride = null;
             Season.Off = true;
         }
+
+        [UnityTest]
+        public IEnumerator The_first_floor_ever_is_gentle_and_the_second_weapon_comes_after_one_run()
+        {
+            SafetyNet.Off = false;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            Assert.IsTrue(floors.FirstFloorEver);
+            bool waiting = false;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Item && pickup.price == 0) waiting = true;
+            Assert.IsTrue(waiting, "no item waiting on the first floor ever");
+            SafetyNet.Off = true;
+
+            Assert.IsFalse(Weapons.Unlocked(WeaponKind.Sprinkler));
+            SaveSystem.Data.meta.deaths = 1;
+            Assert.IsTrue(Weapons.Unlocked(WeaponKind.Sprinkler), "no second weapon after a first run");
+        }
+
+        [UnityTest]
+        public IEnumerator Clearing_a_room_is_celebrated_and_the_hole_takes_the_coins()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            Pickup.Coin(player.transform.position + Vector3.forward * 5f, 3);
+            Pickup.Coin(player.transform.position + Vector3.forward * 30f, 3);
+            int coins = RunState.Coins;
+            Assert.AreEqual(1, Pickup.SweepUp(player.transform.position, 9f));
+            Assert.AreEqual(coins + 3, RunState.Coins);
+        }
     }
 }

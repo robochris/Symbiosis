@@ -342,8 +342,31 @@ namespace Shrunk
             if (knockbackOnHit > 0f) Knockback = velocity;
         }
 
+        float _squashUntil, _shownScale = 1f;
+        /// <summary>How long a hit squashes an enemy for.</summary>
+        public const float SquashTime = 0.12f;
+
+        /// <summary>A hit squashes the enemy flat for a moment, then it springs back.</summary>
+        protected virtual void LateUpdate()
+        {
+            if (visual == null || Health.IsDead) return;
+            float left = _squashUntil - Time.time;
+            if (left <= 0f)
+            {
+                if (_squashUntil > 0f)
+                {
+                    _squashUntil = 0f;
+                    visual.localScale = Vector3.one * (_shownScale * BaseScale);
+                }
+                return;
+            }
+            float k = left / SquashTime * 0.18f;
+            visual.localScale = new Vector3(1f + k, 1f - k, 1f + k) * (_shownScale * BaseScale);
+        }
+
         void OnDamaged(int amount, Vector3 direction)
         {
+            if (amount > 0) _squashUntil = Time.time + SquashTime;
             direction.y = 0f;
             Knockback = direction.normalized * knockbackOnHit;
             Sfx.Play(SfxId.Hit, 0.7f);
@@ -361,6 +384,8 @@ namespace Shrunk
         {
             Sfx.Play(SfxId.EnemyDie);
             float size = Controller != null ? Controller.radius / 0.55f : 1f;
+            // An elite goes out with more of a bang.
+            if (IsElite) size *= 1.8f;
             Fx.Burst(transform.position + Vector3.up * (0.6f * size), Fx.ColourOf(visual), Mathf.Min(40, Mathf.RoundToInt(12 * size)), 5f + size, 0.22f * Mathf.Sqrt(size), 0.55f);
             StartCoroutine(DeathPop());
         }
@@ -424,6 +449,7 @@ namespace Shrunk
 
         protected void SetVisualScale(float scale)
         {
+            _shownScale = scale;
             if (visual != null) visual.localScale = Vector3.one * (scale * BaseScale);
         }
 

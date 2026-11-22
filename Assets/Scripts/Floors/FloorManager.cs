@@ -18,6 +18,8 @@ namespace Shrunk
         public static event Action<FloorManager> RoomChanged;
         /// <summary>The player stepped into the extract portal after a biome boss.</summary>
         public static event Action ExtractChosen;
+        /// <summary>A fight room has just been cleared.</summary>
+        public static event Action<FloorManager> RoomCleared;
 
         public BiomeDefinition biome;
         [Tooltip("The other biomes a portal can lead to after a biome boss. The current one is always offered again.")]
@@ -476,6 +478,14 @@ namespace Shrunk
                 Claw = ClawMachine.Create(first, first.Centre + new Vector3(-2f, 0f, 1.2f), assets.coin, biome.doorMaterial, assets.sample);
             }
 
+            // The very first floor: an item waiting in the first room, so the first run gets going.
+            if (FirstFloorEver)
+            {
+                var starter = assets.items.RandomCommon(new System.Random(seed), 1);
+                Room first = _rooms[Layout.start.cell];
+                if (starter.Count > 0) Pickup.Item(starter[0], first.Centre + new Vector3(0f, 0f, 3f), 0);
+            }
+
             // And now and then a caged larva in one of the fight rooms, to be let out once it is cleared.
             Cage = null;
             if (FloorNumber >= 2 && !biome.isBottom && !InSpecial && !InGauntlet && new System.Random(seed ^ 0x0CA6E).NextDouble() < (RescueCage.ChanceForAll ?? RescueCage.Chance))
@@ -711,7 +721,11 @@ namespace Shrunk
 
                 // Going down is always a choice: stand at the hole and use it. (Walking over it does nothing.)
                 _exitPad.radius = exitRadius;
-                if (_exitPad.SteppedOn(room.ExitHole.transform.position, position)) BuildFloor(NextFloorNumber());
+                if (_exitPad.SteppedOn(room.ExitHole.transform.position, position))
+                {
+                    Pickup.SweepUp(room.ExitHole.transform.position, 9f);
+                    BuildFloor(NextFloorNumber());
+                }
             }
         }
 
@@ -812,6 +826,9 @@ namespace Shrunk
             return FloorNumber + 1;
         }
 
+        /// <summary>The first floor of the first run there has ever been (and the safety net is on).</summary>
+        public bool FirstFloorEver => !SafetyNet.Off && SaveSystem.Data.meta.runsStarted <= 1 && FloorNumber == 1 && !InSpecial && !InGauntlet;
+
         /// <summary>A few more enemies into this room, away from the player: for trials like the vault's.</summary>
         public void SpawnInto(Room room, int count)
         {
@@ -833,6 +850,8 @@ namespace Shrunk
         {
             int count = biome.EnemiesFor(FloorInBiome, room.Shape.interior.Count);
             count += UnityEngine.Random.Range(0, 2) + extra;
+            // The very first floor anybody plays: never more than four at once.
+            if (FirstFloorEver) count = Mathf.Min(count, 4);
 
             // Any clear tile far enough from the player can hold an enemy. In a tiny room, fall back to the farthest tiles.
             var points = new List<Vector3>();
@@ -1036,6 +1055,7 @@ namespace Shrunk
             IsLocked = false;
             node.cleared = true;
             SetFightLocked(false);
+            RoomCleared?.Invoke(this);
             Vector3 middle = node.type == RoomType.Exit && FloorLayout.IsBossFloor(FloorNumber) ? ArenaCentre : room.Centre;
 
             var assets = GameAssets.Instance;

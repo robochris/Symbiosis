@@ -89,6 +89,25 @@ namespace Shrunk
             return pickup;
         }
 
+        /// <summary>Coins and samples lying within this distance are taken, as if walked over: the hole sucks them in.</summary>
+        public static int SweepUp(Vector3 at, float radius)
+        {
+            int taken = 0;
+            foreach (var pickup in All.ToArray())
+            {
+                if (pickup == null || (pickup.kind != PickupKind.Coin && pickup.kind != PickupKind.Sample)) continue;
+                Vector3 to = pickup.transform.position - at;
+                to.y = 0f;
+                if (to.magnitude > radius) continue;
+                if (pickup.kind == PickupKind.Coin) RunState.AddCoins(pickup.amount);
+                else RunState.AddSamples(pickup.amount);
+                taken++;
+                Destroy(pickup.gameObject);
+            }
+            if (taken > 0) Sfx.Play(SfxId.Coin, 0.8f);
+            return taken;
+        }
+
         public static void ClearAll()
         {
             foreach (var pickup in All.ToArray()) if (pickup != null) Destroy(pickup.gameObject);
@@ -166,6 +185,7 @@ namespace Shrunk
                 if (items != null) items.Add(item);
                 ItemCollected?.Invoke(item);
                 Sfx.Play(SfxId.Item);
+                Fx.Burst(player.transform.position + Vector3.up * 1.2f, item.material != null ? item.material.color : Color.white, item.rare ? 40 : 22, item.rare ? 7f : 5f, 0.18f, 0.6f);
                 if (treasureRoom != null)
                 {
                     foreach (var other in All.ToArray())

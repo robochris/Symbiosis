@@ -122,6 +122,7 @@ namespace Shrunk
             _floors = FloorManager.Instance;
             _player = PlayerController.Instance;
             _player.Health.Died += OnPlayerDied;
+            _player.Health.Damaged += (amount, direction) => { if (amount > 0) _lastHitFromFloor = direction == Vector3.zero; };
 
             ApplyUpgrades();
             _deepestBefore = SaveSystem.Data.meta.deepestFloor;
@@ -383,7 +384,7 @@ namespace Shrunk
 
             LastRunMessage = IsDescent
                 ? (IsMachine ? "The machine won that one. Its parts are still in. Go again from the panel." : "You fell at the bottom. The door is still there, whatever the radio says.")
-                : $"You fell on floor {floor}. {Mathf.RoundToInt(share * 100f)}% of your samples made it home: {kept}." + Tally();
+                : $"You fell on floor {floor}. {Mathf.RoundToInt(share * 100f)}% of your samples made it home: {kept}." + Tally() + AfterDeath(floor);
             StartCoroutine(GoHome());
         }
 
@@ -418,6 +419,38 @@ namespace Shrunk
             if (next == null) return Progress.Summary();
             int toGo = Mathf.Max(0, Progress.XpFor(next.level) - Progress.Xp);
             return $"Next: level {next.level}, {next.line}. {toGo} XP to go.";
+        }
+
+        bool _lastHitFromFloor;
+
+        /// <summary>
+        /// A newer player's death comes with a little help: a tip about what did it (for the first five), a few lucky
+        /// coins from Finch on the third, and after three quick deaths in a row, a word about Relaxed mode.
+        /// </summary>
+        string AfterDeath(int floor)
+        {
+            var meta = SaveSystem.Data.meta;
+            string text = "";
+            if (meta.deaths <= 5)
+            {
+                bool boss = BossEnemy.InPlay != null;
+                text += boss ? " Tip: a boss marks its big attacks first. Watch for the marks, then move."
+                    : _lastHitFromFloor ? " Tip: red marks on the floor go off a moment after they show. Step out early."
+                    : " Tip: roll through shots (dodge): nothing can touch you mid-roll.";
+            }
+            if (meta.deaths == 3)
+            {
+                meta.luckyCoins += 15;
+                text += " Finch has slipped 15 lucky coins into your pocket for the next one.";
+            }
+            meta.quickDeaths = FloorLayout.FloorOfBiome(floor) <= 2 && floor <= FloorLayout.FloorsPerBiome ? meta.quickDeaths + 1 : 0;
+            if (meta.quickDeaths >= 3 && !GameSettings.Relaxed && !meta.relaxedSuggested)
+            {
+                meta.relaxedSuggested = true;
+                text += " If it is all too much: Relaxed, in the options, gives two more health. No shame in it.";
+            }
+            SaveSystem.Save();
+            return text;
         }
 
         // The rest of how it went, for the line the lab greets the player with.
