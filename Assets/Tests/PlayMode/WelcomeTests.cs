@@ -775,11 +775,11 @@ namespace Shrunk.Tests
             for (float t = 0f; t < 3f && !floors.IsLocked; t += Time.deltaTime) yield return null;
             Assert.IsTrue(RoomChallenge.Timed, "no clock on the fight");
             int items = 0;
-            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Item) items++;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Sample) items++;
             foreach (var enemy in new System.Collections.Generic.List<Enemy>(floors.LiveEnemies)) enemy.Health.Kill();
             for (float t = 0f; t < 3f && floors.IsLocked; t += Time.deltaTime) yield return null;
             int after = 0;
-            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Item) after++;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Sample) after++;
             Assert.Greater(after, items, "nothing for clearing in time");
             RoomChallenge.ChanceForAll = 0f;
         }

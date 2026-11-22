@@ -558,7 +558,7 @@ namespace Shrunk
             if (freeze && Time.timeScale > 0f)
             {
                 _frozen = true;
-                _timeBefore = GameLoop.InSlowMotion ? 1f : Time.timeScale;
+                _timeBefore = GameLoop.InSlowMotion || HitStop.Holding || Time.timeScale < 0.9f && Time.timeScale > 0f && !DevMenu.Open ? 1f : Time.timeScale;
                 Time.timeScale = 0f;
             }
 

@@ -78,7 +78,8 @@ namespace Shrunk
                 rect.SetParent(container, false);
                 rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
                 rect.anchoredPosition = (new Vector2(node.cell.x, node.cell.y) - centre) * pitch;
-                rect.sizeDelta = Vector2.one * (pitch - gap);
+                // A boss's arena is one room: its four squares are drawn touching, as one block.
+                rect.sizeDelta = Vector2.one * (floors.Layout.InArena(node.cell) ? pitch : pitch - gap);
                 var image = go.GetComponent<Image>();
                 image.raycastTarget = false;
                 _tiles.Add(node.cell, image);

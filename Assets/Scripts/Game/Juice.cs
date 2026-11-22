@@ -13,6 +13,26 @@ namespace Shrunk
         public static int Confetti { get; private set; }
         float _nextStep, _nextBeams;
         Vector3 _lastFeet;
+        float _spinUntil;
+        Vector3 _spinHome;
+
+        void LateUpdate()
+        {
+            var player = PlayerController.Instance;
+            if (player == null || player.visual == null) return;
+            if (Time.unscaledTime < _spinUntil)
+            {
+                float t = 1f - (_spinUntil - Time.unscaledTime) / 0.8f;
+                player.visual.localRotation = Quaternion.Euler(0f, t * 720f, 0f);
+                player.visual.localPosition = _spinHome + new Vector3(0f, Mathf.Sin(t * Mathf.PI) * 0.5f, 0f);
+            }
+            else if (_spinUntil > 0f)
+            {
+                _spinUntil = 0f;
+                player.visual.localRotation = Quaternion.identity;
+                player.visual.localPosition = _spinHome;
+            }
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Create()
@@ -46,6 +66,13 @@ namespace Shrunk
         /// <summary>The last stand: at the last point of health, the next kill gives one back. Once a floor.</summary>
         void OnKilled(Enemy enemy)
         {
+            // A boss down: a little victory spin.
+            if (enemy is BossEnemy && PlayerController.Instance != null && PlayerController.Instance.visual != null)
+            {
+                if (_spinUntil <= 0f) _spinHome = PlayerController.Instance.visual.localPosition;
+                _spinUntil = Time.unscaledTime + 0.8f;
+            }
+
             // A party: every kill is confetti.
             if (enemy != null && FloorManager.Instance != null && FloorManager.Instance.Twist == FloorTwist.Party)
             {

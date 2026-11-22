@@ -57,6 +57,8 @@ namespace Shrunk
             var cabinet = FindAnyObjectByType<FilingCabinet>(FindObjectsInactive.Include);
             if (cabinet != null && Unlocks.Open(Unlocks.Feature.ItemWall)) ItemWall.Place(cabinet.transform.position + new Vector3(-2.8f, 0f, 0.4f), Quaternion.LookRotation(Vector3.back));
             Pressure.Apply(0);
+            int month = System.DateTime.Now.Month;
+            if (!SaveSystem.Data.meta.monthsPlayed.Contains(month)) { SaveSystem.Data.meta.monthsPlayed.Add(month); SaveSystem.Save(); }
             if (!NightNoteOff && System.DateTime.Now.Hour >= 2 && System.DateTime.Now.Hour < 5 && ScreenCards.Instance != null && !ScreenCards.Instance.CardShowing)
                 ScreenCards.Instance.ShowCard("A NOTE FROM FINCH", "It is the middle of the night. Go to sleep. The ants will still be there in the morning.", 4f);
             if (SaveSystem.Data.meta.runsStarted == 0)

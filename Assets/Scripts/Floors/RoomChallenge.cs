@@ -44,13 +44,13 @@ namespace Shrunk
             {
                 Timed = false;
                 bool made = Time.time <= Deadline;
-                var assets = GameAssets.Instance;
-                if (made && assets != null && assets.items != null)
+                // Coins and samples, not an item: items stay rare.
+                if (made)
                 {
-                    var picks = assets.items.RandomCommon(new System.Random(Random.Range(0, int.MaxValue)), 1);
-                    if (picks.Count > 0) Pickup.Item(picks[0], middle + Vector3.back * 1.5f, 0);
+                    for (int i = 0; i < 6; i++) Pickup.Coin(middle + new Vector3(-1.2f + (i % 3) * 0.8f, 0f, -1.5f + (i / 3) * 0.8f), 1);
+                    Pickup.Sample(middle + new Vector3(1.5f, 0f, -1.5f), 10);
                 }
-                if (hud != null) hud.Toast(made ? "Challenge done: something has been left for you." : "Too slow for the challenge, this time.", 3f);
+                if (hud != null) hud.Toast(made ? "Challenge done: coins and samples left for you." : "Too slow for the challenge, this time.", 3f);
             }
             if (_hit || FlawlessOff) return;
             Flawless++;

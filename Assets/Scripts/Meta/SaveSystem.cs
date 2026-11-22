@@ -100,6 +100,8 @@ namespace Shrunk
         public List<string> worldSecrets = new List<string>();
         /// <summary>Features whose arrival has been announced in the lab.</summary>
         public List<string> featuresAnnounced = new List<string>();
+        /// <summary>Months of the year (1-12) the game has been played in, for the seasonal hats.</summary>
+        public List<int> monthsPlayed = new List<int>();
         /// <summary>Each boss's best time in seconds, and the bosses beaten without a hit (by prefab name).</summary>
         public List<string> bossTimeKeys = new List<string>();
         public List<float> bossTimes = new List<float>();

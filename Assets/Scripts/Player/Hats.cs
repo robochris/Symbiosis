@@ -119,6 +119,37 @@ namespace Shrunk
                 Part.Make(PrimitiveType.Sphere, "Crown", t, new Vector3(0f, Top + 0.08f, 0f), new Vector3(0.55f, 0.3f, 0.55f), khaki);
                 Part.Make(PrimitiveType.Cylinder, "Band", t, new Vector3(0f, Top + 0.04f, 0f), new Vector3(0.56f, 0.03f, 0.56f), new Color(0.4f, 0.25f, 0.15f));
             } },
+            new Hat { name = "Santa Hat", how = "Play in December.", earned = m => m.monthsPlayed.Contains(12), build = t =>
+            {
+                Part.Make(PrimitiveType.Cylinder, "Trim", t, new Vector3(0f, Top, 0f), new Vector3(0.62f, 0.06f, 0.62f), Color.white);
+                for (int i = 0; i < 4; i++)
+                {
+                    float r = Mathf.Lerp(0.3f, 0.08f, i / 3f);
+                    Part.Make(PrimitiveType.Cylinder, "Red " + i, t, new Vector3(-0.04f * i, Top + 0.1f + i * 0.09f, 0f), new Vector3(r, 0.05f, r), new Color(0.85f, 0.1f, 0.12f));
+                }
+                Part.Make(PrimitiveType.Sphere, "Pom", t, new Vector3(-0.16f, Top + 0.42f, 0f), Vector3.one * 0.12f, Color.white);
+            } },
+            new Hat { name = "Witch's Hat", how = "Play in October.", earned = m => m.monthsPlayed.Contains(10), build = t =>
+            {
+                var black = new Color(0.12f, 0.08f, 0.16f);
+                Part.Make(PrimitiveType.Cylinder, "Brim", t, new Vector3(0f, Top, 0f), new Vector3(0.85f, 0.02f, 0.85f), black);
+                for (int i = 0; i < 5; i++)
+                {
+                    float r = Mathf.Lerp(0.4f, 0.06f, i / 4f);
+                    Part.Make(PrimitiveType.Cylinder, "Cone " + i, t, new Vector3(0.02f * i, Top + 0.06f + i * 0.1f, 0f), new Vector3(r, 0.05f, r), black);
+                }
+                Part.Make(PrimitiveType.Cylinder, "Band", t, new Vector3(0f, Top + 0.05f, 0f), new Vector3(0.41f, 0.03f, 0.41f), new Color(0.6f, 0.2f, 0.8f));
+            } },
+            new Hat { name = "Bunny Ears", how = "Play in April.", earned = m => m.monthsPlayed.Contains(4), build = t =>
+            {
+                var white = new Color(0.95f, 0.95f, 0.95f);
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    var ear = Part.Make(PrimitiveType.Capsule, side < 0 ? "Ear L" : "Ear R", t, new Vector3(side * 0.13f, Top + 0.25f, 0f), new Vector3(0.12f, 0.25f, 0.06f), white);
+                    ear.transform.localRotation = Quaternion.Euler(0f, 0f, side * -12f);
+                    Part.Make(PrimitiveType.Capsule, "Inner", ear.transform, new Vector3(0f, 0f, -0.3f), new Vector3(0.5f, 0.8f, 0.5f), new Color(1f, 0.7f, 0.8f));
+                }
+            } },
             new Hat { name = "Hard Hat", how = "Beat a world's boss at pressure 3.", earned = m => m.pressureBest >= 3, build = t =>
             {
                 var yellow = new Color(1f, 0.82f, 0.1f);

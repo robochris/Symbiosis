@@ -159,7 +159,8 @@ namespace Shrunk
         void OnKilled(Enemy enemy)
         {
             if (Off || enemy == null || Time.timeScale <= 0f) return;
-            float seconds = enemy is BossEnemy ? BossSeconds : enemy.IsElite ? EliteSeconds : 0f;
+            // Bosses already get the game's own slow motion; this is just the elite's freeze.
+            float seconds = enemy is BossEnemy ? 0f : enemy.IsElite ? EliteSeconds : 0f;
             if (seconds <= 0f) return;
             if (!_holding) _restore = Time.timeScale;
             _holding = true;
@@ -169,6 +170,9 @@ namespace Shrunk
             _slow = boss ? 0.25f : 0.05f;
             Time.timeScale = _slow;
         }
+
+        /// <summary>True while the freeze holds: anything pausing meanwhile should come back to full speed.</summary>
+        public static bool Holding => _instance != null && _instance._holding;
 
         void Update()
         {
