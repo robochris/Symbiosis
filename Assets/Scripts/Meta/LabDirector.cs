@@ -76,8 +76,8 @@ namespace Shrunk
             if ((fresh.Count > 0 || pets.Count > 0) && ScreenCards.Instance != null && !ScreenCards.Instance.CardShowing)
             {
                 string line = "";
-                if (fresh.Count > 0) line += (fresh.Count == 1 ? $"You earned the {fresh[0].name}." : $"You earned {fresh.Count} new hats.") + (fresh.Count == 1 ? " Try it on" : " Try them on") + " in the dressing room, through the office. ";
-                if (pets.Count > 0) line += (pets.Count == 1 ? $"The {pets[0].name} would like to come along." : $"{pets.Count} pets would like to come along.") + " Their perches are in the dressing room.";
+                if (fresh.Count > 0) line += (fresh.Count == 1 ? $"You earned the {fresh[0].name}." : $"You earned {fresh.Count} new hats.") + (fresh.Count == 1 ? " Try it on" : " Try them on") + " at the hat stand in the dressing room, through the office. ";
+                if (pets.Count > 0) line += (pets.Count == 1 ? $"The {pets[0].name} would like to come along." : $"{pets.Count} pets would like to come along.") + " Let them out at the pet jar in the dressing room.";
                 string heading = fresh.Count > 0 && pets.Count > 0 ? "NEW THINGS" : fresh.Count > 0 ? (fresh.Count == 1 ? "NEW HAT" : "NEW HATS") : (pets.Count == 1 ? "NEW PET" : "NEW PETS");
                 ScreenCards.Instance.ShowCard(heading, line.Trim(), 4.5f);
             }

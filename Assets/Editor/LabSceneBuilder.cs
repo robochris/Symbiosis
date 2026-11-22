@@ -87,48 +87,37 @@ namespace Shrunk.EditorTools
         /// <summary>Where the door from the office to the dressing room is, along the office's back wall.</summary>
         public const float DressingDoorX = -17f;
 
-        // ----- the dressing room, behind the office: everything to wear, out on show. Parquet, plum walls, warm lights. -----
+        // ----- the dressing room, behind the office: the hat stand, the mirror and the pet jar. Parquet, plum walls, warm light. -----
         static void BuildDressingRoom(float height, Transform hub)
         {
             var parquet = ArenaSceneBuilder.Lit("DressingFloor", new Color(0.55f, 0.38f, 0.26f), 0.45f);
             var plum = ArenaSceneBuilder.Lit("DressingWall", new Color(0.36f, 0.2f, 0.32f), 0.2f);
             var frame = ArenaSceneBuilder.Lit("DressingFrame", new Color(0.75f, 0.6f, 0.3f), 0.7f);
             var root = new GameObject("Dressing Room").transform;
-            // Inside: x from -34 to -12, z from 8 to 22. The office's back wall is its front wall, bar a stretch past the office's end.
-            const float minX = -34f, maxX = -12f, minZ = 8f, maxZ = 22f;
+            // Inside: x from -24 to -12, z from 8 to 18. The office's back wall is its front wall.
+            const float minX = -24f, maxX = -12f, minZ = 8f, maxZ = 18f;
             float cx = (minX + maxX) * 0.5f, cz = (minZ + maxZ) * 0.5f, w = maxX - minX, d = maxZ - minZ;
             root.position = new Vector3(cx, 0f, cz);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Floor", root, new Vector3(0f, -0.5f, 0f), new Vector3(w, 1f, d), parquet, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall North", root, new Vector3(0f, height * 0.5f, d * 0.5f + 0.5f), new Vector3(w + 2f, height, 1f), plum, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall West", root, new Vector3(-w * 0.5f - 0.5f, height * 0.5f, 0f), new Vector3(1f, height, d), plum, true);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall East", root, new Vector3(w * 0.5f + 0.5f, height * 0.5f, 0f), new Vector3(1f, height, d), plum, true);
-            // The office ends at x -31: the front wall past it.
-            float officeEnd = -WorkshopX - SideHalfWidth - 1f;
-            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Wall South W", root, new Vector3((minX - 1f + officeEnd) * 0.5f - cx, height * 0.5f, -d * 0.5f - 0.5f), new Vector3(officeEnd - minX + 1f, height, 1f), plum, true);
             // The office's back wall, faced in plum on this side.
+            float officeEnd = minX;
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Facing W", root, new Vector3((officeEnd + DressingDoorX - DoorHalf) * 0.5f - cx, height * 0.5f, -d * 0.5f + 0.02f), new Vector3(DressingDoorX - DoorHalf - officeEnd, height, 0.04f), plum, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Facing E", root, new Vector3((DressingDoorX + DoorHalf + maxX) * 0.5f - cx, height * 0.5f, -d * 0.5f + 0.02f), new Vector3(maxX - DressingDoorX - DoorHalf, height, 0.04f), plum, false);
             var roof = ArenaSceneBuilder.Primitive(PrimitiveType.Quad, "Ceiling", root, new Vector3(0f, height, 0f), new Vector3(w + 2f, d + 2f, 1f), plum, true);
             roof.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
-            for (int i = -1; i <= 1; i += 2)
             {
                 var lamp = new GameObject("Light").AddComponent<Light>();
                 lamp.transform.SetParent(root, false);
-                lamp.transform.localPosition = new Vector3(i * w * 0.25f, height - 0.8f, 0f);
+                lamp.transform.localPosition = new Vector3(0f, height - 0.8f, 0f);
                 lamp.type = LightType.Point;
                 lamp.color = new Color(1f, 0.82f, 0.75f);
                 lamp.range = 15f;
                 lamp.intensity = 1.6f;
                 lamp.shadows = LightShadows.None;
             }
-            // A long mirror on the east wall, and a strip of light-bulb frame round it, like a theatre's.
-            var glass = ArenaSceneBuilder.Lit("MirrorGlass", new Color(0.75f, 0.85f, 0.9f), 0.95f);
-            glass.SetFloat("_Metallic", 1f);
-            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Mirror Frame", root, new Vector3(w * 0.5f - 0.08f, 2.2f, 0.4f), new Vector3(0.12f, 3.4f, 4.4f), frame, false);
-            ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Mirror", root, new Vector3(w * 0.5f - 0.16f, 2.2f, 0.4f), new Vector3(0.06f, 3f, 4f), glass, false);
-            var bulb = ArenaSceneBuilder.Unlit("DressingBulb", new Color(1f, 0.92f, 0.7f));
-            for (int i = 0; i < 6; i++)
-                ArenaSceneBuilder.Primitive(PrimitiveType.Sphere, "Bulb", root, new Vector3(w * 0.5f - 0.2f, 3.95f, 0.4f - 2f + i * 0.8f), Vector3.one * 0.18f, bulb, false);
 
             // The door: shut until there is something to wear.
             var door = ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Door", root, new Vector3(DressingDoorX - cx, DoorHeight * 0.5f, -d * 0.5f - 0.5f), new Vector3(DoorHalf * 2f, DoorHeight, 0.3f), frame, true);
@@ -234,7 +223,8 @@ namespace Shrunk.EditorTools
             var mirrorGlass = ArenaSceneBuilder.Lit("MirrorGlass", new Color(0.75f, 0.85f, 0.9f), 0.95f);
             mirrorGlass.SetFloat("_Metallic", 1f);
             var mirror = new GameObject("Mirror");
-            mirror.transform.position = new Vector3(-WorkshopX - 6.2f, 0f, 4.2f);
+            // In the dressing room, against its west wall.
+            mirror.transform.position = new Vector3(-21.3f, 0f, 14.5f);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Frame", mirror.transform, new Vector3(-2.55f, 2.1f, 0f), new Vector3(0.2f, 4.2f, 3f), benchMat, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cube, "Glass", mirror.transform, new Vector3(-2.42f, 2.1f, 0f), new Vector3(0.1f, 3.8f, 2.6f), mirrorGlass, false);
             ArenaSceneBuilder.Primitive(PrimitiveType.Cylinder, "Mat", mirror.transform, new Vector3(0f, 0.02f, 0f), new Vector3(1.8f, 0.02f, 1.8f), ArenaSceneBuilder.Unlit("StyleMat", new Color(0.9f, 0.9f, 0.95f)), false);

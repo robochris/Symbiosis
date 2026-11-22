@@ -813,24 +813,24 @@ namespace Shrunk.Tests
             yield return new WaitForSeconds(0.8f);
             yield return Screen(Path.Combine(folder, "dressing-door.png"));
 
-            // Just inside, looking at the hats on the back wall over the styles.
-            player.Teleport(new Vector3(-20f, 0.05f, 9.5f));
+            // Just inside.
+            player.Teleport(new Vector3(-17f, 0.05f, 8.6f));
             player.transform.rotation = Quaternion.identity;
             CameraFollow.Instance.AddLook(Mathf.DeltaAngle(CameraFollow.Instance.LookYaw, 0f), 0f);
             CameraFollow.Instance.Snap();
             yield return new WaitForSeconds(0.8f);
             yield return Screen(Path.Combine(folder, "dressing-in.png"));
 
-            // Up close to the hats.
-            player.Teleport(new Vector3(-27f, 0.05f, 18.5f));
+            // Further in.
+            player.Teleport(new Vector3(-18f, 0.05f, 10f));
             player.transform.rotation = Quaternion.identity;
             CameraFollow.Instance.AddLook(Mathf.DeltaAngle(CameraFollow.Instance.LookYaw, 0f), 0f);
             CameraFollow.Instance.Snap();
             yield return new WaitForSeconds(0.8f);
             yield return Screen(Path.Combine(folder, "dressing-hats.png"));
 
-            // The pets on their perches.
-            player.Teleport(new Vector3(-29.5f, 0.05f, 13f));
+            // Toward the mirror.
+            player.Teleport(new Vector3(-16f, 0.05f, 14f));
             player.transform.rotation = Quaternion.Euler(0f, -90f, 0f);
             CameraFollow.Instance.AddLook(Mathf.DeltaAngle(CameraFollow.Instance.LookYaw, -90f), 0f);
             CameraFollow.Instance.Snap();

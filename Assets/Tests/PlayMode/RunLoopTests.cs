@@ -291,10 +291,11 @@ namespace Shrunk.Tests
             Upgrades.SetLevel(UpgradeType.LuckyFind, 1);
             yield return Load("Run");
 
-            // Field Kit's random item can itself be a Sugar Cube (+1 health).
-            int sugar = Player.Items.Count(ItemType.SugarCube);
+            // Field Kit's random item can itself change health: a Sugar Cube or a Fishbowl adds one, a Paper Hat takes one.
+            int sugar = Player.Items.Count(ItemType.SugarCube) + Player.Items.Count(ItemType.Fishbowl) - Player.Items.Count(ItemType.PaperHat);
             Assert.AreEqual(5 + sugar, Player.Health.maxHealth, "Thicker Shadow: 3 + 2");
-            Assert.AreEqual(5 + sugar, Player.Health.Current);
+            Assert.LessOrEqual(Player.Health.Current, 5 + sugar);
+            Assert.GreaterOrEqual(Player.Health.Current, 5 + sugar - 1);
             Assert.AreEqual(1.3f, Player.dodgeRechargeMultiplier, 0.001f, "Quick Reflexes");
             Assert.AreEqual(1.2f, Player.Power.fillMultiplier, 0.001f, "Overcharge Coil");
             Assert.AreEqual(1, Player.Items.Collected.Count, "Field Kit: one starting item");

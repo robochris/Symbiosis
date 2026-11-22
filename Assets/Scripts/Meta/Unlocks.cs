@@ -40,11 +40,11 @@ namespace Shrunk
 
         static readonly Gate[] Gates =
         {
-            new Gate { feature = Feature.HatStand, open = m => Runs(m) >= 1, heading = "SOMETHING TO WEAR", line = "I cleared out the room behind the office: a dressing room. Everything there is to wear is in there, under a sheet until you earn it. The beanie is on the house." },
+            new Gate { feature = Feature.HatStand, open = m => Runs(m) >= 1, heading = "SOMETHING TO WEAR", line = "I cleared out the room behind the office: a dressing room, with a hat stand in it. Hats turn up as you do things. Try the beanie: it is on the house." },
             new Gate { feature = Feature.Mailbox, open = m => Runs(m) >= 1, heading = "YOU HAVE MAIL", line = "There is a mailbox by the door now. Things you meet out there write to you. I don't know how either." },
             new Gate { feature = Feature.DailyParcel, open = m => Runs(m) >= 2, heading = "DELIVERIES", line = "A parcel will be left by the door once a day. Come back tomorrow and it will be bigger." },
             new Gate { feature = Feature.ItemWall, open = m => m.itemsFound.Count >= 3, heading = "THE ITEM WALL", line = "I put up a wall by the filing cabinet: a plaque for every item there is. The question marks are the ones still out there." },
-            new Gate { feature = Feature.PetJar, open = m => m.bossesBeaten >= 1, heading = "COMPANY", line = "Something small has been following you home. There are perches for pets in the dressing room now. Earn their trust and they will come along." },
+            new Gate { feature = Feature.PetJar, open = m => m.bossesBeaten >= 1, heading = "COMPANY", line = "Something small has been following you home. There is a jar for pets in the dressing room now. Earn their trust and they will come along." },
             new Gate { feature = Feature.RuleOfTheDay, open = m => m.bossesBeaten >= 1, heading = "THE RULE OF THE DAY", line = "From now on every day has a small rule of its own. Bouncy shots, gold rushes. A new one tomorrow." },
             new Gate { feature = Feature.Shrines, open = m => m.bossesBeaten >= 1, heading = "SHRINES", line = "You may see little shrines out there now. They offer a trade. Read it before you take it." },
             new Gate { feature = Feature.Sleepers, open = m => Runs(m) >= 3, heading = "QUIET, PLEASE", line = "Some of them sleep. Sneak up, and catch them napping: they drop a little more." },
