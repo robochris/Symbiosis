@@ -820,6 +820,7 @@ namespace Shrunk
             }
 
             SpawnWave(room, playerPosition, Twist == FloorTwist.Crowded ? FloorTwists.CrowdedExtra : 0, Twist == FloorTwist.Promotions, 0);
+            RoomChallenge.FightStarted(this);
             RoomChanged?.Invoke(this);
         }
 
@@ -1070,6 +1071,7 @@ namespace Shrunk
             IsLocked = false;
             node.cleared = true;
             SetFightLocked(false);
+            RoomChallenge.FightOver(this, node.type == RoomType.Exit && FloorLayout.IsBossFloor(FloorNumber) ? ArenaCentre : room.Centre);
             RoomCleared?.Invoke(this);
             Vector3 middle = node.type == RoomType.Exit && FloorLayout.IsBossFloor(FloorNumber) ? ArenaCentre : room.Centre;
 

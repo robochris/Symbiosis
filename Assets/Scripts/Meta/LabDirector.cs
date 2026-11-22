@@ -44,6 +44,11 @@ namespace Shrunk
             if (player != null) PetJar.Place(player.transform.position + new Vector3(-2.6f, 0f, -1.4f));
             if (player != null) PressureGauge.Place(player.transform.position + new Vector3(2.6f, 0f, -1.4f));
             if (player != null) Mailbox.Place(player.transform.position + new Vector3(4.6f, 0f, 1.2f));
+            if (player != null) Jukebox.Place(player.transform.position + new Vector3(-4.8f, 0f, 1.2f));
+            if (player != null) FishTank.Place(player.transform.position + new Vector3(-4.8f, 0f, 4.2f));
+            // The cat is asleep somewhere new each visit: one of a few spots out of the way.
+            Vector3[] naps = { new Vector3(3.6f, 0f, 4.6f), new Vector3(-6.5f, 0f, -1.5f), new Vector3(6.5f, 0f, 3.5f), new Vector3(-3.6f, 0f, 5f) };
+            if (player != null) LabCat.Place(player.transform.position + naps[UnityEngine.Random.Range(0, naps.Length)]);
             if (player != null) SeasonBoard.Place(player.transform.position + new Vector3(2.6f, 0f, -4.4f), player.transform.position);
             if (player != null) QuickRunSign.Place(player.transform.position + new Vector3(-2.6f, 0f, -5.8f));
             var cabinet = FindAnyObjectByType<FilingCabinet>(FindObjectsInactive.Include);

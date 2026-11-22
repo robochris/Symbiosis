@@ -61,11 +61,17 @@ namespace Shrunk
         void OnSceneLoaded(Scene scene, LoadSceneMode mode) => PickTheme();
         void OnFloorBuilt(FloorManager floors) => PickTheme();
 
+        /// <summary>Picks the tune again (the jukebox has changed it).</summary>
+        public static void Refresh()
+        {
+            if (Instance != null) Instance.PickTheme();
+        }
+
         void PickTheme()
         {
             if (Off) return;
             var floors = FloorManager.Instance;
-            string theme = floors != null && floors.biome != null ? floors.biome.id : "lab";
+            string theme = floors != null && floors.biome != null ? floors.biome.id : Jukebox.Playing ?? "lab";
             if (theme == Playing) return;
             Playing = theme;
             if (!Made.TryGetValue(theme, out var clips))

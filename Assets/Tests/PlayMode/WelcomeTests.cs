@@ -740,5 +740,48 @@ namespace Shrunk.Tests
             yield return null;
             Assert.AreEqual(1f, Enemy.TwistHealth);
         }
+
+        [UnityTest]
+        public IEnumerator The_lab_has_a_jukebox_a_fish_tank_and_a_cat()
+        {
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            Assert.IsNotNull(Jukebox.Current, "no jukebox");
+            Assert.IsNotNull(UnityEngine.Object.FindAnyObjectByType<FishTank>(), "no fish tank");
+            Assert.IsNotNull(UnityEngine.Object.FindAnyObjectByType<LabCat>(), "no cat");
+            Assert.AreEqual("ants", Jukebox.Current.Next(), "the first world's tune is not next after the lab's");
+            Assert.AreEqual("lab", Jukebox.Current.Next(), "a tune from a world not yet visited");
+        }
+
+        [UnityTest]
+        public IEnumerator A_timed_room_pays_if_it_is_cleared_in_time()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            var player = PlayerController.Instance;
+            player.Health.SetInvulnerable(600f);
+            RoomChallenge.ChanceForAll = 1f;
+            floors.BuildFloor(2);
+            yield return null;
+            foreach (var node in floors.Layout.ordered)
+            {
+                if (node.type != RoomType.Normal) continue;
+                player.Teleport(floors.RoomAt(node.cell).Centre + Vector3.up * 0.05f);
+                break;
+            }
+            for (float t = 0f; t < 3f && !floors.IsLocked; t += Time.deltaTime) yield return null;
+            Assert.IsTrue(RoomChallenge.Timed, "no clock on the fight");
+            int items = 0;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Item) items++;
+            foreach (var enemy in new System.Collections.Generic.List<Enemy>(floors.LiveEnemies)) enemy.Health.Kill();
+            for (float t = 0f; t < 3f && floors.IsLocked; t += Time.deltaTime) yield return null;
+            int after = 0;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Item) after++;
+            Assert.Greater(after, items, "nothing for clearing in time");
+            RoomChallenge.ChanceForAll = 0f;
+        }
     }
 }

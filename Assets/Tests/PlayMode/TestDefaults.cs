@@ -43,6 +43,8 @@ namespace Shrunk.Tests
             Season.Off = true;
             Juice.Off = true;
             FloorManager.SleepChanceForAll = 0f;
+            RoomChallenge.ChanceForAll = 0f;
+            RoomChallenge.FlawlessOff = true;
             FloorManager.ShinyChanceForAll = 0f;
             StarterGoals.Off = true;
             Shrine.ChanceForAll = 0f;
@@ -77,6 +79,8 @@ namespace Shrunk.Tests
             Season.Off = false;
             Juice.Off = false;
             FloorManager.SleepChanceForAll = null;
+            RoomChallenge.ChanceForAll = null;
+            RoomChallenge.FlawlessOff = false;
             FloorManager.ShinyChanceForAll = null;
             StarterGoals.Off = false;
             Shrine.ChanceForAll = null;
