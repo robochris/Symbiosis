@@ -1,4 +1,4 @@
-﻿# Shrunk: 500 things to add
+# Shrunk: 500 things to add
 
 Grouped by what they do for a player: getting started, feeling good in the moment, having something to chase, and having a reason to come back tomorrow. Nothing here is built yet; things the game already has are left out. Numbers run straight through, so you can say "do 37, 112 and 340".
 

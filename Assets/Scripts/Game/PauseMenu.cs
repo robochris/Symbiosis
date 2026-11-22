@@ -92,6 +92,7 @@ namespace Shrunk
             Add("Aim stick", () => GameSettings.FloatingAim ? "Follows your thumb" : "Stays put", () => GameSettings.FloatingAim = !GameSettings.FloatingAim);
             Add("Difficulty", () => GameSettings.Relaxed ? "Relaxed (+2 health)" : "As intended", () => GameSettings.Relaxed = !GameSettings.Relaxed);
             Add("Sound", () => Level(GameSettings.Volume, "Off", "Quiet", "Full"), () => GameSettings.Volume = Next(GameSettings.Volume, 0f, 0.5f, 1f));
+            Add("Music", () => Level(GameSettings.MusicVolume, "Off", "Quiet", "Full"), () => GameSettings.MusicVolume = Next(GameSettings.MusicVolume, 0f, 0.5f, 1f));
             Add("More options", null, () => ShowPage(1));
 
             // The second page: set once and left.

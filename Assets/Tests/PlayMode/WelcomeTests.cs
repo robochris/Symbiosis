@@ -482,5 +482,43 @@ namespace Shrunk.Tests
             RunRules.End();
             RunRules.Off = true;
         }
+
+        [Test]
+        public void Every_world_has_music_of_its_own_in_two_layers()
+        {
+            float[] lab = Music.Render("lab", false);
+            float[] forest = Music.Render("forest", false);
+            float[] fight = Music.Render("forest", true);
+            Assert.Greater(lab.Length, Music.Rate * 4, "a loop under four seconds");
+            Assert.AreEqual(forest.Length, fight.Length, "the two layers would drift apart");
+            float Loudest(float[] data) { float most = 0f; foreach (float v in data) most = Mathf.Max(most, Mathf.Abs(v)); return most; }
+            Assert.Greater(Loudest(forest), 0.05f, "silent");
+            Assert.Greater(Loudest(fight), 0.05f, "a silent fight layer");
+            Assert.LessOrEqual(Loudest(fight), 1f);
+            bool differs = false;
+            for (int i = 0; i < Mathf.Min(lab.Length, forest.Length) && !differs; i += 997) differs = Mathf.Abs(lab[i] - forest[i]) > 0.01f;
+            Assert.IsTrue(differs, "the lab and the forest play the same tune");
+        }
+
+        [UnityTest]
+        public IEnumerator The_music_follows_the_world_and_the_fights()
+        {
+            Music.Off = false;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            Assert.AreEqual(floors.biome.id, Music.Playing, "the music is not the world's own");
+            Assert.IsTrue(floors.SetBiome("forest"));
+            floors.BuildFloor(2);
+            yield return null;
+            Assert.AreEqual("forest", Music.Playing, "the music did not change with the world");
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            Assert.AreEqual("lab", Music.Playing);
+            Music.Off = true;
+        }
     }
 }

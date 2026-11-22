@@ -67,6 +67,13 @@ namespace Shrunk
             set => SetInt("screenShake", value ? 1 : 0);
         }
 
+        /// <summary>How loud the music is, under the sound setting: 0 off, 0.5 quiet, 1 full.</summary>
+        public static float MusicVolume
+        {
+            get => Mathf.Clamp01(PlayerPrefs.GetFloat(Prefix + "music", 0.5f));
+            set => Set("music", value);
+        }
+
         /// <summary>On a phone: a short buzz when hurt.</summary>
         public static bool Vibration
         {
@@ -133,7 +140,7 @@ namespace Shrunk
         /// <summary>Back to the defaults.</summary>
         public static void Reset()
         {
-            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "sound", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed", "damageNumbers", "floatingAim", "textSize", "screenShake", "vibration" })
+            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "sound", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed", "damageNumbers", "floatingAim", "textSize", "screenShake", "vibration", "music" })
             {
                 PlayerPrefs.DeleteKey(Prefix + key);
             }
