@@ -78,6 +78,8 @@ namespace Shrunk
         public static float WorldRush = 1f;
         /// <summary>Pressure (see Pressure): every enemy's health is scaled by this when it comes into play, and its speed by PressureRush.</summary>
         public static float HealthScale = 1f, PressureRush = 1f;
+        /// <summary>The floor's twist: tougher (Blood Moon, Giants) and bigger (Giants).</summary>
+        public static float TwistHealth = 1f, TwistSize = 1f;
         int _bornMaxHealth;
 
         protected CharacterController Controller { get; private set; }
@@ -173,7 +175,12 @@ namespace Shrunk
             // Health as built, scaled for the run's pressure. Worked out from the built figure each time, so a pooled
             // enemy never compounds it.
             if (_bornMaxHealth <= 0) _bornMaxHealth = Health.maxHealth;
-            Health.SetMaxHealth(Mathf.CeilToInt(_bornMaxHealth * HealthScale), true);
+            Health.SetMaxHealth(Mathf.CeilToInt(_bornMaxHealth * HealthScale * TwistHealth), true);
+            if (TwistSize != 1f && !(this is BossEnemy))
+            {
+                BaseScale = TwistSize;
+                SetVisualScale(1f);
+            }
             SetVisualScale(1f);
             HideChargeLine();
             Appeared?.Invoke(this);

@@ -255,8 +255,11 @@ namespace Shrunk
             FloorNumber = number;
             int seed = seedOverride != 0 ? seedOverride : fixedSeed != 0 ? fixedSeed + number : UnityEngine.Random.Range(1, int.MaxValue);
             Twist = twistOverride ?? FloorTwists.Roll(seed, number, biome, TwistChanceForAll ?? twistChance, dailyTwist);
-            Loot.CoinBonus = Twist == FloorTwist.Crowded ? FloorTwists.CrowdedCoins : Twist == FloorTwist.RushHour ? FloorTwists.RushCoins : 0;
-            Loot.SampleBonus = Twist == FloorTwist.PowerCut ? FloorTwists.PowerCutSamples : Twist == FloorTwist.Mist ? FloorTwists.MistSamples : 0;
+            Loot.CoinBonus = Twist == FloorTwist.Crowded ? FloorTwists.CrowdedCoins : Twist == FloorTwist.RushHour ? FloorTwists.RushCoins : Twist == FloorTwist.Party ? FloorTwists.PartyCoins : 0;
+            Loot.SampleBonus = Twist == FloorTwist.PowerCut ? FloorTwists.PowerCutSamples : Twist == FloorTwist.Mist ? FloorTwists.MistSamples
+                : Twist == FloorTwist.BloodMoon ? FloorTwists.BloodMoonSamples : Twist == FloorTwist.Giants ? FloorTwists.GiantsSamples : 0;
+            Enemy.TwistHealth = Twist == FloorTwist.BloodMoon ? FloorTwists.BloodMoonHealth : Twist == FloorTwist.Giants ? FloorTwists.GiantsHealth : 1f;
+            Enemy.TwistSize = Twist == FloorTwist.Giants ? FloorTwists.GiantsSize : 1f;
             Enemy.WorldRush = Twist == FloorTwist.RushHour ? FloorTwists.RushSpeed : 1f;
             ApplyLook();
             // Now and then a floor has a dead end to spare, walled up with something in it.
@@ -358,6 +361,11 @@ namespace Shrunk
             RenderSettings.fogColor = biome.fogColor;
             RenderSettings.fogStartDistance = biome.fogStart;
             RenderSettings.fogEndDistance = biome.fogEnd;
+            if (Twist == FloorTwist.BloodMoon)
+            {
+                RenderSettings.ambientLight = Color.Lerp(biome.ambientColor, new Color(0.8f, 0.15f, 0.15f), 0.45f);
+                RenderSettings.fogColor = Color.Lerp(biome.fogColor, new Color(0.45f, 0.05f, 0.05f), 0.6f);
+            }
             if (Twist == FloorTwist.Mist)
             {
                 RenderSettings.fog = true;
@@ -551,7 +559,7 @@ namespace Shrunk
                 }
                 else if (node.type == RoomType.Treasure)
                 {
-                    var picks = assets.items.RandomCommon(rng, Mathf.Max(1, treasureChoices));
+                    var picks = assets.items.RandomCommon(rng, Mathf.Max(1, treasureChoices + (Twist == FloorTwist.Lucky ? 1 : 0)));
                     for (int i = 0; i < picks.Count; i++)
                     {
                         // One sits on the pedestal; a second (Lucky Find) sits beside it. Taking one removes the other.

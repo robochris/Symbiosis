@@ -46,6 +46,12 @@ namespace Shrunk
         /// <summary>The last stand: at the last point of health, the next kill gives one back. Once a floor.</summary>
         void OnKilled(Enemy enemy)
         {
+            // A party: every kill is confetti.
+            if (enemy != null && FloorManager.Instance != null && FloorManager.Instance.Twist == FloorTwist.Party)
+            {
+                Color[] colours = { new Color(1f, 0.4f, 0.5f), new Color(0.4f, 0.8f, 1f), new Color(1f, 0.85f, 0.3f) };
+                foreach (var colour in colours) Fx.Burst(enemy.transform.position + Vector3.up, colour, 8, 5f, 0.1f, 0.7f);
+            }
             var player = PlayerController.Instance;
             if (Off || _standUsed || player == null || player.Health.IsDead || player.Health.Current != 1 || player.Health.maxHealth <= 1) return;
             _standUsed = true;

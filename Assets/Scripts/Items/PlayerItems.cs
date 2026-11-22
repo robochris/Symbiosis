@@ -198,6 +198,13 @@ namespace Shrunk
                     aimAssistBonusAngle = 10f * Count(ItemType.CompoundEye)
                 };
 
+                // Low gravity: the dodge floats, and goes a long way.
+                if (FloorManager.Instance != null && FloorManager.Instance.Twist == FloorTwist.LowGravity)
+                {
+                    stats.dodgeReachMultiplier += 0.6f;
+                    stats.hoverDodge = true;
+                }
+
                 // Tiny: much quicker, for a while.
                 if (_power != null && _power.IsTiny)
                 {

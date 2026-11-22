@@ -712,5 +712,33 @@ namespace Shrunk.Tests
             Assert.IsNotNull(BossRecords.Best("TheFroglet"), "no best time kept");
             Assert.IsTrue(BossRecords.Medal("TheFroglet"), "no medal for a fight without a hit");
         }
+
+        [UnityTest]
+        public IEnumerator Giants_and_low_gravity_twists()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            var player = PlayerController.Instance;
+            floors.twistOverride = FloorTwist.Giants;
+            floors.BuildFloor(3);
+            yield return null;
+            var prefab = floors.biome.spawnTable[0].prefab;
+            var giant = UnityEngine.Object.Instantiate(prefab, player.transform.position + Vector3.forward * 12f, Quaternion.identity);
+            yield return null;
+            Assert.AreEqual(Mathf.CeilToInt(prefab.GetComponent<Health>().maxHealth * FloorTwists.GiantsHealth), giant.Health.maxHealth);
+            Assert.AreEqual(FloorTwists.GiantsSize, giant.BaseScale, 0.01f);
+            UnityEngine.Object.Destroy(giant.gameObject);
+
+            floors.twistOverride = FloorTwist.LowGravity;
+            floors.BuildFloor(4);
+            yield return null;
+            Assert.IsTrue(player.Items.Stats.hoverDodge, "no floating dodge in low gravity");
+            floors.twistOverride = null;
+            floors.BuildFloor(5);
+            yield return null;
+            Assert.AreEqual(1f, Enemy.TwistHealth);
+        }
     }
 }

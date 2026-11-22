@@ -19,7 +19,17 @@ namespace Shrunk
         /// <summary>The haze closes right in. Every enemy is worth a sample more.</summary>
         Mist,
         /// <summary>Everything moves faster, and pays a coin more.</summary>
-        RushHour
+        RushHour,
+        /// <summary>Red light; every enemy is tougher and worth three samples more.</summary>
+        BloodMoon,
+        /// <summary>The dodge goes much further, and floats over the floor.</summary>
+        LowGravity,
+        /// <summary>Every kill is confetti, and a coin more.</summary>
+        Party,
+        /// <summary>Treasure rooms offer one more item to choose from.</summary>
+        Lucky,
+        /// <summary>Everything is bigger and tougher, and worth two samples more.</summary>
+        Giants
     }
 
     /// <summary>What each twist is called, what it does, and which floors get one.</summary>
@@ -31,7 +41,10 @@ namespace Shrunk
         /// <summary>How much of the light is left in a power cut.</summary>
         public const float PowerCutAmbient = 0.45f, PowerCutSun = 0.3f;
 
-        public static readonly FloorTwist[] All = { FloorTwist.Crowded, FloorTwist.PowerCut, FloorTwist.Promotions, FloorTwist.Sale, FloorTwist.GoldRush, FloorTwist.Mist, FloorTwist.RushHour };
+        public static readonly FloorTwist[] All = { FloorTwist.Crowded, FloorTwist.PowerCut, FloorTwist.Promotions, FloorTwist.Sale, FloorTwist.GoldRush, FloorTwist.Mist, FloorTwist.RushHour,
+            FloorTwist.BloodMoon, FloorTwist.LowGravity, FloorTwist.Party, FloorTwist.Lucky, FloorTwist.Giants };
+        public const float BloodMoonHealth = 1.4f, GiantsHealth = 1.3f, GiantsSize = 1.3f;
+        public const int BloodMoonSamples = 3, GiantsSamples = 2, PartyCoins = 1;
 
         public static string Name(FloorTwist twist)
         {
@@ -44,6 +57,11 @@ namespace Shrunk
                 case FloorTwist.GoldRush: return "Gold rush";
                 case FloorTwist.Mist: return "Mist";
                 case FloorTwist.RushHour: return "Rush hour";
+                case FloorTwist.BloodMoon: return "Blood moon";
+                case FloorTwist.LowGravity: return "Low gravity";
+                case FloorTwist.Party: return "Party";
+                case FloorTwist.Lucky: return "Lucky";
+                case FloorTwist.Giants: return "Giants";
                 default: return "";
             }
         }
@@ -60,6 +78,11 @@ namespace Shrunk
                 case FloorTwist.GoldRush: return "a gold bug in every room. They do not wait about.";
                 case FloorTwist.Mist: return "you cannot see far. Neither can they. Samples are worth more in it.";
                 case FloorTwist.RushHour: return "everything is in a hurry, you included. They pay a coin more for it.";
+                case FloorTwist.BloodMoon: return "the light has gone red. Everything is tougher, and worth a lot more.";
+                case FloorTwist.LowGravity: return "something is off with the gravity. Your dodge floats, and goes a long way.";
+                case FloorTwist.Party: return "somebody is having a party. Every kill is confetti, and a coin more.";
+                case FloorTwist.Lucky: return "a lucky floor. Treasure rooms offer an extra choice.";
+                case FloorTwist.Giants: return "everything here is bigger than it should be. Tougher, and worth more.";
                 default: return "";
             }
         }
