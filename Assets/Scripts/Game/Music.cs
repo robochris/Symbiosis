@@ -90,7 +90,12 @@ namespace Shrunk
 
         void Update()
         {
+            BossRecords.Watch();
             if (Off) { _calm.volume = _fight.volume = 0f; return; }
+            // A boss's last phase: the music quickens.
+            var boss = BossEnemy.InPlay;
+            float pitch = boss != null && boss.Phase >= 3 ? 1.08f : 1f;
+            _calm.pitch = _fight.pitch = Mathf.MoveTowards(_calm.pitch, pitch, Time.unscaledDeltaTime * 0.2f);
             var floors = FloorManager.Instance;
             bool fighting = floors != null && (floors.IsLocked || BossEnemy.InPlay != null);
             _fightLevel = Mathf.MoveTowards(_fightLevel, fighting ? 1f : 0f, Time.unscaledDeltaTime / 1.5f);

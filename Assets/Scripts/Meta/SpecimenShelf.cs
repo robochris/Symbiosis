@@ -138,7 +138,7 @@ namespace Shrunk
             _reading = Mathf.Clamp(_reading, 0, kept.Count - 1);
             Specimen jar = kept[_reading];
 
-            string text = $"The specimen shelf: {kept.Count} of {Specimens.All.Length} jars.  {jar.title}: \"{jar.label}\"";
+            string text = $"The specimen shelf: {kept.Count} of {Specimens.All.Length} jars.  {jar.title}: \"{jar.label}\"" + BossRecords.Plaque(jar.key);
             if (kept.Count > 1) text += "\nStep away and back for the next jar.";
             return text;
         }

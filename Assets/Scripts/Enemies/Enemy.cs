@@ -145,8 +145,15 @@ namespace Shrunk
             Mutations = GetComponent<EnemyMutations>();
         }
 
+        /// <summary>Beaten without ever waking.</summary>
+        public bool SleptThrough { get; private set; }
+
         protected virtual void OnEnable()
         {
+            Asleep = false;
+            Shiny = false;
+            SleptThrough = false;
+            if (_zzz != null) _zzz.SetActive(false);
             Active.Add(this);
             Health.Damaged += OnDamaged;
             Health.Died += OnDied;
@@ -212,6 +219,15 @@ namespace Shrunk
             if (frozen)
             {
                 Move(Vector3.zero);
+                return;
+            }
+            if (Asleep)
+            {
+                Move(Vector3.zero);
+                var player = PlayerController.Instance;
+                // Something close wakes it; so does being hit (see OnDamaged).
+                if (player != null && (player.transform.position - transform.position).sqrMagnitude < WakeDistance * WakeDistance) WakeUp();
+                else if (_zzz != null) _zzz.transform.localPosition = new Vector3(0f, 2f + Mathf.Sin(Time.time * 2f) * 0.15f, 0f);
                 return;
             }
             Think();
@@ -364,8 +380,56 @@ namespace Shrunk
             visual.localScale = new Vector3(1f + k, 1f - k, 1f + k) * (_shownScale * BaseScale);
         }
 
+        // ---------- asleep, and shiny ----------
+
+        public const float WakeDistance = 3.2f;
+        /// <summary>Asleep: does nothing until something comes close or hits it. Beaten asleep, it drops a coin more.</summary>
+        public bool Asleep { get; private set; }
+        /// <summary>Shiny: very rare, golden, and worth a great many samples.</summary>
+        public bool Shiny { get; private set; }
+        GameObject _zzz;
+
+        public void FallAsleep()
+        {
+            Asleep = true;
+            if (_zzz == null)
+            {
+                _zzz = new GameObject("Zzz");
+                _zzz.transform.SetParent(transform, false);
+                var text = _zzz.AddComponent<TextMesh>();
+                var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                text.font = font;
+                _zzz.GetComponent<MeshRenderer>().sharedMaterial = font.material;
+                text.text = "Zzz";
+                text.fontSize = 48;
+                text.characterSize = 0.05f;
+                text.anchor = TextAnchor.MiddleCenter;
+                text.color = new Color(0.8f, 0.85f, 1f);
+                _zzz.AddComponent<FaceCamera>();
+            }
+            _zzz.SetActive(true);
+        }
+
+        public void WakeUp()
+        {
+            if (!Asleep) return;
+            Asleep = false;
+            if (_zzz != null) _zzz.SetActive(false);
+        }
+
+        public void MakeShiny()
+        {
+            Shiny = true;
+            var flash = GetComponent<HitFlash>();
+            if (flash != null) flash.SetTint(new Color(1f, 0.85f, 0.25f), 0.75f);
+            Fx.Burst(transform.position + Vector3.up, new Color(1f, 0.9f, 0.4f), 20, 4f, 0.12f, 0.6f);
+        }
+
         void OnDamaged(int amount, Vector3 direction)
         {
+            bool wasAsleep = Asleep;
+            if (Asleep) WakeUp();
+            if (wasAsleep && amount > 0 && Health.IsDead) SleptThrough = true;
             if (amount > 0) _squashUntil = Time.time + SquashTime;
             direction.y = 0f;
             Knockback = direction.normalized * knockbackOnHit;

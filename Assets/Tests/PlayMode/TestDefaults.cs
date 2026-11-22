@@ -42,6 +42,8 @@ namespace Shrunk.Tests
             Music.Off = true;
             Season.Off = true;
             Juice.Off = true;
+            FloorManager.SleepChanceForAll = 0f;
+            FloorManager.ShinyChanceForAll = 0f;
             StarterGoals.Off = true;
             Shrine.ChanceForAll = 0f;
             RunDirector.BeginnersLuckOff = true;
@@ -74,6 +76,8 @@ namespace Shrunk.Tests
             Music.Off = false;
             Season.Off = false;
             Juice.Off = false;
+            FloorManager.SleepChanceForAll = null;
+            FloorManager.ShinyChanceForAll = null;
             StarterGoals.Off = false;
             Shrine.ChanceForAll = null;
             RunDirector.BeginnersLuckOff = false;

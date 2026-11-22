@@ -233,6 +233,15 @@ namespace Shrunk
 
         public static void Drop(Enemy enemy)
         {
+            // Caught napping: a coin more. Shiny: a heap of samples.
+            if (enemy.SleptThrough) Pickup.Coin(enemy.transform.position + Vector3.right * 0.6f, 1);
+            if (enemy.Shiny)
+            {
+                for (int i = 0; i < 6; i++) Pickup.Sample(enemy.transform.position + new Vector3(UnityEngine.Random.Range(-1.5f, 1.5f), 0f, UnityEngine.Random.Range(-1.5f, 1.5f)), 8);
+                SaveSystem.Data.meta.shiniesFound++;
+                var hud = UnityEngine.Object.FindAnyObjectByType<Hud>();
+                if (hud != null) hud.Toast("A shiny one! Worth a great deal to the right people. That is you.", 4f);
+            }
             if (!enemy.dropsLoot) return;
             Vector3 origin = enemy.transform.position;
             int points = enemy.Mutations != null ? enemy.Mutations.TotalCost : 0;

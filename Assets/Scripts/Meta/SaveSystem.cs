@@ -89,6 +89,11 @@ namespace Shrunk
         public bool relaxedSuggested;
         /// <summary>Item synergies ever found, by name.</summary>
         public List<string> synergiesFound = new List<string>();
+        public int shiniesFound;
+        /// <summary>Each boss's best time in seconds, and the bosses beaten without a hit (by prefab name).</summary>
+        public List<string> bossTimeKeys = new List<string>();
+        public List<float> bossTimes = new List<float>();
+        public List<string> noHitMedals = new List<string>();
         public int goldBugsCaught;
         public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>

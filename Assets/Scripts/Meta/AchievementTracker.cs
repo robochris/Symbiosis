@@ -127,6 +127,7 @@ namespace Shrunk
                 Achievements.Unlock(AchievementId.BathTime);
                 if (bath.Rings > 0 && bath.RingHits == 0) Achievements.Unlock(AchievementId.RubberDucky);
             }
+            if (enemy is BossEnemy timed) BossRecords.Beaten(timed);
             if (enemy is SpiderBoss) Achievements.Unlock(AchievementId.Cobwebs);
             if (enemy is MowerBoss mower && mower.canSweep) Achievements.Unlock(AchievementId.LawnOrder);
             if (enemy is BookBoss book && book.canThrowPages) Achievements.Unlock(AchievementId.Shelved);

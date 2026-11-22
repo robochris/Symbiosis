@@ -667,5 +667,50 @@ namespace Shrunk.Tests
             Assert.IsTrue(power.TryActivate());
             Assert.Greater(player.Items.Stats.moveSpeedMultiplier, speed + 0.4f, "tiny is not faster");
         }
+
+        [UnityTest]
+        public IEnumerator Sleepers_wake_shinies_pay_and_bosses_keep_records()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var prefab = FloorManager.Instance.biome.spawnTable[0].prefab;
+            var sleeper = UnityEngine.Object.Instantiate(prefab, player.transform.position + Vector3.forward * 10f, Quaternion.identity);
+            yield return null;
+            sleeper.FallAsleep();
+            yield return null;
+            Assert.IsTrue(sleeper.Asleep);
+            player.Teleport(sleeper.transform.position + Vector3.back * 1.5f);
+            yield return null;
+            yield return null;
+            Assert.IsFalse(sleeper.Asleep, "walking right up to it did not wake it");
+
+            var shiny = UnityEngine.Object.Instantiate(prefab, player.transform.position + Vector3.forward * 14f, Quaternion.identity);
+            yield return null;
+            shiny.MakeShiny();
+            int samples = 0;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Sample) samples++;
+            shiny.Health.Kill();
+            yield return null;
+            int after = 0;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Sample) after++;
+            Assert.GreaterOrEqual(after - samples, 6, "a shiny paid no more than anything else");
+            Assert.AreEqual(1, SaveSystem.Data.meta.shiniesFound);
+
+            Assert.IsTrue(FloorManager.Instance.SetBiome("forest"));
+            FloorManager.Instance.BuildFloor(5);
+            yield return null;
+            player.Teleport(FloorManager.Instance.ArenaCentre + new Vector3(0f, 0.05f, -9f));
+            for (float t = 0f; t < 4f && FloorManager.Instance.Boss == null; t += Time.unscaledDeltaTime) yield return null;
+            var boss = FloorManager.Instance.Boss;
+            Assert.IsNotNull(boss);
+            yield return null;
+            yield return null;
+            boss.Health.Kill();
+            yield return null;
+            Assert.IsNotNull(BossRecords.Best("TheFroglet"), "no best time kept");
+            Assert.IsTrue(BossRecords.Medal("TheFroglet"), "no medal for a fight without a hit");
+        }
     }
 }

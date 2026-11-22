@@ -414,6 +414,10 @@ namespace Shrunk
         public DareBell Dare { get; private set; }
         /// <summary>This floor's coded vault, if it has one.</summary>
         public CodeVault Vault { get; private set; }
+        public const float SleepChance = 0.12f, ShinyChance = 0.004f;
+        /// <summary>Tests pin these.</summary>
+        public static float? SleepChanceForAll, ShinyChanceForAll;
+
         /// <summary>This floor's caged larva, if it has one.</summary>
         public RescueCage Cage { get; private set; }
         /// <summary>This floor's shrine, if it has one.</summary>
@@ -892,6 +896,9 @@ namespace Shrunk
             {
                 int pick = UnityEngine.Random.Range(0, points.Count);
                 Enemy enemy = Spawn(biome.PickEnemy(FloorInBiome, rng), points[pick], playerPosition);
+                // Now and then one is asleep, or (very rarely) shiny.
+                if (!(enemy is BossEnemy) && !forceElite && FloorInBiome >= 2 && UnityEngine.Random.value < (SleepChanceForAll ?? SleepChance)) enemy.FallAsleep();
+                if (!(enemy is BossEnemy) && UnityEngine.Random.value < (ShinyChanceForAll ?? ShinyChance)) enemy.MakeShiny();
                 if (elite && i == 0)
                 {
                     if (enemy.Mutations != null) enemy.Mutations.Apply(MutationBudget.RollFull(rng, biome.mutations, budget + 1));
