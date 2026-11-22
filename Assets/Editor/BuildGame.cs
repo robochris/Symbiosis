@@ -53,6 +53,11 @@ namespace Shrunk.EditorTools
                 return;
             }
 
+            // Build with the target's own settings: a Windows build made while Unity is set to Android gets the phone's
+            // quality level, and the PC renderer's effects are stripped out of it (a blank screen).
+            if (EditorUserBuildSettings.activeBuildTarget != target)
+                EditorUserBuildSettings.SwitchActiveBuildTarget(BuildPipeline.GetBuildTargetGroup(target), target);
+
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             var options = new BuildPlayerOptions
             {
