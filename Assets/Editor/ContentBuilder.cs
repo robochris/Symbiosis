@@ -634,6 +634,11 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Cube, "Page", look.transform, new Vector3(0f, 1.6f, -0.2f), new Vector3(0.3f, 0.02f, 0.4f), ArenaSceneBuilder.Lit("FootnotePaper", new Color(0.93f, 0.9f, 0.8f), 0.1f)).transform.localRotation = Quaternion.Euler(20f, 0f, 0f);
             items.Add(Item(ItemType.Footnote, "Footnote", "Boss item. Shots hit harder the further they fly, and hit for double more often.", ItemSlot.Head, true, 60, new Color(0.93f, 0.9f, 0.8f), look));
 
+            look = new GameObject("PlugChain");
+            Decor(PrimitiveType.Cylinder, "Chain", look.transform, new Vector3(0.3f, 0.6f, 0.1f), new Vector3(0.05f, 0.35f, 0.05f), ArenaSceneBuilder.Lit("ChainChrome", new Color(0.85f, 0.88f, 0.92f), 0.95f));
+            Decor(PrimitiveType.Cylinder, "Plug", look.transform, new Vector3(0.3f, 0.22f, 0.1f), new Vector3(0.22f, 0.05f, 0.22f), ArenaSceneBuilder.Lit("PlugBlack", new Color(0.12f, 0.12f, 0.14f), 0.7f));
+            items.Add(Item(ItemType.PlugChain, "Plug Chain", "Boss item. Shots go through one more, and come a fifth faster.", ItemSlot.Hands, true, 60, new Color(0.85f, 0.88f, 0.92f), look));
+
             const string libraryPath = "Assets/Data/Items/ItemLibrary.asset";
             var library = AssetDatabase.LoadAssetAtPath<ItemLibrary>(libraryPath);
             if (library == null)
@@ -753,6 +758,7 @@ namespace Shrunk.EditorTools
                 case ItemType.SilkThread: return "Kept from the Spider. It goes everywhere and comes back to you.";
                 case ItemType.GrassClippings: return "Kept from the Lawnmower. Smells like Sunday.";
                 case ItemType.Footnote: return "Kept from the Encyclopedia. See also: everything.";
+                case ItemType.PlugChain: return "Kept from the Tap. Pull it and everything goes down the drain.";
                 default: return "";
             }
         }

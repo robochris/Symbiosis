@@ -158,7 +158,7 @@ namespace Shrunk
                     hoverDodge = wings > 0,
                     damageMultiplier = overcharged ? 2 : 1,
                     // A marble is heavy: harder hits, further apart. Sprinkles are the opposite.
-                    fireIntervalMultiplier = Mathf.Pow(0.9f, jelly) * Mathf.Pow(1.35f, marble) * Mathf.Pow(0.85f, sprinkles) * Mathf.Pow(0.85f, coffee) * Mathf.Pow(0.75f, clippings) * (overcharged ? 0.67f : 1f),
+                    fireIntervalMultiplier = Mathf.Pow(0.9f, jelly) * Mathf.Pow(1.35f, marble) * Mathf.Pow(0.85f, sprinkles) * Mathf.Pow(0.85f, coffee) * Mathf.Pow(0.75f, clippings) * Mathf.Pow(0.8f, Count(ItemType.PlugChain)) * (overcharged ? 0.67f : 1f),
                     damageBonus = marble + hat + notice + (rule == RunRules.Rule.GlassCannon ? 1 : 0),
                     coinBonus = Count(ItemType.PiggyBank) + Count(ItemType.DustBag) + (rule == RunRules.Rule.GoldRush ? 1 : 0),
                     // The sock: every fifth shot, then every fourth, never more often than every second.
@@ -175,7 +175,7 @@ namespace Shrunk
                     magnetMultiplier = (1f + 1.5f * Count(ItemType.FridgeMagnet) + 3f * Count(ItemType.DustBag)) * (rule == RunRules.Rule.Sticky ? 2f : 1f),
                     powerFillMultiplier = (1f + 0.35f * Count(ItemType.SpareBattery)) * (1f + 0.5f * Count(ItemType.Croak)) * (1f + 0.3f * notice),
                     crumbMultiplier = 1f + Count(ItemType.Lunchbox),
-                    pierce = 2 * Count(ItemType.NeedleTip) + 2 * Count(ItemType.QueensCommand) + Count(ItemType.SilkThread) + (overcharged ? 99 : 0),
+                    pierce = 2 * Count(ItemType.NeedleTip) + 2 * Count(ItemType.QueensCommand) + Count(ItemType.SilkThread) + Count(ItemType.PlugChain) + (overcharged ? 99 : 0),
                     split = Count(ItemType.SplitterMandible) + Count(ItemType.QueensCommand),
                     acid = Count(ItemType.AcidGland),
                     burn = Count(ItemType.FireflyLantern) + 2 * Count(ItemType.EverlastingWick),

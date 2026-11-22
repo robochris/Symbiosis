@@ -925,7 +925,7 @@ namespace Shrunk.Tests
         public IEnumerator Every_item_has_a_name_a_description_and_a_look()
         {
             var library = GameAssets.Instance.items;
-            Assert.AreEqual(46, library.items.Length);
+            Assert.AreEqual(47, library.items.Length);
             foreach (var item in library.items)
             {
                 Assert.IsNotEmpty(item.displayName);
@@ -935,7 +935,7 @@ namespace Shrunk.Tests
                 _items.Add(item); // must not throw
             }
             yield return null;
-            Assert.AreEqual(46, _items.Collected.Count);
+            Assert.AreEqual(47, _items.Collected.Count);
         }
 
         // ---------- hero power ----------

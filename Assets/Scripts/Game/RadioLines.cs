@@ -376,6 +376,19 @@ namespace Shrunk
                 "A library. That isn't in the house. That isn't in any house I know of. Interesting.",
                 "Books, the size of buildings. Somebody is going to want those back.",
             },
+            ["sink"] = new[]
+            {
+                "The kitchen sink. When the water comes up, so do you: onto the mugs.",
+                "Everything is wet. That is not a complaint. It is a warning.",
+            },
+            ["sponge"] = new[]
+            {
+                "The Sponge. It jumps where you are going. Go somewhere else.",
+            },
+            ["tap"] = new[]
+            {
+                "The Tap. Drips, a jet, and suds that stick. Keep moving, and keep dry.",
+            },
             ["bookshelf"] = new[]
             {
                 "The bookshelf. Upstairs, at last. Mind the ledges, and what is standing on them.",

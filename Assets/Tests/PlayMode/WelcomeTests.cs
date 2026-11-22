@@ -268,7 +268,7 @@ namespace Shrunk.Tests
             var floors = FloorManager.Instance;
             Assert.IsTrue(floors.SetBiome("forest"));
             BossEnemy toadPrefab = floors.biome.boss;
-            Assert.AreEqual(14, BossEnemy.Trophies.Count, "a world boss without an item");
+            Assert.AreEqual(15, BossEnemy.Trophies.Count, "a world boss without an item");
             foreach (var pair in BossEnemy.Trophies) Assert.IsNotNull(GameAssets.Instance.items.Get(pair.Value), pair.Key + "'s item is missing");
             Assert.AreEqual(0, BossEnemy.Pool().Count, "a boss item loose before any boss was beaten");
 

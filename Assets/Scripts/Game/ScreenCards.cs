@@ -114,6 +114,18 @@ namespace Shrunk
             "Quiet, please. It will not be.",
         };
 
+        /// <summary>The sink's own lines.</summary>
+        public static readonly string[] SinkLines =
+        {
+            "Tip: when the water rises, get up on a ledge. Everything on the floor gets soaked.",
+            "Tip: the floods come every so often in a fight. Count, and be up high in time.",
+            "Tip: the Tap's drips land where you are going. Change your mind.",
+            "Tip: the plug makes the others quicker. Pull it.",
+            "Fact: nobody has ever cleaned behind the taps.",
+            "Reminder: the water is not drinkable. Nothing in here is.",
+            "Somebody left the tap running. It was you, probably.",
+        };
+
         /// <summary>The bookshelf's own lines.</summary>
         public static readonly string[] BookshelfLines =
         {
@@ -241,7 +253,7 @@ namespace Shrunk
         /// <summary>The line under "Floor N" for a biome: its own if it has any, otherwise the ants'. The floor's seed picks it.</summary>
         public static string TipFor(string biomeId, int seed)
         {
-            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : biomeId == "fridge" ? FridgeLines : biomeId == "library" ? LibraryLines : biomeId == "forest" ? ForestLines : biomeId == "clouds" ? CloudLines : biomeId == "console" ? ConsoleLines : biomeId == "aquarium" ? AquariumLines : biomeId == "toybox" ? ToyBoxLines : biomeId == "bathroom" ? BathroomLines : biomeId == "attic" ? AtticLines : biomeId == "shed" ? ShedLines : biomeId == "bookshelf" ? BookshelfLines : FloorLines;
+            string[] lines = biomeId == "cake" ? CakeLines : biomeId == "sofa" ? SofaLines : biomeId == "fridge" ? FridgeLines : biomeId == "library" ? LibraryLines : biomeId == "forest" ? ForestLines : biomeId == "clouds" ? CloudLines : biomeId == "console" ? ConsoleLines : biomeId == "aquarium" ? AquariumLines : biomeId == "toybox" ? ToyBoxLines : biomeId == "bathroom" ? BathroomLines : biomeId == "attic" ? AtticLines : biomeId == "shed" ? ShedLines : biomeId == "bookshelf" ? BookshelfLines : biomeId == "sink" ? SinkLines : FloorLines;
             return lines[Mathf.Abs(seed) % lines.Length];
         }
 

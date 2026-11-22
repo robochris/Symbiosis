@@ -278,6 +278,7 @@ namespace Shrunk
             }
 
             Ledges.Clear();
+            if (biome != null && biome.floods && GetComponent<Flood>() == null) gameObject.AddComponent<Flood>();
             // Now and then, a quiet dead end becomes a coded vault.
             Vault = null;
             if (!FloorLayout.IsBossFloor(number) && FloorLayout.FloorInBiome(number) >= 2 && !biome.isBottom && !InSpecial && !InGauntlet

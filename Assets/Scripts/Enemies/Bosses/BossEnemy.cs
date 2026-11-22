@@ -115,6 +115,7 @@ namespace Shrunk
             ["TheSpider"] = ItemType.SilkThread,
             ["TheLawnmower"] = ItemType.GrassClippings,
             ["TheEncyclopedia"] = ItemType.Footnote,
+            ["TheTap"] = ItemType.PlugChain,
         };
         /// <summary>How often a boss (any boss) leaves an item from the boss pool instead of a common one.</summary>
         public const float PoolChance = 0.3f;

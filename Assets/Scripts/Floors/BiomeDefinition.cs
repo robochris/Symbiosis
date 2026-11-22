@@ -24,6 +24,8 @@ namespace Shrunk
         public string id = "biome";
         [Tooltip("A second storey: raised platforms with ramps in the corners of fight rooms.")]
         public bool ledges;
+        [Tooltip("During fights the floor floods every so often; only ledges stay dry (see Flood).")]
+        public bool floods;
         public Material ledgeTopMaterial;
         [Tooltip("Shown on the portal that leads here.")]
         public string mutationTheme = "";

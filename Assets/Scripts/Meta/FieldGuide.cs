@@ -136,6 +136,15 @@ namespace Shrunk
             ["Hosepipe"] = "Drips a line first. Then the rest of the reservoir.",
             ["Seedling"] = "Grows into an earwig. Not how seeds work. Here, it is.",
             ["TheRival"] = "Another you, from another universe, with worse manners. It always comes back. Until it does not.",
+            // The sink
+            ["SinkSlug"] = "Leaves a trail. You will be standing in it shortly.",
+            ["ScrubbingBrush"] = "Scrubs at you, hard, in a straight line.",
+            ["SquirtyBottle"] = "Squirts. It is lemon scented, and it stings.",
+            ["DrainFly"] = "Came up out of the plughole. Will be going back down it.",
+            ["SoapDispenser"] = "Pumps out suds where you will be standing.",
+            ["ThePlug"] = "Sits there, and the others hurry. Pull it.",
+            ["LeakyPipe"] = "Drips a line first. Then the burst.",
+            ["FlyEgg"] = "Hatches into a drain fly. Hatches quickly.",
             // The bookshelf
             ["Silverfish"] = "Eats paper. Will settle for you.",
             ["InkPot"] = "Spits ink. It never comes out.",

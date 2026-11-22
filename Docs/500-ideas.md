@@ -2,7 +2,7 @@
 
 Grouped by what they do for a player: getting started, feeling good in the moment, having something to chase, and having a reason to come back tomorrow. Nothing here is built yet; things the game already has are left out. Numbers run straight through, so you can say "do 37, 112 and 340".
 
-**Done so far:** 1 (first-run safety net), 4 (boss items: each boss leaves its own the first time, then any boss can), 9 (First Steps goals), 27 (pickups already pulled in), 31 (low-health heartbeat), 36 (close calls), 95 (item wall), 276 (mailbox letters), 352 (quick run), 160 (the rival Void), 221 (rescue cages), 247 (rule of the day). Also from your ideas: the coded Vault with a raid-style trial.
+**Done so far:** 1 (first-run safety net), 4 (boss items: each boss leaves its own the first time, then any boss can), 9 (First Steps goals), 27 (pickups already pulled in), 31 (low-health heartbeat), 36 (close calls), 95 (item wall), 276 (mailbox letters), 352 (quick run), 160 (the rival Void), 221 (rescue cages), 247 (rule of the day), 291 (seasons), 461 (music for every world), 186 (the Kitchen Sink world, with floods). Also from your ideas: the coded Vault with a raid-style trial.
 
 **My top 20 picks** (biggest effect on new players staying, for the least work): 1, 4, 9, 27, 31, 36, 62, 95, 141, 160, 186, 221, 247, 276, 291, 320, 352, 371, 412, 461.
 

@@ -73,7 +73,9 @@ namespace Shrunk
         /// <summary>Boss item (the Lawnmower): shots come much faster, and so do you.</summary>
         GrassClippings,
         /// <summary>Boss item (the Encyclopedia): shots hit harder the further they fly, and hit for double more often.</summary>
-        Footnote
+        Footnote,
+        /// <summary>Boss item (the Tap): shots go through one more and come a fifth faster.</summary>
+        PlugChain
     }
 
     /// <summary>Where an item shows on the character. Two items in one slot: the newer one shows.</summary>
