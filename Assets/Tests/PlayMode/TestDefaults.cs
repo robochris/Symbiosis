@@ -32,6 +32,7 @@ namespace Shrunk.Tests
             FieldGuideWatcher.Quiet = true;
             DailyParcel.Off = true;
             FirstTips.Off = true;
+            KillCombo.Off = true;
             RunDirector.BeginnersLuckOff = true;
         }
 
@@ -52,6 +53,7 @@ namespace Shrunk.Tests
             FieldGuideWatcher.Quiet = false;
             DailyParcel.Off = false;
             FirstTips.Off = false;
+            KillCombo.Off = false;
             RunDirector.BeginnersLuckOff = false;
         }
     }

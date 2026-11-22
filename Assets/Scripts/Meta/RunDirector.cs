@@ -168,6 +168,7 @@ namespace Shrunk
         {
             SaveSystem.Data.meta.runsStarted++;
             Progress.StartRun();
+            KillCombo.StartRun();
             if (Upgrades.StartCoins > 0) RunState.AddCoins(Upgrades.StartCoins);
             if (Progress.Has(Perk.LooseChange)) RunState.AddCoins(Progress.LooseChangeCoins);
             // A lucky fortune, read in the lab before setting out.
@@ -377,6 +378,7 @@ namespace Shrunk
             LastSummary = $"Floor {floor}{worldPart}  ·  {RunState.Kills} kills  ·  {items} item{(items == 1 ? "" : "s")}{xp}";
             // Something to beat, and something to go back for.
             if (floor > _deepestBefore && _deepestBefore > 0 && !IsGauntlet) LastSummary += $"\nNEW RECORD: deepest floor yet (was {_deepestBefore})";
+            if (KillCombo.RunBest >= KillCombo.Milestone) LastSummary += $"\nBest combo x{KillCombo.RunBest}" + (KillCombo.RunBest >= SaveSystem.Data.meta.bestCombo ? " (your best ever)" : "");
             LastSummary += "\n" + NextGoal();
         }
 

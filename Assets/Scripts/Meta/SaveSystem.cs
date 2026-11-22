@@ -67,6 +67,8 @@ namespace Shrunk
         public int hat, hatsSeen;
         /// <summary>First-time tips already given, one bit each.</summary>
         public int tipsSeen;
+        /// <summary>The longest chain of kills ever.</summary>
+        public int bestCombo;
         public int goldBugsCaught;
         public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>

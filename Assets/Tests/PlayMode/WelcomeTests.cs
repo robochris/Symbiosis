@@ -146,5 +146,27 @@ namespace Shrunk.Tests
             foreach (FirstTips.Tip tip in System.Enum.GetValues(typeof(FirstTips.Tip))) Assert.IsNotEmpty(FirstTips.Line(tip));
             FirstTips.Off = true;
         }
+
+        [UnityTest]
+        public IEnumerator Quick_kills_chain_into_a_combo_that_pays_coins()
+        {
+            KillCombo.Off = false;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            KillCombo.StartRun();
+            int pickups = Pickup.All.Count;
+            for (int i = 0; i < KillCombo.Milestone; i++) KillCombo.Register();
+            Assert.AreEqual(KillCombo.Milestone, KillCombo.Chain);
+            Assert.AreEqual(KillCombo.Milestone, KillCombo.RunBest);
+            Assert.Greater(Pickup.All.Count, pickups, "no coins for a chain of five");
+            Assert.GreaterOrEqual(SaveSystem.Data.meta.bestCombo, KillCombo.Milestone);
+
+            // A pause longer than the window breaks it.
+            yield return new WaitForSeconds(KillCombo.Window + 0.2f);
+            KillCombo.Register();
+            Assert.AreEqual(1, KillCombo.Chain);
+            KillCombo.Off = true;
+        }
     }
 }
