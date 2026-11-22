@@ -34,6 +34,8 @@ namespace Shrunk.Tests
             FirstTips.Off = true;
             KillCombo.Off = true;
             HitStop.Off = true;
+            SafetyNet.Off = true;
+            StarterGoals.Off = true;
             Shrine.ChanceForAll = 0f;
             RunDirector.BeginnersLuckOff = true;
         }
@@ -57,6 +59,8 @@ namespace Shrunk.Tests
             FirstTips.Off = false;
             KillCombo.Off = false;
             HitStop.Off = false;
+            SafetyNet.Off = false;
+            StarterGoals.Off = false;
             Shrine.ChanceForAll = null;
             RunDirector.BeginnersLuckOff = false;
         }

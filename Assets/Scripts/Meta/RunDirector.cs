@@ -175,6 +175,7 @@ namespace Shrunk
             SaveSystem.Data.meta.runsStarted++;
             Progress.StartRun();
             KillCombo.StartRun();
+            SafetyNet.StartRun();
             if (Upgrades.StartCoins > 0) RunState.AddCoins(Upgrades.StartCoins);
             if (Progress.Has(Perk.LooseChange)) RunState.AddCoins(Progress.LooseChangeCoins);
             // A lucky fortune, read in the lab before setting out.

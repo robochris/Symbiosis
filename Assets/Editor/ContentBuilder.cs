@@ -591,6 +591,48 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Sphere, "Throat", look.transform, new Vector3(0f, 1.35f, 0.3f), new Vector3(0.3f, 0.2f, 0.2f), ArenaSceneBuilder.Lit("ToadBelly", new Color(0.85f, 0.8f, 0.55f), 0.3f));
             items.Add(Item(ItemType.Croak, "Croak", "Your hero power fills half again as fast.", ItemSlot.Head, true, 60, new Color(0.42f, 0.4f, 0.18f), look));
 
+            // ----- boss items: each world's boss keeps one; the first win always gives it -----
+            look = new GameObject("QueensCommand");
+            Decor(PrimitiveType.Cylinder, "Sceptre", look.transform, new Vector3(0.45f, 0.8f, 0.1f), new Vector3(0.06f, 0.35f, 0.06f), ArenaSceneBuilder.Lit("Royal", new Color(0.55f, 0.2f, 0.7f), 0.7f));
+            Decor(PrimitiveType.Sphere, "Orb", look.transform, new Vector3(0.45f, 1.18f, 0.1f), Vector3.one * 0.12f, ArenaSceneBuilder.Unlit("RoyalGlow", new Color(0.85f, 0.6f, 1f)));
+            items.Add(Item(ItemType.QueensCommand, "Queen's Command", "Boss item. Shots split, and go through two more.", ItemSlot.Hands, true, 60, new Color(0.7f, 0.35f, 0.9f), look));
+
+            look = new GameObject("EverlastingWick");
+            Decor(PrimitiveType.Sphere, "Flame", look.transform, new Vector3(0f, 1.45f, 0f), new Vector3(0.18f, 0.28f, 0.18f), ArenaSceneBuilder.Unlit("WickFlame", new Color(1f, 0.6f, 0.15f)));
+            items.Add(Item(ItemType.EverlastingWick, "Everlasting Wick", "Boss item. Shots burn hotter, and every dodge leaves fire.", ItemSlot.Head, true, 60, new Color(1f, 0.6f, 0.15f), look));
+
+            look = new GameObject("DustBag");
+            Decor(PrimitiveType.Sphere, "Bag", look.transform, new Vector3(0f, 0.9f, -0.45f), new Vector3(0.45f, 0.5f, 0.3f), ArenaSceneBuilder.Lit("DustGrey", new Color(0.6f, 0.58f, 0.55f), 0.1f));
+            items.Add(Item(ItemType.DustBag, "Dust Bag", "Boss item. Coins and samples come to you from across the room, and every coin drop is one more.", ItemSlot.Back, true, 60, new Color(0.6f, 0.58f, 0.55f), look));
+
+            look = new GameObject("FrostCore");
+            Decor(PrimitiveType.Cube, "Core", look.transform, new Vector3(0f, 1.9f, 0f), Vector3.one * 0.2f, ArenaSceneBuilder.Unlit("FrostGlow", new Color(0.6f, 0.9f, 1f))).transform.localRotation = Quaternion.Euler(45f, 0f, 45f);
+            items.Add(Item(ItemType.FrostCore, "Frost Core", "Boss item. Shots chill hard, and hit for double more often.", ItemSlot.Aura, true, 60, new Color(0.6f, 0.9f, 1f), look));
+
+            look = new GameObject("OverdueNotice");
+            Decor(PrimitiveType.Cube, "Slip", look.transform, new Vector3(0f, 0.75f, 0.33f), new Vector3(0.35f, 0.45f, 0.02f), ArenaSceneBuilder.Lit("NoticePink", new Color(1f, 0.6f, 0.65f), 0.1f));
+            items.Add(Item(ItemType.OverdueNotice, "Overdue Notice", "Boss item. One more damage, and the hero power fills faster.", ItemSlot.Body, true, 60, new Color(1f, 0.6f, 0.65f), look));
+
+            look = new GameObject("Fishbowl");
+            Decor(PrimitiveType.Sphere, "Bowl", look.transform, new Vector3(0f, 0.55f, 0f), Vector3.one * 1.25f, ArenaSceneBuilder.Lit("BowlGlass", new Color(0.7f, 0.9f, 1f), 0.95f));
+            items.Add(Item(ItemType.Fishbowl, "Fishbowl", "Boss item. One more health, all of it back, and quicker on your feet.", ItemSlot.Aura, true, 60, new Color(0.7f, 0.9f, 1f), look));
+
+            look = new GameObject("SqueakyToy");
+            Decor(PrimitiveType.Sphere, "Duck", look.transform, new Vector3(0.4f, 0.55f, 0.15f), new Vector3(0.22f, 0.18f, 0.28f), ArenaSceneBuilder.Lit("DuckYellow", new Color(1f, 0.85f, 0.15f), 0.6f));
+            items.Add(Item(ItemType.SqueakyToy, "Squeaky Toy", "Boss item. Every dodge goes pop, harder, and goes further.", ItemSlot.Hands, true, 60, new Color(1f, 0.85f, 0.15f), look));
+
+            look = new GameObject("SilkThread");
+            Decor(PrimitiveType.Cylinder, "Thread", look.transform, new Vector3(0f, 0.6f, -0.35f), new Vector3(0.04f, 0.6f, 0.04f), ArenaSceneBuilder.Lit("Silk", new Color(0.95f, 0.95f, 0.95f), 0.6f));
+            items.Add(Item(ItemType.SilkThread, "Silk Thread", "Boss item. Shots come back to you, and go through one more.", ItemSlot.Back, true, 60, new Color(0.95f, 0.95f, 0.95f), look));
+
+            look = new GameObject("GrassClippings");
+            Decor(PrimitiveType.Sphere, "Clump", look.transform, new Vector3(0f, 0.12f, 0f), new Vector3(0.7f, 0.12f, 0.7f), ArenaSceneBuilder.Lit("Clippings", new Color(0.35f, 0.7f, 0.25f), 0.2f));
+            items.Add(Item(ItemType.GrassClippings, "Grass Clippings", "Boss item. Shots come much faster, and so do you.", ItemSlot.Body, true, 60, new Color(0.35f, 0.7f, 0.25f), look));
+
+            look = new GameObject("Footnote");
+            Decor(PrimitiveType.Cube, "Page", look.transform, new Vector3(0f, 1.6f, -0.2f), new Vector3(0.3f, 0.02f, 0.4f), ArenaSceneBuilder.Lit("FootnotePaper", new Color(0.93f, 0.9f, 0.8f), 0.1f)).transform.localRotation = Quaternion.Euler(20f, 0f, 0f);
+            items.Add(Item(ItemType.Footnote, "Footnote", "Boss item. Shots hit harder the further they fly, and hit for double more often.", ItemSlot.Head, true, 60, new Color(0.93f, 0.9f, 0.8f), look));
+
             const string libraryPath = "Assets/Data/Items/ItemLibrary.asset";
             var library = AssetDatabase.LoadAssetAtPath<ItemLibrary>(libraryPath);
             if (library == null)
@@ -666,6 +708,16 @@ namespace Shrunk.EditorTools
                 case ItemType.ExtraLife: return "Kept from the Glitch. It should not exist, and it is very glad it does.";
                 case ItemType.SpringHeel: return "Kept from the Jack-in-the-Box. It still wants to go boing.";
                 case ItemType.Croak: return "Kept from the Toad. Not the whole Toad. Just the bit that croaks.";
+                case ItemType.QueensCommand: return "Kept from the Ant Queen. It is used to being obeyed, and so are you now.";
+                case ItemType.EverlastingWick: return "Kept from the Trick Candle. Blow it out and see what happens. (It relights.)";
+                case ItemType.DustBag: return "Kept from the Robot Vacuum. Full, but somehow it always takes more.";
+                case ItemType.FrostCore: return "Kept from the Ice Maker. Cold to the touch, colder to the touched.";
+                case ItemType.OverdueNotice: return "Kept from the Librarian. The fine is still going up.";
+                case ItemType.Fishbowl: return "Kept from the Goldfish. It remembers you for exactly three seconds at a time.";
+                case ItemType.SqueakyToy: return "Kept from the Rubber Duck. Squeak. Squeak. You are welcome.";
+                case ItemType.SilkThread: return "Kept from the Spider. It goes everywhere and comes back to you.";
+                case ItemType.GrassClippings: return "Kept from the Lawnmower. Smells like Sunday.";
+                case ItemType.Footnote: return "Kept from the Encyclopedia. See also: everything.";
                 default: return "";
             }
         }

@@ -113,6 +113,13 @@ namespace Shrunk
                     Changed?.Invoke();
                     return true;
                 }
+                // A first run's safety net: a lethal hit caught, a few times.
+                if (_health.Current <= 1 && SafetyNet.Catch())
+                {
+                    _health.SetInvulnerable(1.5f);
+                    Sfx.Play(SfxId.Blocked);
+                    return true;
+                }
                 // Save State: the hit that would have ended the run, loaded back from just before it. Once a copy.
                 if (_health.Current <= 1 && SaveStatesUsed < Count(ItemType.SaveState))
                 {
@@ -138,39 +145,40 @@ namespace Shrunk
                 int marble = Count(ItemType.LostMarble), sprinkles = Count(ItemType.Sprinkles), sock = Count(ItemType.StaticSock);
                 int dose = Count(ItemType.FinchsDose);
                 int hat = Count(ItemType.PaperHat), coffee = Count(ItemType.ColdCoffee);
+                int fish = Count(ItemType.Fishbowl), clippings = Count(ItemType.GrassClippings), notice = Count(ItemType.OverdueNotice);
                 bool overcharged = _power != null && _power.IsOvercharged;
 
                 return new PlayerStats
                 {
-                    moveSpeedMultiplier = 1f + 0.15f * legs + 0.08f * jelly + 0.12f * dose + 0.18f * coffee,
+                    moveSpeedMultiplier = 1f + 0.15f * legs + 0.08f * jelly + 0.12f * dose + 0.18f * coffee + 0.1f * fish + 0.12f * clippings,
                     // Coffee: everything quicker except getting your breath back.
                     dodgeCooldownMultiplier = Mathf.Pow(0.75f, legs) * Mathf.Pow(0.9f, jelly) * Mathf.Pow(0.85f, dose) * Mathf.Pow(1.3f, coffee),
                     dodgeCharges = 1 + (legs > 0 && wings > 0 ? 1 : 0) + Count(ItemType.SpringHeel),
                     hoverDodge = wings > 0,
                     damageMultiplier = overcharged ? 2 : 1,
                     // A marble is heavy: harder hits, further apart. Sprinkles are the opposite.
-                    fireIntervalMultiplier = Mathf.Pow(0.9f, jelly) * Mathf.Pow(1.35f, marble) * Mathf.Pow(0.85f, sprinkles) * Mathf.Pow(0.85f, coffee) * (overcharged ? 0.67f : 1f),
-                    damageBonus = marble + hat,
-                    coinBonus = Count(ItemType.PiggyBank),
+                    fireIntervalMultiplier = Mathf.Pow(0.9f, jelly) * Mathf.Pow(1.35f, marble) * Mathf.Pow(0.85f, sprinkles) * Mathf.Pow(0.85f, coffee) * Mathf.Pow(0.75f, clippings) * (overcharged ? 0.67f : 1f),
+                    damageBonus = marble + hat + notice,
+                    coinBonus = Count(ItemType.PiggyBank) + Count(ItemType.DustBag),
                     // The sock: every fifth shot, then every fourth, never more often than every second.
                     chargedEvery = sock > 0 ? Mathf.Max(2, 6 - sock) : 0,
-                    fireDodge = Count(ItemType.BirthdayCandle),
+                    fireDodge = Count(ItemType.BirthdayCandle) + Count(ItemType.EverlastingWick),
                     bounce = Count(ItemType.RubberBand),
-                    chill = Count(ItemType.IceCube),
+                    chill = Count(ItemType.IceCube) + 2 * Count(ItemType.FrostCore),
                     splashUp = Count(ItemType.RainBoot),
-                    dodgeReachMultiplier = 1f + 0.6f * Count(ItemType.KiteString),
-                    farBonus = Count(ItemType.MagnifyingGlass),
-                    returns = Count(ItemType.YoYo),
-                    popDodge = Count(ItemType.BubbleWrap),
+                    dodgeReachMultiplier = 1f + 0.6f * Count(ItemType.KiteString) + 0.4f * Count(ItemType.SqueakyToy),
+                    farBonus = Count(ItemType.MagnifyingGlass) + 2 * Count(ItemType.Footnote),
+                    returns = Count(ItemType.YoYo) + Count(ItemType.SilkThread),
+                    popDodge = Count(ItemType.BubbleWrap) + 2 * Count(ItemType.SqueakyToy),
                     lightningEvery = Count(ItemType.BottledLightning) > 0 ? Mathf.Max(3, 7 - Count(ItemType.BottledLightning)) : 0,
-                    magnetMultiplier = 1f + 1.5f * Count(ItemType.FridgeMagnet),
-                    powerFillMultiplier = (1f + 0.35f * Count(ItemType.SpareBattery)) * (1f + 0.5f * Count(ItemType.Croak)),
+                    magnetMultiplier = 1f + 1.5f * Count(ItemType.FridgeMagnet) + 3f * Count(ItemType.DustBag),
+                    powerFillMultiplier = (1f + 0.35f * Count(ItemType.SpareBattery)) * (1f + 0.5f * Count(ItemType.Croak)) * (1f + 0.3f * notice),
                     crumbMultiplier = 1f + Count(ItemType.Lunchbox),
-                    pierce = 2 * Count(ItemType.NeedleTip) + (overcharged ? 99 : 0),
-                    split = Count(ItemType.SplitterMandible),
+                    pierce = 2 * Count(ItemType.NeedleTip) + 2 * Count(ItemType.QueensCommand) + Count(ItemType.SilkThread) + (overcharged ? 99 : 0),
+                    split = Count(ItemType.SplitterMandible) + Count(ItemType.QueensCommand),
                     acid = Count(ItemType.AcidGland),
-                    burn = Count(ItemType.FireflyLantern),
-                    critChance = 0.15f * Count(ItemType.CompoundEye) + 0.1f * jelly,
+                    burn = Count(ItemType.FireflyLantern) + 2 * Count(ItemType.EverlastingWick),
+                    critChance = 0.15f * Count(ItemType.CompoundEye) + 0.1f * jelly + 0.12f * Count(ItemType.FrostCore) + 0.15f * Count(ItemType.Footnote),
                     aimAssistBonusAngle = 10f * Count(ItemType.CompoundEye)
                 };
             }
@@ -191,6 +199,9 @@ namespace Shrunk
                     break;
                 case ItemType.ExtraLife:
                     _health.SetMaxHealth(_health.maxHealth + 2, true);
+                    break;
+                case ItemType.Fishbowl:
+                    _health.SetMaxHealth(_health.maxHealth + 1, true);
                     break;
                 case ItemType.QueensJelly:
                     _health.SetMaxHealth(_health.maxHealth + 1, false);

@@ -53,7 +53,27 @@ namespace Shrunk
         /// <summary>Trophy (the Jack-in-the-Box): one more dodge charge.</summary>
         SpringHeel,
         /// <summary>Trophy (the Toad): the hero power fills half again as fast.</summary>
-        Croak
+        Croak,
+        /// <summary>Boss item (the Ant Queen): shots split, and go through two more.</summary>
+        QueensCommand,
+        /// <summary>Boss item (the Trick Candle): shots set things alight, hotter; the dodge leaves fire.</summary>
+        EverlastingWick,
+        /// <summary>Boss item (the Robot Vacuum): coins and samples come from much further, and every coin drop is one more.</summary>
+        DustBag,
+        /// <summary>Boss item (the Ice Maker): shots chill harder, and hit for double more often.</summary>
+        FrostCore,
+        /// <summary>Boss item (the Librarian): one more damage, and the hero power fills faster.</summary>
+        OverdueNotice,
+        /// <summary>Boss item (the Goldfish): one more health, all of it back, and quicker on the feet.</summary>
+        Fishbowl,
+        /// <summary>Boss item (the Rubber Duck): every dodge goes pop, harder, and goes further.</summary>
+        SqueakyToy,
+        /// <summary>Boss item (the Spider): shots come back, and go through one more.</summary>
+        SilkThread,
+        /// <summary>Boss item (the Lawnmower): shots come much faster, and so do you.</summary>
+        GrassClippings,
+        /// <summary>Boss item (the Encyclopedia): shots hit harder the further they fly, and hit for double more often.</summary>
+        Footnote
     }
 
     /// <summary>Where an item shows on the character. Two items in one slot: the newer one shows.</summary>

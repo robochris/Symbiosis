@@ -258,5 +258,83 @@ namespace Shrunk.Tests
             Pressure.Apply(0);
             Assert.AreEqual(1f, Enemy.HealthScale);
         }
+
+        [UnityTest]
+        public IEnumerator A_boss_leaves_its_own_item_the_first_time_and_then_it_joins_the_pool()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            Assert.IsTrue(floors.SetBiome("forest"));
+            BossEnemy toadPrefab = floors.biome.boss;
+            Assert.AreEqual(14, BossEnemy.Trophies.Count, "a world boss without an item");
+            foreach (var pair in BossEnemy.Trophies) Assert.IsNotNull(GameAssets.Instance.items.Get(pair.Value), pair.Key + "'s item is missing");
+            Assert.AreEqual(0, BossEnemy.Pool().Count, "a boss item loose before any boss was beaten");
+
+            var toad = UnityEngine.Object.Instantiate(toadPrefab, PlayerController.Instance.transform.position + Vector3.forward * 15f, Quaternion.identity);
+            yield return null;
+            int before = Pickup.All.Count;
+            toad.DropRewards();
+            ItemDefinition dropped = null;
+            foreach (var pickup in Pickup.All) if (pickup.kind == PickupKind.Item) dropped = pickup.item;
+            Assert.IsNotNull(dropped);
+            Assert.AreEqual(ItemType.Croak, dropped.type, "the Toad's first win did not give the Croak");
+            Assert.Contains(ItemType.Croak, BossEnemy.Pool(), "the Croak did not join the pool");
+            UnityEngine.Object.Destroy(toad.gameObject);
+        }
+
+        [UnityTest]
+        public IEnumerator A_first_run_is_caught_and_new_players_have_goals()
+        {
+            SafetyNet.Off = false;
+            StarterGoals.Off = false;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            player.Health.ClearInvulnerability();
+            player.Health.Restore(1);
+            player.Health.TakeDamage(1, Vector3.forward);
+            Assert.IsFalse(player.Health.IsDead, "the first run's safety net did not catch the hit");
+            Assert.AreEqual(1, SafetyNet.Used);
+
+            int samples = SaveSystem.Data.meta.samples;
+            StarterGoals.Tick(StarterGoals.Goal.Shop);
+            StarterGoals.Tick(StarterGoals.Goal.Shop);
+            Assert.AreEqual(samples + StarterGoals.Pay, SaveSystem.Data.meta.samples, "a goal paid twice, or not at all");
+            Assert.IsTrue(StarterGoals.Done(StarterGoals.Goal.Shop));
+            SafetyNet.Off = true;
+            StarterGoals.Off = true;
+        }
+
+        [UnityTest]
+        public IEnumerator A_shot_past_a_dodge_is_a_close_call()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            int before = CloseCalls.Count;
+            player.Input.overrideFrame = new InputFrame { dodge = true, move = Vector3.right };
+            yield return null;
+            player.Input.overrideFrame = new InputFrame();
+            Assert.IsTrue(player.IsDodging, "no dodge");
+            var prefab = FloorManager.Instance.biome.spawnTable[0].prefab;
+            // A spitter's shot, made by hand, right beside the player.
+            Bullet shot = null;
+            foreach (var entry in FloorManager.Instance.biome.spawnTable)
+            {
+                var shooter = entry.prefab != null ? entry.prefab.GetComponent<ShooterEnemy>() : null;
+                if (shooter != null && shooter.projectilePrefab != null) { shot = UnityEngine.Object.Instantiate(shooter.projectilePrefab); break; }
+            }
+            Assert.IsNotNull(shot, "no shooter to borrow a shot from");
+            shot.Launch(player.transform.position + Vector3.right * 0.8f + Vector3.up * 0.6f, Vector3.forward, 0.1f, new Shot { damage = 1 }, 5f, Team.Enemy, null);
+            yield return null;
+            yield return null;
+            Assert.Greater(CloseCalls.Count, before, "a shot right past a dodge was not a close call");
+            Assert.Greater(CloseCalls.BoostUntil, Time.time);
+            UnityEngine.Object.Destroy(shot.gameObject);
+        }
     }
 }

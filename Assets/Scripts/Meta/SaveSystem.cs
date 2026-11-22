@@ -73,6 +73,10 @@ namespace Shrunk
         public int pet, petsSeen;
         /// <summary>The pressure chosen at the gauge, and the highest at which a world's boss has been beaten.</summary>
         public int pressure, pressureBest;
+        /// <summary>Bosses whose item has been set loose in the boss pool (by prefab name).</summary>
+        public List<string> bossItems = new List<string>();
+        /// <summary>The getting-started goals done, one bit each.</summary>
+        public int starterGoals;
         public int goldBugsCaught;
         public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>

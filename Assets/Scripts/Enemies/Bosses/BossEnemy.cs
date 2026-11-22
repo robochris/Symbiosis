@@ -95,28 +95,81 @@ namespace Shrunk
             Pickup.Item(other, transform.position + Vector3.forward * 2f + Vector3.right * 2.2f, 0).treasureRoom = room;
         }
 
-        /// <summary>The rare items some bosses keep, by the boss's name.</summary>
+        /// <summary>
+        /// Boss items: every world's boss keeps one of its own. The first time a boss is beaten it always leaves its
+        /// item; from then on that item is loose in the boss pool, and any boss may leave any item in the pool.
+        /// </summary>
         public static readonly System.Collections.Generic.Dictionary<string, ItemType> Trophies = new System.Collections.Generic.Dictionary<string, ItemType>
         {
+            ["AntQueen"] = ItemType.QueensCommand,
+            ["TrickCandle"] = ItemType.EverlastingWick,
+            ["RobotVacuum"] = ItemType.DustBag,
+            ["IceMaker"] = ItemType.FrostCore,
+            ["TheLibrarian"] = ItemType.OverdueNotice,
             ["TheToad"] = ItemType.Croak,
             ["TheThundercloud"] = ItemType.BottledLightning,
             ["TheGlitch"] = ItemType.ExtraLife,
+            ["TheGoldfish"] = ItemType.Fishbowl,
             ["TheJackInTheBox"] = ItemType.SpringHeel,
+            ["TheRubberDuck"] = ItemType.SqueakyToy,
+            ["TheSpider"] = ItemType.SilkThread,
+            ["TheLawnmower"] = ItemType.GrassClippings,
+            ["TheEncyclopedia"] = ItemType.Footnote,
         };
-        /// <summary>How often a boss with a trophy leaves it instead of a common item.</summary>
-        public const float TrophyChance = 0.35f;
-        /// <summary>Tests set this to make the trophy certain (1) or impossible (0).</summary>
+        /// <summary>How often a boss (any boss) leaves an item from the boss pool instead of a common one.</summary>
+        public const float PoolChance = 0.3f;
+        /// <summary>Kept for the tests: with this set, a boss leaves its own item at this chance and nothing from the pool.</summary>
         public static float? TrophyChanceOverride;
+        /// <summary>The boss item the last drop was, the first time: for the screen to make something of it.</summary>
+        public static ItemDefinition LastFirstDrop { get; private set; }
 
-        /// <summary>Which item it leaves: a common one, unless the boss has one of its own.</summary>
+        /// <summary>Boss items set loose so far: every one whose boss has been beaten at least once.</summary>
+        public static System.Collections.Generic.List<ItemType> Pool()
+        {
+            var pool = new System.Collections.Generic.List<ItemType>();
+            var released = SaveSystem.Data.meta.bossItems;
+            foreach (var pair in Trophies) if (released.Contains(pair.Key)) pool.Add(pair.Value);
+            return pool;
+        }
+
+        /// <summary>Which item it leaves: its own the first time, sometimes one from the boss pool, otherwise a common one.</summary>
         protected virtual ItemDefinition RewardItem(ItemLibrary items)
         {
             string key = name.Replace("(Clone)", "").Trim();
-            if (Trophies.TryGetValue(key, out ItemType trophy) && Random.value < (TrophyChanceOverride ?? TrophyChance))
+            bool hasOwn = Trophies.TryGetValue(key, out ItemType trophy);
+            if (TrophyChanceOverride.HasValue)
             {
-                var kept = items.Get(trophy);
-                if (kept != null) return kept;
+                if (hasOwn && Random.value < TrophyChanceOverride.Value && items.Get(trophy) != null) return items.Get(trophy);
+                return Common(items);
             }
+
+            // The first time: its own, always, and from now on the pool has it.
+            var released = SaveSystem.Data.meta.bossItems;
+            if (hasOwn && !released.Contains(key) && items.Get(trophy) != null)
+            {
+                released.Add(key);
+                SaveSystem.Save();
+                LastFirstDrop = items.Get(trophy);
+                var hud = FindAnyObjectByType<Hud>();
+                if (hud != null) hud.Toast($"A boss item: the {LastFirstDrop.displayName}. From now on any boss might leave it.", 5f);
+                return LastFirstDrop;
+            }
+
+            // After that: now and then, something from the pool, preferring what the player is not carrying yet.
+            var pool = Pool();
+            if (pool.Count > 0 && Random.value < PoolChance)
+            {
+                var player = PlayerController.Instance;
+                var fresh = pool.FindAll(type => player == null || player.Items == null || player.Items.Count(type) == 0);
+                var from = fresh.Count > 0 ? fresh : pool;
+                var pick = items.Get(from[Random.Range(0, from.Count)]);
+                if (pick != null) return pick;
+            }
+            return Common(items);
+        }
+
+        static ItemDefinition Common(ItemLibrary items)
+        {
             var picks = items.RandomCommon(new System.Random(Random.Range(0, int.MaxValue)), 1);
             return picks.Count > 0 ? picks[0] : null;
         }

@@ -66,6 +66,8 @@ namespace Shrunk
         float _range;
         float _travelled;
         Team _team;
+        /// <summary>Whose shot it is.</summary>
+        public Team Team => _team;
         Pool<Bullet> _pool;
 
         public void Launch(Vector3 position, Vector3 direction, float speed, Shot shot, float range, Team team, Pool<Bullet> pool, Health alreadyHit = null)
