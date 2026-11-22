@@ -128,7 +128,7 @@ namespace Shrunk.EditorTools
             Object.DestroyImmediate(seedling.GetComponent<EnemyMutations>());
             var seedlingPrefab = (LarvaEnemy)SaveEnemy(seedling);
 
-            var trimmer = Creature<MowerBoss>("TheHedgeTrimmer", 0.9f, 1.4f, 150, 1f, 2.8f, out var trimmerModel);
+            var trimmer = Creature<MowerBoss>("TheHedgeTrimmer", 0.9f, 1.4f, 190, 1f, 2.8f, out var trimmerModel);
             Decor(PrimitiveType.Cube, "Body", trimmerModel, new Vector3(0f, 0.7f, -0.3f), new Vector3(0.8f, 0.7f, 1.2f), canGreen);
             Decor(PrimitiveType.Cube, "Blade", trimmerModel, new Vector3(0f, 0.7f, 1.1f), new Vector3(0.25f, 0.12f, 1.8f), steel);
             for (int i = 0; i < 6; i++)
@@ -146,7 +146,7 @@ namespace Shrunk.EditorTools
             Object.DestroyImmediate(trimmer.GetComponent<EnemyMutations>());
             var trimmerPrefab = (BossEnemy)SaveEnemy(trimmer);
 
-            var mower = Creature<MowerBoss>("TheLawnmower", 1.5f, 2.2f, 380, 1f, 3.8f, out var mowerModel);
+            var mower = Creature<MowerBoss>("TheLawnmower", 1.5f, 2.2f, 520, 1f, 3.8f, out var mowerModel);
             Decor(PrimitiveType.Cube, "Deck", mowerModel, new Vector3(0f, 0.7f, 0f), new Vector3(2.6f, 0.9f, 2.8f), mowerRed);
             Decor(PrimitiveType.Cube, "Engine", mowerModel, new Vector3(0f, 1.4f, 0.2f), new Vector3(1.2f, 0.7f, 1.2f), steel);
             Decor(PrimitiveType.Cube, "Handle", mowerModel, new Vector3(0f, 1.9f, -1.6f), new Vector3(1.8f, 0.1f, 0.1f), steel);

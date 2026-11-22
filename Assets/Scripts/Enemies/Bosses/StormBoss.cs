@@ -26,6 +26,10 @@ namespace Shrunk
         public float strikeRadius = 1.6f;
         public float strikeFuse = 1.1f;
         public float strikeGap = 0.25f;
+        [Tooltip("How far ahead of a moving player the lightning lands: 1 = exactly where they will be when it goes off.")]
+        public float strikeLead = 0.8f;
+        [Tooltip("The world's own boss (the Thundercloud), not the mini-boss before it. Its achievements are for this one.")]
+        public bool isWorldBoss = true;
         [Tooltip("How far round the player the strikes are scattered.")]
         public float strikeSpread = 4f;
 
@@ -119,8 +123,10 @@ namespace Shrunk
                     if (_strikesLeft > 0)
                     {
                         Vector2 scatter = Random.insideUnitCircle * strikeSpread;
-                        // The first goes where the player stands; the rest round about.
-                        Vector3 at = _strikesLeft == Volley() ? targetPosition : targetPosition + new Vector3(scatter.x, 0f, scatter.y);
+                        // The first goes where the player is heading, the second where they stand; the rest round about.
+                        Vector3 ahead = Ahead(targetPosition, strikeFuse * strikeLead);
+                        int done = Volley() - _strikesLeft;
+                        Vector3 at = done == 0 ? ahead : done == 1 ? targetPosition : ahead + new Vector3(scatter.x, 0f, scatter.y);
                         var blast = GroundHazard.SpawnBlast(new Vector3(at.x, 0f, at.z), strikeRadius, strikeFuse, telegraphMaterial);
                         blast.source = this;
                         Strikes++;

@@ -143,7 +143,7 @@ namespace Shrunk.EditorTools
             var wormPrefab = (LarvaEnemy)SaveEnemy(worm);
 
             // ----- bosses: the same person at two points in a career -----
-            var trainee = Person("TheTrainee", 0.6f, 2.2f, 70, 3.1f, 1.2f, leatherGreen, skin, dark, glasses, paper, leatherGreen);
+            var trainee = Person("TheTrainee", 0.6f, 2.2f, 220, 3.1f, 1.2f, leatherGreen, skin, dark, glasses, paper, leatherGreen);
             trainee.displayName = "The Trainee";
             trainee.subtitle = "Started Monday. Has been told the books go back on the shelf, or at you.";
             trainee.canShush = false;
@@ -158,7 +158,7 @@ namespace Shrunk.EditorTools
             Object.DestroyImmediate(trainee.GetComponent<EnemyMutations>());
             var traineePrefab = (BossEnemy)SaveEnemy(trainee);
 
-            var librarian = Person("TheLibrarian", 0.8f, 3.2f, 260, 4.4f, 1.75f, cardigan, skin, hair, glasses, paper, leatherRed);
+            var librarian = Person("TheLibrarian", 0.8f, 3.2f, 400, 4.4f, 1.75f, cardigan, skin, hair, glasses, paper, leatherRed);
             librarian.displayName = "The Librarian";
             librarian.subtitle = "This is a library. You will find that out when you make a noise.";
             librarian.telegraphMaterial = telegraph;

@@ -152,7 +152,7 @@ namespace Shrunk.EditorTools
             Object.DestroyImmediate(bigBat.GetComponent<EnemyMutations>());
             var bigBatPrefab = (BossEnemy)SaveEnemy(bigBat);
 
-            var spider = Creature<SpiderBoss>("TheSpider", 1.3f, 2f, 380, 1f, 3.6f, out var spiderModel);
+            var spider = Creature<SpiderBoss>("TheSpider", 1.3f, 2f, 460, 1f, 3.6f, out var spiderModel);
             Decor(PrimitiveType.Sphere, "Abdomen", spiderModel, new Vector3(0f, 1.2f, -0.9f), new Vector3(2f, 1.7f, 2.2f), spiderBody);
             Decor(PrimitiveType.Sphere, "Head", spiderModel, new Vector3(0f, 1.05f, 0.6f), new Vector3(1.2f, 0.9f, 1.1f), spiderBody);
             Decor(PrimitiveType.Cube, "Mark", spiderModel, new Vector3(0f, 2.05f, -0.9f), new Vector3(0.5f, 0.05f, 0.7f), spiderMark);

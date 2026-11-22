@@ -168,7 +168,7 @@ namespace Shrunk
         void StartHop(Vector3 targetPosition)
         {
             // Where the player is going, not where they are; never further than one hop.
-            Vector3 aim = targetPosition + _targetVelocity * (hopTime * 0.6f);
+            Vector3 aim = targetPosition + _targetVelocity * (hopTime * 0.9f);
             Vector3 offset = aim - transform.position;
             offset.y = 0f;
             if (offset.magnitude > hopRange) offset = offset.normalized * hopRange;

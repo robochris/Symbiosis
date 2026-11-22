@@ -110,7 +110,7 @@ namespace Shrunk
                 Achievements.Unlock(AchievementId.Croaked);
                 if (toad.Caught == 0 && toad.Lashes > 0) Achievements.Unlock(AchievementId.TongueTied);
             }
-            if (enemy is StormBoss storm && storm.canLightning)
+            if (enemy is StormBoss storm && storm.isWorldBoss)
             {
                 Achievements.Unlock(AchievementId.ClearSkies);
                 if (storm.Strikes > 0 && storm.Struck == 0) Achievements.Unlock(AchievementId.SilverLining);

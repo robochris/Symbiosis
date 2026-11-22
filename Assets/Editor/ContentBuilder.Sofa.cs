@@ -174,7 +174,7 @@ namespace Shrunk.EditorTools
             fluffShot.AddComponent<Bullet>().radius = 0.27f;
             var fluffShotPrefab = ArenaSceneBuilder.SavePrefab(fluffShot, "Enemies/FluffShot").GetComponent<Bullet>();
 
-            var granny = Creature<GrandmotherDust>("GrandmotherDust", 1.65f, 3.6f, 150, 3f, 4.8f, out var grannyModel);
+            var granny = Creature<GrandmotherDust>("GrandmotherDust", 1.65f, 3.6f, 230, 3f, 4.8f, out var grannyModel);
             grannyModel.localScale = Vector3.one * 2.7f;
             BunnyParts(grannyModel, dustDark, dust, dark);
             Decor(PrimitiveType.Sphere, "Tail", grannyModel, new Vector3(0f, 0.55f, -0.6f), Vector3.one * 0.5f, white);

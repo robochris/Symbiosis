@@ -17,6 +17,37 @@ namespace Shrunk
         public int sampleReward = 10;
 
         public int Phase { get; protected set; } = 1;
+
+        /// <summary>The player's ground velocity, smoothed: for attacks that land where the player is going, not where they were.</summary>
+        protected Vector3 TargetVelocity { get; private set; }
+        Vector3 _lastPlayerAt;
+        bool _trackingPlayer;
+
+        /// <summary>Where the player will be in this many seconds if they keep going.</summary>
+        protected Vector3 Ahead(Vector3 targetPosition, float seconds)
+        {
+            Vector3 at = targetPosition + TargetVelocity * seconds;
+            at.y = targetPosition.y;
+            return at;
+        }
+
+        protected virtual void LateUpdate()
+        {
+            var player = PlayerController.Instance;
+            if (player == null || Time.deltaTime <= 0f) return;
+            Vector3 at = player.transform.position;
+            if (!_trackingPlayer)
+            {
+                _trackingPlayer = true;
+                _lastPlayerAt = at;
+            }
+            Vector3 velocity = (at - _lastPlayerAt) / Time.deltaTime;
+            velocity.y = 0f;
+            // A teleport or a gust is not running.
+            if (velocity.magnitude > 20f) velocity = Vector3.zero;
+            TargetVelocity = Vector3.Lerp(TargetVelocity, velocity, 0.15f);
+            _lastPlayerAt = at;
+        }
         public float Health01 => Health.maxHealth > 0 ? (float)Health.Current / Health.maxHealth : 0f;
 
         protected override void OnEnable()
@@ -24,6 +55,8 @@ namespace Shrunk
             base.OnEnable();
             InPlay = this;
             Phase = 1;
+            _trackingPlayer = false;
+            TargetVelocity = Vector3.zero;
             Sfx.Play(SfxId.BossAppear);
         }
 

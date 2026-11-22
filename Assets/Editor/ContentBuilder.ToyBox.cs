@@ -142,7 +142,7 @@ namespace Shrunk.EditorTools
             var beadPrefab = (LarvaEnemy)SaveEnemy(bead);
 
             // ----- bosses: something that has to be wound up, and something that is always wound up -----
-            var mouse = Creature<ToyBoss>("TheWindupMouse", 0.9f, 1.6f, 160, 1f, 3f, out var mouseModel);
+            var mouse = Creature<ToyBoss>("TheWindupMouse", 0.9f, 1.6f, 340, 1f, 3f, out var mouseModel);
             mouseModel.localScale = Vector3.one * 2f;
             Decor(PrimitiveType.Sphere, "Body", mouseModel, new Vector3(0f, 0.4f, 0f), new Vector3(0.7f, 0.6f, 1f), felt);
             Decor(PrimitiveType.Sphere, "Ear L", mouseModel, new Vector3(-0.22f, 0.75f, 0.3f), new Vector3(0.25f, 0.25f, 0.05f), pink);
@@ -164,7 +164,7 @@ namespace Shrunk.EditorTools
             Object.DestroyImmediate(mouse.GetComponent<EnemyMutations>());
             var mousePrefab = (BossEnemy)SaveEnemy(mouse);
 
-            var jack = Creature<ToyBoss>("TheJackInTheBox", 1.2f, 3.2f, 380, 1f, 4.6f, out var jackModel);
+            var jack = Creature<ToyBoss>("TheJackInTheBox", 1.2f, 3.2f, 480, 1f, 4.6f, out var jackModel);
             Decor(PrimitiveType.Cube, "Box", jackModel, new Vector3(0f, 0.7f, 0f), Vector3.one * 1.4f, brickRed);
             Decor(PrimitiveType.Cube, "Trim", jackModel, new Vector3(0f, 1.42f, 0f), new Vector3(1.5f, 0.08f, 1.5f), brickYellow);
             Decor(PrimitiveType.Cylinder, "Spring", jackModel, new Vector3(0f, 1.9f, 0f), new Vector3(0.35f, 0.5f, 0.35f), tin);

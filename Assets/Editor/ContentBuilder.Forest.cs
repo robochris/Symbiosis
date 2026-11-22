@@ -163,7 +163,7 @@ namespace Shrunk.EditorTools
             var grubPrefab = (LarvaEnemy)SaveEnemy(grub);
 
             // ----- bosses: a froglet, and what it grows up to be -----
-            var frog = Amphibian("TheFroglet", 0.7f, 1.2f, 110, 2.4f, 1.1f, froglet, toadBelly, eyeGold, dark);
+            var frog = Amphibian("TheFroglet", 0.7f, 1.2f, 170, 2.4f, 1.1f, froglet, toadBelly, eyeGold, dark);
             frog.displayName = "The Froglet";
             frog.subtitle = "Recently a tadpole. Has opinions about it.";
             frog.canTongue = false;
@@ -179,12 +179,12 @@ namespace Shrunk.EditorTools
             Object.DestroyImmediate(frog.GetComponent<EnemyMutations>());
             var frogPrefab = (BossEnemy)SaveEnemy(frog);
 
-            var toad = Amphibian("TheToad", 1.2f, 2.2f, 380, 4f, 2f, toadSkin, toadBelly, eyeGold, dark);
+            var toad = Amphibian("TheToad", 1.2f, 2.2f, 440, 4f, 2f, toadSkin, toadBelly, eyeGold, dark);
             toad.displayName = "The Toad";
             toad.subtitle = "Sits very still. Eats whatever moves. You are moving.";
             // Big, and slow to come down: the circle is up for most of a second, and it sits a while between runs.
             toad.hopTime = 0.95f;
-            toad.landingRadius = 2.1f;
+            toad.landingRadius = 2.5f;
             toad.sitTime = 1.9f;
             toad.telegraphMaterial = telegraph;
             toad.tongueMaterial = tongue;

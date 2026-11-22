@@ -15,7 +15,7 @@ namespace Shrunk
         [Header("Sweep")]
         public bool canSweep = true;
         public float sweepWarning = 1.4f;
-        public float bandWidth = 2.4f;
+        public float bandWidth = 3.6f;
         public float bandLength = 26f;
         [Tooltip("Gaps left in the band, in each phase (fewer later).")]
         public int[] gapsPerSweep = { 2, 2, 1 };
@@ -28,6 +28,8 @@ namespace Shrunk
         public float chargeTime = 0.7f;
         public float chargeWidth = 2f;
         public float chargeReach = 1.8f;
+        [Tooltip("Seconds ahead of a moving player the charge is aimed.")]
+        public float chargeLead = 0.5f;
 
         [Header("Moving")]
         public float moveSpeed = 2.4f;
@@ -89,7 +91,7 @@ namespace Shrunk
 
                 case Act.ChargeWindup:
                     Move(Vector3.zero);
-                    if (_timer > chargeWindup * 0.3f) Face(toTarget, turnSpeed * 1.5f);
+                    if (_timer > chargeWindup * 0.3f) Face(Ahead(targetPosition, chargeLead) - transform.position, turnSpeed * 1.5f);
                     ShowChargeLine(1f - Mathf.Clamp01(_timer / chargeWindup), chargeSpeed * chargeTime, chargeWidth, telegraphMaterial);
                     if (_timer > 0f) break;
                     HideChargeLine();
@@ -126,6 +128,8 @@ namespace Shrunk
             Vector3 across = transform.right;
             across.y = 0f;
             across.Normalize();
+            Vector3 forward = Vector3.Cross(across, Vector3.up);
+            Vector3 centre = Ahead(targetPosition, sweepWarning * 0.3f);
             int gaps = gapsPerSweep != null && gapsPerSweep.Length >= Phase ? gapsPerSweep[Phase - 1] : 1;
             var gapAt = new float[gaps];
             for (int g = 0; g < gaps; g++) gapAt[g] = Random.Range(-bandLength * 0.4f, bandLength * 0.4f);
@@ -134,8 +138,12 @@ namespace Shrunk
                 bool inGap = false;
                 foreach (float g in gapAt) inGap |= Mathf.Abs(d - g) < gapSize * 0.5f;
                 if (inGap) continue;
-                Vector3 at = targetPosition + across * d;
-                GroundHazard.SpawnBlast(new Vector3(at.x, 0f, at.z), markRadius, sweepWarning, telegraphMaterial);
+                // Two rows, so stepping off the band takes more than a step.
+                for (int row = -1; row <= 1; row += 2)
+                {
+                    Vector3 at = centre + across * d + forward * (row * bandWidth * 0.25f);
+                    GroundHazard.SpawnBlast(new Vector3(at.x, 0f, at.z), markRadius, sweepWarning, telegraphMaterial);
+                }
             }
             LastGaps = gapAt;
             Sweeps++;

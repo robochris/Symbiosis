@@ -156,7 +156,7 @@ namespace Shrunk.EditorTools
             Object.DestroyImmediate(bar.GetComponent<EnemyMutations>());
             var barPrefab = (BossEnemy)SaveEnemy(bar);
 
-            var duck = Creature<BathBoss>("TheRubberDuck", 1.3f, 3f, 380, 1f, 4.6f, out var duckModel);
+            var duck = Creature<BathBoss>("TheRubberDuck", 1.3f, 3f, 440, 1f, 4.6f, out var duckModel);
             Decor(PrimitiveType.Sphere, "Body", duckModel, new Vector3(0f, 1.1f, -0.2f), new Vector3(2.4f, 1.8f, 3f), duckYellow);
             Decor(PrimitiveType.Sphere, "Head", duckModel, new Vector3(0f, 2.4f, 0.7f), Vector3.one * 1.5f, duckYellow);
             Decor(PrimitiveType.Cube, "Beak", duckModel, new Vector3(0f, 2.25f, 1.55f), new Vector3(0.8f, 0.25f, 0.6f), beakOrange);

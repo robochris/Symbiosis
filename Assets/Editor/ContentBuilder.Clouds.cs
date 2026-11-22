@@ -156,7 +156,7 @@ namespace Shrunk.EditorTools
             var dropletPrefab = (LarvaEnemy)SaveEnemy(droplet);
 
             // ----- bosses: a kite that got away, and the weather that took it -----
-            var kite = Creature<StormBoss>("TheKite", 0.9f, 2.6f, 110, 1f, 3.6f, out var kiteModel);
+            var kite = Creature<StormBoss>("TheKite", 0.9f, 2.6f, 170, 1f, 3.6f, out var kiteModel);
             Decor(PrimitiveType.Cube, "Sail", kiteModel, new Vector3(0f, 1.6f, 0f), new Vector3(1.6f, 1.6f, 0.06f), kitePaper).transform.localRotation = Quaternion.Euler(0f, 0f, 45f);
             Decor(PrimitiveType.Cube, "Spar A", kiteModel, new Vector3(0f, 1.6f, -0.05f), new Vector3(0.06f, 2.2f, 0.06f), kiteStripe);
             Decor(PrimitiveType.Cube, "Spar B", kiteModel, new Vector3(0f, 1.6f, -0.05f), new Vector3(2.2f, 0.06f, 0.06f), kiteStripe);
@@ -166,7 +166,9 @@ namespace Shrunk.EditorTools
             Decor(PrimitiveType.Sphere, "Eye R", kiteModel, new Vector3(0.25f, 1.8f, 0.06f), Vector3.one * 0.18f, dark);
             kite.displayName = "The Kite";
             kite.subtitle = "Somebody let go of the string. It has not forgiven anyone.";
-            kite.canLightning = false;
+            kite.canLightning = true;
+            kite.isWorldBoss = false;
+            kite.strikesPerVolley = new[] { 2, 2, 3 };
             kite.gustTime = 1.1f;
             kite.gustSpeed = 7.5f;
             kite.telegraphMaterial = telegraph;
@@ -177,7 +179,7 @@ namespace Shrunk.EditorTools
             Object.DestroyImmediate(kite.GetComponent<EnemyMutations>());
             var kitePrefab = (BossEnemy)SaveEnemy(kite);
 
-            var thunder = Creature<StormBoss>("TheThundercloud", 1.6f, 3.6f, 380, 1f, 5f, out var thunderModel);
+            var thunder = Creature<StormBoss>("TheThundercloud", 1.6f, 3.6f, 720, 1f, 5f, out var thunderModel);
             Decor(PrimitiveType.Sphere, "Puff A", thunderModel, new Vector3(0f, 2.2f, 0f), new Vector3(3.4f, 2f, 2.6f), storm);
             Decor(PrimitiveType.Sphere, "Puff B", thunderModel, new Vector3(-1.4f, 2f, 0.2f), Vector3.one * 1.8f, storm);
             Decor(PrimitiveType.Sphere, "Puff C", thunderModel, new Vector3(1.4f, 2.1f, -0.1f), Vector3.one * 1.9f, storm);

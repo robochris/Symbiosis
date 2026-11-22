@@ -244,8 +244,30 @@ namespace Shrunk.Tests
         }
 
         // Walks into the boss room of a floor and fights with no invulnerability, counting what lands.
+        /// <summary>Items the bot carries into a boss, as a player would have picked up by then: 2 at a mini-boss, 5 at a boss. 0 for bare.</summary>
+        public static int MiniBossItems = 2, BossItems = 5;
+
+        // Tops the bot's items up to what a run would have found by this fight. The same seed gives the same items.
+        void GiveRunItems(int floor, int seed)
+        {
+            var assets = GameAssets.Instance;
+            if (assets == null || assets.items == null || _player.Items == null) return;
+            int want = FloorLayout.IsBossFloor(floor) && FloorLayout.FloorInBiome(floor) % 10 == 0 ? BossItems : MiniBossItems;
+            int missing = want - _player.Items.Collected.Count;
+            if (missing <= 0) return;
+            // From every item there is, whatever happens to be unlocked by now, so the same seed always gives the same items.
+            bool unlocked = Achievements.EverythingUnlocked;
+            Achievements.EverythingUnlocked = true;
+            var picks = assets.items.RandomCommon(new System.Random(seed), missing);
+            Achievements.EverythingUnlocked = unlocked;
+            var names = new System.Collections.Generic.List<string>();
+            foreach (var pick in picks) { _player.Items.Add(pick); names.Add(pick.displayName); }
+            Debug.Log("[Shrunk] MEASURE items: " + string.Join(", ", names));
+        }
+
         IEnumerator MeasureBoss(int floor, int seed, string label)
         {
+            GiveRunItems(floor, seed);
             _floors.BuildFloor(floor, seed);
             yield return null;
             // Start a little way from the middle, where the boss will appear.
@@ -266,6 +288,8 @@ namespace Shrunk.Tests
             }
             _player.Health.Damaged -= count;
             _player.Input.overrideFrame = new InputFrame();
+            // What the boss dropped stays on the floor: the bot only carries what GiveRunItems hands it.
+            Pickup.ClearAll();
             Debug.Log($"[Shrunk] MEASURE {label}: {(_floors.IsLocked ? "NOT BEATEN" : "beaten")} in {Time.time - started:F0} s, {hits} hits taken ({pools} from pools and blasts)");
         }
 

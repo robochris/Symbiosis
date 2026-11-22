@@ -154,7 +154,7 @@ namespace Shrunk.EditorTools
             var fryPrefab = (LarvaEnemy)SaveEnemy(fry);
 
             // ----- bosses: the slowest thing in the tank, and the one that owns it -----
-            var bigSnail = Creature<FishBoss>("TheSnail", 1f, 2f, 110, 1f, 3.2f, out var bigSnailModel);
+            var bigSnail = Creature<FishBoss>("TheSnail", 1f, 2f, 160, 1f, 3.2f, out var bigSnailModel);
             bigSnailModel.localScale = Vector3.one * 1.8f;
             Decor(PrimitiveType.Sphere, "Shell", bigSnailModel, new Vector3(0f, 0.7f, -0.15f), Vector3.one * 0.9f, snailShell);
             Decor(PrimitiveType.Sphere, "Foot", bigSnailModel, new Vector3(0f, 0.2f, 0.15f), new Vector3(0.5f, 0.3f, 1.1f), snailBody);
@@ -178,7 +178,7 @@ namespace Shrunk.EditorTools
             Object.DestroyImmediate(bigSnail.GetComponent<EnemyMutations>());
             var bigSnailPrefab = (BossEnemy)SaveEnemy(bigSnail);
 
-            var gold = Creature<FishBoss>("TheGoldfish", 1.3f, 2.6f, 380, 1f, 4.4f, out var goldModel);
+            var gold = Creature<FishBoss>("TheGoldfish", 1.3f, 2.6f, 460, 1f, 4.4f, out var goldModel);
             gold.GetComponent<CharacterController>().center = new Vector3(0f, 1.3f, 0f);
             Decor(PrimitiveType.Sphere, "Body", goldModel, new Vector3(0f, 1.4f, 0f), new Vector3(1.6f, 1.7f, 2.6f), goldfish);
             Decor(PrimitiveType.Cube, "Tail", goldModel, new Vector3(0f, 1.4f, -1.6f), new Vector3(0.1f, 1.6f, 1f), fin).transform.localRotation = Quaternion.Euler(0f, 0f, 0f);

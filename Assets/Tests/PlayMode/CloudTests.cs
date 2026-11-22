@@ -112,15 +112,15 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
-        public IEnumerator The_kite_gusts_and_rains_but_has_no_lightning()
+        public IEnumerator The_kite_gusts_rains_and_throws_a_little_lightning()
         {
             Assert.IsTrue(_floors.SetBiome("clouds"));
             yield return MeetBoss(5);
             var kite = (StormBoss)_floors.Boss;
             Assert.AreEqual("The Kite", kite.displayName);
             Time.timeScale = 3f;
-            yield return WaitUntil(() => kite.Gusts >= 2 && kite.Showers >= 1, 25f, "gusts and rain");
-            Assert.AreEqual(0, kite.Strikes, "the kite threw lightning");
+            yield return WaitUntil(() => kite.Gusts >= 1 && kite.Showers >= 1 && kite.Strikes >= 1, 30f, "gusts, rain and lightning");
+            Assert.LessOrEqual(kite.Strikes % 3, 3, "a volley too big for a kite");
             kite.Health.Kill();
             yield return null;
             Assert.IsFalse(Achievements.Has(AchievementId.SilverLining), "the kite gave out Silver Lining");

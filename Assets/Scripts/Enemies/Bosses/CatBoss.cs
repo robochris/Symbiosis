@@ -180,6 +180,9 @@ namespace Shrunk
                 mark.y = 0f;
                 // Not through the wall: if the way to the mark is not clear, it goes for where they are.
                 if (!CanSee(mark)) mark = new Vector3(targetPosition.x, 0f, targetPosition.z);
+                // And only onto floor it can walk on afterwards, or it could land where nothing can reach it.
+                if (UnityEngine.AI.NavMesh.SamplePosition(mark, out var onFloor, 1.5f, UnityEngine.AI.NavMesh.AllAreas)) mark = new Vector3(onFloor.position.x, 0f, onFloor.position.z);
+                else mark = new Vector3(transform.position.x, 0f, transform.position.z);
                 _pounceTo = mark;
                 GroundHazard.SpawnBlast(mark, pounceRadius, crouchTime / Mathf.Max(0.1f, SpeedScale) + pounceTime, telegraphMaterial);
                 Current = State.Crouch;

@@ -23,11 +23,11 @@ namespace Shrunk
         [Header("Wax drips")]
         public float waxInterval = 4.4f;
         public int waxDrops = 2;
-        public float waxRadius = 2.3f;
+        public float waxRadius = 2f;
         [Tooltip("Seconds between the warning disc and the wax landing.")]
         public float waxFuse = 1.2f;
         [Tooltip("Seconds a pool of wax stays hot.")]
-        public float waxPoolTime = 3f;
+        public float waxPoolTime = 2.2f;
         [Tooltip("What the pool left behind is made of.")]
         public Material waxMaterial;
 
