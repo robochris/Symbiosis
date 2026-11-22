@@ -41,13 +41,18 @@ namespace Shrunk
             var player = PlayerController.Instance;
             if (player != null) DailyParcel.Place(player.transform.position + new Vector3(2.6f, 0f, 1.6f));
             if (player != null) HatStand.Place(player.transform.position + new Vector3(-2.6f, 0f, 1.6f));
+            if (player != null) PetJar.Place(player.transform.position + new Vector3(-2.6f, 0f, -1.4f));
 
-            // A hat earned on the way: say so, and where to put it on.
+            // A hat or a pet earned on the way: say so, and where to find it.
             var fresh = Hats.TakeNew();
-            if (fresh.Count > 0 && ScreenCards.Instance != null && !ScreenCards.Instance.CardShowing)
+            var pets = Pets.TakeNew();
+            if ((fresh.Count > 0 || pets.Count > 0) && ScreenCards.Instance != null && !ScreenCards.Instance.CardShowing)
             {
-                string names = fresh.Count == 1 ? $"the {fresh[0].name}" : $"{fresh.Count} new hats";
-                ScreenCards.Instance.ShowCard(fresh.Count == 1 ? "NEW HAT" : "NEW HATS", $"You earned {names}. Try {(fresh.Count == 1 ? "it" : "them")} on at the hat stand by the door.", 4f);
+                string line = "";
+                if (fresh.Count > 0) line += (fresh.Count == 1 ? $"You earned the {fresh[0].name}." : $"You earned {fresh.Count} new hats.") + (fresh.Count == 1 ? " Try it on" : " Try them on") + " at the hat stand by the door. ";
+                if (pets.Count > 0) line += (pets.Count == 1 ? $"The {pets[0].name} would like to come along." : $"{pets.Count} pets would like to come along.") + " Let them out at the pet jar.";
+                string heading = fresh.Count > 0 && pets.Count > 0 ? "NEW THINGS" : fresh.Count > 0 ? (fresh.Count == 1 ? "NEW HAT" : "NEW HATS") : (pets.Count == 1 ? "NEW PET" : "NEW PETS");
+                ScreenCards.Instance.ShowCard(heading, line.Trim(), 4.5f);
             }
 
             var hud = FindAnyObjectByType<Hud>();

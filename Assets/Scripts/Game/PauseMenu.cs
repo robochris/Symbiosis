@@ -99,6 +99,7 @@ namespace Shrunk
             Add("Back", null, () => ShowPage(0));
             Add("Text size", () => Level((GameSettings.TextSize - 0.85f) / 0.3f, "Smaller", "Normal", "Larger"), () => GameSettings.TextSize = Next(GameSettings.TextSize, 0.85f, 1f, 1.15f));
             Add("Screen shake", () => GameSettings.ScreenShake ? "On" : "Off", () => GameSettings.ScreenShake = !GameSettings.ScreenShake);
+            Add("Vibration (phone)", () => GameSettings.Vibration ? "On" : "Off", () => GameSettings.Vibration = !GameSettings.Vibration);
             Add("Touch controls", () => GameSettings.LeftHanded ? "Left-handed" : "Right-handed", () => GameSettings.LeftHanded = !GameSettings.LeftHanded);
             Add("Enemy arrows", () => GameSettings.EnemyArrows ? "On" : "Off", () => GameSettings.EnemyArrows = !GameSettings.EnemyArrows);
             Add("Damage numbers", () => GameSettings.DamageNumbers ? "On" : "Off", () => GameSettings.DamageNumbers = !GameSettings.DamageNumbers);

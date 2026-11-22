@@ -168,5 +168,61 @@ namespace Shrunk.Tests
             Assert.AreEqual(1, KillCombo.Chain);
             KillCombo.Off = true;
         }
+
+        [UnityTest]
+        public IEnumerator A_shrine_offers_one_trade_and_keeps_its_word()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            var player = PlayerController.Instance;
+            Shrine.ChanceForAll = 1f;
+            floors.BuildFloor(2);
+            yield return null;
+            Shrine.ChanceForAll = 0f;
+            var shrine = floors.ShrineHere;
+            Assert.IsNotNull(shrine, "no shrine with the chance pinned to always");
+
+            // Each deal, made directly: something given, something got.
+            shrine.deal = Shrine.Deal.GoldForGear;
+            Assert.IsFalse(shrine.Take(player), "an item for coins nobody had");
+            RunState.AddCoins(Shrine.GoldPrice);
+            int items = Pickup.All.Count;
+            Assert.IsTrue(shrine.Take(player));
+            Assert.AreEqual(0, RunState.Coins);
+            Assert.Greater(Pickup.All.Count, items, "no item for the coins");
+            Assert.IsFalse(shrine.Take(player), "a second trade");
+
+            floors.BuildFloor(3);
+            yield return null;
+            Assert.IsNull(floors.ShrineHere, "a shrine with the chance pinned to never");
+            var made = Shrine.Create(floors.RoomAt(floors.Layout.start.cell), player.transform.position + Vector3.forward * 3f, Shrine.Deal.BloodForGold);
+            int health = player.Health.Current;
+            Assert.IsTrue(made.Take(player));
+            Assert.AreEqual(health - 1, player.Health.Current);
+            Assert.AreEqual(Shrine.GoldGained, RunState.Coins);
+        }
+
+        [UnityTest]
+        public IEnumerator Pets_follow_and_hits_buzz()
+        {
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            Assert.IsNotNull(PetJar.Current, "no pet jar in the lab");
+            Assert.IsNull(PetFollower.Body, "a pet before any were earned");
+            SaveSystem.Data.meta.extractions = 1;
+            Assert.AreEqual("Ladybird", Pets.ChooseNext().name);
+            yield return null;
+            Assert.IsNotNull(PetFollower.Body, "the ladybird did not come out");
+            var player = PlayerController.Instance;
+            for (int i = 0; i < 40; i++) yield return null;
+            Assert.Less(Vector3.Distance(PetFollower.Body.position, player.transform.position), 4f, "the pet is not keeping up");
+
+            int buzzes = Haptics.Buzzes;
+            player.Health.TakeDamage(1, Vector3.forward);
+            Assert.AreEqual(buzzes + 1, Haptics.Buzzes, "a hit with no buzz");
+        }
     }
 }

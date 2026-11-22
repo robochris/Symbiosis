@@ -33,6 +33,7 @@ namespace Shrunk.Tests
             DailyParcel.Off = true;
             FirstTips.Off = true;
             KillCombo.Off = true;
+            Shrine.ChanceForAll = 0f;
             RunDirector.BeginnersLuckOff = true;
         }
 
@@ -54,6 +55,7 @@ namespace Shrunk.Tests
             DailyParcel.Off = false;
             FirstTips.Off = false;
             KillCombo.Off = false;
+            Shrine.ChanceForAll = null;
             RunDirector.BeginnersLuckOff = false;
         }
     }

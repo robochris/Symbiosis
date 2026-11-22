@@ -349,15 +349,7 @@ namespace Shrunk.Tests
             Assert.IsFalse(_floors.IsLocked, "the dare room started a fight nobody asked for");
             Assert.That(WorldPrompt.For(room.Centre), Does.Contain("dare").IgnoreCase);
 
-            // Crossing the mat does not ring it.
-            _player.Teleport(room.Centre + Vector3.up * 0.05f);
-            yield return new WaitForSeconds(DareBell.HoldTime * 0.4f);
-            _player.Teleport(Beside(node));
-            yield return new WaitForSeconds(0.3f);
-            Assert.IsFalse(_floors.IsLocked, "walking past rang the bell");
-            Assert.IsNotNull(_floors.Dare);
-
-            // Standing on it does.
+            // Using it rings it.
             _player.Teleport(room.Centre + Vector3.up * 0.05f);
             yield return WaitUntil(() => _floors.IsLocked, DareBell.HoldTime + 1f, "the dare to start");
             Assert.IsTrue(_floors.DareFight);
@@ -417,7 +409,7 @@ namespace Shrunk.Tests
             Assert.IsFalse(exchange.Shut);
             Assert.That(WorldPrompt.For(mat), Does.Contain("does not do credit"));
 
-            // Enough: crossing it trades nothing, standing on it does.
+            // Enough: using it trades.
             RunState.AddSamples(11);
             int carried = RunState.Samples;
             int itemsBefore = 0;
@@ -425,9 +417,7 @@ namespace Shrunk.Tests
             _player.Teleport(mat + new Vector3(-4f, 0f, 0f));
             yield return null;
             _player.Teleport(mat);
-            yield return new WaitForSeconds(SampleExchange.HoldTime * 0.4f);
-            Assert.IsFalse(exchange.Shut, "walking past traded");
-            yield return new WaitForSeconds(SampleExchange.HoldTime);
+            yield return new WaitForSeconds(0.3f);
             Assert.IsTrue(exchange.Shut);
             Assert.AreEqual(carried - SampleExchange.Price, RunState.Samples);
             Assert.AreEqual(RadioMoment.Exchange, Radio.Instance.LastMoment, "Finch let his samples go without a word");

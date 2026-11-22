@@ -392,6 +392,8 @@ namespace Shrunk
 
         /// <summary>The bell in this floor's dare room, until it is rung. Not every floor has a dare room.</summary>
         public DareBell Dare { get; private set; }
+        /// <summary>This floor's shrine, if it has one.</summary>
+        public Shrine ShrineHere { get; private set; }
         /// <summary>How many more enemies a dare brings than the room had the first time.</summary>
         public const int DareExtra = 3, DareCoins = 5;
         /// <summary>True while the fight going on is one the player asked for.</summary>
@@ -450,6 +452,16 @@ namespace Shrunk
             {
                 Room first = _rooms[Layout.start.cell];
                 Claw = ClawMachine.Create(first, first.Centre + new Vector3(-2f, 0f, 1.2f), assets.coin, biome.doorMaterial, assets.sample);
+            }
+
+            // And now and then a shrine, at the back of the first room, offering one trade.
+            ShrineHere = null;
+            float shrine = Shrine.ChanceForAll ?? Shrine.Chance;
+            if (FloorNumber >= 2 && !biome.isBottom && !InSpecial && !InGauntlet && new System.Random(seed ^ 0x05A1E7).NextDouble() < shrine)
+            {
+                Room first = _rooms[Layout.start.cell];
+                var deals = (Shrine.Deal[])System.Enum.GetValues(typeof(Shrine.Deal));
+                ShrineHere = Shrine.Create(first, first.Centre + new Vector3(0f, 0f, -2.8f), deals[new System.Random(seed ^ 0x77).Next(deals.Length)]);
             }
 
             foreach (var node in Layout.ordered)

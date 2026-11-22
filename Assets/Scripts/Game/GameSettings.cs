@@ -67,6 +67,13 @@ namespace Shrunk
             set => SetInt("screenShake", value ? 1 : 0);
         }
 
+        /// <summary>On a phone: a short buzz when hurt.</summary>
+        public static bool Vibration
+        {
+            get => PlayerPrefs.GetInt(Prefix + "vibration", 1) == 1;
+            set => SetInt("vibration", value ? 1 : 0);
+        }
+
         /// <summary>On: the view only turns left and right.</summary>
         public static bool LockVertical
         {
@@ -126,7 +133,7 @@ namespace Shrunk
         /// <summary>Back to the defaults.</summary>
         public static void Reset()
         {
-            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "sound", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed", "damageNumbers", "floatingAim", "textSize", "screenShake" })
+            foreach (string key in new[] { "aimAssist", "aimHelp", "lookSpeed", "sound", "leftHanded", "lockVertical", "camera", "cameraView", "radio", "enemyArrows", "relaxed", "damageNumbers", "floatingAim", "textSize", "screenShake", "vibration" })
             {
                 PlayerPrefs.DeleteKey(Prefix + key);
             }

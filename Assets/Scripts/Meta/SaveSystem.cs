@@ -69,6 +69,8 @@ namespace Shrunk
         public int tipsSeen;
         /// <summary>The longest chain of kills ever.</summary>
         public int bestCombo;
+        /// <summary>The pet chosen, and which pets have been announced (one bit each).</summary>
+        public int pet, petsSeen;
         public int goldBugsCaught;
         public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>

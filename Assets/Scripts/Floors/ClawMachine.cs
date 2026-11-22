@@ -26,6 +26,7 @@ namespace Shrunk
         [System.NonSerialized] public ClawPrize? rigged;
 
         float _held;
+        readonly StepPad _pad = new StepPad { radius = 1.1f };
         Transform _claw;
 
         public static ClawMachine Create(Room room, Vector3 position, Material matMaterial, Material boxMaterial, Material glassMaterial)
@@ -68,17 +69,16 @@ namespace Shrunk
             if (player == null) return;
             Vector3 to = player.transform.position - transform.position;
             to.y = 0f;
-            bool on = to.magnitude <= radius && RunState.Coins >= price;
-            _held = on ? _held + Time.deltaTime : 0f;
-            // The claw comes down as the go gets nearer.
+            // Used like everything else: E, or USE. The claw dips after each go.
+            _held = Mathf.MoveTowards(_held, 0f, Time.deltaTime);
             if (_claw != null) _claw.localPosition = new Vector3(Mathf.Sin(Time.time * 2f) * 0.35f, 2.05f - 0.6f * Mathf.Clamp01(_held / HoldTime), 0.85f);
-            if (_held >= HoldTime) Play();
+            if (_pad.SteppedOn(transform.position, player.transform.position) && RunState.Coins >= price) Play();
         }
 
         /// <summary>Has a go, if the coins are there. Returns false if they are not.</summary>
         public bool Play()
         {
-            _held = 0f;
+            _held = HoldTime;
             if (!RunState.TrySpendCoins(price)) return false;
             int paid = price;
             Goes++;
@@ -132,7 +132,7 @@ namespace Shrunk
             to.y = 0f;
             if (to.magnitude > 2f) return null;
             return RunState.Coins >= price
-                ? $"The claw machine: {price} coins a go (you have {RunState.Coins}). It usually drops it.\nStand still on the mat to play."
+                ? $"The claw machine: {price} coins a go (you have {RunState.Coins}). It usually drops it.\n{Interact.Verb} to play."
                 : $"The claw machine: {price} coins a go. You have {RunState.Coins}.";
         }
     }

@@ -18,8 +18,9 @@ namespace Shrunk
 
         float _held;
         Transform _bell;
+        readonly StepPad _pad = new StepPad { radius = 1.1f };
 
-        /// <summary>How far through ringing it the player is, 0 to 1.</summary>
+        /// <summary>How far through ringing it the player is, 0 to 1: the bell swings harder as they come close.</summary>
         public float Progress => Mathf.Clamp01(_held / HoldTime);
 
         public static DareBell Create(Room room, Vector3 position, Material matMaterial, Material bellMaterial)
@@ -65,11 +66,11 @@ namespace Shrunk
 
             Vector3 to = player.transform.position - transform.position;
             to.y = 0f;
-            bool on = to.magnitude <= radius && !floors.IsLocked;
-            _held = on ? _held + Time.deltaTime : 0f;
-            // The bell swings harder the closer it is to ringing.
+            // It is rung by using it (E, or USE), like everything else. Close by, it starts to sway.
+            bool near = to.magnitude <= radius + 1.5f && !floors.IsLocked;
+            _held = Mathf.MoveTowards(_held, near ? HoldTime : 0f, Time.deltaTime);
             if (_bell != null) _bell.localRotation = Quaternion.Euler(Mathf.Sin(Time.time * 14f) * 22f * Progress, 0f, 0f);
-            if (_held >= HoldTime) Ring();
+            if (!floors.IsLocked && _pad.SteppedOn(transform.position, player.transform.position)) Ring();
         }
 
         /// <summary>Rings it: the second wave comes. Returns false if the floor would not start one.</summary>
@@ -85,7 +86,7 @@ namespace Shrunk
             Vector3 to = playerPosition - transform.position;
             to.y = 0f;
             if (to.magnitude > 3.2f) return null;
-            return "A dare: ring it and the doors shut on a fight worse than most.\nBeat that and there is a prize. Stand still on the mat to ring it.";
+            return $"A dare: ring it and the doors shut on a fight worse than most.\nBeat that and there is a prize. {Interact.Verb} to ring it.";
         }
     }
 }

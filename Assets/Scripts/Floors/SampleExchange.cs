@@ -17,6 +17,7 @@ namespace Shrunk
         public bool Shut { get; private set; }
 
         float _held;
+        readonly StepPad _pad = new StepPad { radius = 1.1f };
         Transform _hatch;
 
         public static SampleExchange Create(Room room, Vector3 position, Material matMaterial, Material boxMaterial)
@@ -55,10 +56,8 @@ namespace Shrunk
         {
             var player = PlayerController.Instance;
             if (player == null || Shut) return;
-            Vector3 to = player.transform.position - transform.position;
-            to.y = 0f;
-            _held = to.magnitude <= radius && RunState.Samples >= Price ? _held + Time.deltaTime : 0f;
-            if (_held >= HoldTime) Trade();
+            // Used like everything else: E, or USE.
+            if (_pad.SteppedOn(transform.position, player.transform.position) && RunState.Samples >= Price) Trade();
         }
 
         /// <summary>Takes the samples and puts an item out. Returns false if there are not enough, or it has shut.</summary>
@@ -87,7 +86,7 @@ namespace Shrunk
             if (to.magnitude > 2f) return null;
             if (Shut) return "The exchange: shut. One trade a floor.";
             return RunState.Samples >= Price
-                ? $"The exchange: {Price} samples for an item (you have {RunState.Samples}).\nSpent samples do not go home. Stand still on the mat."
+                ? $"The exchange: {Price} samples for an item (you have {RunState.Samples}).\nSpent samples do not go home. {Interact.Verb} to trade."
                 : $"The exchange: {Price} samples for an item. You have {RunState.Samples}.\nIt does not do credit.";
         }
     }
