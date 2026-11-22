@@ -63,6 +63,10 @@ namespace Shrunk
         /// <summary>The day the daily parcel was last opened (yyyy-MM-dd), and how many days in a row.</summary>
         public string parcelDate = "";
         public int parcelStreak;
+        /// <summary>The hat being worn, and which hats the stand has already announced (one bit each).</summary>
+        public int hat, hatsSeen;
+        /// <summary>First-time tips already given, one bit each.</summary>
+        public int tipsSeen;
         public int goldBugsCaught;
         public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>

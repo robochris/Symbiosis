@@ -624,6 +624,7 @@ namespace Shrunk.Tests
             GameSettings.Radio = 0;
             Playtest.UnlockEverything();
             SaveSystem.Data.meta.labSeen = ~0;
+            SaveSystem.Data.meta.hat = 3;
             DailyParcel.Off = false;
             SceneManager.LoadScene("Lab");
             yield return null;

@@ -31,6 +31,7 @@ namespace Shrunk.Tests
             SecretWall.ChanceForAll = 0f;
             FieldGuideWatcher.Quiet = true;
             DailyParcel.Off = true;
+            FirstTips.Off = true;
             RunDirector.BeginnersLuckOff = true;
         }
 
@@ -50,6 +51,7 @@ namespace Shrunk.Tests
             SecretWall.ChanceForAll = null;
             FieldGuideWatcher.Quiet = false;
             DailyParcel.Off = false;
+            FirstTips.Off = false;
             RunDirector.BeginnersLuckOff = false;
         }
     }

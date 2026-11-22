@@ -102,5 +102,49 @@ namespace Shrunk.Tests
             Interact.AutoUse = true;
             Assert.IsTrue(inReach, "standing at it and it is not in reach");
         }
+            [UnityTest]
+        public IEnumerator Hats_are_earned_by_playing_and_tried_on_at_the_stand()
+        {
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var stand = HatStand.Current;
+            Assert.IsNotNull(stand, "no hat stand in the lab");
+            var player = PlayerController.Instance;
+            Assert.IsNotNull(player.GetComponent<PlayerHat>(), "the player has no head for hats");
+
+            // A new player has the beanie, and nothing else yet.
+            Assert.AreEqual(2, Hats.EarnedCount);
+            Assert.AreEqual("Beanie", Hats.WearNext().name);
+            Assert.AreEqual("No hat", Hats.WearNext().name);
+            Assert.AreEqual("Party Hat", Hats.NextToEarn().name);
+
+            // Three runs started: the party hat, announced once.
+            SaveSystem.Data.meta.runsStarted = 3;
+            var fresh = Hats.TakeNew();
+            Assert.AreEqual(1, fresh.Count);
+            Assert.AreEqual("Party Hat", fresh[0].name);
+            Assert.AreEqual(0, Hats.TakeNew().Count, "the same hat announced twice");
+            Assert.AreEqual("Beanie", Hats.WearNext().name);
+            Assert.AreEqual("Party Hat", Hats.WearNext().name);
+            Assert.AreEqual("Party Hat", Hats.All[Hats.Worn].name);
+            yield return null;
+            Assert.IsNotNull(player.visual.Find("Hat/Pom"), "the party hat is not on the head");
+        }
+
+        [UnityTest]
+        public IEnumerator First_time_tips_are_said_once_each()
+        {
+            FirstTips.Off = false;
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            Assert.IsFalse(FirstTips.Seen(FirstTips.Tip.Coins));
+            RunState.AddCoins(3);
+            for (float t = 0f; t < 10f && !FirstTips.Seen(FirstTips.Tip.Coins); t += Time.unscaledDeltaTime) yield return null;
+            Assert.IsTrue(FirstTips.Seen(FirstTips.Tip.Coins), "no tip about coins");
+            foreach (FirstTips.Tip tip in System.Enum.GetValues(typeof(FirstTips.Tip))) Assert.IsNotEmpty(FirstTips.Line(tip));
+            FirstTips.Off = true;
+        }
     }
 }

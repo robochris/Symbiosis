@@ -40,6 +40,15 @@ namespace Shrunk
             // Today's parcel, beside where the player comes in.
             var player = PlayerController.Instance;
             if (player != null) DailyParcel.Place(player.transform.position + new Vector3(2.6f, 0f, 1.6f));
+            if (player != null) HatStand.Place(player.transform.position + new Vector3(-2.6f, 0f, 1.6f));
+
+            // A hat earned on the way: say so, and where to put it on.
+            var fresh = Hats.TakeNew();
+            if (fresh.Count > 0 && ScreenCards.Instance != null && !ScreenCards.Instance.CardShowing)
+            {
+                string names = fresh.Count == 1 ? $"the {fresh[0].name}" : $"{fresh.Count} new hats";
+                ScreenCards.Instance.ShowCard(fresh.Count == 1 ? "NEW HAT" : "NEW HATS", $"You earned {names}. Try {(fresh.Count == 1 ? "it" : "them")} on at the hat stand by the door.", 4f);
+            }
 
             var hud = FindAnyObjectByType<Hud>();
             if (hud == null) return;
