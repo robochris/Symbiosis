@@ -108,7 +108,7 @@ namespace Shrunk
                 meta.rivalBeaten = 1;
                 SaveSystem.Save();
                 var hud = FindAnyObjectByType<Hud>();
-                if (hud != null) hud.Toast("The rival is beaten, for good. It leaves its bandana behind: the hat stand has it.", 5f);
+                if (hud != null) hud.Toast("The rival is beaten, for good. It leaves its bandana behind: it is in the dressing room.", 5f);
             }
             else
             {

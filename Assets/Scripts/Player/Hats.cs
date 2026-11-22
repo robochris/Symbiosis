@@ -14,7 +14,7 @@ namespace Shrunk
     }
 
     /// <summary>
-    /// Hats: worn for the look and nothing else, chosen at the hat stand in the lab. Each is earned by playing
+    /// Hats: worn for the look and nothing else, chosen in the dressing room behind the office. Each is earned by playing
     /// (a level, some bosses, a week of parcels...). An item that sits on the head hides the hat while it is worn.
     /// </summary>
     public static class Hats

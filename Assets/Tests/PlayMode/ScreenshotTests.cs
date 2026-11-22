@@ -786,6 +786,62 @@ namespace Shrunk.Tests
         }
 
         [UnityTest, Explicit]
+        public IEnumerator Capture_dressing_room()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            GameSettings.Radio = 0;
+            var meta = SaveSystem.Data.meta;
+            meta.deaths = 2; meta.extractions = 3; meta.runsStarted = 5; meta.bossesBeaten = 3; meta.hat = 5; meta.hatsSeen = ~0; meta.petsSeen = ~0;
+            meta.featuresAnnounced.AddRange(System.Enum.GetNames(typeof(Unlocks.Feature)));
+            Unlocks.AllOpen = false;
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            CameraFollow.Instance.SetMode(CameraMode.Wide);
+
+            // From the office: the door with its sign.
+            player.Teleport(new Vector3(-17f, 0.05f, 1.5f));
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.AddLook(Mathf.DeltaAngle(CameraFollow.Instance.LookYaw, 0f), 0f);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.8f);
+            yield return Screen(Path.Combine(folder, "dressing-door.png"));
+
+            // Just inside, looking at the hats on the back wall over the styles.
+            player.Teleport(new Vector3(-20f, 0.05f, 9.5f));
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.AddLook(Mathf.DeltaAngle(CameraFollow.Instance.LookYaw, 0f), 0f);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.8f);
+            yield return Screen(Path.Combine(folder, "dressing-in.png"));
+
+            // Up close to the hats.
+            player.Teleport(new Vector3(-27f, 0.05f, 18.5f));
+            player.transform.rotation = Quaternion.identity;
+            CameraFollow.Instance.AddLook(Mathf.DeltaAngle(CameraFollow.Instance.LookYaw, 0f), 0f);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.8f);
+            yield return Screen(Path.Combine(folder, "dressing-hats.png"));
+
+            // The pets on their perches.
+            player.Teleport(new Vector3(-29.5f, 0.05f, 13f));
+            player.transform.rotation = Quaternion.Euler(0f, -90f, 0f);
+            CameraFollow.Instance.AddLook(Mathf.DeltaAngle(CameraFollow.Instance.LookYaw, -90f), 0f);
+            CameraFollow.Instance.Snap();
+            yield return new WaitForSeconds(0.8f);
+            yield return Screen(Path.Combine(folder, "dressing-pets.png"));
+            Unlocks.AllOpen = true;
+            GameSettings.Reset();
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_mimic()
         {
             GameSettings.Reset();

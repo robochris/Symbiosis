@@ -108,8 +108,7 @@ namespace Shrunk.Tests
             SceneManager.LoadScene("Lab");
             yield return null;
             yield return null;
-            var stand = HatStand.Current;
-            Assert.IsNotNull(stand, "no hat stand in the lab");
+            Assert.IsNotNull(DressingRoom.Current, "no dressing room in the lab");
             var player = PlayerController.Instance;
             Assert.IsNotNull(player.GetComponent<PlayerHat>(), "the player has no head for hats");
 
@@ -205,12 +204,53 @@ namespace Shrunk.Tests
         }
 
         [UnityTest]
+        public IEnumerator The_dressing_room_has_everything_to_wear()
+        {
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            var room = DressingRoom.Current;
+            Assert.IsNotNull(room, "no dressing room");
+            Assert.IsTrue(room.IsOpen);
+            var player = PlayerController.Instance;
+            var style = player.GetComponent<PlayerStyle>();
+            Assert.AreEqual(Hats.All.Length, room.Count(DressingPeg.Kind.Hat), "not every hat is out");
+            Assert.AreEqual(Pets.All.Length, room.Count(DressingPeg.Kind.Pet), "not every pet is out");
+            Assert.AreEqual(style.styles.Length, room.Count(DressingPeg.Kind.Style), "not every style is out");
+
+            // The beanie is free: walk up to it and it goes on; use it again and it comes off.
+            var beanie = room.Find(DressingPeg.Kind.Hat, 1);
+            player.Teleport(beanie.transform.position + Vector3.back * 3f);
+            yield return null;
+            player.Teleport(beanie.transform.position + Vector3.up * 0.05f);
+            yield return null;
+            yield return null;
+            Assert.AreEqual(1, Hats.Worn, "walking up to the beanie did not put it on");
+            beanie.Use();
+            Assert.AreEqual(0, Hats.Worn, "the beanie did not come off");
+
+            // One still to earn stays under its sheet and stays off.
+            var top = room.Find(DressingPeg.Kind.Hat, 5);
+            Assert.IsFalse(top.Earned);
+            top.Use();
+            Assert.AreEqual(0, Hats.Worn, "a hat not yet earned was put on");
+            StringAssert.Contains("Beat 3 bosses", UnityEngine.Object.FindAnyObjectByType<Hud>().LastToast);
+
+            // A pet, once earned, comes along from its perch.
+            SaveSystem.Data.meta.extractions = 1;
+            room.Find(DressingPeg.Kind.Pet, 1).Use();
+            yield return null;
+            Assert.AreEqual(1, Pets.Chosen);
+            Assert.IsNotNull(PetFollower.Body, "the ladybird did not come out");
+        }
+
+        [UnityTest]
         public IEnumerator Pets_follow_and_hits_buzz()
         {
             SceneManager.LoadScene("Lab");
             yield return null;
             yield return null;
-            Assert.IsNotNull(PetJar.Current, "no pet jar in the lab");
+            Assert.IsNotNull(DressingRoom.Current, "no dressing room in the lab");
             Assert.IsNull(PetFollower.Body, "a pet before any were earned");
             SaveSystem.Data.meta.extractions = 1;
             Assert.AreEqual("Ladybird", Pets.ChooseNext().name);
@@ -884,16 +924,17 @@ namespace Shrunk.Tests
             SceneManager.LoadScene("Lab");
             yield return null;
             yield return null;
-            Assert.IsNull(HatStand.Current, "a hat stand before the first run");
-            Assert.IsNull(PetJar.Current, "pets before any boss");
+            Assert.IsFalse(DressingRoom.Current.IsOpen, "the dressing room is open before the first run");
+            Assert.IsTrue(DressingRoom.Current.door.activeSelf, "its door is not shut");
             Assert.IsFalse(Unlocks.Open(Unlocks.Feature.Vaults));
 
             SaveSystem.Data.meta.deaths = 1;
             SceneManager.LoadScene("Lab");
             yield return null;
             yield return null;
-            Assert.IsNotNull(HatStand.Current, "no hat stand after a first run");
-            Assert.IsNull(PetJar.Current);
+            Assert.IsTrue(DressingRoom.Current.IsOpen, "the dressing room is still shut after a first run");
+            Assert.IsFalse(DressingRoom.Current.door.activeSelf);
+            Assert.AreEqual(0, DressingRoom.Current.Count(DressingPeg.Kind.Pet), "perches before any boss");
             Assert.Contains("HatStand", SaveSystem.Data.meta.featuresAnnounced, "the hat stand came with no word");
             Assert.IsFalse(SaveSystem.Data.meta.featuresAnnounced.Contains("Mailbox"), "two things announced in one visit");
             Unlocks.AllOpen = true;
