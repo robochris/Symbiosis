@@ -176,8 +176,9 @@ namespace Shrunk
             int level = Level;
             int into = Meta.xp - XpFor(level), need = ToNext(level);
             LevelReward next = Next;
-            string toward = next != null ? $" to {next.line}" : " to the next box of samples";
-            return $"Level {level} {Rank(level)}: {Mathf.Clamp(into, 0, need)}/{need} XP{toward}";
+            // Two short lines rather than one that wraps: the level and the bar, then what is next.
+            string toward = next != null ? $"Next: {next.line}" : $"Next: {SamplesPastTheTop} samples";
+            return $"Level {level} · {Rank(level)} · {Mathf.Clamp(into, 0, need)}/{need} XP\n{toward}";
         }
 
         // ---------- what the ladder holds back ----------
