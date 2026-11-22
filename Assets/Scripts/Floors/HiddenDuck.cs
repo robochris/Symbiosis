@@ -8,7 +8,7 @@ namespace Shrunk
     /// </summary>
     public class HiddenDuck : MonoBehaviour
     {
-        public const float Chance = 0.15f;
+        public const float Chance = 0.07f;
         public const int ForTheHat = 10;
         public static float? ChanceForAll;
 

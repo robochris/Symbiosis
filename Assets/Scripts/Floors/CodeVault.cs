@@ -17,7 +17,7 @@ namespace Shrunk
     {
         public static readonly Color[] Colours = { new Color(0.95f, 0.25f, 0.25f), new Color(0.3f, 0.55f, 1f), new Color(1f, 0.85f, 0.2f), new Color(0.35f, 0.85f, 0.35f) };
         public static readonly string[] ColourNames = { "red", "blue", "yellow", "green" };
-        public const float Chance = 0.25f;
+        public const float Chance = 0.12f;
         /// <summary>Tests pin it: 0 never, 1 always (where the floor has a dead end to spare).</summary>
         public static float? ChanceForAll;
         public const int Rounds = 3, Samples = 30, Coins = 10;

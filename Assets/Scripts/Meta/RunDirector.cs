@@ -181,10 +181,11 @@ namespace Shrunk
             SaveSystem.Data.meta.runsStarted++;
             Progress.StartRun();
             KillCombo.StartRun();
+            Welcomes();
             SafetyNet.StartRun();
             RivalVoid.MetThisRun = false;
             // Today's rule, said at the start.
-            RunRules.Begin(!IsDaily && !IsGauntlet && !IsDescent);
+            RunRules.Begin(!IsDaily && !IsGauntlet && !IsDescent && Unlocks.Open(Unlocks.Feature.RuleOfTheDay));
             if (RunRules.Active != RunRules.Rule.None)
             {
                 if (RunRules.Active == RunRules.Rule.GlassCannon && _player.Health.maxHealth > 2) _player.Health.SetMaxHealth(_player.Health.maxHealth - 1, true);
@@ -350,6 +351,13 @@ namespace Shrunk
             Extracted?.Invoke(RunState.Samples);
             Progress.Add(Progress.ExtractXp);
             var meta = SaveSystem.Data.meta;
+            // The day's first trip home pays a little more.
+            string winDay = System.DateTime.Now.ToString("yyyy-MM-dd");
+            if (meta.lastWinDay != winDay && !Progress.BonusesOff)
+            {
+                meta.lastWinDay = winDay;
+                Progress.Add(Progress.FirstWinXp);
+            }
             meta.samples += banked;
             meta.rareMaterials += depth;
             meta.extractions++;
@@ -410,6 +418,38 @@ namespace Shrunk
             if (floor > _deepestBefore && _deepestBefore > 0 && !IsGauntlet) LastSummary += $"\nNEW RECORD: deepest floor yet (was {_deepestBefore})";
             if (KillCombo.RunBest >= KillCombo.Milestone) LastSummary += $"\nBest combo x{KillCombo.RunBest}" + (KillCombo.RunBest >= SaveSystem.Data.meta.bestCombo ? " (your best ever)" : "");
             LastSummary += "\n" + NextGoal();
+        }
+
+        /// <summary>
+        /// Small XP gifts at the start of a run: well rested after a day or more away (the next XP doubled, up to a
+        /// point), and a bonus the first time each weapon and each power is taken out.
+        /// </summary>
+        void Welcomes()
+        {
+            if (Progress.BonusesOff) return;
+            var meta = SaveSystem.Data.meta;
+            string today = System.DateTime.Now.ToString("yyyy-MM-dd");
+            var notes = new System.Collections.Generic.List<string>();
+            if (!string.IsNullOrEmpty(meta.lastRunDay) && System.DateTime.TryParse(meta.lastRunDay, out var last) && (System.DateTime.Now.Date - last.Date).TotalDays >= 1)
+            {
+                Progress.RestedLeft = Progress.RestedPool;
+                notes.Add("Well rested: double XP for a while.");
+            }
+            meta.lastRunDay = today;
+            string weapon = Weapons.Chosen.ToString(), power = HeroPower.Chosen.ToString();
+            if (!meta.toolsTried.Contains("w:" + weapon))
+            {
+                meta.toolsTried.Add("w:" + weapon);
+                if (meta.toolsTried.Count > 1) { Progress.Add(Progress.NewToolXp); notes.Add($"First run with the {Weapons.Info(Weapons.Chosen).name}: +{Progress.NewToolXp} XP."); }
+            }
+            if (!meta.toolsTried.Contains("p:" + power))
+            {
+                meta.toolsTried.Add("p:" + power);
+                if (meta.toolsTried.Count > 2) { Progress.Add(Progress.NewToolXp); notes.Add($"First run with {HeroPower.Info(HeroPower.Chosen).name}: +{Progress.NewToolXp} XP."); }
+            }
+            if (notes.Count == 0) return;
+            var hud = FindAnyObjectByType<Hud>();
+            if (hud != null) hud.Toast(string.Join(" ", notes), 4f);
         }
 
         /// <summary>One line on what is closest to being had: the next thing on the level ladder, and how far off it is.</summary>

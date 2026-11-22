@@ -9,7 +9,7 @@ namespace Shrunk
     /// </summary>
     public class RescueCage : MonoBehaviour
     {
-        public const float Chance = 0.15f;
+        public const float Chance = 0.08f;
         public static float? ChanceForAll;
 
         public Room room;

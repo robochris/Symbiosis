@@ -11,7 +11,7 @@ namespace Shrunk
     {
         public const int Meetings = 3;
         /// <summary>Chance, per fight on a world's later floors, that it turns up (once a run at most).</summary>
-        public const float Chance = 0.08f;
+        public const float Chance = 0.05f;
         public static float? ChanceForAll;
         public static bool MetThisRun;
 
@@ -29,7 +29,7 @@ namespace Shrunk
         public static bool ShouldAppear(FloorManager floors)
         {
             if (floors == null || MetThisRun || floors.biome == null || floors.biome.isBottom || floors.InSpecial || floors.InGauntlet) return false;
-            if (SaveSystem.Data.meta.rivalBeaten > 0) return false;
+            if (SaveSystem.Data.meta.rivalBeaten > 0 || !Unlocks.Open(Unlocks.Feature.Rival)) return false;
             if (FloorLayout.IsBossFloor(floors.FloorNumber) || FloorLayout.FloorOfBiome(floors.FloorNumber) < 3) return false;
             return Random.value < (ChanceForAll ?? Chance);
         }

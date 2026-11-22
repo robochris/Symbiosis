@@ -14,7 +14,7 @@ namespace Shrunk
         public const int GoldGained = 15, GoldPrice = 12, SamplePrice = 15;
         /// <summary>Tests pin it: 0 never, 1 always.</summary>
         public static float? ChanceForAll;
-        public const float Chance = 0.22f;
+        public const float Chance = 0.14f;
 
         public Deal deal;
         public bool Used { get; private set; }

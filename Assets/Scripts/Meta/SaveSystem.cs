@@ -93,6 +93,13 @@ namespace Shrunk
         /// <summary>Worlds whose rubber duck has been found, and how many times the pet jar has been opened.</summary>
         public List<string> ducksFound = new List<string>();
         public int petJarOpens;
+        /// <summary>The last day a run was started and the last day one came home (yyyy-MM-dd), and weapons and powers taken out (w:/p: names).</summary>
+        public string lastRunDay = "", lastWinDay = "";
+        public List<string> toolsTried = new List<string>();
+        /// <summary>Worlds whose own secret has been found.</summary>
+        public List<string> worldSecrets = new List<string>();
+        /// <summary>Features whose arrival has been announced in the lab.</summary>
+        public List<string> featuresAnnounced = new List<string>();
         /// <summary>Each boss's best time in seconds, and the bosses beaten without a hit (by prefab name).</summary>
         public List<string> bossTimeKeys = new List<string>();
         public List<float> bossTimes = new List<float>();

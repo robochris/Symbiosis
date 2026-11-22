@@ -251,10 +251,21 @@ namespace Shrunk
         {
             ClearFloor();
             if (_firstBiome == null) _firstBiome = biome;
+            if (_twistSpent)
+            {
+                _twistSpent = false;
+                twistOneFloor = false;
+                twistOverride = null;
+            }
 
             FloorNumber = number;
             int seed = seedOverride != 0 ? seedOverride : fixedSeed != 0 ? fixedSeed + number : UnityEngine.Random.Range(1, int.MaxValue);
             Twist = twistOverride ?? FloorTwists.Roll(seed, number, biome, TwistChanceForAll ?? twistChance, dailyTwist);
+            if (twistOneFloor && number > 0)
+            {
+                // Spent on this floor; the next goes back to chance.
+                _twistSpent = true;
+            }
             Loot.CoinBonus = Twist == FloorTwist.Crowded ? FloorTwists.CrowdedCoins : Twist == FloorTwist.RushHour ? FloorTwists.RushCoins : Twist == FloorTwist.Party ? FloorTwists.PartyCoins : 0;
             Loot.SampleBonus = Twist == FloorTwist.PowerCut ? FloorTwists.PowerCutSamples : Twist == FloorTwist.Mist ? FloorTwists.MistSamples
                 : Twist == FloorTwist.BloodMoon ? FloorTwists.BloodMoonSamples : Twist == FloorTwist.Giants ? FloorTwists.GiantsSamples : 0;
@@ -286,7 +297,7 @@ namespace Shrunk
             if (biome != null && biome.floods && GetComponent<Flood>() == null) gameObject.AddComponent<Flood>();
             // Now and then, a quiet dead end becomes a coded vault.
             Vault = null;
-            if (!FloorLayout.IsBossFloor(number) && FloorLayout.FloorInBiome(number) >= 2 && !biome.isBottom && !InSpecial && !InGauntlet
+            if (Unlocks.Open(Unlocks.Feature.Vaults) && !FloorLayout.IsBossFloor(number) && FloorLayout.FloorInBiome(number) >= 2 && !biome.isBottom && !InSpecial && !InGauntlet
                 && new System.Random(seed ^ 0x7A017).NextDouble() < (CodeVault.ChanceForAll ?? CodeVault.Chance))
             {
                 // A plain dead end if there is one; otherwise it takes the dare's place for this floor.
@@ -392,6 +403,8 @@ namespace Shrunk
         public float twistChance = 0.3f;
         /// <summary>Tests and clips set this to get one particular twist (or none) on the next floor built.</summary>
         [System.NonSerialized] public FloorTwist? twistOverride;
+        /// <summary>The override is for the next floor only (the sofa's remote).</summary>
+        [System.NonSerialized] public bool twistOneFloor;
         /// <summary>Set for a Daily Experiment: the day's twist, on every floor that can have one.</summary>
         [System.NonSerialized] public FloorTwist? dailyTwist;
 
@@ -425,6 +438,23 @@ namespace Shrunk
         public const float SleepChance = 0.12f, ShinyChance = 0.004f;
         /// <summary>Tests pin these.</summary>
         public static float? SleepChanceForAll, ShinyChanceForAll;
+
+        bool _twistSpent;
+
+        /// <summary>This floor's world secret, if it has one.</summary>
+        public WorldSecret WorldSecretHere { get; private set; }
+
+        /// <summary>Straight to the room with the way down (a world secret's shortcut).</summary>
+        public void TeleportToExit()
+        {
+            var player = PlayerController.Instance;
+            if (player == null || Layout == null || Layout.exit == null) return;
+            Room exit = _rooms[Layout.exit.cell];
+            player.Teleport(exit.Centre + new Vector3(2f, 0.05f, 2f));
+        }
+
+        /// <summary>Down to the next floor at once (a world secret's shortcut).</summary>
+        public void DropToNextFloor() => BuildFloor(NextFloorNumber());
 
         /// <summary>This floor's hidden rubber duck, if it has one.</summary>
         public HiddenDuck Duck { get; private set; }
@@ -500,9 +530,32 @@ namespace Shrunk
                 if (starter.Count > 0) Pickup.Item(starter[0], first.Centre + new Vector3(0f, 0f, 3f), 0);
             }
 
+            // The world's own secret, tucked away in a room on some of its floors.
+            WorldSecretHere = null;
+            var secretKind = WorldSecret.For(biome.id);
+            if (secretKind != null && Unlocks.Open(Unlocks.Feature.WorldSecrets) && FloorInBiome >= 2 && !FloorLayout.IsBossFloor(FloorNumber) && !InSpecial && !InGauntlet
+                && new System.Random(seed ^ 0x5EC7E7).NextDouble() < (WorldSecret.ChanceForAll ?? WorldSecret.Chance))
+            {
+                var secretRng = new System.Random(seed ^ 0x5EC7E8);
+                var spots = new List<RoomNode>();
+                foreach (var each in Layout.ordered) if (each.type == RoomType.Normal && each != Layout.start) spots.Add(each);
+                if (spots.Count > 0)
+                {
+                    Room secretRoom = _rooms[spots[secretRng.Next(spots.Count)].cell];
+                    var free = secretRoom.Shape.free;
+                    Vector3 spot = secretRoom.Centre;
+                    for (int tries = 0; tries < 12 && free.Count > 0; tries++)
+                    {
+                        Vector3 point = secretRoom.TileWorld(free[secretRng.Next(free.Count)]);
+                        if (OpenFloor(point) && (point - secretRoom.Centre).sqrMagnitude > 16f) { spot = point; break; }
+                    }
+                    WorldSecretHere = WorldSecret.Place(secretRoom, spot, secretKind);
+                }
+            }
+
             // A rubber duck, hidden in a corner of some room, until this world's has been found.
             Duck = null;
-            if (!FloorLayout.IsBossFloor(FloorNumber) && !biome.isBottom && !InSpecial && !InGauntlet && !SaveSystem.Data.meta.ducksFound.Contains(biome.id)
+            if (Unlocks.Open(Unlocks.Feature.Ducks) && !FloorLayout.IsBossFloor(FloorNumber) && !biome.isBottom && !InSpecial && !InGauntlet && !SaveSystem.Data.meta.ducksFound.Contains(biome.id)
                 && new System.Random(seed ^ 0xD0C6).NextDouble() < (HiddenDuck.ChanceForAll ?? HiddenDuck.Chance))
             {
                 var duckRng = new System.Random(seed ^ 0xD0C7);
@@ -526,7 +579,7 @@ namespace Shrunk
 
             // And now and then a caged larva in one of the fight rooms, to be let out once it is cleared.
             Cage = null;
-            if (FloorNumber >= 2 && !biome.isBottom && !InSpecial && !InGauntlet && new System.Random(seed ^ 0x0CA6E).NextDouble() < (RescueCage.ChanceForAll ?? RescueCage.Chance))
+            if (Unlocks.Open(Unlocks.Feature.RescueCages) && FloorNumber >= 2 && !biome.isBottom && !InSpecial && !InGauntlet && new System.Random(seed ^ 0x0CA6E).NextDouble() < (RescueCage.ChanceForAll ?? RescueCage.Chance))
             {
                 var fights = new List<RoomNode>();
                 foreach (var each in Layout.ordered) if (each.type == RoomType.Normal && each != Layout.start) fights.Add(each);
@@ -547,7 +600,7 @@ namespace Shrunk
             // And now and then a shrine, at the back of the first room, offering one trade.
             ShrineHere = null;
             float shrine = Shrine.ChanceForAll ?? Shrine.Chance;
-            if (FloorNumber >= 2 && !biome.isBottom && !InSpecial && !InGauntlet && new System.Random(seed ^ 0x05A1E7).NextDouble() < shrine)
+            if (Unlocks.Open(Unlocks.Feature.Shrines) && FloorNumber >= 2 && !biome.isBottom && !InSpecial && !InGauntlet && new System.Random(seed ^ 0x05A1E7).NextDouble() < shrine)
             {
                 Room first = _rooms[Layout.start.cell];
                 var deals = (Shrine.Deal[])System.Enum.GetValues(typeof(Shrine.Deal));
@@ -932,7 +985,7 @@ namespace Shrunk
                 int pick = UnityEngine.Random.Range(0, points.Count);
                 Enemy enemy = Spawn(biome.PickEnemy(FloorInBiome, rng), points[pick], playerPosition);
                 // Now and then one is asleep, or (very rarely) shiny.
-                if (!(enemy is BossEnemy) && !forceElite && FloorInBiome >= 2 && UnityEngine.Random.value < (SleepChanceForAll ?? SleepChance)) enemy.FallAsleep();
+                if (Unlocks.Open(Unlocks.Feature.Sleepers) && !(enemy is BossEnemy) && !forceElite && FloorInBiome >= 2 && UnityEngine.Random.value < (SleepChanceForAll ?? SleepChance)) enemy.FallAsleep();
                 float shiny = ShinyChanceForAll ?? (System.DateTime.Now.Hour == 0 ? ShinyChance * 20f : ShinyChance);
                 if (!(enemy is BossEnemy) && UnityEngine.Random.value < shiny) enemy.MakeShiny();
                 if (elite && i == 0)

@@ -42,20 +42,20 @@ namespace Shrunk
 
             // Today's parcel, beside where the player comes in.
             var player = PlayerController.Instance;
-            if (player != null) DailyParcel.Place(player.transform.position + new Vector3(2.6f, 0f, 1.6f));
-            if (player != null) HatStand.Place(player.transform.position + new Vector3(-2.6f, 0f, 1.6f));
-            if (player != null) PetJar.Place(player.transform.position + new Vector3(-2.6f, 0f, -1.4f));
-            if (player != null) PressureGauge.Place(player.transform.position + new Vector3(2.6f, 0f, -1.4f));
-            if (player != null) Mailbox.Place(player.transform.position + new Vector3(4.6f, 0f, 1.2f));
-            if (player != null) Jukebox.Place(player.transform.position + new Vector3(-4.8f, 0f, 1.2f));
-            if (player != null) FishTank.Place(player.transform.position + new Vector3(-4.8f, 0f, 4.2f));
+            if (player != null && Unlocks.Open(Unlocks.Feature.DailyParcel)) DailyParcel.Place(player.transform.position + new Vector3(2.6f, 0f, 1.6f));
+            if (player != null && Unlocks.Open(Unlocks.Feature.HatStand)) HatStand.Place(player.transform.position + new Vector3(-2.6f, 0f, 1.6f));
+            if (player != null && Unlocks.Open(Unlocks.Feature.PetJar)) PetJar.Place(player.transform.position + new Vector3(-2.6f, 0f, -1.4f));
+            if (player != null && Unlocks.Open(Unlocks.Feature.PressureGauge)) PressureGauge.Place(player.transform.position + new Vector3(2.6f, 0f, -1.4f));
+            if (player != null && Unlocks.Open(Unlocks.Feature.Mailbox)) Mailbox.Place(player.transform.position + new Vector3(4.6f, 0f, 1.2f));
+            if (player != null && Unlocks.Open(Unlocks.Feature.Jukebox)) Jukebox.Place(player.transform.position + new Vector3(-4.8f, 0f, 1.2f));
+            if (player != null && Unlocks.Open(Unlocks.Feature.FishTank)) FishTank.Place(player.transform.position + new Vector3(-4.8f, 0f, 4.2f));
             // The cat is asleep somewhere new each visit: one of a few spots out of the way.
             Vector3[] naps = { new Vector3(3.6f, 0f, 4.6f), new Vector3(-6.5f, 0f, -1.5f), new Vector3(6.5f, 0f, 3.5f), new Vector3(-3.6f, 0f, 5f) };
             if (player != null) LabCat.Place(player.transform.position + naps[UnityEngine.Random.Range(0, naps.Length)]);
-            if (player != null) SeasonBoard.Place(player.transform.position + new Vector3(2.6f, 0f, -4.4f), player.transform.position);
-            if (player != null) QuickRunSign.Place(player.transform.position + new Vector3(-2.6f, 0f, -5.8f));
+            if (player != null && Unlocks.Open(Unlocks.Feature.Seasons)) SeasonBoard.Place(player.transform.position + new Vector3(2.6f, 0f, -4.4f), player.transform.position);
+            if (player != null && Unlocks.Open(Unlocks.Feature.QuickRun)) QuickRunSign.Place(player.transform.position + new Vector3(-2.6f, 0f, -5.8f));
             var cabinet = FindAnyObjectByType<FilingCabinet>(FindObjectsInactive.Include);
-            if (cabinet != null) ItemWall.Place(cabinet.transform.position + new Vector3(-2.8f, 0f, 0.4f), Quaternion.LookRotation(Vector3.back));
+            if (cabinet != null && Unlocks.Open(Unlocks.Feature.ItemWall)) ItemWall.Place(cabinet.transform.position + new Vector3(-2.8f, 0f, 0.4f), Quaternion.LookRotation(Vector3.back));
             Pressure.Apply(0);
             if (!NightNoteOff && System.DateTime.Now.Hour >= 2 && System.DateTime.Now.Hour < 5 && ScreenCards.Instance != null && !ScreenCards.Instance.CardShowing)
                 ScreenCards.Instance.ShowCard("A NOTE FROM FINCH", "It is the middle of the night. Go to sleep. The ants will still be there in the morning.", 4f);
@@ -65,6 +65,9 @@ namespace Shrunk
                 if (portal != null) StartHere.Place(portal.transform.position + Vector3.up * 4.2f);
             }
             RunRules.End();
+
+            // Something new in the lab, or out there: one a visit, so it is never all at once.
+            Unlocks.AnnounceNext();
 
             // A hat or a pet earned on the way: say so, and where to find it.
             var fresh = Hats.TakeNew();

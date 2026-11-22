@@ -8,7 +8,7 @@ namespace Shrunk
     /// </summary>
     public static class RoomChallenge
     {
-        public const float Chance = 0.12f, Seconds = 25f;
+        public const float Chance = 0.07f, Seconds = 25f;
         public const int FlawlessCoins = 2;
         /// <summary>Tests pin it.</summary>
         public static float? ChanceForAll;
@@ -30,7 +30,7 @@ namespace Shrunk
                 player.Health.Damaged += (amount, direction) => { if (amount > 0) _hit = true; };
             }
             _hit = false;
-            Timed = floors.FloorNumber >= 2 && !floors.InGauntlet && Random.value < (ChanceForAll ?? Chance);
+            Timed = Unlocks.Open(Unlocks.Feature.Challenges) && floors.FloorNumber >= 2 && !floors.InGauntlet && Random.value < (ChanceForAll ?? Chance);
             if (!Timed) return;
             Deadline = Time.time + Seconds;
             var hud = Object.FindAnyObjectByType<Hud>();

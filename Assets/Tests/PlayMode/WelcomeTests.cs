@@ -824,5 +824,79 @@ namespace Shrunk.Tests
             HiddenDuck.ChanceForAll = 0f;
             Assert.IsNull(floors.Duck, "a second duck in a world whose duck was found");
         }
+
+        [UnityTest]
+        public IEnumerator Well_rested_doubles_some_xp()
+        {
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            int xp = SaveSystem.Data.meta.xp;
+            Progress.RestedLeft = 30;
+            Progress.Add(20);
+            Assert.AreEqual(xp + 40, SaveSystem.Data.meta.xp);
+            Progress.Add(20);
+            Assert.AreEqual(xp + 70, SaveSystem.Data.meta.xp, "the rest ran past its pool");
+            Assert.AreEqual(0, Progress.RestedLeft);
+        }
+
+        [UnityTest]
+        public IEnumerator Every_world_has_a_secret_of_its_own()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var floors = FloorManager.Instance;
+            foreach (var biome in floors.AllBiomes())
+                if (!biome.isBottom && biome.id != "machine") Assert.IsNotNull(WorldSecret.For(biome.id), biome.id + " has no secret of its own");
+
+            Assert.IsTrue(floors.SetBiome("console"));
+            WorldSecret.ChanceForAll = 1f;
+            floors.BuildFloor(2);
+            yield return null;
+            WorldSecret.ChanceForAll = 0f;
+            var secret = floors.WorldSecretHere;
+            Assert.IsNotNull(secret, "no secret with the chance pinned to always");
+            Assert.AreEqual("console", secret.kind.world);
+            int samples = RunState.Samples;
+            secret.Use();
+            Assert.AreEqual(samples + 40, RunState.Samples, "the cheat code did nothing");
+            Assert.AreEqual(1, WorldSecret.Found);
+
+            // The sofa's remote: a twist on the next floor only.
+            Assert.IsTrue(floors.SetBiome("sofa"));
+            WorldSecret.ChanceForAll = 1f;
+            floors.BuildFloor(3);
+            yield return null;
+            WorldSecret.ChanceForAll = 0f;
+            floors.WorldSecretHere.Use();
+            floors.BuildFloor(4);
+            yield return null;
+            Assert.AreNotEqual(FloorTwist.None, floors.Twist, "the remote changed nothing");
+            floors.BuildFloor(5);
+            yield return null;
+            Assert.IsNull(floors.twistOverride, "the remote's twist outlived its floor");
+        }
+
+        [UnityTest]
+        public IEnumerator The_lab_fills_up_as_the_game_is_played()
+        {
+            Unlocks.AllOpen = false;
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            Assert.IsNull(HatStand.Current, "a hat stand before the first run");
+            Assert.IsNull(PetJar.Current, "pets before any boss");
+            Assert.IsFalse(Unlocks.Open(Unlocks.Feature.Vaults));
+
+            SaveSystem.Data.meta.deaths = 1;
+            SceneManager.LoadScene("Lab");
+            yield return null;
+            yield return null;
+            Assert.IsNotNull(HatStand.Current, "no hat stand after a first run");
+            Assert.IsNull(PetJar.Current);
+            Assert.Contains("HatStand", SaveSystem.Data.meta.featuresAnnounced, "the hat stand came with no word");
+            Assert.IsFalse(SaveSystem.Data.meta.featuresAnnounced.Contains("Mailbox"), "two things announced in one visit");
+            Unlocks.AllOpen = true;
+        }
     }
 }

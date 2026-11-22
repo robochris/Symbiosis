@@ -112,6 +112,13 @@ namespace Shrunk
                 Part.Make(PrimitiveType.Sphere, "Cap", t, new Vector3(0f, Top - 0.03f, 0f), new Vector3(0.62f, 0.3f, 0.62f), yellow);
                 Part.Make(PrimitiveType.Cube, "Bill", t, new Vector3(0f, Top - 0.05f, 0.38f), new Vector3(0.4f, 0.06f, 0.3f), new Color(1f, 0.5f, 0.1f));
             } },
+            new Hat { name = "Explorer's Hat", how = "Find eight worlds' own secrets.", earned = m => m.worldSecrets.Count >= WorldSecret.ForTheHat, build = t =>
+            {
+                var khaki = new Color(0.75f, 0.65f, 0.45f);
+                Part.Make(PrimitiveType.Cylinder, "Brim", t, new Vector3(0f, Top, 0f), new Vector3(0.85f, 0.02f, 0.85f), khaki);
+                Part.Make(PrimitiveType.Sphere, "Crown", t, new Vector3(0f, Top + 0.08f, 0f), new Vector3(0.55f, 0.3f, 0.55f), khaki);
+                Part.Make(PrimitiveType.Cylinder, "Band", t, new Vector3(0f, Top + 0.04f, 0f), new Vector3(0.56f, 0.03f, 0.56f), new Color(0.4f, 0.25f, 0.15f));
+            } },
             new Hat { name = "Hard Hat", how = "Beat a world's boss at pressure 3.", earned = m => m.pressureBest >= 3, build = t =>
             {
                 var yellow = new Color(1f, 0.82f, 0.1f);

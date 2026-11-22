@@ -112,12 +112,23 @@ namespace Shrunk
 
         /// <summary>XP gained since the run started: for the line the lab greets the player with.</summary>
         public static int RunXp { get; private set; }
+        /// <summary>Well rested: XP still to be doubled, after a day or more away.</summary>
+        public static int RestedLeft { get; set; }
+        public const int RestedPool = 120, NewToolXp = 40, FirstWinXp = 50;
+        /// <summary>Tests switch the little XP gifts off, so the XP they count is their own.</summary>
+        public static bool BonusesOff;
         public static void StartRun() => RunXp = 0;
 
         /// <summary>Adds XP and hands out whatever the levels passed give.</summary>
         public static void Add(int amount)
         {
             if (amount <= 0) return;
+            if (RestedLeft > 0)
+            {
+                int extra = Mathf.Min(amount, RestedLeft);
+                RestedLeft -= extra;
+                amount += extra;
+            }
             int before = LevelFor(Meta.xp);
             Meta.xp += amount;
             RunXp += amount;
