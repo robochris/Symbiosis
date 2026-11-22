@@ -37,6 +37,10 @@ namespace Shrunk
             }
             RunDirector.LastSummary = null;
 
+            // Today's parcel, beside where the player comes in.
+            var player = PlayerController.Instance;
+            if (player != null) DailyParcel.Place(player.transform.position + new Vector3(2.6f, 0f, 1.6f));
+
             var hud = FindAnyObjectByType<Hud>();
             if (hud == null) return;
 

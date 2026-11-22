@@ -22,6 +22,9 @@ namespace Shrunk
         public int Hits { get; private set; }
         public int RoundHits { get; private set; }
         public bool Running { get; private set; }
+        /// <summary>A round is on somewhere. Only then do the targets draw aim: on a phone, where shots go off by
+        /// themselves at anything to aim at, walking into the range must not start the shooting.</summary>
+        public static bool Live { get; private set; }
         public static int Best => SaveSystem.Data.meta.rangeBest;
 
         float _ends;
@@ -37,6 +40,7 @@ namespace Shrunk
         {
             RangeTarget.Popped -= OnPopped;
             WorldPrompt.Remove(Prompt);
+            Live = false;
         }
 
         void Update()
@@ -56,6 +60,7 @@ namespace Shrunk
         public void StartRound()
         {
             Running = true;
+            Live = true;
             RoundHits = 0;
             _ends = Time.time + roundSeconds;
             Sfx.Play(SfxId.PowerOn);
@@ -65,6 +70,7 @@ namespace Shrunk
         void EndRound()
         {
             Running = false;
+            Live = false;
             MetaSave meta = SaveSystem.Data.meta;
             if (RoundHits >= JobScore) Jobs.Count(JobKind.RangeRounds);
             bool record = RoundHits > meta.rangeBest;

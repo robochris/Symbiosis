@@ -34,8 +34,8 @@ namespace Shrunk
         float _nextChange;
 
         public bool IsDown { get; private set; }
-        /// <summary>Up, in sight, and not the secret one: something aim assist may turn a shot toward.</summary>
-        public bool Aimable => !IsDown && !IsHidden && !isRadio;
+        /// <summary>Up, in sight, not the secret one, and a round on: something aim assist may turn a shot toward.</summary>
+        public bool Aimable => !IsDown && !IsHidden && !isRadio && FiringRange.Live;
 
         /// <summary>Every target in the scene, for aim assist: on a phone, shots only go off at something to aim at.</summary>
         public static readonly System.Collections.Generic.List<RangeTarget> All = new System.Collections.Generic.List<RangeTarget>();

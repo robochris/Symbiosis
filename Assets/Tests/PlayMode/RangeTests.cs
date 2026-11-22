@@ -88,9 +88,9 @@ namespace Shrunk.Tests
             Assert.IsFalse(still.IsDown, "the target stayed down");
             Assert.IsTrue(still.face.activeSelf);
 
-            // A standing target counts for aim assist, so on a phone (which only fires at something) the range works.
+            // Between rounds nothing draws aim, so a phone (which fires by itself at anything to aim at) holds fire.
             Assert.AreEqual(0, Enemy.Active.Count);
-            Assert.IsTrue(player.weapon.HasTarget(Vector3.right), "nothing to aim at on the range");
+            Assert.IsFalse(player.weapon.HasTarget(Vector3.right), "a phone would fire on the range with no round on");
 
             // A timed round: only what falls on the clock counts, and the best is kept.
             Assert.That(WorldPrompt.For(range.transform.position), Does.Contain("The range").And.Contain("best is 0"));
@@ -100,6 +100,7 @@ namespace Shrunk.Tests
             player.Teleport(range.transform.position + Vector3.up * 0.05f);
             for (float t = 0f; t < 1f && !range.Running; t += Time.deltaTime) yield return null;
             Assert.IsTrue(range.Running, "the mat did not start the clock");
+            Assert.IsTrue(player.weapon.HasTarget(Vector3.right) || player.weapon.HasTarget(Vector3.left) || player.weapon.HasTarget(Vector3.back), "nothing to aim at once the round is on");
             targets[0].GetComponent<Health>().Kill();
             targets[1].GetComponent<Health>().Kill();
             yield return null;

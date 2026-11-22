@@ -624,9 +624,11 @@ namespace Shrunk.Tests
             GameSettings.Radio = 0;
             Playtest.UnlockEverything();
             SaveSystem.Data.meta.labSeen = ~0;
+            DailyParcel.Off = false;
             SceneManager.LoadScene("Lab");
             yield return null;
             yield return null;
+            DailyParcel.Off = true;
             var player = PlayerController.Instance;
             player.Input.overrideFrame = new InputFrame();
             string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");

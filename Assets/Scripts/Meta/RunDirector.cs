@@ -118,6 +118,7 @@ namespace Shrunk
             _player.Health.Died += OnPlayerDied;
 
             ApplyUpgrades();
+            _deepestBefore = SaveSystem.Data.meta.deepestFloor;
 
             IsDescent = Descent && _floors.bottomBiome != null;
             IsMachine = IsDescent && ToMachine && _floors.machineBiome != null;
@@ -157,6 +158,12 @@ namespace Shrunk
             ApplyDifficulty();
         }
 
+        /// <summary>A new player's first few runs each start with one item, so the first runs go somewhere.</summary>
+        public const int BeginnersLuckRuns = 3;
+        int _deepestBefore;
+        /// <summary>Tests switch it off, so a first run in a test starts as bare as it always did.</summary>
+        public static bool BeginnersLuckOff;
+
         void Begin()
         {
             SaveSystem.Data.meta.runsStarted++;
@@ -171,10 +178,18 @@ namespace Shrunk
             }
 
             var assets = GameAssets.Instance;
-            if (Upgrades.StartsWithItem && assets != null && assets.items != null && _player.Items != null)
+            bool beginner = SaveSystem.Data.meta.runsStarted <= BeginnersLuckRuns && !IsDaily && !BeginnersLuckOff;
+            int free = (Upgrades.StartsWithItem ? 1 : 0) + (beginner ? 1 : 0);
+            if (free > 0 && assets != null && assets.items != null && _player.Items != null)
             {
-                var picks = assets.items.RandomCommon(new System.Random(Random.Range(0, int.MaxValue)), 1);
-                if (picks.Count > 0) _player.Items.Add(picks[0]);
+                var picks = assets.items.RandomCommon(new System.Random(Random.Range(0, int.MaxValue)), free);
+                foreach (var pick in picks) _player.Items.Add(pick);
+                if (beginner && picks.Count > 0)
+                {
+                    int left = BeginnersLuckRuns - SaveSystem.Data.meta.runsStarted;
+                    var hud = FindAnyObjectByType<Hud>();
+                    if (hud != null) hud.Toast($"Beginner's luck: you start with the {picks[picks.Count - 1].displayName}." + (left > 0 ? $" {left} more run{(left == 1 ? "" : "s")} like this." : " The last one."), 5f);
+                }
             }
 
             _floors.depth = TimeClock.StartDepth;
@@ -360,6 +375,18 @@ namespace Shrunk
             string xp = Progress.RunXp > 0 ? $"  ·  +{Progress.RunXp} XP" : "";
             LastSummaryHeading = heading;
             LastSummary = $"Floor {floor}{worldPart}  ·  {RunState.Kills} kills  ·  {items} item{(items == 1 ? "" : "s")}{xp}";
+            // Something to beat, and something to go back for.
+            if (floor > _deepestBefore && _deepestBefore > 0 && !IsGauntlet) LastSummary += $"\nNEW RECORD: deepest floor yet (was {_deepestBefore})";
+            LastSummary += "\n" + NextGoal();
+        }
+
+        /// <summary>One line on what is closest to being had: the next thing on the level ladder, and how far off it is.</summary>
+        public static string NextGoal()
+        {
+            LevelReward next = Progress.Next;
+            if (next == null) return Progress.Summary();
+            int toGo = Mathf.Max(0, Progress.XpFor(next.level) - Progress.Xp);
+            return $"Next: level {next.level}, {next.line}. {toGo} XP to go.";
         }
 
         // The rest of how it went, for the line the lab greets the player with.

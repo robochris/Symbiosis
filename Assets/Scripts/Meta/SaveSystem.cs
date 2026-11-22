@@ -60,6 +60,9 @@ namespace Shrunk
         /// <summary>Fortunes read at the machine so far, and coins a lucky one has put by for the next run.</summary>
         public int fortunesRead;
         public int luckyCoins;
+        /// <summary>The day the daily parcel was last opened (yyyy-MM-dd), and how many days in a row.</summary>
+        public string parcelDate = "";
+        public int parcelStreak;
         public int goldBugsCaught;
         public int clawLosses;
         /// <summary>Which lab stations the player has been told about, one bit each.</summary>

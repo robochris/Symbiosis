@@ -30,6 +30,8 @@ namespace Shrunk.Tests
             ForestPond.ChanceForAll = 0f;
             SecretWall.ChanceForAll = 0f;
             FieldGuideWatcher.Quiet = true;
+            DailyParcel.Off = true;
+            RunDirector.BeginnersLuckOff = true;
         }
 
         [OneTimeTearDown]
@@ -47,6 +49,8 @@ namespace Shrunk.Tests
             ForestPond.ChanceForAll = null;
             SecretWall.ChanceForAll = null;
             FieldGuideWatcher.Quiet = false;
+            DailyParcel.Off = false;
+            RunDirector.BeginnersLuckOff = false;
         }
     }
 }
