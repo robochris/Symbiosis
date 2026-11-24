@@ -509,15 +509,25 @@ namespace Shrunk.Tests
             var results = FloorResults.Instance;
             Assert.AreEqual(0f, Time.timeScale, "the world should hold still behind the results");
             StringAssert.Contains(Floors.biome.displayName.ToUpperInvariant(), results.Heading);
-            Assert.IsTrue(results.Choices[0].home, "the first card should be the way home");
-            StringAssert.Contains("GO HOME", results.Choices[0].title);
+            Assert.AreEqual(FloorResults.Page.Stats, results.Showing, "the stats come first");
+            Assert.Greater(results.XpShown, 0, "the boss's XP should show on the bar");
+            var last = results.Choices[results.Choices.Count - 1];
+            Assert.IsTrue(last.home, "the way home should be the last choice");
+            StringAssert.Contains("GO HOME", last.title);
             Assert.AreEqual(Floors.Portals.Count + 1, results.Choices.Count, "a card for every way on");
-            Assert.AreEqual("DEEPER", results.Choices[1].title);
-            StringAssert.Contains("depth 2", results.Choices[1].line);
-            Assert.AreEqual(1, results.Selected, "it should open on the portal that was used");
+            Assert.LessOrEqual(Floors.Portals.Count, 3, "three worlds at most");
+            Assert.AreEqual("DEEPER", results.Choices[0].title);
+            StringAssert.Contains("depth 2", results.Choices[0].line);
+            Assert.AreEqual(0, results.Selected, "it should open on the portal that was used");
+
+            // On to the second page: where next.
+            yield return new WaitForSecondsRealtime(0.7f);
+            results.Continue();
+            Assert.AreEqual(FloorResults.Page.WhereNext, results.Showing);
+            Assert.IsTrue(FloorResults.IsOpen);
 
             // Pick "deeper" from the screen: the next world, one deeper, and the world moving again.
-            results.Choose(1);
+            results.Choose(0);
             // The Queen's drop came along without a walk to it.
             Assert.Greater(Player.Items.Collected.Count, itemsBefore, "the boss item was left on the floor");
             Assert.IsFalse(FloorResults.IsOpen);

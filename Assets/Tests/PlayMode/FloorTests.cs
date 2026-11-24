@@ -250,8 +250,12 @@ namespace Shrunk.Tests
                 StringAssert.Contains("FLOOR", results.Choices[0].title);
                 Assert.AreEqual(0f, Time.timeScale);
                 Assert.AreEqual(floor, _floors.FloorNumber);
+                Assert.AreEqual(FloorResults.Page.Stats, results.Showing);
+                Assert.GreaterOrEqual(results.XpShown, Progress.FloorXp, "the floor's XP should show on the bar");
 
-                results.Choose(0);
+                // One way on: the stats page's button goes straight down, no second page.
+                yield return new WaitForSecondsRealtime(0.7f);
+                results.Continue();
                 Assert.AreEqual(1f, Time.timeScale);
                 yield return WaitUntil(() => _floors.FloorNumber == floor + 1, 2f, "the next floor");
             }

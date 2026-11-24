@@ -1274,8 +1274,11 @@ namespace Shrunk.Tests
             FloorResults.Offer(floors, floors.Portals.Count > 0 ? floors.Portals[0] : null);
             waited = 0f;
             while (!FloorResults.IsOpen && waited < 8f) { waited += Time.unscaledDeltaTime; yield return null; }
-            yield return new WaitForSecondsRealtime(0.5f);
+            yield return new WaitForSecondsRealtime(2.4f);
             yield return Screen(Path.Combine(folder, "results.png"));
+            FloorResults.Instance.Continue();
+            yield return new WaitForSecondsRealtime(0.5f);
+            yield return Screen(Path.Combine(folder, "results-next.png"));
             FloorResults.ShowInTests = false;
             Achievements.EverythingUnlocked = false;
             Time.timeScale = 1f;
