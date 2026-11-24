@@ -56,6 +56,7 @@ namespace Shrunk
 
         void OnEnable()
         {
+            SafeArea.Moved += TakeRest;
             bool active = Active;
             SetVisible(active);
             if (!active) return;
@@ -68,7 +69,10 @@ namespace Shrunk
             }
         }
 
-        void Start()
+        void Start() => TakeRest();
+
+        // Where the sticks sit when no thumb is on them: read again whenever the HUD is fitted around a notch.
+        void TakeRest()
         {
             if (moveBase != null) _moveRest = moveBase.position;
             if (aimBase != null) _aimRest = aimBase.position;
@@ -76,6 +80,7 @@ namespace Shrunk
 
         void OnDisable()
         {
+            SafeArea.Moved -= TakeRest;
             if (_simulating) { TouchSimulation.Disable(); _simulating = false; }
             if (EnhancedTouchSupport.enabled) EnhancedTouchSupport.Disable();
         }

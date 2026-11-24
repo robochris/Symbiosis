@@ -54,6 +54,13 @@ namespace Shrunk
 
         void OnDisable() => GameSettings.Changed -= Apply;
 
+        // A call, a text, a swipe home: the game waits on the pause menu rather than playing on without you.
+        // Not in the editor, where a test or a click on another window would pause it.
+        void OnApplicationPause(bool paused)
+        {
+            if (paused && !_open && !Application.isEditor && _panel != null) Open();
+        }
+
         void OnDestroy()
         {
             if (Instance == this)

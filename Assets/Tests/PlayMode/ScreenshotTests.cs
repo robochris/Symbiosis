@@ -1262,7 +1262,9 @@ namespace Shrunk.Tests
             RunState.AddCoins(23);
             RunState.AddSamples(41);
             player.Power.SetMeter(0.7f);
-            player.Items.Add(GameAssets.Instance.items.Get(ItemType.SugarCube));
+            // A full build, so the item strip under the counters shows a few colours.
+            foreach (var type in new[] { ItemType.SugarCube, ItemType.NeedleTip, ItemType.AcidGland, ItemType.FireflyLantern, ItemType.CompoundEye, ItemType.WingBuds, ItemType.ChitinPlate, ItemType.QueensJelly, ItemType.Sprinkles })
+                player.Items.Add(GameAssets.Instance.items.Get(type));
 
             // A fight room, so the minimap, arrows and enemies are all on screen.
             RoomNode fight = null;
@@ -1270,6 +1272,14 @@ namespace Shrunk.Tests
             player.Teleport(floors.RoomAt(fight.cell).Centre + Vector3.up * 0.05f);
             yield return new WaitForSeconds(1f);
             yield return Screen(Path.Combine(folder, "hud-run.png"));
+
+            // The same, on a phone with a notch on the left and rounded corners on the right.
+            SafeArea.Override = new Rect(140f, 0f, UnityEngine.Screen.width - 190f, UnityEngine.Screen.height);
+            SafeArea.FitNow();
+            yield return null;
+            yield return Screen(Path.Combine(folder, "hud-notch.png"));
+            SafeArea.Override = null;
+            SafeArea.FitNow();
 
             floors.BuildFloor(5);
             yield return null;

@@ -688,5 +688,37 @@ namespace Shrunk.Tests
                 Assert.That(tag.Shown, Does.Contain(portal.leadsTo == floors.biome ? "DEEPER" : portal.leadsTo.displayName.ToUpperInvariant()).And.Contain("depth 2").And.Contain("×1.5"));
             }
         }
+
+        [UnityTest]
+        public IEnumerator The_hud_keeps_clear_of_a_notch()
+        {
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var hud = GameObject.Find("HUD");
+            Assert.IsNotNull(hud, "no HUD");
+            var canvas = hud.GetComponent<Canvas>();
+            var stick = (RectTransform)hud.transform.Find("Move Stick");
+            var dodge = (RectTransform)hud.transform.Find("Dodge Button");
+            var prompt = (RectTransform)hud.transform.Find("Prompt");
+            Vector2 stickWas = stick.anchoredPosition, dodgeWas = dodge.anchoredPosition, promptWas = prompt.anchoredPosition;
+
+            // A notch of 120 pixels on the left, a rounded corner of 40 on the right.
+            try
+            {
+                SafeArea.Override = new Rect(120f, 0f, Screen.width - 160f, Screen.height);
+                SafeArea.FitNow();
+                float scale = canvas.scaleFactor;
+                Assert.AreEqual(stickWas.x + 120f / scale, stick.anchoredPosition.x, 0.5f, "the move stick is under the notch");
+                Assert.AreEqual(dodgeWas.x - 40f / scale, dodge.anchoredPosition.x, 0.5f, "the dodge button is under the corner");
+                Assert.AreEqual(promptWas, prompt.anchoredPosition, "a centred line moved");
+            }
+            finally
+            {
+                SafeArea.Override = null;
+                SafeArea.FitNow();
+            }
+            Assert.AreEqual(stickWas, stick.anchoredPosition, "the stick did not go back");
+        }
     }
 }

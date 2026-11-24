@@ -115,12 +115,12 @@ namespace Shrunk
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 0.5f;
 
-            // Left side, under the health and the counts, and narrow enough to stay clear of the summary.
+            // Left side, under the health, the counts and the item strip, and narrow enough to stay clear of the summary.
             var panel = new GameObject("Panel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup));
             var rect = (RectTransform)panel.transform;
             rect.SetParent(canvasObject.transform, false);
-            rect.anchorMin = new Vector2(0.02f, 0.5f);
-            rect.anchorMax = new Vector2(0.262f, 0.735f);
+            rect.anchorMin = new Vector2(0.02f, 0.445f);
+            rect.anchorMax = new Vector2(0.262f, 0.68f);
             rect.offsetMin = rect.offsetMax = Vector2.zero;
             var image = panel.GetComponent<Image>();
             image.color = new Color(0f, 0f, 0f, 0.6f);
