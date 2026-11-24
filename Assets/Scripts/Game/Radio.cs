@@ -123,13 +123,14 @@ namespace Shrunk
             rect.anchorMax = new Vector2(0.262f, 0.68f);
             rect.offsetMin = rect.offsetMax = Vector2.zero;
             var image = panel.GetComponent<Image>();
-            image.color = new Color(0f, 0f, 0f, 0.6f);
+            image.color = Color.clear;
             image.raycastTarget = false;
+            UiKit.Dress(rect, UiKit.Ink, shadow: true);
             _group = panel.GetComponent<CanvasGroup>();
             _group.alpha = 0f;
             _group.blocksRaycasts = false;
 
-            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            Font font = UiKit.TextFont;
             Text name = MakeText(rect, font, 26, FontStyle.Bold, new Vector2(0f, 0.8f), new Vector2(1f, 1f), TextAnchor.MiddleLeft);
             name.text = RadioLines.Speaker + "  ·  radio";
             name.color = new Color(0.55f, 0.9f, 1f);

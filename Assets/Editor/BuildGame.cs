@@ -41,8 +41,20 @@ namespace Shrunk.EditorTools
             Build(BuildTarget.Android, AndroidFolder + "/Shrunk.apk");
         }
 
+        /// <summary>What players see: the window title on a PC, the name under the icon on a phone.</summary>
+        public const string GameTitle = "Symbiosis";
+
         static void Build(BuildTarget target, string path)
         {
+            PlayerSettings.productName = GameTitle;
+            // The splash: the game's logo on its own night blue, not the engine's.
+            PlayerSettings.SplashScreen.show = true;
+            PlayerSettings.SplashScreen.showUnityLogo = false;
+            PlayerSettings.SplashScreen.backgroundColor = new Color(0.02f, 0.03f, 0.055f, 1f);
+            PlayerSettings.SplashScreen.unityLogoStyle = PlayerSettings.SplashScreen.UnityLogoStyle.LightOnDark;
+            PlayerSettings.SplashScreen.overlayOpacity = 0f;
+            var logo = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/UI/logo.png");
+            if (logo != null) PlayerSettings.SplashScreen.logos = new[] { PlayerSettings.SplashScreenLogo.Create(1.6f, logo) };
             RunSceneBuilder.UpdateBuildScenes();
             var scenes = new System.Collections.Generic.List<string>();
             foreach (var scene in EditorBuildSettings.scenes) if (scene.enabled) scenes.Add(scene.path);

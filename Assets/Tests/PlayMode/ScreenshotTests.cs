@@ -1244,6 +1244,43 @@ namespace Shrunk.Tests
 
         // The whole screen including the HUD, as the player sees it.
         [UnityTest, Explicit]
+        public IEnumerator Capture_results()
+        {
+            SaveSystem.Profile = "tests";
+            SaveSystem.Wipe();
+            GameSettings.Reset();
+            FloorResults.ShowInTests = true;
+            FloorResults.DelayOverride = 0.2f;
+            Achievements.EverythingUnlocked = true;
+            string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
+            Directory.CreateDirectory(folder);
+            SceneManager.LoadScene("Run");
+            yield return null;
+            yield return null;
+            var player = PlayerController.Instance;
+            var floors = FloorManager.Instance;
+            player.Input.overrideFrame = new InputFrame();
+            player.Health.SetInvulnerable(600f);
+            foreach (var type in new[] { ItemType.NeedleTip, ItemType.AcidGland, ItemType.WingBuds })
+                player.Items.Add(GameAssets.Instance.items.Get(type));
+            floors.BuildFloor(10);
+            yield return null;
+            Room arena = floors.RoomAt(floors.Layout.exit.cell);
+            player.Teleport(arena.Centre + Vector3.up * 0.05f);
+            yield return new WaitForSeconds(0.6f);
+            if (floors.Boss != null) floors.Boss.Health.Kill();
+            float waited = 0f;
+            while (!FloorResults.IsOpen && waited < 8f) { waited += Time.unscaledDeltaTime; yield return null; }
+            yield return new WaitForSecondsRealtime(0.5f);
+            yield return Screen(Path.Combine(folder, "results.png"));
+            FloorResults.ShowInTests = false;
+            FloorResults.DelayOverride = -1f;
+            Achievements.EverythingUnlocked = false;
+            Time.timeScale = 1f;
+            SaveSystem.Wipe();
+        }
+
+        [UnityTest, Explicit]
         public IEnumerator Capture_hud()
         {
             SaveSystem.Profile = "tests";

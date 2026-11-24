@@ -23,7 +23,7 @@ namespace Shrunk
 
         [Tooltip("On in the lab: the game opens here, with the title over it.")]
         public bool title;
-        public string gameName = "SHRUNK";
+        public string gameName = "SYMBIOSIS";
         public string tagline = "Small problem. Big everything else.";
         [Tooltip("Seconds the world stands still for a boss's title card.")]
         public float bossFreeze = 1.7f;
@@ -35,6 +35,14 @@ namespace Shrunk
         public string LastSummary { get; private set; } = "";
         public bool CardShowing => _card != null && _card.alpha > 0.01f;
         public bool SummaryShowing => _summary != null && _summary.gameObject.activeSelf;
+
+        // How the world being played has gone so far, for the results screen.
+        public float WorldSeconds => Time.time - _biomeStarted;
+        public int WorldKills => RunState.Kills - _killsAtStart;
+        public int WorldSamples => RunState.Samples - _samplesAtStart;
+        public int WorldHits => _hits;
+        public int WorldItemsFrom => _itemsAtStart;
+        public static string Verdict(int hits) => hits == 0 ? "Not a scratch. Suspicious." : hits <= 5 ? "Barely touched." : hits <= 15 ? "A few new dents." : "Mostly dents now.";
 
         /// <summary>One line under "Floor N". Half of them are true.</summary>
         public static readonly string[] FloorLines =
@@ -277,7 +285,7 @@ namespace Shrunk
         void Awake()
         {
             Instance = this;
-            _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            _font = UiKit.TextFont;
             Build();
         }
 
@@ -318,31 +326,67 @@ namespace Shrunk
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 0.5f;
 
-            // The card: a dark band across the middle with a heading and one line.
-            _card = Panel("Card", canvasObject.transform, new Vector2(0f, 0.36f), new Vector2(1f, 0.64f), new Color(0f, 0f, 0f, 0.82f)).gameObject.AddComponent<CanvasGroup>();
+            // The card: a dark band across the middle that fades out at both ends, a heading, a short rule, one line.
+            var band = Panel("Card", canvasObject.transform, new Vector2(0f, 0.36f), new Vector2(1f, 0.64f), new Color(0.03f, 0.045f, 0.08f, 0.9f));
+            Skin(band, "banner");
+            _card = band.gameObject.AddComponent<CanvasGroup>();
             _heading = Label("Heading", _card.transform, 96, new Vector2(0f, 46f), FontStyle.Bold);
+            _heading.color = UiKit.Cream;
+            var rule = Panel("Rule", band, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), UiKit.Accent);
+            Skin(rule, "pill");
+            rule.sizeDelta = new Vector2(140f, 5f);
+            rule.anchoredPosition = new Vector2(0f, -24f);
             _line = Label("Line", _card.transform, 40, new Vector2(0f, -62f), FontStyle.Normal);
+            _line.color = new Color(0.85f, 0.88f, 0.94f);
             _card.alpha = 0f;
             _card.blocksRaycasts = false;
 
             // The summary: a panel at the top, out of the way of the portals.
-            _summary = Panel("Summary", canvasObject.transform, new Vector2(0.27f, 0.56f), new Vector2(0.73f, 0.88f), new Color(0f, 0f, 0f, 0.82f));
+            _summary = Panel("Summary", canvasObject.transform, new Vector2(0.27f, 0.56f), new Vector2(0.73f, 0.88f), Color.clear);
+            UiKit.Dress(_summary, UiKit.Ink);
             _summaryText = Label("Text", _summary, 38, Vector2.zero, FontStyle.Normal);
             _summaryText.lineSpacing = 1.15f;
             _summary.gameObject.SetActive(false);
 
             // The title: the game's name low on the screen, so the Void shows above it.
-            _titleGroup = Panel("Title", canvasObject.transform, new Vector2(0f, 0f), new Vector2(1f, 0.42f), new Color(0f, 0f, 0f, 0.55f)).gameObject.AddComponent<CanvasGroup>();
-            _titleText = Label("Name", _titleGroup.transform, 190, new Vector2(0f, 80f), FontStyle.Bold);
-            var tag = Label("Tagline", _titleGroup.transform, 44, new Vector2(0f, -52f), FontStyle.Italic);
+            // A soft dark rise from the bottom of the screen, not a grey box.
+            var shade = Panel("Title", canvasObject.transform, new Vector2(0f, 0f), new Vector2(1f, 0.6f), new Color(0.02f, 0.03f, 0.06f, 0.92f));
+            Skin(shade, "fade_up");
+            _titleGroup = shade.gameObject.AddComponent<CanvasGroup>();
+            var corners = Panel("Corners", canvasObject.transform, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0.7f));
+            Skin(corners, "vignette");
+            corners.SetParent(shade, true);
+            corners.SetAsFirstSibling();
+            _titleText = Label("Name", _titleGroup.transform, 190, new Vector2(0f, 10f), FontStyle.Bold);
+            // The drawn logo, when there is one; the name in plain letters otherwise.
+            var logoArt = UiKit.Art("logo");
+            if (logoArt != null)
+            {
+                _titleText.enabled = false;
+                var logo = new GameObject("Logo", typeof(RectTransform), typeof(Image));
+                var logoRect = (RectTransform)logo.transform;
+                logoRect.SetParent(_titleGroup.transform, false);
+                logoRect.anchorMin = logoRect.anchorMax = new Vector2(0.5f, 0.5f);
+                logoRect.anchoredPosition = new Vector2(0f, 110f);
+                float logoWidth = 1180f;
+                logoRect.sizeDelta = new Vector2(logoWidth, logoWidth * logoArt.rect.height / logoArt.rect.width);
+                var logoImage = logo.GetComponent<Image>();
+                logoImage.sprite = logoArt;
+                logoImage.raycastTarget = false;
+            }
+            var tag = Label("Tagline", _titleGroup.transform, 40, new Vector2(0f, -20f), FontStyle.Italic);
             tag.text = tagline;
-            _titleHint = Label("Hint", _titleGroup.transform, 28, new Vector2(0f, -205f), FontStyle.Normal);
-            _titleHint.color = new Color(1f, 1f, 1f, 0.7f);
+            tag.color = new Color(0.86f, 0.9f, 0.96f);
+            _titleHint = Label("Hint", _titleGroup.transform, 26, new Vector2(0f, -235f), FontStyle.Normal);
+            _titleHint.color = new Color(1f, 1f, 1f, 0.5f);
 
             // Two buttons: the big one plays, the small one in the corner throws the save away (asked twice).
-            _playButton = Button("Play", _titleGroup.transform, new Vector2(0.5f, 0.5f), new Vector2(0f, -135f), new Vector2(560f, 92f), new Color(0.45f, 0.95f, 1f, 0.95f), 46, out _playLabel);
+            _playButton = Button("Play", _titleGroup.transform, new Vector2(0.5f, 0.5f), new Vector2(0f, -140f), new Vector2(520f, 104f), UiKit.Accent, 46, out _playLabel);
             _playLabel.color = new Color(0.02f, 0.05f, 0.08f);
-            _eraseButton = Button("Erase", _titleGroup.transform, new Vector2(1f, 0f), new Vector2(-190f, 48f), new Vector2(340f, 56f), new Color(1f, 1f, 1f, 0.12f), 26, out _eraseLabel);
+            var playShadow = _playLabel.GetComponent<Shadow>();
+            if (playShadow != null) playShadow.enabled = false;
+            _eraseButton = Button("Erase", _titleGroup.transform, new Vector2(1f, 0f), new Vector2(-190f, 48f), new Vector2(300f, 56f), new Color(1f, 1f, 1f, 0.1f), 24, out _eraseLabel);
+            _eraseLabel.color = new Color(1f, 1f, 1f, 0.6f);
             _titleGroup.alpha = 0f;
             _titleGroup.blocksRaycasts = false;
         }
@@ -373,6 +417,7 @@ namespace Shrunk
             var image = go.GetComponent<Image>();
             image.color = colour;
             image.raycastTarget = false;
+            Skin(rect, "pill");
             label = Label("Label", rect, textSize, Vector2.zero, FontStyle.Bold);
             // A button's label is short and stays on one line.
             label.rectTransform.sizeDelta = Vector2.zero;
@@ -400,7 +445,18 @@ namespace Shrunk
             text.raycastTarget = false;
             text.horizontalOverflow = HorizontalWrapMode.Wrap;
             text.verticalOverflow = VerticalWrapMode.Overflow;
+            UiKit.SoftShadow(text, 0.6f);
             return text;
+        }
+
+        // Gives a plain panel one of the drawn shapes (UiKit), sliced if it is one that stretches.
+        static void Skin(RectTransform rect, string art)
+        {
+            var image = rect.GetComponent<Image>();
+            var sprite = UiKit.Art(art);
+            if (image == null || sprite == null) return;
+            image.sprite = sprite;
+            image.type = sprite.border != Vector4.zero ? Image.Type.Sliced : Image.Type.Simple;
         }
 
         // ---------- the title ----------
@@ -555,6 +611,8 @@ namespace Shrunk
 
         IEnumerator Run(float seconds, bool freeze)
         {
+            // Nothing talks over the title: a card that comes up under it waits until Play is pressed.
+            while (TitleShowing) yield return null;
             if (freeze && Time.timeScale > 0f)
             {
                 _frozen = true;
@@ -635,12 +693,14 @@ namespace Shrunk
             int seconds = Mathf.RoundToInt(Time.time - _biomeStarted);
             int kills = RunState.Kills - _killsAtStart;
             int samples = RunState.Samples - _samplesAtStart;
-            string verdict = _hits == 0 ? "Not a scratch. Suspicious." : _hits <= 5 ? "Barely touched." : _hits <= 15 ? "A few new dents." : "Mostly dents now.";
+            string verdict = Verdict(_hits);
 
             LastSummary = (floors.biome.isBottom ? "DR. FINCH, MISPLACED\n" : $"{floors.biome.displayName.ToUpperInvariant()} CLEARED\n") +
                           $"Time {seconds / 60}:{seconds % 60:00}   ·   Kills {kills}   ·   Hits taken {_hits}\n" +
                           $"Samples +{samples}   ·   Items +{Mathf.Max(0, items)}\n" +
                           verdict + (floors.biome.isBottom ? "  There is no deeper. Go home." : "  Go home, or go deeper.");
+            // The results screen says all this and more, full screen; the old card stays for when it is off.
+            if (FloorResults.WillShow) return;
             _summaryText.text = LastSummary;
             _summary.gameObject.SetActive(true);
             _summaryUntil = Time.unscaledTime + 12f;

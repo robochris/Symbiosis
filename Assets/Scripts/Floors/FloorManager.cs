@@ -785,22 +785,7 @@ namespace Shrunk
             foreach (var portal in _portals)
             {
                 if (!portal.pad.SteppedOn(portal.gate.transform.position, position)) continue;
-                if (portal.gauntletNext)
-                {
-                    NextInGauntlet();
-                    return;
-                }
-                biome = portal.leadsTo;
-                if (portal.resumeFloor > 0)
-                {
-                    // Back from the machine or the cat to where the run left off.
-                    _returnBiome = null;
-                    depth = portal.resumeDepth;
-                    BuildFloor(portal.resumeFloor);
-                    return;
-                }
-                depth++;
-                BuildFloor(FloorNumber + 1);
+                UsePortal(portal);
                 return;
             }
 
@@ -1120,6 +1105,56 @@ namespace Shrunk
             PortalTag.Create(gate.transform, () => where + "\n" + worth, DeeperColor);
         }
 
+        /// <summary>Raised when a floor ends with a choice of where to go (home, deeper, another world...).</summary>
+        public static event Action<FloorManager> ChoicesOpened;
+
+        /// <summary>Goes where a portal leads, as if the player had stepped onto it.</summary>
+        public void UsePortal(BiomePortal portal)
+        {
+            if (portal == null) return;
+            if (portal.gauntletNext)
+            {
+                NextInGauntlet();
+                return;
+            }
+            biome = portal.leadsTo;
+            if (portal.resumeFloor > 0)
+            {
+                // Back from the machine or the cat to where the run left off.
+                _returnBiome = null;
+                depth = portal.resumeDepth;
+                BuildFloor(portal.resumeFloor);
+                return;
+            }
+            depth++;
+            BuildFloor(FloorNumber + 1);
+        }
+
+        /// <summary>Goes home, as if the player had stepped into the way home.</summary>
+        public void ChooseHome()
+        {
+            if (ExtractPortal != null) ExtractChosen?.Invoke();
+        }
+
+        /// <summary>What the way home is, for a menu: a name and a line under it.</summary>
+        public (string title, string line) DescribeHome()
+        {
+            if (biome != null && biome.isBottom) return ("BACK UP", "Home, with everything you found");
+            int worth = Mathf.RoundToInt(RunState.Samples * RunDirector.RewardMultiplier(depth));
+            return ("GO HOME", $"Bank {worth} {(worth == 1 ? "sample" : "samples")}");
+        }
+
+        /// <summary>Where a portal goes, for a menu: a name and a line under it.</summary>
+        public (string title, string line) Describe(BiomePortal portal)
+        {
+            if (portal.gauntletNext) return ("NEXT: " + portal.leadsTo.displayName.ToUpperInvariant(), $"Boss {GauntletIndex + 2} of {GauntletLength}");
+            if (portal.resumeFloor > 0) return ("BACK TO THE RUN", portal.leadsTo.displayName);
+            string worth = $"depth {depth + 1}  ·  samples ×{RunDirector.RewardMultiplier(depth + 1):0.#}";
+            if (portal.leadsTo == biome) return ("DEEPER", $"{biome.displayName}, again, harder\n{worth}");
+            string theme = string.IsNullOrEmpty(portal.leadsTo.mutationTheme) ? "" : portal.leadsTo.mutationTheme + "\n";
+            return (portal.leadsTo.displayName.ToUpperInvariant(), theme + worth);
+        }
+
         static readonly Color HomeColor = new Color(0.55f, 0.95f, 1f);
         static readonly Color DeeperColor = new Color(1f, 0.6f, 0.45f);
 
@@ -1243,6 +1278,7 @@ namespace Shrunk
             }
 
             RoomChanged?.Invoke(this);
+            if (node.type == RoomType.Exit && ExtractPortal != null) ChoicesOpened?.Invoke(this);
         }
     }
 }

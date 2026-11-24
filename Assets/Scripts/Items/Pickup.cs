@@ -147,6 +147,43 @@ namespace Shrunk
 
         string Prompt(Vector3 playerPosition) => kind == PickupKind.Health ? CrumbPrompt(playerPosition) : null;
 
+        // Into the player's pockets, with the sound and the sparkle.
+        void Give(PlayerController player)
+        {
+            var items = player.GetComponent<PlayerItems>();
+            if (items != null) items.Add(item);
+            ItemCollected?.Invoke(item);
+            Sfx.Play(SfxId.Item);
+            Fx.Burst(player.transform.position + Vector3.up * 1.2f, item.material != null ? item.material.color : Color.white, item.rare ? 40 : 22, item.rare ? 7f : 5f, 0.18f, 0.6f);
+            if (treasureRoom != null)
+            {
+                foreach (var other in All.ToArray())
+                {
+                    if (other != this && other.treasureRoom == treasureRoom) Destroy(other.gameObject);
+                }
+            }
+            Destroy(gameObject);
+        }
+
+        /// <summary>
+        /// Everything free lying near a spot (coins, samples, and items not in a pick-one set or a shop) goes to the
+        /// player, so nothing is left behind when the floor ends with a menu instead of a walk.
+        /// </summary>
+        public static void GatherForLeaving(Vector3 at, float radius)
+        {
+            SweepUp(at, radius);
+            var player = PlayerController.Instance;
+            if (player == null) return;
+            foreach (var pickup in All.ToArray())
+            {
+                if (pickup == null || pickup.kind != PickupKind.Item || pickup.price > 0 || pickup.treasureRoom != null || pickup.item == null) continue;
+                Vector3 to = pickup.transform.position - at;
+                to.y = 0f;
+                if (to.magnitude > radius) continue;
+                pickup.Give(player);
+            }
+        }
+
         void Update()
         {
             _age += Time.deltaTime;
@@ -180,20 +217,7 @@ namespace Shrunk
                 float reach = price > 0 ? 0.9f : 1.6f;
                 if (distance > reach) return;
                 if (price > 0 && !RunState.TrySpendCoins(price)) return;
-
-                var items = player.GetComponent<PlayerItems>();
-                if (items != null) items.Add(item);
-                ItemCollected?.Invoke(item);
-                Sfx.Play(SfxId.Item);
-                Fx.Burst(player.transform.position + Vector3.up * 1.2f, item.material != null ? item.material.color : Color.white, item.rare ? 40 : 22, item.rare ? 7f : 5f, 0.18f, 0.6f);
-                if (treasureRoom != null)
-                {
-                    foreach (var other in All.ToArray())
-                    {
-                        if (other != this && other.treasureRoom == treasureRoom) Destroy(other.gameObject);
-                    }
-                }
-                Destroy(gameObject);
+                Give(player);
                 return;
             }
 

@@ -189,6 +189,21 @@ namespace Shrunk
 
         public static string FilePath => Path.Combine(Application.persistentDataPath, "shrunk-" + _profile + ".json");
 
+        // The game was called Shrunk on the PC, so its saves sat in a folder of that name. Now it is Symbiosis, the folder
+        // moved with it: bring the old save across, once, so nobody loses their progress. Phones keep the same folder.
+        static void CarryOverOldSave()
+        {
+            if (File.Exists(FilePath)) return;
+            string here = Application.persistentDataPath;
+            string parent = Path.GetDirectoryName(here);
+            if (string.IsNullOrEmpty(parent) || Path.GetFileName(here) == "Shrunk") return;
+            string old = Path.Combine(parent, "Shrunk", Path.GetFileName(FilePath));
+            if (!File.Exists(old)) return;
+            Directory.CreateDirectory(here);
+            File.Copy(old, FilePath);
+            Debug.Log("[Shrunk] Brought the save across from " + old);
+        }
+
         public static SaveFile Data
         {
             get
@@ -203,6 +218,7 @@ namespace Shrunk
             _data = null;
             try
             {
+                CarryOverOldSave();
                 if (File.Exists(FilePath)) _data = JsonUtility.FromJson<SaveFile>(File.ReadAllText(FilePath));
             }
             catch (Exception problem)

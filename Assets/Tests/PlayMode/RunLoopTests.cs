@@ -26,6 +26,8 @@ namespace Shrunk.Tests
             ScreenCards.ShowInTests = false;
             ScreenCards.TitleSeen = false;
             Achievements.EverythingUnlocked = false;
+            FloorResults.ShowInTests = false;
+            FloorResults.DelayOverride = -1f;
         }
 
         [UnityTest]
@@ -470,6 +472,38 @@ namespace Shrunk.Tests
                 Assert.Fail($"round {round}: still in the run. Player is {off.magnitude:F2} from the portal ({off}), locked {Floors.IsLocked}, ended {RunDirector.Instance.Ended}, " +
                             $"timeScale {Time.timeScale}, dead {Player.Health.IsDead}, health {Player.Health.Current}, seed {Floors.Layout.seed}, arena {Floors.Layout.hasArena}");
             }
+        }
+
+        [UnityTest]
+        public IEnumerator A_world_ends_on_a_results_screen_and_a_card_picks_where_next()
+        {
+            FloorResults.ShowInTests = true;
+            FloorResults.DelayOverride = 0.2f;
+            yield return Load("Run");
+            Floors.BuildFloor(10);
+            yield return null;
+            int itemsBefore = Player.Items.Collected.Count;
+            yield return KillTheBoss();
+            yield return WaitUntil(() => FloorResults.IsOpen, 6f, "the results screen");
+
+            var results = FloorResults.Instance;
+            Assert.AreEqual(0f, Time.timeScale, "the world should hold still behind the results");
+            StringAssert.Contains(Floors.biome.displayName.ToUpperInvariant(), results.Heading);
+            Assert.IsTrue(results.Choices[0].home, "the first card should be the way home");
+            StringAssert.Contains("GO HOME", results.Choices[0].title);
+            Assert.AreEqual(Floors.Portals.Count + 1, results.Choices.Count, "a card for every way on");
+            Assert.AreEqual("DEEPER", results.Choices[1].title);
+            StringAssert.Contains("depth 2", results.Choices[1].line);
+            Assert.AreEqual(1, results.Selected, "it should start on the way on");
+            // The Queen's drop came along without a walk to it.
+            Assert.Greater(Player.Items.Collected.Count, itemsBefore, "the boss item was left on the floor");
+
+            // Pick "deeper" from the screen: the next world, one deeper, and the world moving again.
+            results.Choose(1);
+            Assert.IsFalse(FloorResults.IsOpen);
+            Assert.AreEqual(1f, Time.timeScale);
+            yield return WaitUntil(() => Floors.FloorNumber == 11, 2f, "the next world");
+            Assert.AreEqual(2, Floors.depth);
         }
 
         [UnityTest]

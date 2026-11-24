@@ -93,7 +93,9 @@ namespace Shrunk.EditorTools
             rect.anchoredPosition = new Vector2(-40f, -40f);
             rect.sizeDelta = new Vector2(300f, 300f);
             var background = frame.GetComponent<Image>();
-            background.color = new Color(0f, 0f, 0f, 0.35f);
+            background.sprite = UiKit.Art("panel");
+            background.type = Image.Type.Sliced;
+            background.color = new Color(0.04f, 0.06f, 0.1f, 0.5f);
             background.raycastTarget = false;
 
             var container = new GameObject("Tiles", typeof(RectTransform));

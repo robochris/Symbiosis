@@ -15,6 +15,7 @@ namespace Shrunk
 
         static SafeArea _instance;
         readonly Dictionary<RectTransform, (Vector2 pos, Vector2 min, Vector2 max)> _home = new Dictionary<RectTransform, (Vector2, Vector2, Vector2)>();
+        readonly List<UnityEngine.UI.Text> _texts = new List<UnityEngine.UI.Text>();
         Rect _lastSafe;
         Vector2Int _lastSize;
         float _next;
@@ -65,6 +66,9 @@ namespace Shrunk
             foreach (var canvas in FindObjectsByType<Canvas>(FindObjectsSortMode.None))
             {
                 if (!canvas.isRootCanvas || canvas.renderMode == RenderMode.WorldSpace) continue;
+                // Text built with the old font takes the clean one (UiKit), wherever it was made.
+                canvas.GetComponentsInChildren(true, _texts);
+                foreach (var text in _texts) UiKit.Adopt(text);
                 float scale = canvas.scaleFactor > 0f ? canvas.scaleFactor : 1f;
                 var root = canvas.transform;
                 for (int i = 0; i < root.childCount; i++)

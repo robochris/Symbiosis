@@ -43,7 +43,7 @@ namespace Shrunk
         void Awake()
         {
             Instance = this;
-            _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            _font = UiKit.TextFont;
             Build();
             Close();
             Apply();
@@ -58,7 +58,7 @@ namespace Shrunk
         // Not in the editor, where a test or a click on another window would pause it.
         void OnApplicationPause(bool paused)
         {
-            if (paused && !_open && !Application.isEditor && _panel != null) Open();
+            if (paused && !_open && !Application.isEditor && _panel != null && !FloorResults.IsOpen) Open();
         }
 
         void OnDestroy()
@@ -80,12 +80,22 @@ namespace Shrunk
             panel.anchorMin = Vector2.zero;
             panel.anchorMax = Vector2.one;
             panel.offsetMin = panel.offsetMax = Vector2.zero;
-            _panel.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.8f);
+            _panel.GetComponent<Image>().color = new Color(0.03f, 0.04f, 0.07f, 0.9f);
+            var corners = new GameObject("Corners", typeof(RectTransform), typeof(Image));
+            UiKit.Fill((RectTransform)corners.transform).SetParent(panel, false);
+            UiKit.Fill((RectTransform)corners.transform);
+            corners.GetComponent<Image>().sprite = UiKit.Art("vignette");
+            corners.GetComponent<Image>().raycastTarget = false;
 
-            MakeText(panel, "PAUSED", 56, new Vector2(0f, 445f), new Vector2(900f, 70f));
+            var heading = MakeText(panel, "PAUSED", 56, new Vector2(0f, 445f), new Vector2(900f, 70f));
+            heading.fontStyle = FontStyle.Bold;
+            heading.color = UiKit.Cream;
+            // A card behind what is being carried, down the left.
+            var carryCard = UiKit.Panel(panel, "Carrying Card", UiKit.Ink);
+            UiKit.Place(carryCard, new Vector2(0.5f, 0.5f), new Vector2(-680f, -170f), new Vector2(480f, 880f));
             // Down the left, clear of the options: the level, and in a run what is being carried and what it does.
             // Below the counts in the top corner, so the two never print over each other.
-            _carrying = MakeText(panel, "", 24, new Vector2(-712f, -170f), new Vector2(460f, 860f));
+            _carrying = MakeText(panel, "", 24, new Vector2(-680f, -175f), new Vector2(430f, 850f));
             _carrying.alignment = TextAnchor.UpperLeft;
             _carrying.horizontalOverflow = HorizontalWrapMode.Wrap;
             _carrying.verticalOverflow = VerticalWrapMode.Truncate;
@@ -140,6 +150,9 @@ namespace Shrunk
                 row.rect.anchoredPosition = new Vector2(0f, 370f - slot * 63f);
                 row.rect.sizeDelta = new Vector2(900f, 57f);
                 row.background = go.GetComponent<Image>();
+                row.background.sprite = UiKit.Art("pill");
+                row.background.type = Image.Type.Sliced;
+                row.background.pixelsPerUnitMultiplier = 1.1f;
                 row.text = MakeText(row.rect, "", 33, Vector2.zero, new Vector2(860f, 55f));
             }
 
@@ -151,8 +164,11 @@ namespace Shrunk
             _pauseButton.pivot = new Vector2(0.5f, 0.5f);
             _pauseButton.anchoredPosition = new Vector2(265f, -60f);
             _pauseButton.sizeDelta = new Vector2(70f, 70f);
-            button.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.35f);
-            MakeText(_pauseButton, "II", 40, Vector2.zero, new Vector2(70f, 70f));
+            var round = button.GetComponent<Image>();
+            round.sprite = UiKit.Art("circle");
+            round.color = new Color(0.04f, 0.06f, 0.1f, 0.5f);
+            var icon = UiKit.Image(_pauseButton, "icon_pause", new Color(1f, 0.97f, 0.9f, 0.9f), "Icon");
+            UiKit.Place(icon.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(36f, 36f));
         }
 
         int _adding, _page;
@@ -215,8 +231,18 @@ namespace Shrunk
 
         // ---------- open, close, use ----------
 
+        Canvas _canvas;
+        int _orderBefore;
+
         public void Open()
         {
+            // Over everything while it is up: the radio, the item strip and any card sit under the menu, not on it.
+            if (_canvas == null) _canvas = GetComponentInParent<Canvas>();
+            if (_canvas != null && !_open)
+            {
+                _orderBefore = _canvas.sortingOrder;
+                _canvas.sortingOrder = 75;
+            }
             _open = true;
             _page = 0;
             _selected = 0;
@@ -229,6 +255,7 @@ namespace Shrunk
 
         public void Close()
         {
+            if (_canvas != null && _open) _canvas.sortingOrder = _orderBefore;
             _open = false;
             if (_panel != null) _panel.SetActive(false);
             Time.timeScale = 1f;
@@ -289,7 +316,7 @@ namespace Shrunk
                 Row row = _rows[i];
                 if (row.rect != null && row.rect.gameObject.activeSelf != (row.page == _page)) row.rect.gameObject.SetActive(row.page == _page);
                 row.text.text = row.value != null ? $"{row.label}:  {row.value()}" : row.label;
-                row.background.color = i == _selected ? new Color(0.45f, 0.95f, 1f, 0.35f) : new Color(1f, 1f, 1f, 0.1f);
+                row.background.color = i == _selected ? new Color(0.42f, 0.9f, 1f, 0.42f) : new Color(1f, 1f, 1f, 0.07f);
             }
         }
 
@@ -341,6 +368,8 @@ namespace Shrunk
 
         void Update()
         {
+            // The results screen is a menu of its own; the pause menu waits until it is gone.
+            if (FloorResults.IsOpen) return;
             var keyboard = Keyboard.current;
             var pad = Gamepad.current;
             bool toggle = (keyboard != null && (keyboard.escapeKey.wasPressedThisFrame || keyboard.pKey.wasPressedThisFrame))

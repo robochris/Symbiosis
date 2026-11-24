@@ -232,30 +232,36 @@ namespace Shrunk.EditorTools
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 0.5f;
 
-            var knob = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             var parent = canvasGo.transform;
-            var white = new Color(1f, 1f, 1f, 0.22f);
-            var glow = new Color(0.45f, 0.95f, 1f, 1f);
+            var glow = UiKit.Accent;
+            var dark = new Color(0.04f, 0.06f, 0.1f, 0.5f);
 
-            // Sticks rest in the lower corners and jump to wherever the thumb lands.
-            var moveBase = UiImage("Move Stick", parent, knob, white, Vector2.zero, new Vector2(300f, 280f), 260f);
-            var moveKnob = UiImage("Knob", moveBase, knob, new Color(1f, 1f, 1f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, 110f);
-            var aimBase = UiImage("Aim Stick", parent, knob, white, new Vector2(1f, 0f), new Vector2(-520f, 280f), 260f);
-            var aimKnob = UiImage("Knob", aimBase, knob, new Color(glow.r, glow.g, glow.b, 0.6f), new Vector2(0.5f, 0.5f), Vector2.zero, 110f);
+            // A soft dark card behind the health and the counts, so they read over any floor. First, so it is underneath.
+            var status = new GameObject("Status", typeof(RectTransform)).GetComponent<RectTransform>();
+            status.SetParent(parent, false);
+            status.anchorMin = status.anchorMax = status.pivot = new Vector2(0f, 1f);
+            status.anchoredPosition = new Vector2(30f, -28f);
+            status.sizeDelta = new Vector2(560f, 252f);
+            UiKit.Dress(status, new Color(0.04f, 0.06f, 0.1f, 0.42f), shadow: false);
 
-            var dodge = UiImage("Dodge Button", parent, knob, white, new Vector2(1f, 0f), new Vector2(-190f, 200f), 200f);
-            var fill = UiImage("Ready Ring", dodge, knob, new Color(glow.r, glow.g, glow.b, 0.55f), new Vector2(0.5f, 0.5f), Vector2.zero, 200f).GetComponent<Image>();
-            fill.type = Image.Type.Filled;
-            fill.fillMethod = Image.FillMethod.Radial360;
-            fill.fillOrigin = (int)Image.Origin360.Top;
-            var dodgeLabel = UiText("Label", dodge, font, "DODGE", 34, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(200f, 60f));
-            dodgeLabel.color = Color.white;
+            // Sticks rest in the lower corners and jump to wherever the thumb lands: a ring with a soft knob.
+            var moveBase = UiImage("Move Stick", parent, UiKit.Art("circle"), new Color(0f, 0f, 0f, 0.22f), Vector2.zero, new Vector2(300f, 280f), 260f);
+            UiImage("Rim", moveBase, UiKit.Art("ring"), new Color(1f, 1f, 1f, 0.35f), new Vector2(0.5f, 0.5f), Vector2.zero, 260f);
+            var moveKnob = UiImage("Knob", moveBase, UiKit.Art("circle"), new Color(1f, 0.97f, 0.9f, 0.7f), new Vector2(0.5f, 0.5f), Vector2.zero, 110f);
+            var aimBase = UiImage("Aim Stick", parent, UiKit.Art("circle"), new Color(0f, 0f, 0f, 0.22f), new Vector2(1f, 0f), new Vector2(-520f, 280f), 260f);
+            UiImage("Rim", aimBase, UiKit.Art("ring"), new Color(glow.r, glow.g, glow.b, 0.45f), new Vector2(0.5f, 0.5f), Vector2.zero, 260f);
+            var aimKnob = UiImage("Knob", aimBase, UiKit.Art("circle"), new Color(glow.r, glow.g, glow.b, 0.75f), new Vector2(0.5f, 0.5f), Vector2.zero, 110f);
 
+            var dodge = RoundButton("Dodge Button", parent, new Vector2(1f, 0f), new Vector2(-190f, 200f), 200f, "icon_dodge", "DODGE", glow, font, out var fill, out var dodgeLabel);
+
+            // Health: hearts. A full heart is the image; the faint outline is its child, so an empty one still shows.
             var pips = new Image[3];
             for (int i = 0; i < pips.Length; i++)
             {
-                pips[i] = UiImage("Health " + (i + 1), parent, knob, glow, new Vector2(0f, 1f), new Vector2(80f + i * 70f, -80f), 54f).GetComponent<Image>();
+                var heart = UiImage("Health " + (i + 1), parent, UiKit.Art("heart"), UiKit.Coral, new Vector2(0f, 1f), new Vector2(80f + i * 70f, -80f), 60f);
+                UiImage("Empty", heart, UiKit.Art("heart_empty"), new Color(1f, 0.97f, 0.9f, 0.55f), new Vector2(0.5f, 0.5f), Vector2.zero, 60f);
+                pips[i] = heart.GetComponent<Image>();
             }
 
             var kills = UiText("Kills", parent, font, "Kills: 0", 44, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-260f, -80f), new Vector2(400f, 60f));
@@ -263,11 +269,14 @@ namespace Shrunk.EditorTools
             FitAcross(hint, 18f);
             hint.color = new Color(1f, 1f, 1f, 0.6f);
 
-            var crosshair = UiImage("Crosshair", parent, knob, new Color(1f, 1f, 1f, 0.9f), new Vector2(0.5f, 0.5f), Vector2.zero, 14f).GetComponent<Image>();
+            var crosshair = UiImage("Crosshair", parent, UiKit.Art("circle"), new Color(1f, 1f, 1f, 0.9f), new Vector2(0.5f, 0.5f), Vector2.zero, 14f).GetComponent<Image>();
 
-            var cameraButton = UiImage("Camera Button", parent, null, new Color(0f, 0f, 0f, 0.35f), new Vector2(0.5f, 1f), new Vector2(0f, -60f), 70f);
+            // The camera button: a dark pill with a camera on it.
+            var cameraButton = UiImage("Camera Button", parent, UiKit.Art("pill"), dark, new Vector2(0.5f, 1f), new Vector2(0f, -60f), 70f);
+            cameraButton.GetComponent<Image>().type = Image.Type.Sliced;
             cameraButton.sizeDelta = new Vector2(420f, 70f);
-            var cameraLabel = UiText("Label", cameraButton, font, "V  camera: Shoulder", 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 70f));
+            UiImage("Icon", cameraButton, UiKit.Art("icon_camera"), new Color(1f, 1f, 1f, 0.8f), new Vector2(0f, 0.5f), new Vector2(42f, 0f), 40f);
+            var cameraLabel = UiText("Label", cameraButton, font, "V  camera: Shoulder", 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(18f, 0f), new Vector2(360f, 70f));
 
             var resources = UiText("Resources", parent, font, "Coins 0   ·   Samples 0", 34, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(255f, -140f), new Vector2(400f, 50f));
             var level = UiText("Level", parent, font, "Level 1", 24, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(365f, -190f), new Vector2(620f, 60f));
@@ -279,18 +288,12 @@ namespace Shrunk.EditorTools
             prompt.color = new Color(1f, 0.95f, 0.7f);
 
             // Hero power: above the right thumb. On PC it stays on screen as the meter.
-            var power = UiImage("Power Button", parent, knob, white, new Vector2(1f, 0f), new Vector2(-190f, 440f), 180f);
-            var powerFill = UiImage("Meter", power, knob, new Color(1f, 0.8f, 0.2f, 0.7f), new Vector2(0.5f, 0.5f), Vector2.zero, 180f).GetComponent<Image>();
-            powerFill.type = Image.Type.Filled;
-            powerFill.fillMethod = Image.FillMethod.Radial360;
-            powerFill.fillOrigin = (int)Image.Origin360.Top;
+            var power = RoundButton("Power Button", parent, new Vector2(1f, 0f), new Vector2(-190f, 440f), 180f, "icon_power", "POWER", UiKit.Gold, font, out var powerFill, out var powerLabel);
             powerFill.fillAmount = 0f;
-            var powerLabel = UiText("Label", power, font, "POWER", 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(180f, 80f));
 
             // Use: above the aim stick, and only there while something can be used.
-            var use = UiImage("Use Button", parent, knob, new Color(1f, 0.95f, 0.7f, 0.35f), new Vector2(1f, 0f), new Vector2(-470f, 560f), 160f);
-            var useLabel = UiText("Label", use, font, "USE", 34, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(160f, 60f));
-            useLabel.color = Color.white;
+            var use = RoundButton("Use Button", parent, new Vector2(1f, 0f), new Vector2(-470f, 560f), 160f, "icon_use", "USE", UiKit.Cream, font, out var useRing, out var useLabel);
+            useRing.fillAmount = 1f;
             use.gameObject.SetActive(false);
 
             var touch = canvasGo.AddComponent<TouchControls>();
@@ -320,16 +323,22 @@ namespace Shrunk.EditorTools
             canvasGo.AddComponent<PauseMenu>();
 
             // Boss health bar, under the camera label.
-            var bossBar = UiImage("Boss Bar", parent, null, new Color(0f, 0f, 0f, 0.55f), new Vector2(0.5f, 1f), new Vector2(0f, -185f), 30f);
+            var bossBar = UiImage("Boss Bar", parent, UiKit.Art("pill"), new Color(0.03f, 0.04f, 0.07f, 0.75f), new Vector2(0.5f, 1f), new Vector2(0f, -185f), 30f);
+            bossBar.GetComponent<Image>().type = Image.Type.Sliced;
+            bossBar.GetComponent<Image>().pixelsPerUnitMultiplier = 2f;
             bossBar.sizeDelta = new Vector2(900f, 34f);
-            var bossFill = UiImage("Fill", bossBar, null, new Color(0.85f, 0.2f, 0.15f, 1f), new Vector2(0.5f, 0.5f), Vector2.zero, 30f);
+            var bossFill = UiImage("Fill", bossBar, UiKit.Art("pill"), UiKit.Coral, new Vector2(0.5f, 0.5f), Vector2.zero, 30f);
+            bossFill.GetComponent<Image>().type = Image.Type.Sliced;
+            bossFill.GetComponent<Image>().pixelsPerUnitMultiplier = 2.6f;
             bossFill.sizeDelta = new Vector2(892f, 26f);
             // A plain block pinned to the left end of the bar; the HUD shrinks its width as the boss loses health.
             bossFill.pivot = new Vector2(0f, 0.5f);
             bossFill.anchorMin = bossFill.anchorMax = new Vector2(0f, 0.5f);
             bossFill.anchoredPosition = new Vector2(4f, 0f);
             var bossFillImage = bossFill.GetComponent<Image>();
-            hud.bossName = UiText("Name", bossBar, font, "Boss", 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0f, 38f), new Vector2(900f, 40f));
+            hud.bossName = UiText("Name", bossBar, font, "Boss", 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0f, 40f), new Vector2(900f, 40f));
+            hud.bossName.fontStyle = FontStyle.Bold;
+            hud.bossName.color = new Color(1f, 0.86f, 0.75f);
             hud.bossBar = bossBar.gameObject;
             hud.bossFill = bossFillImage;
             bossBar.gameObject.SetActive(false);
@@ -384,11 +393,27 @@ namespace Shrunk.EditorTools
             text.raycastTarget = false;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
             text.verticalOverflow = VerticalWrapMode.Overflow;
-            // A dark edge, so white text reads against a bright biome as well as a dark one.
-            var edge = go.AddComponent<Outline>();
-            edge.effectColor = new Color(0f, 0f, 0f, 0.75f);
-            edge.effectDistance = new Vector2(2f, -2f);
+            // A soft dark shadow under it, so white text reads against a bright biome as well as a dark one.
+            var edge = go.AddComponent<Shadow>();
+            edge.effectColor = new Color(0f, 0f, 0f, 0.7f);
+            edge.effectDistance = new Vector2(0f, -3f);
             return text;
+        }
+
+        // A round touch button: a dark disc, a faint track, a ring that fills as it gets ready, an icon and a small word.
+        static RectTransform RoundButton(string name, Transform parent, Vector2 anchor, Vector2 position, float size, string icon, string word, Color colour, Font font, out Image ring, out Text label)
+        {
+            var button = UiImage(name, parent, UiKit.Art("circle"), new Color(0.04f, 0.06f, 0.1f, 0.5f), anchor, position, size);
+            UiImage("Track", button, UiKit.Art("ring_thick"), new Color(1f, 1f, 1f, 0.12f), new Vector2(0.5f, 0.5f), Vector2.zero, size);
+            ring = UiImage("Ready Ring", button, UiKit.Art("ring_thick"), new Color(colour.r, colour.g, colour.b, 0.9f), new Vector2(0.5f, 0.5f), Vector2.zero, size).GetComponent<Image>();
+            ring.type = Image.Type.Filled;
+            ring.fillMethod = Image.FillMethod.Radial360;
+            ring.fillOrigin = (int)Image.Origin360.Top;
+            UiImage("Icon", button, UiKit.Art(icon), new Color(1f, 0.97f, 0.9f, 0.95f), new Vector2(0.5f, 0.5f), new Vector2(0f, size * 0.08f), size * 0.36f);
+            label = UiText("Label", button, font, word, Mathf.RoundToInt(size * 0.12f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0f, -size * 0.25f), new Vector2(size, 40f));
+            label.fontStyle = FontStyle.Bold;
+            label.color = UiKit.Cream;
+            return button;
         }
 
         // ---------- helpers ----------
