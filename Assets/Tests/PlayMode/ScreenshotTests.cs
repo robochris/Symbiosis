@@ -1250,7 +1250,6 @@ namespace Shrunk.Tests
             SaveSystem.Wipe();
             GameSettings.Reset();
             FloorResults.ShowInTests = true;
-            FloorResults.DelayOverride = 0.2f;
             Achievements.EverythingUnlocked = true;
             string folder = Path.Combine(Path.GetTempPath(), "shrunk-tests", "shots");
             Directory.CreateDirectory(folder);
@@ -1270,11 +1269,14 @@ namespace Shrunk.Tests
             yield return new WaitForSeconds(0.6f);
             if (floors.Boss != null) floors.Boss.Health.Kill();
             float waited = 0f;
+            while (floors.IsLocked && waited < 4f) { waited += Time.unscaledDeltaTime; yield return null; }
+            yield return new WaitForSeconds(1f);
+            FloorResults.Offer(floors, floors.Portals.Count > 0 ? floors.Portals[0] : null);
+            waited = 0f;
             while (!FloorResults.IsOpen && waited < 8f) { waited += Time.unscaledDeltaTime; yield return null; }
             yield return new WaitForSecondsRealtime(0.5f);
             yield return Screen(Path.Combine(folder, "results.png"));
             FloorResults.ShowInTests = false;
-            FloorResults.DelayOverride = -1f;
             Achievements.EverythingUnlocked = false;
             Time.timeScale = 1f;
             SaveSystem.Wipe();

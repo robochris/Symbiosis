@@ -369,7 +369,7 @@ namespace Shrunk
         void Update()
         {
             // The results screen is a menu of its own; the pause menu waits until it is gone.
-            if (FloorResults.IsOpen) return;
+            if (FloorResults.IsOpen || FloorResults.ClosedFrame == Time.frameCount) return;
             var keyboard = Keyboard.current;
             var pad = Gamepad.current;
             bool toggle = (keyboard != null && (keyboard.escapeKey.wasPressedThisFrame || keyboard.pKey.wasPressedThisFrame))

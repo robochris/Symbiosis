@@ -7,9 +7,9 @@ using UnityEngine.UI;
 namespace Shrunk
 {
     /// <summary>
-    /// The end of a world, on a screen of its own: how it went, what was found, anything new, and then a card for
-    /// each way on (home, deeper, another world). Picking a card goes there; nobody has to walk onto a portal.
-    /// The world freezes behind it. The portals are still in the room underneath, for tests and for safety.
+    /// The end of a floor, on a screen of its own: how it went, what was found, anything new, and then a card for
+    /// each way on (down, or after a world's boss: home, deeper, another world). It opens when the player uses the
+    /// hole or a portal, so the room can be walked round first; "Not yet" goes back to it. The world freezes behind it.
     /// </summary>
     public class FloorResults : MonoBehaviour
     {
@@ -19,16 +19,13 @@ namespace Shrunk
         public static bool IsOpen => _instance != null && _instance._open;
         public static FloorResults Instance => _instance;
 
-        /// <summary>For tests: how long after the last kill the screen comes up.</summary>
-        public static float DelayOverride = -1f;
-
         static FloorResults _instance;
 
         public class Choice
         {
             public string title, line;
             public Color tint;
-            public bool home;
+            public bool home, down;
             public FloorManager.BiomePortal portal;
             public RectTransform card;
             public Image ring;
@@ -49,7 +46,11 @@ namespace Shrunk
         int _selected;
         int _lastFloor;
         float _openedAt;
-        Coroutine _waiting;
+        public static int ClosedFrame = -1;
+        RectTransform _back;
+        // Where this floor started, for its own numbers.
+        float _floorTime;
+        int _floorKills, _floorSamples, _floorHits, _floorItems;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Boot()
@@ -62,7 +63,6 @@ namespace Shrunk
 
         void OnEnable()
         {
-            FloorManager.ChoicesOpened += OnChoices;
             FloorManager.FloorBuilt += OnFloorBuilt;
             Achievements.Unlocked += OnAchievement;
             Progress.LevelledUp += OnLevel;
@@ -70,7 +70,6 @@ namespace Shrunk
 
         void OnDisable()
         {
-            FloorManager.ChoicesOpened -= OnChoices;
             FloorManager.FloorBuilt -= OnFloorBuilt;
             Achievements.Unlocked -= OnAchievement;
             Progress.LevelledUp -= OnLevel;
@@ -81,7 +80,13 @@ namespace Shrunk
         void OnFloorBuilt(FloorManager floors)
         {
             if (_open) Close();
-            if (_waiting != null) { StopCoroutine(_waiting); _waiting = null; }
+            var cards = ScreenCards.Instance;
+            var player = PlayerController.Instance;
+            _floorTime = Time.time;
+            _floorKills = RunState.Kills;
+            _floorSamples = RunState.Samples;
+            _floorHits = cards != null ? cards.WorldHits : 0;
+            _floorItems = player != null && player.Items != null ? player.Items.Collected.Count : 0;
             bool arrived = floors.FloorInBiome == 1 || floors.FloorNumber < _lastFloor || _lastFloor == 0;
             _lastFloor = floors.FloorNumber;
             if (arrived) _news.Clear();
@@ -100,25 +105,33 @@ namespace Shrunk
 
         // ---------- opening ----------
 
-        void OnChoices(FloorManager floors)
+        /// <summary>
+        /// The player used a portal (null: the way home): shows the screen on that choice and says true, or says
+        /// false when the screen is off and the portal should just go.
+        /// </summary>
+        public static bool Offer(FloorManager floors, FloorManager.BiomePortal portal)
         {
-            if (!WillShow) return;
-            if (_waiting != null) StopCoroutine(_waiting);
-            _waiting = StartCoroutine(OpenSoon(floors));
+            if (!WillShow || _instance == null || floors == null) return false;
+            if (_instance._open) return true;
+            _instance.Open(floors);
+            for (int i = 0; i < _instance._choices.Count; i++)
+                if (portal == null ? _instance._choices[i].home : _instance._choices[i].portal == portal) _instance._selected = i;
+            _instance.Highlight();
+            return true;
         }
 
-        IEnumerator OpenSoon(FloorManager floors)
+        /// <summary>The player used the hole: the same screen, with the one way on.</summary>
+        public static bool OfferDown(FloorManager floors)
         {
-            // A beat to watch the boss go down, and for its cards to finish.
-            yield return new WaitForSecondsRealtime(DelayOverride >= 0f ? DelayOverride : 2.6f);
-            while (floors != null && ((ScreenCards.Instance != null && ScreenCards.Instance.CardShowing) || PauseMenu.IsOpen))
-                yield return null;
-            _waiting = null;
-            var player = PlayerController.Instance;
-            if (floors == null || player == null || player.Health.IsDead || floors.ExtractPortal == null) yield break;
-            // Nothing left lying on the floor: the boss's drop and the last coins come along.
-            Pickup.GatherForLeaving(player.transform.position, 40f);
-            Open(floors);
+            if (!WillShow || _instance == null || floors == null) return false;
+            if (_instance._open) return true;
+            var (title, line) = floors.DescribeDown();
+            _instance._floors = floors;
+            _instance._choices.Clear();
+            _instance._choices.Add(new Choice { title = title, line = line, tint = UiKit.Accent, down = true });
+            _instance._selected = 0;
+            _instance.Show();
+            return true;
         }
 
         /// <summary>Shows the screen for this floor's ways on.</summary>
@@ -136,6 +149,11 @@ namespace Shrunk
             }
             // Start on the way on, not the way home: one more world is the fun answer.
             _selected = _choices.Count > 1 ? 1 : 0;
+            Show();
+        }
+
+        void Show()
+        {
             Build();
             _open = true;
             _openedAt = Time.unscaledTime;
@@ -152,14 +170,28 @@ namespace Shrunk
             var choice = _choices[index];
             var floors = _floors;
             Close();
+            _news.Clear();
             if (floors == null) return;
+            // Nothing left lying on the floor: the boss's drop and the last coins come along.
+            var player = PlayerController.Instance;
+            if (player != null && !choice.down) Pickup.GatherForLeaving(player.transform.position, 40f);
             if (choice.home) floors.ChooseHome();
+            else if (choice.down) floors.DropDown();
             else floors.UsePortal(choice.portal);
+        }
+
+        /// <summary>Back to the room, with nothing chosen.</summary>
+        public void NotYet()
+        {
+            if (!_open) return;
+            Close();
+            Sfx.Play(SfxId.Blocked);
         }
 
         void Close()
         {
             _open = false;
+            ClosedFrame = Time.frameCount;
             if (_root != null) Destroy(_root.gameObject);
             _root = null;
             Time.timeScale = 1f;
@@ -211,37 +243,42 @@ namespace Shrunk
             UiKit.Fill(UiKit.Image(_root, "vignette", new Color(1f, 1f, 1f, 0.9f), "Vignette").rectTransform);
 
             // The heading.
-            string kicker = floors.InGauntlet ? "GAUNTLET" : biome.isBottom ? "THE BOTTOM" : floors.FloorInBiome == 10 ? "WORLD CLEARED" : "CLEARED";
+            bool worldEnd = !_choices[0].down;
+            string kicker = !worldEnd ? $"FLOOR {floors.FloorInBiome} CLEARED" : floors.InGauntlet ? "GAUNTLET" : biome.isBottom ? "THE BOTTOM" : floors.FloorInBiome == 10 ? "WORLD CLEARED" : "CLEARED";
             var k = UiKit.Label(_root, "Kicker", Spaced(kicker), 28, tint, TextAnchor.MiddleCenter, true);
             UiKit.Place(k.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -78f), new Vector2(1200f, 40f));
             Heading = biome.isBottom ? "DR. FINCH, MISPLACED" : biome.displayName.ToUpperInvariant();
             var h = UiKit.Label(_root, "Heading", Heading, 84, UiKit.Cream, TextAnchor.MiddleCenter, true);
             UiKit.Place(h.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -150f), new Vector2(1700f, 100f));
-            int hits = cards != null ? cards.WorldHits : 0;
+            int worldHits = cards != null ? cards.WorldHits : 0;
+            int hits = worldEnd ? worldHits : worldHits >= _floorHits ? worldHits - _floorHits : worldHits;
             var v = UiKit.Label(_root, "Verdict", ScreenCards.Verdict(hits), 30, UiKit.Dim, TextAnchor.MiddleCenter);
             v.fontStyle = FontStyle.Italic;
             UiKit.Place(v.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -218f), new Vector2(1400f, 40f));
 
             // Four numbers.
-            int seconds = cards != null ? Mathf.RoundToInt(cards.WorldSeconds) : 0;
+            int seconds = worldEnd ? (cards != null ? Mathf.RoundToInt(cards.WorldSeconds) : 0) : Mathf.RoundToInt(Time.time - _floorTime);
+            int kills = worldEnd ? (cards != null ? cards.WorldKills : RunState.Kills) : Mathf.Max(0, RunState.Kills - _floorKills);
+            int samples = worldEnd ? (cards != null ? cards.WorldSamples : RunState.Samples) : Mathf.Max(0, RunState.Samples - _floorSamples);
             Stat(0, $"{seconds / 60}:{seconds % 60:00}", "TIME");
-            Stat(1, (cards != null ? cards.WorldKills : RunState.Kills).ToString(), "KILLS");
+            Stat(1, kills.ToString(), "KILLS");
             Stat(2, hits.ToString(), "HITS TAKEN");
-            Stat(3, "+" + (cards != null ? cards.WorldSamples : RunState.Samples), "SAMPLES");
+            Stat(3, "+" + samples, "SAMPLES");
 
             // What was found this world, on the left; anything new, on the right.
             var found = new List<ItemDefinition>();
             if (player != null && player.Items != null)
             {
                 var all = player.Items.Collected;
-                for (int i = cards != null ? cards.WorldItemsFrom : 0; i < all.Count; i++) found.Add(all[i]);
+                int from = worldEnd ? (cards != null ? cards.WorldItemsFrom : 0) : Mathf.Min(_floorItems, all.Count);
+                for (int i = from; i < all.Count; i++) found.Add(all[i]);
             }
             bool news = _news.Count > 0;
             float leftX = news ? -430f : 0f;
             Section("Found", $"FOUND  ·  {found.Count}", new Vector2(leftX, -430f));
             if (found.Count == 0)
             {
-                var none = UiKit.Label(_root, "Nothing", "Nothing this time. The next world owes you one.", 28, UiKit.Dim);
+                var none = UiKit.Label(_root, "Nothing", worldEnd ? "Nothing this time. The next world owes you one." : "Nothing on this floor.", 28, UiKit.Dim);
                 UiKit.Place(none.rectTransform, new Vector2(0.5f, 1f), new Vector2(leftX, -505f), new Vector2(820f, 40f));
             }
             else
@@ -277,8 +314,16 @@ namespace Shrunk
             }
 
             bool touch = Touchscreen.current != null && Application.isMobilePlatform;
-            var hint = UiKit.Label(_root, "Hint", touch ? "Tap a card" : "Click a card  ·  or ← →  and  Enter", 24, new Color(1f, 1f, 1f, 0.45f));
+            var hint = UiKit.Label(_root, "Hint", touch ? "Tap a card" : "Click a card  ·  or ← →  and  Enter  ·  Esc: not yet", 24, new Color(1f, 1f, 1f, 0.45f));
             UiKit.Place(hint.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 44f), new Vector2(1200f, 34f));
+
+            // Back to the room: to pick up the boss's drop, shop, or look round once more.
+            _back = UiKit.Panel(_root, "Not Yet", new Color(1f, 1f, 1f, 0.1f));
+            var backImage = _back.GetComponent<Image>();
+            if (backImage != null) { backImage.sprite = UiKit.Art("pill"); backImage.type = Image.Type.Sliced; }
+            UiKit.Place(_back, new Vector2(0f, 0f), new Vector2(200f, 60f), new Vector2(300f, 76f));
+            var backLabel = UiKit.Label(_back, "Label", "NOT YET", 28, UiKit.Cream, TextAnchor.MiddleCenter, true);
+            UiKit.Fill(backLabel.rectTransform);
         }
 
         static string Spaced(string text) => string.Join(" ", text.ToCharArray()).Replace("   ", "     ");
@@ -368,12 +413,14 @@ namespace Shrunk
                 if (keyboard.leftArrowKey.wasPressedThisFrame || keyboard.aKey.wasPressedThisFrame) move--;
                 if (keyboard.rightArrowKey.wasPressedThisFrame || keyboard.dKey.wasPressedThisFrame) move++;
                 confirm |= keyboard.enterKey.wasPressedThisFrame || keyboard.spaceKey.wasPressedThisFrame || keyboard.eKey.wasPressedThisFrame;
+                if (keyboard.escapeKey.wasPressedThisFrame || keyboard.backspaceKey.wasPressedThisFrame) { NotYet(); return; }
             }
             if (pad != null)
             {
                 if (pad.dpad.left.wasPressedThisFrame) move--;
                 if (pad.dpad.right.wasPressedThisFrame) move++;
                 confirm |= pad.buttonSouth.wasPressedThisFrame;
+                if (pad.buttonEast.wasPressedThisFrame || pad.startButton.wasPressedThisFrame) { NotYet(); return; }
             }
             if (move != 0)
             {
@@ -393,6 +440,11 @@ namespace Shrunk
             var screen = Touchscreen.current;
             if (screen != null && screen.primaryTouch.press.wasPressedThisFrame) press = screen.primaryTouch.position.ReadValue();
             Vector2? hover = mouse != null ? mouse.position.ReadValue() : (Vector2?)null;
+            if (press.HasValue && _back != null && RectTransformUtility.RectangleContainsScreenPoint(_back, press.Value, null))
+            {
+                NotYet();
+                return;
+            }
             for (int i = 0; i < _choices.Count; i++)
             {
                 var card = _choices[i].card;

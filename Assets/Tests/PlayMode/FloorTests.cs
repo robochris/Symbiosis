@@ -224,6 +224,44 @@ namespace Shrunk.Tests
             Assert.AreEqual(21, _floors.FloorsBuilt);
         }
 
+        [UnityTest]
+        public IEnumerator The_hole_opens_a_results_screen_and_its_card_drops_to_the_next_floor()
+        {
+            FloorResults.ShowInTests = true;
+            try
+            {
+                _player.Health.SetInvulnerable(600f);
+                int floor = _floors.FloorNumber;
+                yield return FightRoom(_floors.Layout.exit);
+                Room exitRoom = _floors.RoomAt(_floors.Layout.exit.cell);
+                Assert.IsTrue(exitRoom.ExitHole.activeSelf, "an ordinary floor should end in a hole");
+                Assert.IsNull(_floors.ExtractPortal, "an ordinary floor should not end in portals");
+                yield return new WaitForSeconds(0.3f);
+                Assert.IsFalse(FloorResults.IsOpen, "the results came up before the hole was used");
+
+                _player.Teleport(OffTheHole(exitRoom) + Vector3.up * 0.05f);
+                yield return null;
+                yield return null;
+                _player.Teleport(exitRoom.ExitHole.transform.position + Vector3.up * 0.05f);
+                yield return WaitUntil(() => FloorResults.IsOpen, 2f, "the results screen at the hole");
+                var results = FloorResults.Instance;
+                Assert.AreEqual(1, results.Choices.Count, "the hole has one way on");
+                Assert.IsTrue(results.Choices[0].down);
+                StringAssert.Contains("FLOOR", results.Choices[0].title);
+                Assert.AreEqual(0f, Time.timeScale);
+                Assert.AreEqual(floor, _floors.FloorNumber);
+
+                results.Choose(0);
+                Assert.AreEqual(1f, Time.timeScale);
+                yield return WaitUntil(() => _floors.FloorNumber == floor + 1, 2f, "the next floor");
+            }
+            finally
+            {
+                FloorResults.ShowInTests = false;
+                Time.timeScale = 1f;
+            }
+        }
+
         // A clear spot in the room that is well off the exit hole: the corner of the 3Ã—3 clear middle.
         static Vector3 OffTheHole(Room room) => room.Centre + new Vector3(RoomShape.TileSize, 0f, RoomShape.TileSize);
 

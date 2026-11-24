@@ -27,7 +27,6 @@ namespace Shrunk.Tests
             ScreenCards.TitleSeen = false;
             Achievements.EverythingUnlocked = false;
             FloorResults.ShowInTests = false;
-            FloorResults.DelayOverride = -1f;
         }
 
         [UnityTest]
@@ -478,13 +477,34 @@ namespace Shrunk.Tests
         public IEnumerator A_world_ends_on_a_results_screen_and_a_card_picks_where_next()
         {
             FloorResults.ShowInTests = true;
-            FloorResults.DelayOverride = 0.2f;
             yield return Load("Run");
             Floors.BuildFloor(10);
             yield return null;
             int itemsBefore = Player.Items.Collected.Count;
             yield return KillTheBoss();
-            yield return WaitUntil(() => FloorResults.IsOpen, 6f, "the results screen");
+
+            // Nothing comes up on its own: the room stays open for the drop, a look round, the shop.
+            yield return new WaitForSeconds(3f);
+            Assert.IsFalse(FloorResults.IsOpen, "the results came up before a portal was used");
+            Assert.AreEqual(10, Floors.FloorNumber);
+
+            // The way home, then "not yet": back in the room, nothing chosen.
+            StepOnto(Floors.ExtractPortal.transform.position);
+            yield return WaitUntil(() => FloorResults.IsOpen, 2f, "the results screen from the way home");
+            Assert.IsTrue(FloorResults.Instance.Choices[FloorResults.Instance.Selected].home, "it should open on the portal that was used");
+            FloorResults.Instance.NotYet();
+            Assert.IsFalse(FloorResults.IsOpen);
+            Assert.AreEqual(1f, Time.timeScale);
+            yield return null;
+            Assert.AreEqual(10, Floors.FloorNumber, "not yet should leave the player in the room");
+            Assert.AreEqual("Run", SceneManager.GetActiveScene().name);
+            Player.Teleport(Floors.ArenaCentre + new Vector3(0f, 0.05f, -9f));
+            yield return null;
+            yield return null;
+
+            // The deeper portal opens it on the way on.
+            StepOnto(Floors.DeeperPortal.transform.position);
+            yield return WaitUntil(() => FloorResults.IsOpen, 2f, "the results screen");
 
             var results = FloorResults.Instance;
             Assert.AreEqual(0f, Time.timeScale, "the world should hold still behind the results");
@@ -494,12 +514,12 @@ namespace Shrunk.Tests
             Assert.AreEqual(Floors.Portals.Count + 1, results.Choices.Count, "a card for every way on");
             Assert.AreEqual("DEEPER", results.Choices[1].title);
             StringAssert.Contains("depth 2", results.Choices[1].line);
-            Assert.AreEqual(1, results.Selected, "it should start on the way on");
-            // The Queen's drop came along without a walk to it.
-            Assert.Greater(Player.Items.Collected.Count, itemsBefore, "the boss item was left on the floor");
+            Assert.AreEqual(1, results.Selected, "it should open on the portal that was used");
 
             // Pick "deeper" from the screen: the next world, one deeper, and the world moving again.
             results.Choose(1);
+            // The Queen's drop came along without a walk to it.
+            Assert.Greater(Player.Items.Collected.Count, itemsBefore, "the boss item was left on the floor");
             Assert.IsFalse(FloorResults.IsOpen);
             Assert.AreEqual(1f, Time.timeScale);
             yield return WaitUntil(() => Floors.FloorNumber == 11, 2f, "the next world");

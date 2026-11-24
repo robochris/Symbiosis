@@ -777,14 +777,18 @@ namespace Shrunk
             if (IsLocked && AllDead()) Clear();
 
             // The portal room: after a biome boss the player chooses to go home or push on.
+            // Using any of them opens the results screen, on that choice; the room stays open until then, for the
+            // boss's drop, a last look round, or a walk back to the shop.
             if (ExtractPortal != null && _extractPad.SteppedOn(ExtractPortal.transform.position, position))
             {
+                if (FloorResults.Offer(this, null)) return;
                 ExtractChosen?.Invoke();
                 return;
             }
             foreach (var portal in _portals)
             {
                 if (!portal.pad.SteppedOn(portal.gate.transform.position, position)) continue;
+                if (FloorResults.Offer(this, portal)) return;
                 UsePortal(portal);
                 return;
             }
@@ -799,8 +803,8 @@ namespace Shrunk
                 _exitPad.radius = exitRadius;
                 if (_exitPad.SteppedOn(room.ExitHole.transform.position, position))
                 {
-                    Pickup.SweepUp(room.ExitHole.transform.position, 9f);
-                    BuildFloor(NextFloorNumber());
+                    if (FloorResults.OfferDown(this)) return;
+                    DropDown();
                 }
             }
         }
@@ -1128,6 +1132,22 @@ namespace Shrunk
             }
             depth++;
             BuildFloor(FloorNumber + 1);
+        }
+
+        /// <summary>Down the hole to the next floor, picking up what lies around it.</summary>
+        public void DropDown()
+        {
+            Room exit = Layout != null && _rooms.TryGetValue(Layout.exit.cell, out var r) ? r : CurrentRoom;
+            if (exit != null && exit.ExitHole != null) Pickup.SweepUp(exit.ExitHole.transform.position, 9f);
+            BuildFloor(NextFloorNumber());
+        }
+
+        /// <summary>The floor the hole leads to, for a menu: a name and a line under it.</summary>
+        public (string title, string line) DescribeDown()
+        {
+            int next = NextFloorNumber();
+            bool boss = FloorLayout.IsBossFloor(next);
+            return ($"FLOOR {FloorLayout.FloorOfBiome(next)}", boss ? "Down the hole. Something big is waiting." : "Down the hole");
         }
 
         /// <summary>Goes home, as if the player had stepped into the way home.</summary>
